@@ -660,7 +660,7 @@ async function renderDashboard() {
       </div>`).join('');
 
   const popEl = document.getElementById('popularProducts');
-  const pop = [...products].reverse().slice(0, 5);
+  const pop = products.slice(0, 5);
   popEl.innerHTML = pop.map(p => `
     <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid rgba(41,182,246,0.08);font-size:0.85rem">
       <div style="color:var(--white);font-weight:700">${p.name}</div>
@@ -671,11 +671,10 @@ async function renderDashboard() {
 // ── PRODUCTS ──
 async function renderProducts() {
   const products = await Products.getAll();
-  const reversedProducts = [...products].reverse();
   const el = document.getElementById('productTableBody');
   document.getElementById('productCountLabel').textContent = `${products.length} produk terdaftar`;
 
-  el.innerHTML = reversedProducts.map(p => `
+  el.innerHTML = products.map(p => `
     <tr>
       <td><div class="td-thumb">${p.image ? `<img src="${p.image}" style="width:48px;height:48px;object-fit:cover;border-radius:8px" onerror="this.parentElement.textContent='🛍️'">` : '🛍️'}</div></td>
       <td class="td-name">${p.name}</td>
