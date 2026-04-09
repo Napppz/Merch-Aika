@@ -339,7 +339,7 @@
   </nav>
   <div class="sidebar-footer">
     <a href="../index.html" target="_blank">🌐 Lihat Toko</a>
-    <a href="login.html" onclick="sessionStorage.removeItem('aika_admin')" style="margin-top:0.8rem">🚪 Keluar</a>
+    <a href="login.html" onclick="localStorage.removeItem('aika_admin')" style="margin-top:0.8rem">🚪 Keluar</a>
   </div>
 </aside>
 
@@ -587,7 +587,7 @@ function toggleMobileMenu() {
 }
 
 // ── AUTH CHECK ──
-if (sessionStorage.getItem('aika_admin') !== 'true') {
+if (localStorage.getItem('aika_admin') !== 'true') {
   window.location.href = 'login.html';
 }
 
