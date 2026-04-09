@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Admin — Aika Sesilia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    body { display: flex; min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .admin-sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      background: rgba(7,26,62,0.95);
+      border-right: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      padding: 2rem 0;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+    }
+    .sidebar-brand {
+      padding: 0 1.5rem 2rem;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 1rem;
+    }
+    .sidebar-brand .logo { font-size: 1.5rem; color: var(--aqua); font-family: var(--font-display); }
+    .sidebar-brand p { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .sidebar-nav { flex: 1; padding: 0 1rem; }
+    .sidebar-nav a {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.8rem 1rem;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: var(--transition);
+      margin-bottom: 0.3rem;
+    }
+    .sidebar-nav a:hover, .sidebar-nav a.active {
+      background: var(--card-bg);
+      color: var(--aqua);
+      border: 1px solid var(--card-border);
+    }
+    .sidebar-nav a span.nav-icon { font-size: 1.1rem; }
+    .sidebar-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--card-border); }
+    .sidebar-footer a {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: var(--transition);
+    }
+    .sidebar-footer a:hover { color: #fc8181; }
+
+    /* ── MAIN ── */
+    .admin-main {
+      margin-left: 260px;
+      flex: 1;
+      padding: 2.5rem;
+      max-width: calc(100% - 260px);
+    }
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2.5rem;
+    }
+    .admin-header h1 { font-family: var(--font-display); font-size: 1.6rem; color: var(--white); }
+    .admin-header p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.2rem; }
+
+    /* ── STATS ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      backdrop-filter: blur(10px);
+      transition: var(--transition);
+    }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-blue); }
+    .stat-card .stat-icon { font-size: 2rem; margin-bottom: 0.8rem; }
+    .stat-card .stat-value { font-family: var(--font-display); font-size: 1.8rem; color: var(--aqua); }
+    .stat-card .stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+    /* ── TABS ── */
+    .admin-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0;
+    }
+    .admin-tab {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 0.8rem 1.5rem;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: var(--transition);
+      margin-bottom: -1px;
+    }
+    .admin-tab:hover { color: var(--aqua); }
+    .admin-tab.active { color: var(--aqua); border-bottom-color: var(--aqua); }
+
+    /* ── SECTION ── */
+    .admin-section { display: none; }
+    .admin-section.active { display: block; }
+
+    /* ── PRODUCT TABLE ── */
+    .admin-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .admin-toolbar h2 { font-family: var(--font-display); font-size: 1.1rem; color: var(--white); }
+    .products-table-wrap {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      background: rgba(3,9,31,0.6);
+      padding: 1rem 1.2rem;
+      text-align: left;
+      font-size: 0.8rem;
+      color: var(--aqua);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--card-border);
+    }
+    td {
+      padding: 1rem 1.2rem;
+      border-bottom: 1px solid rgba(41,182,246,0.08);
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      vertical-align: middle;
+    }
+    tr:last-child td { border: none; }
+    tr:hover td { background: rgba(41,182,246,0.04); }
+    .td-name { color: var(--white); font-weight: 700; }
+    .td-price { color: var(--aqua); font-weight: 700; }
+    .td-thumb {
+      width: 48px; height: 48px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: var(--ocean-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      border: 1px solid var(--card-border);
+    }
+    .badge-cat {
+      background: rgba(41,182,246,0.15);
+      color: var(--aqua);
+      border: 1px solid rgba(41,182,246,0.3);
+      padding: 2px 10px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .action-btns { display: flex; gap: 0.5rem; }
+    .btn-edit {
+      background: rgba(41,182,246,0.15);
+      border: 1px solid rgba(41,182,246,0.3);
+      color: var(--aqua);
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-family: var(--font-body);
+      font-weight: 700;
+      transition: var(--transition);
+    }
+    .btn-edit:hover { background: rgba(41,182,246,0.3); }
+    .btn-del {
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: #fc8181;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-family: var(--font-body);
+      font-weight: 700;
+      transition: var(--transition);
+    }
+    .btn-del:hover { background: rgba(239,68,68,0.3); }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: var(--transition);
+    }
+    .modal-overlay.show { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--midnight-blue);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      width: 600px;
+      max-width: 95vw;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: scale(0.95);
+      transition: var(--transition);
+    }
+    .modal-overlay.show .modal { transform: scale(1); }
+    .modal h2 { font-family: var(--font-display); color: var(--white); margin-bottom: 1.5rem; font-size: 1.2rem; }
+    .modal-footer { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; }
+    
+    /* IMAGE UPLOAD */
+    .img-upload-area {
+      border: 2px dashed var(--card-border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+    }
+    .img-upload-area:hover { border-color: var(--aqua); background: rgba(41,182,246,0.05); }
+    .img-upload-area input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    .img-preview {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      margin-top: 1rem;
+      display: none;
+    }
+    .upload-icon { font-size: 2.5rem; color: var(--aqua); opacity: 0.5; }
+    .upload-text { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem; }
+
+    /* ── ORDERS ── */
+    .status-badge {
+      padding: 3px 12px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .status-paid { background: rgba(34,197,94,0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+    .status-pending { background: rgba(234,179,8,0.15); color: #fde047; border: 1px solid rgba(234,179,8,0.3); }
+    .status-cancelled { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+    .status-processing { background: rgba(41,182,246,0.15); color: var(--aqua); border: 1px solid rgba(41,182,246,0.3); }
+
+    @media (max-width: 900px) {
+      .admin-sidebar { display: none; }
+      .admin-main { margin-left: 0; max-width: 100%; padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="admin-sidebar">
+  <div class="sidebar-brand">
+    <div class="logo">✦ Aika Admin</div>
+    <p>Management Panel</p>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="#" onclick="showTab('dashboard')" class="active" id="nav-dashboard">
+      <span class="nav-icon">📊</span> Dashboard
+    </a>
+    <a href="#" onclick="showTab('products')" id="nav-products">
+      <span class="nav-icon">🛍️</span> Produk
+    </a>
+    <a href="#" onclick="showTab('orders')" id="nav-orders">
+      <span class="nav-icon">📦</span> Pesanan
+    </a>
+    <a href="#" onclick="showTab('settings')" id="nav-settings">
+      <span class="nav-icon">⚙️</span> Pengaturan
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="../index.html" target="_blank">🌐 Lihat Toko</a>
+    <a href="login.html" onclick="sessionStorage.removeItem('aika_admin')" style="margin-top:0.8rem">🚪 Keluar</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="admin-main">
+
+  <!-- ── DASHBOARD ── -->
+  <section class="admin-section active" id="tab-dashboard">
+    <div class="admin-header">
+      <div>
+        <h1>Dashboard</h1>
+        <p>Selamat datang kembali, Aika! 💙</p>
+      </div>
+      <div id="dashDate" style="color:var(--text-muted);font-size:0.85rem;text-align:right"></div>
+    </div>
+
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+      <div class="products-table-wrap" style="padding:1.5rem">
+        <h3 style="font-family:var(--font-display);color:var(--white);margin-bottom:1rem;font-size:1rem">📦 Pesanan Terbaru</h3>
+        <div id="recentOrders"></div>
+      </div>
+      <div class="products-table-wrap" style="padding:1.5rem">
+        <h3 style="font-family:var(--font-display);color:var(--white);margin-bottom:1rem;font-size:1rem">🔥 Produk Populer</h3>
+        <div id="popularProducts"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PRODUCTS ── -->
+  <section class="admin-section" id="tab-products">
+    <div class="admin-toolbar">
+      <div>
+        <h2>🛍️ Manajemen Produk</h2>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin-top:0.2rem" id="productCountLabel"></p>
+      </div>
+      <button class="btn-primary" onclick="openProductModal()">+ Tambah Produk</button>
+    </div>
+    <div class="products-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Foto</th>
+            <th>Nama Produk</th>
+            <th>Kategori</th>
+            <th>Harga</th>
+            <th>Stok</th>
+            <th>Badge</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="productTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── ORDERS ── -->
+  <section class="admin-section" id="tab-orders">
+    <div class="admin-toolbar">
+      <div>
+        <h2>📦 Manajemen Pesanan</h2>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin-top:0.2rem" id="orderCountLabel"></p>
+      </div>
+      <select onchange="filterOrders(this.value)" style="background:var(--card-bg);border:1px solid var(--card-border);color:var(--white);padding:0.6rem 1rem;border-radius:8px;font-family:var(--font-body)">
+        <option value="all">Semua Status</option>
+        <option value="paid">Dibayar</option>
+        <option value="pending">Pending</option>
+        <option value="processing">Diproses</option>
+      </select>
+    </div>
+    <div class="products-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Produk</th>
+            <th>Total</th>
+            <th>Pengiriman</th>
+            <th>Status</th>
+            <th>Tanggal</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="orderTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── SETTINGS ── -->
+  <section class="admin-section" id="tab-settings">
+    <div class="admin-header"><div><h1>⚙️ Pengaturan</h1><p>Konfigurasi toko Anda</p></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;max-width:900px">
+      <div class="stat-card">
+        <h3 style="font-family:var(--font-display);color:var(--white);font-size:1rem;margin-bottom:1.5rem">🔑 Midtrans API</h3>
+        <div class="form-group">
+          <label>Server Key (Backend)</label>
+          <input type="password" placeholder="SB-Mid-server-xxxx" id="midtransServerKey" />
+        </div>
+        <div class="form-group">
+          <label>Client Key (Frontend)</label>
+          <input type="text" placeholder="SB-Mid-client-xxxx" id="midtransClientKey" />
+        </div>
+        <div class="form-group">
+          <label>Environment</label>
+          <select id="midtransEnv">
+            <option value="sandbox">Sandbox (Testing)</option>
+            <option value="production">Production</option>
+          </select>
+        </div>
+        <button class="btn-primary" onclick="saveMidtransConfig()">Simpan Konfigurasi</button>
+      </div>
+      <div class="stat-card">
+        <h3 style="font-family:var(--font-display);color:var(--white);font-size:1rem;margin-bottom:1.5rem">🏪 Info Toko</h3>
+        <div class="form-group">
+          <label>Nama Toko</label>
+          <input type="text" value="Aika Sesilia Official Store" />
+        </div>
+        <div class="form-group">
+          <label>Email Toko</label>
+          <input type="email" value="hello@aikasesilia.com" />
+        </div>
+        <div class="form-group">
+          <label>No. WhatsApp</label>
+          <input type="text" placeholder="628xxxxxxxxx" />
+        </div>
+        <div class="form-group">
+          <label>Instagram</label>
+          <input type="text" placeholder="@aikasesilia" />
+        </div>
+        <button class="btn-primary" onclick="showToast('✓ Pengaturan disimpan!')">Simpan</button>
+      </div>
+      <div class="stat-card" style="grid-column:1/-1">
+        <h3 style="font-family:var(--font-display);color:var(--white);font-size:1rem;margin-bottom:1rem">🗑 Data Management</h3>
+        <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1rem">Kelola data toko. Hati-hati: tindakan ini tidak dapat dibatalkan!</p>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap">
+          <button class="btn-secondary" onclick="if(confirm('Reset semua produk ke demo?')){localStorage.removeItem('aika_products');location.reload()}">Reset Produk Demo</button>
+          <button class="btn-secondary" onclick="if(confirm('Hapus semua pesanan?')){localStorage.removeItem('aika_orders');location.reload()}">Hapus Semua Pesanan</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- PRODUCT MODAL -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <h2 id="modalTitle">Tambah Produk Baru</h2>
+    <input type="hidden" id="editProductId" />
+
+    <div class="form-group">
+      <label>Foto Produk</label>
+      <div class="img-upload-area">
+        <input type="file" id="productImageFile" accept="image/*" onchange="previewImage(this)" />
+        <div class="upload-icon">📷</div>
+        <div class="upload-text">Klik atau drag foto produk di sini<br><small>JPG, PNG, WebP — Maks 5MB</small></div>
+        <img id="imagePreview" class="img-preview" alt="Preview" />
+      </div>
+      <input type="hidden" id="productImage" />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nama Produk *</label>
+        <input type="text" id="productName" placeholder="Nama produk..." />
+      </div>
+      <div class="form-group">
+        <label>Kategori *</label>
+        <select id="productCategory">
+          <option>Pakaian</option>
+          <option>Aksesoris</option>
+          <option>Foto & Print</option>
+          <option>Stiker</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Deskripsi</label>
+      <input type="text" id="productDesc" placeholder="Deskripsi singkat produk..." />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Harga (Rp) *</label>
+        <input type="number" id="productPrice" placeholder="150000" min="0" />
+      </div>
+      <div class="form-group">
+        <label>Harga Coret (Rp)</label>
+        <input type="number" id="productOldPrice" placeholder="200000 (opsional)" min="0" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Stok</label>
+        <input type="number" id="productStock" placeholder="10" min="0" value="10" />
+      </div>
+      <div class="form-group">
+        <label>Badge Label</label>
+        <select id="productBadge">
+          <option value="">Tanpa Badge</option>
+          <option>Baru</option>
+          <option>Terlaris</option>
+          <option>Limited</option>
+          <option>Eksklusif</option>
+          <option>Sale</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal()">Batal</button>
+      <button class="btn-primary" onclick="saveProduct()">💾 Simpan Produk</button>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER DETAIL MODAL -->
+<div class="modal-overlay" id="orderModal">
+  <div class="modal">
+    <h2>📦 Detail Pesanan</h2>
+    <div id="orderDetailContent"></div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeOrderModal()">Tutup</button>
+      <button class="btn-primary" id="markPaidBtn">✅ Tandai Dibayar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── AUTH CHECK ──
+if (sessionStorage.getItem('aika_admin') !== 'true') {
+  window.location.href = 'login.html';
+}
+
+// ── DATA HELPERS (same as main.js, inline for admin) ──
+const Products = {
+  getAll() {
+    const s = localStorage.getItem('aika_products');
+    if (!s) return [];
+    return JSON.parse(s);
+  },
+  save(p) { localStorage.setItem('aika_products', JSON.stringify(p)); },
+  add(p) { const all = this.getAll(); p.id = 'p' + Date.now(); all.push(p); this.save(all); return p; },
+  update(id, data) { const all = this.getAll(); const i = all.findIndex(p => p.id === id); if (i !== -1) { all[i] = {...all[i], ...data}; this.save(all); } },
+  delete(id) { this.save(this.getAll().filter(p => p.id !== id)); },
+  get(id) { return this.getAll().find(p => p.id === id); }
+};
+const Orders = {
+  getAll() { return JSON.parse(localStorage.getItem('aika_orders') || '[]'); },
+  save(o) { localStorage.setItem('aika_orders', JSON.stringify(o)); },
+  update(id, data) { const all = this.getAll(); const i = all.findIndex(o => o.id === id); if (i !== -1) { all[i] = {...all[i], ...data}; this.save(all); } }
+};
+function formatPrice(n) { return 'Rp ' + (n||0).toLocaleString('id-ID'); }
+function showToast(msg) {
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t); requestAnimationFrame(() => t.classList.add('show'));
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3000);
+}
+
+// ── TABS ──
+function showTab(tab) {
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('nav-' + tab).classList.add('active');
+  if (tab === 'dashboard') renderDashboard();
+  if (tab === 'products') renderProducts();
+  if (tab === 'orders') renderOrders('all');
+}
+
+// ── DASHBOARD ──
+function renderDashboard() {
+  const orders = Orders.getAll();
+  const products = Products.getAll();
+  const paid = orders.filter(o => o.status === 'paid');
+  const revenue = paid.reduce((s, o) => s + (o.total || 0), 0);
+
+  document.getElementById('dashDate').innerHTML = `📅 ${new Date().toLocaleDateString('id-ID', {weekday:'long',year:'numeric',month:'long',day:'numeric'})}`;
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-value">${formatPrice(revenue)}</div><div class="stat-label">Total Pendapatan</div></div>
+    <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-value">${orders.length}</div><div class="stat-label">Total Pesanan</div></div>
+    <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-value">${paid.length}</div><div class="stat-label">Pesanan Dibayar</div></div>
+    <div class="stat-card"><div class="stat-icon">🛍️</div><div class="stat-value">${products.length}</div><div class="stat-label">Total Produk</div></div>
+  `;
+
+  const recentEl = document.getElementById('recentOrders');
+  const recent = [...orders].reverse().slice(0, 5);
+  recentEl.innerHTML = recent.length === 0 ? '<p style="color:var(--text-muted);font-size:0.85rem">Belum ada pesanan.</p>' :
+    recent.map(o => `
+      <div style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid rgba(41,182,246,0.08);font-size:0.85rem">
+        <div><div style="color:var(--white);font-weight:700">${o.id}</div><div style="color:var(--text-muted)">${o.customerName}</div></div>
+        <div style="text-align:right"><div style="color:var(--aqua)">${formatPrice(o.total)}</div>${statusBadge(o.status)}</div>
+      </div>`).join('');
+
+  const popEl = document.getElementById('popularProducts');
+  const pop = products.slice(0, 5);
+  popEl.innerHTML = pop.map(p => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid rgba(41,182,246,0.08);font-size:0.85rem">
+      <div style="color:var(--white);font-weight:700">${p.name}</div>
+      <div style="color:var(--aqua)">${formatPrice(p.price)}</div>
+    </div>`).join('');
+}
+
+// ── PRODUCTS ──
+function renderProducts() {
+  const products = Products.getAll();
+  const el = document.getElementById('productTableBody');
+  document.getElementById('productCountLabel').textContent = `${products.length} produk terdaftar`;
+
+  el.innerHTML = products.map(p => `
+    <tr>
+      <td><div class="td-thumb">${p.image ? `<img src="${p.image}" style="width:48px;height:48px;object-fit:cover;border-radius:8px" onerror="this.parentElement.textContent='🛍️'">` : '🛍️'}</div></td>
+      <td class="td-name">${p.name}</td>
+      <td><span class="badge-cat">${p.category}</span></td>
+      <td class="td-price">${formatPrice(p.price)}</td>
+      <td>${p.stock ?? '-'}</td>
+      <td>${p.badge ? `<span class="badge-cat">${p.badge}</span>` : '—'}</td>
+      <td>
+        <div class="action-btns">
+          <button class="btn-edit" onclick='editProduct("${p.id}")'>✏ Edit</button>
+          <button class="btn-del" onclick='deleteProduct("${p.id}")'>🗑</button>
+        </div>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:2rem">Belum ada produk. Tambahkan produk pertamamu!</td></tr>';
+}
+
+// ── PRODUCT MODAL ──
+function openProductModal(id = null) {
+  const modal = document.getElementById('productModal');
+  const title = document.getElementById('modalTitle');
+  if (id) {
+    const p = Products.get(id);
+    title.textContent = '✏ Edit Produk';
+    document.getElementById('editProductId').value = id;
+    document.getElementById('productName').value = p.name;
+    document.getElementById('productCategory').value = p.category;
+    document.getElementById('productDesc').value = p.description;
+    document.getElementById('productPrice').value = p.price;
+    document.getElementById('productOldPrice').value = p.oldPrice || '';
+    document.getElementById('productStock').value = p.stock || 0;
+    document.getElementById('productBadge').value = p.badge || '';
+    document.getElementById('productImage').value = p.image || '';
+    const preview = document.getElementById('imagePreview');
+    if (p.image) { preview.src = p.image; preview.style.display = 'block'; }
+    else preview.style.display = 'none';
+  } else {
+    title.textContent = '+ Tambah Produk Baru';
+    document.getElementById('editProductId').value = '';
+    ['productName','productDesc','productPrice','productOldPrice','productImage'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('productStock').value = 10;
+    document.getElementById('productBadge').value = '';
+    document.getElementById('imagePreview').style.display = 'none';
+  }
+  modal.classList.add('show');
+}
+
+function editProduct(id) { openProductModal(id); }
+
+function closeModal() {
+  document.getElementById('productModal').classList.remove('show');
+}
+
+function previewImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showToast('⚠ File terlalu besar! Maks 5MB'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('imagePreview');
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+    document.getElementById('productImage').value = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveProduct() {
+  const name = document.getElementById('productName').value.trim();
+  const price = parseInt(document.getElementById('productPrice').value);
+  if (!name || !price) { showToast('⚠ Nama dan harga wajib diisi!'); return; }
+
+  const data = {
+    name,
+    category: document.getElementById('productCategory').value,
+    description: document.getElementById('productDesc').value,
+    price,
+    oldPrice: parseInt(document.getElementById('productOldPrice').value) || null,
+    stock: parseInt(document.getElementById('productStock').value) || 0,
+    badge: document.getElementById('productBadge').value || null,
+    image: document.getElementById('productImage').value || ''
+  };
+
+  const editId = document.getElementById('editProductId').value;
+  if (editId) {
+    Products.update(editId, data);
+    showToast('✓ Produk berhasil diupdate!');
+  } else {
+    Products.add(data);
+    showToast('✓ Produk berhasil ditambahkan!');
+  }
+
+  closeModal();
+  renderProducts();
+}
+
+function deleteProduct(id) {
+  const p = Products.get(id);
+  if (!confirm(`Hapus produk "${p?.name}"?`)) return;
+  Products.delete(id);
+  showToast('🗑 Produk dihapus');
+  renderProducts();
+}
+
+// ── ORDERS ──
+let currentOrderFilter = 'all';
+
+function renderOrders(filter = 'all') {
+  currentOrderFilter = filter;
+  let orders = Orders.getAll();
+  if (filter !== 'all') orders = orders.filter(o => o.status === filter);
+  orders = [...orders].reverse();
+
+  document.getElementById('orderCountLabel').textContent = `${orders.length} pesanan`;
+
+  const el = document.getElementById('orderTableBody');
+  el.innerHTML = orders.map(o => `
+    <tr>
+      <td style="font-family:monospace;color:var(--aqua);font-size:0.8rem">${o.id}</td>
+      <td class="td-name">${o.customerName}<br><span style="font-size:0.75rem;color:var(--text-muted)">${o.email}</span></td>
+      <td style="font-size:0.8rem">${(o.items||[]).map(i=>`${i.name} ×${i.qty}`).join('<br>')}</td>
+      <td class="td-price">${formatPrice(o.total)}</td>
+      <td style="font-size:0.8rem">${o.shipping?.name || '-'}</td>
+      <td>${statusBadge(o.status)}</td>
+      <td style="font-size:0.75rem;color:var(--text-muted)">${o.date ? new Date(o.date).toLocaleDateString('id-ID') : '-'}</td>
+      <td>
+        <div class="action-btns">
+          <button class="btn-edit" onclick='viewOrder("${o.id}")'>👁 Detail</button>
+        </div>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem">Belum ada pesanan.</td></tr>';
+}
+
+function filterOrders(val) { renderOrders(val); }
+
+function statusBadge(status) {
+  const map = { paid:'status-paid', pending:'status-pending', cancelled:'status-cancelled', processing:'status-processing', pending_payment:'status-pending' };
+  const label = { paid:'✅ Dibayar', pending:'⏳ Pending', cancelled:'❌ Dibatalkan', processing:'🔄 Diproses', pending_payment:'💳 Belum Bayar' };
+  return `<span class="status-badge ${map[status]||'status-pending'}">${label[status]||status}</span>`;
+}
+
+function viewOrder(id) {
+  const order = Orders.getAll().find(o => o.id === id);
+  if (!order) return;
+  const content = document.getElementById('orderDetailContent');
+  content.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+      <div class="form-group"><label>Order ID</label><input readonly value="${order.id}" style="background:rgba(3,9,31,0.6)"></div>
+      <div class="form-group"><label>Status</label><input readonly value="${order.status}" style="background:rgba(3,9,31,0.6)"></div>
+      <div class="form-group"><label>Customer</label><input readonly value="${order.customerName}" style="background:rgba(3,9,31,0.6)"></div>
+      <div class="form-group"><label>Email</label><input readonly value="${order.email}" style="background:rgba(3,9,31,0.6)"></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Alamat</label><input readonly value="${order.address||'-'}" style="background:rgba(3,9,31,0.6)"></div>
+    </div>
+    <div style="background:rgba(3,9,31,0.5);border:1px solid var(--card-border);border-radius:8px;padding:1rem;margin-bottom:1rem">
+      <h4 style="color:var(--aqua);margin-bottom:0.8rem;font-size:0.85rem">ITEM PESANAN</h4>
+      ${(order.items||[]).map(i=>`<div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:0.3rem 0;color:var(--text-muted)"><span>${i.name} ×${i.qty}</span><span style="color:var(--aqua)">${formatPrice(i.price*i.qty)}</span></div>`).join('')}
+      <hr style="border-color:rgba(41,182,246,0.1);margin:0.8rem 0">
+      <div style="display:flex;justify-content:space-between;font-size:0.9rem;font-weight:700"><span style="color:var(--white)">Total</span><span style="color:var(--aqua)">${formatPrice(order.total)}</span></div>
+    </div>
+    <div class="form-group">
+      <label>Update Status</label>
+      <select id="updateStatus" style="background:rgba(3,9,31,0.6);border:1px solid var(--card-border);border-radius:8px;padding:0.8rem 1rem;color:var(--white);width:100%;font-family:var(--font-body)">
+        <option value="pending" ${order.status==='pending'?'selected':''}>⏳ Pending</option>
+        <option value="paid" ${order.status==='paid'?'selected':''}>✅ Dibayar</option>
+        <option value="processing" ${order.status==='processing'?'selected':''}>🔄 Diproses</option>
+        <option value="cancelled" ${order.status==='cancelled'?'selected':''}>❌ Dibatalkan</option>
+      </select>
+    </div>
+  `;
+  const btn = document.getElementById('markPaidBtn');
+  btn.textContent = '💾 Update Status';
+  btn.onclick = () => {
+    const newStatus = document.getElementById('updateStatus').value;
+    Orders.update(id, { status: newStatus });
+    showToast('✓ Status pesanan diperbarui!');
+    closeOrderModal();
+    renderOrders(currentOrderFilter);
+  };
+  document.getElementById('orderModal').classList.add('show');
+}
+
+function closeOrderModal() { document.getElementById('orderModal').classList.remove('show'); }
+
+// ── SETTINGS ──
+function saveMidtransConfig() {
+  const config = {
+    serverKey: document.getElementById('midtransServerKey').value,
+    clientKey: document.getElementById('midtransClientKey').value,
+    env: document.getElementById('midtransEnv').value
+  };
+  localStorage.setItem('midtrans_config', JSON.stringify(config));
+  showToast('✓ Konfigurasi Midtrans disimpan!');
+}
+
+// Load Midtrans config
+const mtConfig = JSON.parse(localStorage.getItem('midtrans_config') || '{}');
+if (mtConfig.clientKey) {
+  document.getElementById('midtransClientKey') && (document.getElementById('midtransClientKey').value = mtConfig.clientKey);
+  document.getElementById('midtransServerKey') && (document.getElementById('midtransServerKey').value = mtConfig.serverKey);
+}
+
+// ── CLOSE MODAL ON OVERLAY CLICK ──
+document.getElementById('productModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+document.getElementById('orderModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeOrderModal(); });
+
+// ── INIT ──
+renderDashboard();
+</script>
+</body>
+</html>

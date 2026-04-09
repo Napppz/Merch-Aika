@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aika Sesilia — Official Merch Store</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="navbar">
+  <div class="nav-brand">
+    <span class="brand-logo">✦</span>
+    <span class="brand-name">Aika Sesilia</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="index.html" class="active">Home</a></li>
+    <li><a href="shop.html">Shop</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="nav-actions">
+    <button class="cart-btn" onclick="toggleCart()">
+      🛒 <span class="cart-count" id="cartCount">0</span>
+    </button>
+    <a href="admin/login.html" class="admin-link">Admin</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="bubble b1"></div>
+    <div class="bubble b2"></div>
+    <div class="bubble b3"></div>
+    <div class="bubble b4"></div>
+    <div class="wave-overlay"></div>
+  </div>
+  <div class="hero-content">
+    <p class="hero-tagline">✦ Official Merchandise ✦</p>
+    <h1 class="hero-title">Aika<br><em>Sesilia</em></h1>
+    <p class="hero-sub">Koleksi eksklusif merchandise dari cosplayer favoritmu.<br>Wearable art, langsung dari hati Aika.</p>
+    <div class="hero-cta">
+      <a href="shop.html" class="btn-primary">Lihat Koleksi</a>
+      <a href="#about" class="btn-ghost">Tentang Aika</a>
+    </div>
+  </div>
+  <div class="hero-image-wrap">
+    <div class="hero-circle">
+      <img src="images/hero-placeholder.svg" alt="Aika Sesilia" class="hero-img" onerror="this.style.display='none'" />
+      <div class="hero-initials">AS</div>
+    </div>
+    <div class="float-badge badge1">🎭 Cosplayer</div>
+    <div class="float-badge badge2">💙 Since 2020</div>
+  </div>
+</section>
+
+<!-- FEATURED PRODUCTS -->
+<section class="featured" id="featured">
+  <div class="section-header">
+    <p class="section-eyebrow">✦ Koleksi Terbaru ✦</p>
+    <h2>Featured Merch</h2>
+  </div>
+  <div class="product-grid" id="featuredGrid">
+    <!-- Products loaded via JS -->
+    <div class="loading-placeholder">
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    </div>
+  </div>
+  <div class="section-cta">
+    <a href="shop.html" class="btn-primary">Lihat Semua Produk →</a>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="about-deco"></div>
+  <div class="about-content">
+    <div class="about-text">
+      <p class="section-eyebrow">✦ About ✦</p>
+      <h2>Siapa Aika Sesilia?</h2>
+      <p>Aika Sesilia adalah cosplayer berbasis di Indonesia yang dikenal dengan kostum detail dan penuh karakter. Setiap merchandise yang dijual adalah ekspresi nyata dari passion Aika dalam dunia cosplay.</p>
+      <p>Setiap produk dipilih dan dikurasi langsung oleh Aika — memastikan kualitas terbaik untuk para fans tercinta.</p>
+      <div class="about-stats">
+        <div class="stat"><span>50K+</span><p>Followers</p></div>
+        <div class="stat"><span>200+</span><p>Kostum</p></div>
+        <div class="stat"><span>5★</span><p>Rating</p></div>
+      </div>
+    </div>
+    <div class="about-visual">
+      <div class="about-card">
+        <div class="about-card-inner">AS</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="contact-inner">
+    <p class="section-eyebrow">✦ Hubungi Kami ✦</p>
+    <h2>Ada Pertanyaan?</h2>
+    <p>DM kami di Instagram atau kirim email langsung.</p>
+    <div class="contact-links">
+      <a href="#" class="contact-card">📸 @aikasesilia</a>
+      <a href="mailto:hello@aikasesilia.com" class="contact-card">✉ hello@aikasesilia.com</a>
+      <a href="#" class="contact-card">💬 WhatsApp</a>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <p>© 2025 Aika Sesilia Official Store. All rights reserved.</p>
+  <p class="footer-sub">Made with 💙 for the cosplay community</p>
+</footer>
+
+<!-- CART SIDEBAR -->
+<div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+<aside class="cart-sidebar" id="cartSidebar">
+  <div class="cart-header">
+    <h3>🛒 Keranjang</h3>
+    <button onclick="toggleCart()" class="cart-close">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-footer">
+    <div class="cart-total">Total: <strong id="cartTotal">Rp 0</strong></div>
+    <button class="btn-primary w100" onclick="window.location.href='checkout.html'">Checkout →</button>
+  </div>
+</aside>
+
+<script src="js/cart.js"></script>
+<script src="js/main.js"></script>
+<script>loadFeaturedProducts();</script>
+</body>
+</html>
