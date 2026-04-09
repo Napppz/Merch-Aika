@@ -132,7 +132,7 @@
     const err = document.getElementById('loginError');
 
     if (u === ADMIN_CREDENTIALS.username && p === ADMIN_CREDENTIALS.password) {
-      sessionStorage.setItem('aika_admin', 'true');
+      localStorage.setItem('aika_admin', 'true');
       window.location.href = 'dashboard.html';
     } else {
       err.style.display = 'block';
@@ -149,7 +149,7 @@
   }
 
   // Already logged in?
-  if (sessionStorage.getItem('aika_admin') === 'true') {
+  if (localStorage.getItem('aika_admin') === 'true') {
     window.location.href = 'dashboard.html';
   }
 </script>
