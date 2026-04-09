@@ -133,12 +133,14 @@ body {
 .hero {
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  text-align: center;
   padding: 8rem 3rem 4rem;
   position: relative;
   overflow: hidden;
-  gap: 3rem;
+  gap: 4rem;
 }
 .hero-bg {
   position: absolute;
@@ -171,7 +173,10 @@ body {
 .hero-content {
   position: relative;
   z-index: 1;
-  max-width: 560px;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .hero-tagline {
   font-family: var(--font-accent);
@@ -211,6 +216,7 @@ body {
 .hero-cta {
   display: flex;
   gap: 1rem;
+  justify-content: center;
   flex-wrap: wrap;
   opacity: 0;
   animation: fadeUp 0.8s ease forwards 0.8s;
