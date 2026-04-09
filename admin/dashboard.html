@@ -617,23 +617,27 @@ function showToast(msg) {
 }
 
 // ── TABS ──
-function showTab(tab) {
+async function showTab(tab) {
   document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
   document.getElementById('nav-' + tab).classList.add('active');
-  if (tab === 'dashboard') renderDashboard();
-  if (tab === 'products') renderProducts();
-  if (tab === 'orders') renderOrders('all');
+  
+  // Show loading state temporarily
+  const section = document.getElementById('tab-' + tab);
+  
+  if (tab === 'dashboard') await renderDashboard();
+  if (tab === 'products') await renderProducts();
+  if (tab === 'orders') await renderOrders('all');
 
   const sidebar = document.getElementById('adminSidebar');
   if (sidebar && sidebar.classList.contains('open')) toggleMobileMenu();
 }
 
 // ── DASHBOARD ──
-function renderDashboard() {
-  const orders = Orders.getAll();
-  const products = Products.getAll();
+async function renderDashboard() {
+  const orders = await Orders.getAll();
+  const products = await Products.getAll();
   const paid = orders.filter(o => o.status === 'paid');
   const revenue = paid.reduce((s, o) => s + (o.total || 0), 0);
 
@@ -665,12 +669,13 @@ function renderDashboard() {
 }
 
 // ── PRODUCTS ──
-function renderProducts() {
-  const products = Products.getAll().reverse();
+async function renderProducts() {
+  const products = await Products.getAll();
+  const reversedProducts = [...products].reverse();
   const el = document.getElementById('productTableBody');
   document.getElementById('productCountLabel').textContent = `${products.length} produk terdaftar`;
 
-  el.innerHTML = products.map(p => `
+  el.innerHTML = reversedProducts.map(p => `
     <tr>
       <td><div class="td-thumb">${p.image ? `<img src="${p.image}" style="width:48px;height:48px;object-fit:cover;border-radius:8px" onerror="this.parentElement.textContent='🛍️'">` : '🛍️'}</div></td>
       <td class="td-name">${p.name}</td>
@@ -689,11 +694,11 @@ function renderProducts() {
 }
 
 // ── PRODUCT MODAL ──
-function openProductModal(id = null) {
+async function openProductModal(id = null) {
   const modal = document.getElementById('productModal');
   const title = document.getElementById('modalTitle');
   if (id) {
-    const p = Products.get(id);
+    const p = await Products.get(id);
     title.textContent = '✏ Edit Produk';
     document.getElementById('editProductId').value = id;
     document.getElementById('productName').value = p.name;
@@ -738,7 +743,7 @@ function previewImage(input) {
   reader.readAsDataURL(file);
 }
 
-function saveProduct() {
+async function saveProduct() {
   const name = document.getElementById('productName').value.trim();
   const price = parseInt(document.getElementById('productPrice').value);
   if (!name || !price) { showToast('⚠ Nama dan harga wajib diisi!'); return; }
@@ -755,22 +760,25 @@ function saveProduct() {
   };
 
   const editId = document.getElementById('editProductId').value;
-  if (editId) {
-    Products.update(editId, data);
-    showToast('✓ Produk berhasil diupdate!');
-  } else {
-    Products.add(data);
-    showToast('✓ Produk berhasil ditambahkan!');
+  try {
+    if (editId) {
+      await Products.update(editId, data);
+      showToast('✓ Produk berhasil diupdate!');
+    } else {
+      await Products.add(data);
+      showToast('✓ Produk berhasil ditambahkan!');
+    }
+    closeModal();
+    renderProducts();
+  } catch(e) {
+    showToast('⚠ Gagal menyimpan data');
   }
-
-  closeModal();
-  renderProducts();
 }
 
-function deleteProduct(id) {
-  const p = Products.get(id);
+async function deleteProduct(id) {
+  const p = await Products.get(id);
   if (!confirm(`Hapus produk "${p?.name}"?`)) return;
-  Products.delete(id);
+  await Products.delete(id);
   showToast('🗑 Produk dihapus');
   renderProducts();
 }
@@ -778,9 +786,9 @@ function deleteProduct(id) {
 // ── ORDERS ──
 let currentOrderFilter = 'all';
 
-function renderOrders(filter = 'all') {
+async function renderOrders(filter = 'all') {
   currentOrderFilter = filter;
-  let orders = Orders.getAll();
+  let orders = await Orders.getAll();
   if (filter !== 'all') orders = orders.filter(o => o.status === filter);
   orders = [...orders].reverse();
 
@@ -813,8 +821,9 @@ function statusBadge(status) {
   return `<span class="status-badge ${map[status]||'status-pending'}">${label[status]||status}</span>`;
 }
 
-function viewOrder(id) {
-  const order = Orders.getAll().find(o => o.id === id);
+async function viewOrder(id) {
+  const allOrders = await Orders.getAll();
+  const order = allOrders.find(o => o.id === id);
   if (!order) return;
   const content = document.getElementById('orderDetailContent');
   content.innerHTML = `
@@ -843,10 +852,10 @@ function viewOrder(id) {
   `;
   const btn = document.getElementById('markPaidBtn');
   btn.textContent = '💾 Update Status';
-  btn.onclick = () => {
-    const newStatus = document.getElementById('updateStatus').value;
-    Orders.update(id, { status: newStatus });
-    showToast('✓ Status pesanan diperbarui!');
+  btn.onclick = async () => {
+    const st = document.getElementById('updateStatus').value;
+    await Orders.update(id, {status: st});
+    showToast('Status pesanan diupdate!');
     closeOrderModal();
     renderOrders(currentOrderFilter);
   };
