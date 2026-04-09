@@ -21,6 +21,11 @@ const Products = {
   }
 };
 
+// ── UTILS ──
+function formatPrice(n) {
+  return 'Rp ' + (n || 0).toLocaleString('id-ID');
+}
+
 // ── ORDERS ──
 const Orders = {
   async getAll() {
@@ -182,6 +187,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initSmoothScroll();
 });
 
+// Polyfill for smooth scroll in some browsers
+if (!('scrollBehavior' in document.documentElement.style)) {
+  // Option: load a polyfill if needed, but standard scrollTo works in most modern browsers
+}
+
 // ── TYPING EFFECT ──
 function initTypingEffect() {
   const baseEl = document.getElementById('typingTextBase');
@@ -228,25 +238,28 @@ function initTypingEffect() {
 
 // ── ADVANCED SMOOTH SCROLL ──
 function initSmoothScroll() {
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-      const targetId = this.getAttribute('href');
-      if (targetId === '#') return;
+  document.addEventListener('click', function (e) {
+    const anchor = e.target.closest('a[href^="#"]');
+    if (!anchor) return;
+    
+    const targetId = anchor.getAttribute('href');
+    if (targetId === '#') return;
+    
+    const target = document.querySelector(targetId);
+    if (target) {
+      e.preventDefault();
       
-      const target = document.querySelector(targetId);
-      if (target) {
-        e.preventDefault();
-        const offset = 80; // Navbar height offset
-        const bodyRect = document.body.getBoundingClientRect().top;
-        const elementRect = target.getBoundingClientRect().top;
-        const elementPosition = elementRect - bodyRect;
-        const offsetPosition = elementPosition - offset;
+      const offset = 90; // Balanced offset for mobile/desktop navbar
+      const targetPosition = target.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = targetPosition - offset;
 
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: 'smooth'
-        });
-      }
-    });
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+      
+      // Update browser URL without jumping
+      history.pushState(null, null, targetId);
+    }
   });
 }
