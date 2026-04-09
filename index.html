@@ -106,11 +106,38 @@
     <p class="section-eyebrow">✦ Hubungi Kami ✦</p>
     <h2>Ada Pertanyaan?</h2>
     <p>DM kami di Instagram atau kirim email langsung.</p>
-    <div class="contact-links">
-      <a href="https://www.instagram.com/aika_sesilia/" target="_blank" class="contact-card">📸 @aika_sesilia</a>
-      <a href="mailto:hello@aikasesilia.com" class="contact-card">✉ hello@aikasesilia.com</a>
+    <div class="contact-links" style="margin-bottom: 3rem;">
+      <a href="https://www.instagram.com/aika_sesilia/" target="_blank" class="contact-card">📸 Instagram</a>
       <a href="https://wa.me/6285171722053" target="_blank" class="contact-card">💬 WhatsApp</a>
+      <div class="contact-card">✉ aikasesilia.contact@gmail.com</div>
     </div>
+
+    <!-- Contact Form -->
+    <form id="contactForm" class="contact-form">
+      <input type="hidden" name="access_key" value="3730ae1e-d099-4b9b-a638-9ca3791b7168">
+      <input type="hidden" name="subject" value="Pesan Baru dari Web Aika Sesilia">
+      <input type="hidden" name="from_name" value="Aika Merch Store">
+      <input type="checkbox" name="botcheck" class="hidden" style="display: none;">
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="name">Nama Lengkap</label>
+          <input type="text" name="name" id="name" placeholder="Siapa nama Anda?" required>
+        </div>
+        <div class="form-group">
+          <label for="email">Alamat Email</label>
+          <input type="email" name="email" id="email" placeholder="email@contoh.com" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="message">Pesan Anda</label>
+        <textarea name="message" id="message" rows="5" placeholder="Tuliskan pesan atau pertanyaan Anda di sini..." required></textarea>
+      </div>
+      <button type="submit" class="btn-primary w100" id="submitBtn" style="padding: 1.2rem; margin-top: 1rem;">
+        🚀 Kirim Pesan
+      </button>
+      <div id="formResult" class="form-result"></div>
+    </form>
   </div>
 </section>
 
