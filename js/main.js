@@ -105,6 +105,57 @@ document.addEventListener('DOMContentLoaded', () => {
   // Navbar scroll effect
   window.addEventListener('scroll', () => {
     const nav = document.querySelector('.navbar');
-    if (nav) nav.style.background = window.scrollY > 50 ? 'rgba(3,9,31,0.98)' : 'rgba(3,9,31,0.85)';
+    if (nav) nav.style.background = window.scrollY > 50 ? 'rgba(3, 9, 31, 0.98)' : 'rgba(3, 9, 31, 0.85)';
   });
+
+  // Contact Form Submission
+  const form = document.getElementById('contactForm');
+  if (form) {
+    const result = document.getElementById('formResult');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const object = Object.fromEntries(formData);
+      const json = JSON.stringify(object);
+
+      result.innerHTML = "⏳ Mengirim pesan...";
+      result.className = "form-result";
+      result.style.display = "block";
+      submitBtn.disabled = true;
+
+      fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: json
+      })
+      .then(async (response) => {
+        let json = await response.json();
+        if (response.status == 200) {
+          result.innerHTML = "✅ Pesan berhasil terkirim! Aika akan segera membalasnya.";
+          result.classList.add("success");
+          form.reset();
+        } else {
+          console.log(response);
+          result.innerHTML = json.message;
+          result.classList.add("error");
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        result.innerHTML = "❌ Terjadi kesalahan. Silakan coba lagi nanti.";
+        result.classList.add("error");
+      })
+      .then(function() {
+        submitBtn.disabled = false;
+        setTimeout(() => {
+          result.style.display = "none";
+        }, 5000);
+      });
+    });
+  }
 });
