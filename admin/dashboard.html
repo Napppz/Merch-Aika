@@ -599,11 +599,13 @@ const Products = {
   async add(product) {
     product.id = 'p' + Date.now();
     const res = await fetch('/api/products', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(product) });
+    if (!res.ok) { const err = await res.json(); throw new Error(err.details || err.error || 'Server Error'); }
     return await res.json();
   },
   async update(id, data) {
     data.id = id;
     const res = await fetch('/api/products', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+    if (!res.ok) { const err = await res.json(); throw new Error(err.details || err.error || 'Server Error'); }
     return await res.json();
   },
   async delete(id) {
@@ -628,6 +630,7 @@ const Orders = {
   async update(id, data) {
     data.id = id;
     const res = await fetch('/api/orders', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+    if (!res.ok) throw new Error('Gagal update pesanan');
     return await res.json();
   }
 };
@@ -792,7 +795,8 @@ async function saveProduct() {
     closeModal();
     renderProducts();
   } catch(e) {
-    showToast('⚠ Gagal menyimpan data');
+    console.error(e);
+    showToast('⚠ Gagal: ' + e.message);
   }
 }
 
