@@ -108,6 +108,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (nav) nav.style.background = window.scrollY > 50 ? 'rgba(3, 9, 31, 0.98)' : 'rgba(3, 9, 31, 0.85)';
   });
 
+  // Cursor Glow Logic
+  const glow = document.querySelector('.cursor-glow');
+  if (glow) {
+    window.addEventListener('mousemove', (e) => {
+      // Use requestAnimationFrame for smoother performance
+      requestAnimationFrame(() => {
+        glow.style.left = e.clientX + 'px';
+        glow.style.top = e.clientY + 'px';
+      });
+    });
+
+    // Add interactive scaling for buttons and links
+    const interactiveElements = 'a, button, .product-card, .contact-card, .filter-tab, .brand-logo';
+    document.querySelectorAll(interactiveElements).forEach(el => {
+      el.addEventListener('mouseenter', () => glow.classList.add('active'));
+      el.addEventListener('mouseleave', () => glow.classList.remove('active'));
+    });
+  }
+
   // Contact Form Submission
   const form = document.getElementById('contactForm');
   if (form) {
