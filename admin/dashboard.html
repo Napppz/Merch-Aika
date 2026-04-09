@@ -591,23 +591,45 @@ if (sessionStorage.getItem('aika_admin') !== 'true') {
   window.location.href = 'login.html';
 }
 
-// ── DATA HELPERS (same as main.js, inline for admin) ──
+// ── DATA HELPERS (Neon DB API) ──
 const Products = {
-  getAll() {
-    const s = localStorage.getItem('aika_products');
-    if (!s) return [];
-    return JSON.parse(s);
+  async getAll() {
+    try { const res = await fetch('/api/products'); return await res.json(); } catch { return []; }
   },
-  save(p) { localStorage.setItem('aika_products', JSON.stringify(p)); },
-  add(p) { const all = this.getAll(); p.id = 'p' + Date.now(); all.push(p); this.save(all); return p; },
-  update(id, data) { const all = this.getAll(); const i = all.findIndex(p => p.id === id); if (i !== -1) { all[i] = {...all[i], ...data}; this.save(all); } },
-  delete(id) { this.save(this.getAll().filter(p => p.id !== id)); },
-  get(id) { return this.getAll().find(p => p.id === id); }
+  async add(product) {
+    product.id = 'p' + Date.now();
+    const res = await fetch('/api/products', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(product) });
+    return await res.json();
+  },
+  async update(id, data) {
+    data.id = id;
+    const res = await fetch('/api/products', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+    return await res.json();
+  },
+  async delete(id) {
+    await fetch('/api/products?id=' + id, { method: 'DELETE' });
+  },
+  async get(id) {
+    const all = await this.getAll();
+    return all.find(p => p.id === id);
+  }
 };
+
 const Orders = {
-  getAll() { return JSON.parse(localStorage.getItem('aika_orders') || '[]'); },
-  save(o) { localStorage.setItem('aika_orders', JSON.stringify(o)); },
-  update(id, data) { const all = this.getAll(); const i = all.findIndex(o => o.id === id); if (i !== -1) { all[i] = {...all[i], ...data}; this.save(all); } }
+  async getAll() {
+    try { const res = await fetch('/api/orders'); return await res.json(); } catch { return []; }
+  },
+  async add(order) {
+    order.id = 'ORD-' + Date.now();
+    order.status = 'pending';
+    const res = await fetch('/api/orders', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(order) });
+    return await res.json();
+  },
+  async update(id, data) {
+    data.id = id;
+    const res = await fetch('/api/orders', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+    return await res.json();
+  }
 };
 function formatPrice(n) { return 'Rp ' + (n||0).toLocaleString('id-ID'); }
 function showToast(msg) {
