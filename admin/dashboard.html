@@ -656,7 +656,7 @@ function renderDashboard() {
       </div>`).join('');
 
   const popEl = document.getElementById('popularProducts');
-  const pop = products.slice(0, 5);
+  const pop = [...products].reverse().slice(0, 5);
   popEl.innerHTML = pop.map(p => `
     <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid rgba(41,182,246,0.08);font-size:0.85rem">
       <div style="color:var(--white);font-weight:700">${p.name}</div>
@@ -666,7 +666,7 @@ function renderDashboard() {
 
 // ── PRODUCTS ──
 function renderProducts() {
-  const products = Products.getAll();
+  const products = Products.getAll().reverse();
   const el = document.getElementById('productTableBody');
   document.getElementById('productCountLabel').textContent = `${products.length} produk terdaftar`;
 
