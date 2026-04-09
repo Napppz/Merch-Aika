@@ -1,68 +1,40 @@
-// ── PRODUCT STORAGE (simulated backend via localStorage) ──
+// ── PRODUCT STORAGE (Neon DB API) ──
 const Products = {
-  getAll() {
-    const stored = localStorage.getItem('aika_products');
-    if (!stored) {
-      // Demo products
-      const demo = [
-        { id: 'p1', name: 'Ocean Dream Tee', category: 'Pakaian', price: 189000, oldPrice: 220000, description: 'Kaos eksklusif dengan desain khas Aika Sesilia. Material premium, nyaman dipakai seharian.', image: '', badge: 'Terlaris', stock: 15 },
-        { id: 'p2', name: 'Starlight Totebag', category: 'Aksesoris', price: 135000, oldPrice: null, description: 'Tote bag canvas bergambar karakter cosplay favorit. Ramah lingkungan & stylish.', image: '', badge: 'Baru', stock: 20 },
-        { id: 'p3', name: 'Crystal Keychain', category: 'Aksesoris', price: 75000, oldPrice: null, description: 'Gantungan kunci akrilik bening dengan desain eksklusif. Cocok untuk koleksi!', image: '', badge: null, stock: 50 },
-        { id: 'p4', name: 'Moonrise Hoodie', category: 'Pakaian', price: 350000, oldPrice: 420000, description: 'Hoodie premium dengan broderi detail. Hangat, stylish, dan limited edition!', image: '', badge: 'Limited', stock: 8 },
-        { id: 'p5', name: 'Signature Poster A3', category: 'Foto & Print', price: 95000, oldPrice: null, description: 'Poster A3 berglossy, ditandatangani langsung oleh Aika Sesilia!', image: '', badge: 'Eksklusif', stock: 30 },
-        { id: 'p6', name: 'Cosplay Sticker Pack', category: 'Stiker', price: 45000, oldPrice: null, description: 'Set 20 stiker cosplay dengan berbagai pose karakter ikonik.', image: '', badge: null, stock: 100 },
-      ];
-      localStorage.setItem('aika_products', JSON.stringify(demo));
-      return demo;
-    }
-    return JSON.parse(stored);
+  async getAll() {
+    try { const res = await fetch('/api/products'); return await res.json(); } catch { return []; }
   },
-
-  save(products) {
-    localStorage.setItem('aika_products', JSON.stringify(products));
-  },
-
-  add(product) {
-    const all = this.getAll();
+  async add(product) {
     product.id = 'p' + Date.now();
-    all.push(product);
-    this.save(all);
+    await fetch('/api/products', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(product) });
     return product;
   },
-
-  update(id, data) {
-    const all = this.getAll();
-    const idx = all.findIndex(p => p.id === id);
-    if (idx !== -1) { all[idx] = { ...all[idx], ...data }; this.save(all); }
+  async update(id, data) {
+    data.id = id;
+    await fetch('/api/products', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
   },
-
-  delete(id) {
-    const all = this.getAll().filter(p => p.id !== id);
-    this.save(all);
+  async delete(id) {
+    await fetch('/api/products?id=' + id, { method: 'DELETE' });
   },
-
-  get(id) {
-    return this.getAll().find(p => p.id === id);
+  async get(id) {
+    const all = await this.getAll();
+    return all.find(p => p.id === id);
   }
 };
 
 // ── ORDERS ──
 const Orders = {
-  getAll() { return JSON.parse(localStorage.getItem('aika_orders') || '[]'); },
-  save(orders) { localStorage.setItem('aika_orders', JSON.stringify(orders)); },
-  add(order) {
-    const all = this.getAll();
+  async getAll() {
+    try { const res = await fetch('/api/orders'); return await res.json(); } catch { return []; }
+  },
+  async add(order) {
     order.id = 'ORD-' + Date.now();
-    order.date = new Date().toISOString();
     order.status = 'pending';
-    all.push(order);
-    this.save(all);
+    await fetch('/api/orders', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(order) });
     return order;
   },
-  update(id, data) {
-    const all = this.getAll();
-    const idx = all.findIndex(o => o.id === id);
-    if (idx !== -1) { all[idx] = { ...all[idx], ...data }; this.save(all); }
+  async update(id, data) {
+    data.id = id;
+    await fetch('/api/orders', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
   }
 };
 
@@ -96,19 +68,20 @@ function renderProductCard(p, compact = false) {
 }
 
 // ── LOAD FEATURED (index.html) ──
-function loadFeaturedProducts() {
+async function loadFeaturedProducts() {
   const grid = document.getElementById('featuredGrid');
   if (!grid) return;
-  const products = Products.getAll().reverse().slice(0, 3);
+  const all = await Products.getAll();
+  const products = all.slice(0, 3);
   grid.innerHTML = products.map(p => renderProductCard(p)).join('');
   initFadeIn();
 }
 
 // ── LOAD SHOP ──
-function loadShopProducts(filter = 'Semua', search = '') {
+async function loadShopProducts(filter = 'Semua', search = '') {
   const grid = document.getElementById('shopGrid');
   if (!grid) return;
-  let products = Products.getAll().reverse();
+  let products = await Products.getAll();
   if (filter !== 'Semua') products = products.filter(p => p.category === filter);
   if (search) products = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
   if (products.length === 0) {

@@ -362,8 +362,14 @@ function processPayment() {
     subtotal, total: grand
   };
 
-  // Save order
-  const order = Orders.add(orderData);
+  // Save initial order
+  let order;
+  try {
+    order = await Orders.add(orderData);
+  } catch (err) {
+    showToast('Gagal memproses pesanan. Coba lagi.');
+    return;
+  }
   localStorage.setItem('last_order', JSON.stringify(order));
 
   // ==== MIDTRANS INTEGRATION ====
@@ -384,8 +390,16 @@ function processPayment() {
   // .then(r => r.json())
   // .then(({ token }) => {
   //   snap.pay(token, {
-  //     onSuccess(result) { handlePaymentSuccess(order, result); },
-  //     onPending(result) { handlePaymentPending(order, result); },
+  //     onSuccess: async function(result) {
+  //       await Orders.update(order.id, { status: 'paid', payment: result });
+  //       Cart.clear();
+  //       window.location.href = 'order-success.html?id=' + order.id;
+  //     },
+  //     onPending: async function(result) {
+  //       await Orders.update(order.id, { status: 'pending_payment', payment: result });
+  //       Cart.clear();
+  //       window.location.href = 'order-success.html?id=' + order.id;
+  //     },
   //     onError(result) { showToast('❌ Pembayaran gagal. Silakan coba lagi.'); console.error(result); },
   //     onClose() { showToast('⚠ Pembayaran dibatalkan.'); }
   //   });
@@ -410,15 +424,15 @@ function processPayment() {
   }, 1500);
 }
 
-function handlePaymentSuccess(order, result) {
-  Orders.update(order.id, { status: 'paid', payment: result });
+async function handlePaymentSuccess(order, result) {
+  await Orders.update(order.id, { status: 'paid', payment: result });
   Cart.clear();
   localStorage.setItem('last_order', JSON.stringify({ ...order, status: 'paid', payment: result }));
   window.location.href = 'order-success.html';
 }
 
-function handlePaymentPending(order, result) {
-  Orders.update(order.id, { status: 'pending_payment', payment: result });
+async function handlePaymentPending(order, result) {
+  await Orders.update(order.id, { status: 'pending_payment', payment: result });
   showToast('⏳ Pembayaran pending. Selesaikan pembayaranmu!');
 }
 
