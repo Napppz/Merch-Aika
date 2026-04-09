@@ -219,7 +219,21 @@ body:hover .cursor-glow { display: block; }
   margin-bottom: 1.2rem;
   opacity: 0;
   animation: fadeUp 0.8s ease forwards 0.4s;
+  min-height: 1.25em; /* Avoid layout shift during typing */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+/* ── TYPING CURSOR ── */
+.typing-cursor {
+  color: var(--aqua);
+  font-weight: 300;
+  margin-left: 8px;
+  animation: blink 0.8s infinite;
+  font-family: var(--font-body);
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 .hero-title em {
   font-style: italic;
   color: var(--aqua);

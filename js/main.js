@@ -177,4 +177,76 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
+  initTypingEffect();
+  initSmoothScroll();
 });
+
+// ── TYPING EFFECT ──
+function initTypingEffect() {
+  const baseEl = document.getElementById('typingTextBase');
+  const italicEl = document.getElementById('typingTextItalic');
+  if (!baseEl || !italicEl) return;
+
+  const baseText = "Aika";
+  const italicText = "Sesilia";
+  let isDeleting = false;
+  let charIndex = 0;
+  let italicIndex = 0;
+
+  function type() {
+    if (!isDeleting) {
+      if (charIndex < baseText.length) {
+        baseEl.textContent += baseText[charIndex];
+        charIndex++;
+        setTimeout(type, 200);
+      } else if (italicIndex < italicText.length) {
+        italicEl.textContent += italicText[italicIndex];
+        italicIndex++;
+        setTimeout(type, 200);
+      } else {
+        isDeleting = true;
+        setTimeout(type, 3000); // Pause at end
+      }
+    } else {
+      if (italicIndex > 0) {
+        italicEl.textContent = italicText.substring(0, italicIndex - 1);
+        italicIndex--;
+        setTimeout(type, 100);
+      } else if (charIndex > 0) {
+        baseEl.textContent = baseText.substring(0, charIndex - 1);
+        charIndex--;
+        setTimeout(type, 100);
+      } else {
+        isDeleting = false;
+        setTimeout(type, 1000); // Pause before restart
+      }
+    }
+  }
+  type();
+}
+
+// ── ADVANCED SMOOTH SCROLL ──
+function initSmoothScroll() {
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      const targetId = this.getAttribute('href');
+      if (targetId === '#') return;
+      
+      const target = document.querySelector(targetId);
+      if (target) {
+        e.preventDefault();
+        const offset = 80; // Navbar height offset
+        const bodyRect = document.body.getBoundingClientRect().top;
+        const elementRect = target.getBoundingClientRect().top;
+        const elementPosition = elementRect - bodyRect;
+        const offsetPosition = elementPosition - offset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+    });
+  });
+}
