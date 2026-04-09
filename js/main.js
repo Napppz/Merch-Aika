@@ -99,7 +99,7 @@ function renderProductCard(p, compact = false) {
 function loadFeaturedProducts() {
   const grid = document.getElementById('featuredGrid');
   if (!grid) return;
-  const products = Products.getAll().slice(0, 3);
+  const products = Products.getAll().reverse().slice(0, 3);
   grid.innerHTML = products.map(p => renderProductCard(p)).join('');
   initFadeIn();
 }
@@ -108,7 +108,7 @@ function loadFeaturedProducts() {
 function loadShopProducts(filter = 'Semua', search = '') {
   const grid = document.getElementById('shopGrid');
   if (!grid) return;
-  let products = Products.getAll();
+  let products = Products.getAll().reverse();
   if (filter !== 'Semua') products = products.filter(p => p.category === filter);
   if (search) products = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
   if (products.length === 0) {
