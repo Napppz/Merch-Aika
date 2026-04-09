@@ -288,16 +288,37 @@
     .status-cancelled { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
     .status-processing { background: rgba(41,182,246,0.15); color: var(--aqua); border: 1px solid rgba(41,182,246,0.3); }
 
+    .mobile-header { display: none; align-items: center; justify-content: space-between; padding-bottom: 2rem; border-bottom: 1px solid rgba(41,182,246,0.15); margin-bottom: 2rem; }
+    .sidebar-close { display: none; position: absolute; top: 1.5rem; right: 1.5rem; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; transition: var(--transition); }
+    .sidebar-close:hover { color: var(--white); }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 90; backdrop-filter: blur(4px); opacity: 0; transition: var(--transition); pointer-events: none; }
+    .sidebar-overlay.show { opacity: 1; pointer-events: all; display: block; }
+    
     @media (max-width: 900px) {
-      .admin-sidebar { display: none; }
+      .admin-sidebar { 
+        transform: translateX(-100%); 
+        transition: transform 0.3s ease; 
+      }
+      .admin-sidebar.open { transform: translateX(0); box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
       .admin-main { margin-left: 0; max-width: 100%; padding: 1.5rem; }
+      .mobile-header { display: flex; }
+      .sidebar-close { display: block; }
+      .products-table-wrap { overflow-x: auto; }
+      .admin-toolbar { flex-direction: column; align-items: flex-start; }
+      .admin-toolbar > button, .admin-toolbar > select { width: 100%; margin-top: 1rem; }
+      div[style*="grid-template-columns:1fr 1fr"], div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+      }
+      .stat-card[style*="grid-column:1/-1"] { grid-column: auto !important; }
     }
   </style>
 </head>
 <body>
 
 <!-- SIDEBAR -->
-<aside class="admin-sidebar">
+<div class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+<aside class="admin-sidebar" id="adminSidebar">
+  <button class="sidebar-close" onclick="toggleMobileMenu()">✕</button>
   <div class="sidebar-brand">
     <div class="logo">✦ Aika Admin</div>
     <p>Management Panel</p>
@@ -324,6 +345,10 @@
 
 <!-- MAIN -->
 <main class="admin-main">
+  <div class="mobile-header">
+    <div style="font-family:var(--font-display);color:var(--white);font-size:1.2rem"><span style="color:var(--aqua)">✦</span> Aika Admin</div>
+    <button onclick="toggleMobileMenu()" style="background:var(--card-bg);border:1px solid var(--card-border);color:var(--aqua);font-size:1.2rem;cursor:pointer;padding:0.5rem 0.8rem;border-radius:8px">☰</button>
+  </div>
 
   <!-- ── DASHBOARD ── -->
   <section class="admin-section active" id="tab-dashboard">
@@ -552,6 +577,15 @@
 </div>
 
 <script>
+// ── MOBILE MENU ──
+function toggleMobileMenu() {
+  const sidebar = document.getElementById('adminSidebar');
+  const overlay = document.querySelector('.sidebar-overlay');
+  sidebar.classList.toggle('open');
+  if(sidebar.classList.contains('open')) overlay.classList.add('show');
+  else overlay.classList.remove('show');
+}
+
 // ── AUTH CHECK ──
 if (sessionStorage.getItem('aika_admin') !== 'true') {
   window.location.href = 'login.html';
@@ -591,6 +625,9 @@ function showTab(tab) {
   if (tab === 'dashboard') renderDashboard();
   if (tab === 'products') renderProducts();
   if (tab === 'orders') renderOrders('all');
+
+  const sidebar = document.getElementById('adminSidebar');
+  if (sidebar && sidebar.classList.contains('open')) toggleMobileMenu();
 }
 
 // ── DASHBOARD ──
