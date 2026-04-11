@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
   <style>
     body { display: flex; min-height: 100vh; }
 
@@ -603,6 +605,20 @@
   </div>
 </div>
 
+<!-- CROPPER MODAL -->
+<div class="modal-overlay" id="cropperModal">
+  <div class="modal" style="width: 700px; padding: 1.5rem;">
+    <h2>✂️ Sesuaikan Foto</h2>
+    <div style="max-height: 60vh; width: 100%; overflow: hidden; background: #000; border-radius: 12px; margin-bottom: 1.5rem;">
+      <img id="cropperImage" style="max-width: 100%; display: block;" />
+    </div>
+    <div class="modal-footer" style="margin-top: 1rem;">
+      <button class="btn-ghost" onclick="closeCropperModal()">Batal</button>
+      <button class="btn-primary" onclick="applyCrop()">✅ Terapkan Potongan</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── MOBILE MENU ──
 function toggleMobileMenu() {
@@ -1034,6 +1050,8 @@ async function loadSettings() {
   }
 }
 
+let cropper;
+
 function previewHeroImage(input) {
   if (!input.files || !input.files[0]) return;
   const file = input.files[0];
@@ -1041,11 +1059,58 @@ function previewHeroImage(input) {
   
   const reader = new FileReader();
   reader.onload = e => {
-    document.getElementById('heroImagePreview').src = e.target.result;
-    document.getElementById('heroImagePreview').style.display = 'block';
-    document.getElementById('heroImageUrl').value = e.target.result;
+    // Tampilkan modal crop
+    const cropperModal = document.getElementById('cropperModal');
+    const image = document.getElementById('cropperImage');
+    
+    image.src = e.target.result;
+    cropperModal.classList.add('show');
+    
+    // Hapus instance cropper lama jika ada
+    if (cropper) { cropper.destroy(); }
+    
+    // Inisialisasi Cropper baru
+    cropper = new Cropper(image, {
+      aspectRatio: 1, // Bikin kotak supaya pas di lingkaran
+      viewMode: 1,
+      autoCropArea: 1,
+      background: false
+    });
+    
+    // Reset input biar bisa masukin file yang sama ulang
+    input.value = '';
   };
   reader.readAsDataURL(file);
+}
+
+function closeCropperModal() {
+  document.getElementById('cropperModal').classList.remove('show');
+  if (cropper) {
+    cropper.destroy();
+    cropper = null;
+  }
+}
+
+function applyCrop() {
+  if (!cropper) return;
+  
+  // Dapatkan gambar hasil crop dari canvas (resolusi medium biar ga kegedean nyimpennya di database)
+  const canvas = cropper.getCroppedCanvas({
+    width: 600,
+    height: 600,
+    imageSmoothingEnabled: true,
+    imageSmoothingQuality: 'high'
+  });
+  
+  // Ubah ke base64 JPEG
+  const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+  document.getElementById('heroImagePreview').src = croppedDataUrl;
+  document.getElementById('heroImagePreview').style.display = 'block';
+  document.getElementById('heroImageUrl').value = croppedDataUrl;
+  
+  closeCropperModal();
+  showToast('✓ Crop diterapkan! Klik Set Foto & Simpan untuk menyimpan permanen.');
 }
 
 async function saveHeroImage() {
