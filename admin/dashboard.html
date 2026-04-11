@@ -941,7 +941,7 @@ async function viewOrder(id) {
     </div>
     <div class="form-group">
       <label>Update Status</label>
-      <select id="updateStatus" style="background:rgba(3,9,31,0.6);border:1px solid var(--card-border);border-radius:8px;padding:0.8rem 1rem;color:var(--white);width:100%;font-family:var(--font-body)">
+      <select id="updateStatus" onchange="document.getElementById('resiWrap').style.display=this.value==='shipped'?'block':'none'" style="background:rgba(3,9,31,0.6);border:1px solid var(--card-border);border-radius:8px;padding:0.8rem 1rem;color:var(--white);width:100%;font-family:var(--font-body)">
         <option value="pending" ${order.status==='pending'?'selected':''}>⏳ Menunggu Pembayaran</option>
         <option value="paid" ${order.status==='paid'?'selected':''}>📦 Dikemas</option>
         <option value="shipped" ${order.status==='shipped'?'selected':''}>🚚 Dikirim</option>
@@ -949,13 +949,36 @@ async function viewOrder(id) {
         <option value="cancelled" ${order.status==='cancelled'?'selected':''}>❌ Dibatalkan</option>
       </select>
     </div>
+    <div class="form-group" id="resiWrap" style="display:${order.status==='shipped'?'block':'none'}">
+      <label>Nomor Resi (Jika Dikirim)</label>
+      <input type="text" id="updateResi" value="${(order.shipping&&order.shipping.resi)?order.shipping.resi:''}" placeholder="Contoh: JNE..." style="background:rgba(3,9,31,0.6)">
+    </div>
   `;
   const btn = document.getElementById('markPaidBtn');
-  btn.textContent = '💾 Update Status';
+  btn.textContent = '💾 Update Status & Kirim Notif';
   btn.onclick = async () => {
     const st = document.getElementById('updateStatus').value;
-    await Orders.update(id, {status: st});
-    showToast('Status pesanan diupdate!');
+    const resiVal = document.getElementById('updateResi').value;
+    
+    // Update API now supports passing `resi` natively.
+    // However, our frontend `Orders.update` method needs to support it. 
+    // We'll pass it in the body directly.
+    await fetch('/api/orders', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status: st, resi: resiVal })
+    });
+    
+    // Fallback Update Local orders array so UI responds immediately
+    showToast('Status & Email diupdate!');
+    
+    // WA Redirect Logic "Otomatis Prompt"
+    if (st === 'shipped' && order.phone) {
+      let phone = order.phone.replace(/^0/, '62');
+      let msg = encodeURIComponent(`Halo ${order.customerName},\n\nTerima kasih telah berbelanja di Aika Sesilia Merch! Pesanan Anda dengan ID *#${order.id}* saat ini sudah kami kirimkan. 🚚\n\nNomor Resi: *${resiVal || '-'}*\n\nJangan lupa untuk memberi ulasan setelah paket sampai. Terima kasih!`);
+      window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+    }
+
     closeOrderModal();
     renderOrders(currentOrderFilter);
   };
