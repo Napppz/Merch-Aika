@@ -113,8 +113,10 @@
     <div class="profile-email" id="profEmail">loading@...</div>
     <div class="profile-nav">
       <button class="active" onclick="switchTab('orders')">Riwayat Pesanan</button>
+      <button onclick="switchTab('wishlist')">Favorit Saya</button>
+      <button onclick="switchTab('address')">Buku Alamat</button>
       <button onclick="switchTab('settings')">Pengaturan Akun</button>
-      <button onclick="logout()">Keluar</button>
+      <button onclick="logout()" style="color:#ef4444; border-color:rgba(239,68,68,0.3);">Keluar</button>
     </div>
   </aside>
 
@@ -126,7 +128,47 @@
 
     <section id="tab-settings" class="content-section">
       <h2>Pengaturan Akun</h2>
-      <p style="color:var(--text-muted)">Fitur pengaturan profil akan segera hadir.</p>
+      <form id="settingsForm" onsubmit="saveSettings(event)" style="display:flex; flex-direction:column; gap:1.5rem; max-width:500px;">
+        <div class="form-group" style="margin:0;">
+          <label>Nama Lengkap</label>
+          <input type="text" id="settingName" required />
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Email <small style="color:var(--text-muted)">(Tidak dapat diubah)</small></label>
+          <input type="email" id="settingEmail" readonly style="opacity:0.6; cursor:not-allowed;" />
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Password Baru <small style="color:var(--text-muted)">(Kosongkan jika tidak diubah)</small></label>
+          <input type="password" id="settingPassword" placeholder="••••••••" />
+        </div>
+        <button type="submit" class="btn-primary" style="margin-top:1rem;" id="btnSaveSettings">Simpan Perubahan</button>
+      </form>
+    </section>
+
+    <section id="tab-address" class="content-section">
+      <h2>Buku Alamat</h2>
+      <div id="addressList" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:2rem;">
+        <!-- Alamat akan dimuat di sini -->
+      </div>
+      <div style="background:rgba(3,9,31,0.5); padding:1.5rem; border:1px dashed var(--card-border); border-radius:var(--radius-sm);">
+        <h3 style="margin-bottom:1rem;color:var(--white);font-family:var(--font-display);">Tambah Alamat Baru</h3>
+        <form id="addressForm" onsubmit="saveAddress(event)" style="display:flex; flex-direction:column; gap:1rem;">
+          <div class="form-group" style="margin:0;">
+            <input type="text" id="addrLabel" placeholder="Label (cth: Rumah, Kantor)" required />
+          </div>
+          <div class="form-group" style="margin:0;">
+            <textarea id="addrText" rows="3" placeholder="Alamat Lengkap" style="resize:none;" required></textarea>
+          </div>
+          <button type="submit" class="btn-secondary" style="align-self:flex-start;">Simpan Alamat</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="tab-wishlist" class="content-section">
+      <h2>Favorit Saya (Wishlist)</h2>
+      <div id="wishlistContainer" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1.5rem;">
+        <!-- Wishlist items -->
+      </div>
     </section>
   </main>
 </div>
@@ -168,6 +210,7 @@
 <script>
   let currentUser = null;
   let currentReviewOrderId = null;
+  let allOrders = {};
 
   document.addEventListener('DOMContentLoaded', () => {
     const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
@@ -181,7 +224,13 @@
     document.getElementById('profName').textContent = currentUser.username;
     document.getElementById('profEmail').textContent = currentUser.email;
 
+    // Init forms
+    document.getElementById('settingName').value = currentUser.username;
+    document.getElementById('settingEmail').value = currentUser.email;
+
     loadOrders();
+    loadAddress();
+    loadWishlist();
   });
 
   function switchTab(tabId) {
@@ -210,7 +259,11 @@
         return;
       }
 
-      list.innerHTML = orders.map(o => `
+      list.innerHTML = orders.map(o => {
+        let itemsArr = Array.isArray(o.items) ? o.items : (typeof o.items === 'string' ? JSON.parse(o.items) : []);
+        allOrders[o.id] = itemsArr;
+        
+        return `
         <div class="order-card">
           <div class="order-header">
             <div>
@@ -222,8 +275,7 @@
             </div>
           </div>
           <div class="order-items">
-            ${(Array.isArray(o.items) ? o.items : 
-              (typeof o.items === 'string' ? JSON.parse(o.items) : [])).map(i => `
+            ${itemsArr.map(i => `
               <div class="order-item">
                 <span>${i.qty}x ${i.name}</span>
                 <span>Rp ${(i.price * i.qty).toLocaleString('id-ID')}</span>
@@ -231,8 +283,8 @@
             `).join('')}
           </div>
           <div class="order-footer">
-            <span>Total Bayar</span>
-            <span style="color:var(--aqua);font-size:1.1rem">Rp ${(o.total).toLocaleString('id-ID')}</span>
+            <span>Total Bayar <strong style="color:var(--aqua);font-size:1.1rem;margin-left:5px">Rp ${(o.total).toLocaleString('id-ID')}</strong></span>
+            <button class="btn-ghost" style="padding:0.4rem 1rem;font-size:0.8rem;border-radius:6px;display:flex;align-items:center;gap:5px" onclick="reorderItems('${o.id}')">🛒 Beli Lagi</button>
           </div>
           ${o.status === 'paid' ? `
             <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--card-border)">
@@ -299,6 +351,144 @@
       btn.disabled = false;
       btn.textContent = 'Kirim';
     }
+  }
+
+  /* --- REORDER (Beli Lagi) --- */
+  function reorderItems(orderId) {
+    const items = allOrders[orderId] || [];
+    if (!items || items.length === 0) return;
+    
+    let cart = JSON.parse(localStorage.getItem('aika_cart') || '[]');
+    items.forEach(orderItem => {
+      cart.push({
+        id: orderItem.id || Date.now() + Math.random(),
+        name: orderItem.name,
+        price: orderItem.price,
+        qty: orderItem.qty,
+        image: orderItem.image || ''
+      });
+    });
+    localStorage.setItem('aika_cart', JSON.stringify(cart));
+    alert('Barang berhasil ditambahkan ke keranjang!');
+    window.location.href = 'cart.html';
+  }
+
+  /* --- PENGATURAN AKUN --- */
+  function saveSettings(e) {
+    e.preventDefault();
+    const newName = document.getElementById('settingName').value;
+    const newPass = document.getElementById('settingPassword').value;
+    const btn = document.getElementById('btnSaveSettings');
+    
+    btn.disabled = true; btn.textContent = 'Menyimpan...';
+
+    // Simulasi save ke localStorage (karena di backend butuh /api/update-user yg belum ada)
+    setTimeout(() => {
+      currentUser.username = newName;
+      if (newPass) currentUser.password = newPass; // Hanya simulasi
+      
+      localStorage.setItem('aika_session', JSON.stringify(currentUser));
+      document.getElementById('profName').textContent = newName;
+      document.getElementById('profAvatar').textContent = newName.charAt(0).toUpperCase();
+
+      alert('Pengaturan akun berhasil disimpan!');
+      document.getElementById('settingPassword').value = '';
+      btn.disabled = false; btn.textContent = 'Simpan Perubahan';
+    }, 800);
+  }
+
+  /* --- BUKU ALAMAT --- */
+  function loadAddress() {
+    const list = document.getElementById('addressList');
+    const addresses = JSON.parse(localStorage.getItem('aika_address_' + currentUser.email) || '[]');
+    
+    if (addresses.length === 0) {
+      list.innerHTML = '<p style="color:var(--text-muted)">Belum ada alamat yang tersimpan.</p>';
+      return;
+    }
+    
+    list.innerHTML = addresses.map((addr, idx) => `
+      <div style="background:var(--card-bg); border:1px solid var(--card-border); padding:1rem; border-radius:var(--radius-sm); display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <h4 style="color:var(--white); margin-bottom:5px; font-family:var(--font-display);">${addr.label}</h4>
+          <p style="color:var(--text-muted); font-size:0.9rem; line-height:1.5;">${addr.address}</p>
+        </div>
+        <button class="btn-ghost" style="border:none; color:#ef4444; padding:0.5rem;" onclick="deleteAddress(${idx})">🗑️ Hapus</button>
+      </div>
+    `).join('');
+  }
+
+  function saveAddress(e) {
+    e.preventDefault();
+    const label = document.getElementById('addrLabel').value;
+    const text = document.getElementById('addrText').value;
+    
+    let addresses = JSON.parse(localStorage.getItem('aika_address_' + currentUser.email) || '[]');
+    addresses.push({ label, address: text });
+    localStorage.setItem('aika_address_' + currentUser.email, JSON.stringify(addresses));
+    
+    document.getElementById('addressForm').reset();
+    loadAddress();
+  }
+
+  function deleteAddress(idx) {
+    if(!confirm('Hapus alamat ini?')) return;
+    let addresses = JSON.parse(localStorage.getItem('aika_address_' + currentUser.email) || '[]');
+    addresses.splice(idx, 1);
+    localStorage.setItem('aika_address_' + currentUser.email, JSON.stringify(addresses));
+    loadAddress();
+  }
+
+  /* --- WISHLIST --- */
+  function loadWishlist() {
+    const container = document.getElementById('wishlistContainer');
+    const wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
+    
+    if (wishlist.length === 0) {
+      container.innerHTML = '<p style="color:var(--text-muted); grid-column:1 / -1;">Wishlist Anda kosong.</p>';
+      return;
+    }
+    
+    container.innerHTML = wishlist.map((item, idx) => `
+      <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:var(--radius); overflow:hidden; position:relative;">
+        <button style="position:absolute; top:8px; right:8px; background:rgba(3,9,31,0.7); border:none; border-radius:50%; width:30px; height:30px; color:#ef4444; cursor:pointer;" onclick="removeWishlist(${idx})">✕</button>
+        <div style="height:120px; background:var(--midnight-blue); display:flex; align-items:center; justify-content:center;">
+          ${item.image ? `<img src="${item.image}" style="width:100%; height:100%; object-fit:cover;" />` : '<span style="font-size:2rem; opacity:0.3;">🛍️</span>'}
+        </div>
+        <div style="padding:1rem;">
+          <h4 style="color:var(--white); font-size:0.95rem; margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</h4>
+          <p style="color:var(--aqua); font-weight:700; font-size:0.9rem; margin-bottom:1rem;">Rp ${(item.price).toLocaleString('id-ID')}</p>
+          <button class="btn-primary" style="width:100%; padding:0.5rem; font-size:0.8rem; border-radius:50px;" onclick="addWishlistToCart(${idx})">+ Keranjang</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function removeWishlist(idx) {
+    let wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
+    wishlist.splice(idx, 1);
+    localStorage.setItem('aika_wishlist', JSON.stringify(wishlist));
+    loadWishlist();
+  }
+
+  function addWishlistToCart(idx) {
+    let wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
+    let cart = JSON.parse(localStorage.getItem('aika_cart') || '[]');
+    let item = wishlist[idx];
+    if(!item) return;
+    
+    // Cek apakah item sudah ada di keranjang
+    let exist = cart.find(c => c.name === item.name);
+    if(exist) {
+      // qty di cart update tidak apa-apa, tapi sederhana kita add baru
+      exist.qty = (exist.qty || 1) + 1;
+    } else {
+      item.qty = 1;
+      cart.push(item);
+    }
+    
+    localStorage.setItem('aika_cart', JSON.stringify(cart));
+    alert(item.name + ' ditambahkan ke keranjang!');
   }
 </script>
 </body>

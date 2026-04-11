@@ -43,12 +43,44 @@ const Orders = {
   }
 };
 
+// ── WISHLIST TOGGLE ──
+window.toggleWishlist = function(btn, product) {
+  let wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
+  const existsIndex = wishlist.findIndex(w => w.id === product.id);
+  
+  const svg = btn.querySelector('svg');
+  if (existsIndex >= 0) {
+    wishlist.splice(existsIndex, 1);
+    svg.style.fill = 'none';
+    svg.style.color = 'var(--text-muted)';
+    showToast('Dihapus dari Favorit 💔');
+  } else {
+    wishlist.push(product);
+    svg.style.fill = '#ef4444';
+    svg.style.color = '#ef4444';
+    showToast('Ditambahkan ke Favorit ❤️');
+  }
+  localStorage.setItem('aika_wishlist', JSON.stringify(wishlist));
+};
+
+function checkWishlistStatus(id) {
+  const wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
+  return wishlist.some(w => w.id === id);
+}
+
 // ── RENDER PRODUCT CARD ──
 function renderProductCard(p, compact = false) {
   const emoji = { 'Pakaian': '👕', 'Aksesoris': '💎', 'Foto & Print': '🖼️', 'Stiker': '✨' };
+  const isWishlisted = checkWishlistStatus(p.id);
+  const heartFill = isWishlisted ? '#ef4444' : 'none';
+  const heartColor = isWishlisted ? '#ef4444' : 'var(--text-muted)';
+
   return `
     <div class="product-card fade-in">
-      <div class="product-img-wrap">
+      <div class="product-img-wrap" style="position:relative;">
+        <button style="position:absolute; top:12px; left:12px; z-index:10; background:rgba(3,9,31,0.6); backdrop-filter:blur(4px); border:1px solid var(--card-border); border-radius:50%; width:36px; height:36px; color:${heartColor}; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:var(--transition);" onclick='toggleWishlist(this, ${JSON.stringify({id: p.id, name: p.name, price: p.price, image: p.image || ''})})' aria-label="Favorit">
+          <svg width="20" height="20" fill="${heartFill}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+        </button>
         ${p.image
           ? `<img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="product-placeholder" style="display:none">${emoji[p.category] || '🛍️'}</div>`
           : `<div class="product-placeholder">${emoji[p.category] || '🛍️'}</div>`}
