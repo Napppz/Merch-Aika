@@ -120,6 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="detail-row"><span>Status</span><span style="color:var(--aqua)">✅ Dibayar</span></div>
     <div class="items-list">${itemsHtml}</div>
     <div class="detail-row"><span>Ongkos Kirim</span><span>${formatPrice(order.shipping?.price || 0)}</span></div>
+    ${order.shipping?.discount ? `<div class="detail-row"><span style="color:var(--gold)">Diskon (${order.shipping.discount.code})</span><span style="color:var(--gold)">- ${formatPrice(order.shipping.discount.amount)}</span></div>` : ''}
     <div class="detail-row" style="font-weight:700"><span style="color:var(--white)">Total</span><span style="color:var(--aqua)">${formatPrice(order.total)}</span></div>
   `;
 });
