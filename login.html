@@ -579,6 +579,47 @@ if (isAdmin) {
     }
   } catch {}
 }
+
+/* ── Reset Password Link Flow ── */
+const resetToken = urlParams.get('reset');
+if (resetToken) {
+  // Ubah tab login jadi tab reset
+  document.getElementById('tab-login').classList.remove('active');
+  document.getElementById('tab-login').innerHTML = `
+    <h2 class="auth-title">Reset Password</h2>
+    <div id="resetAlert" class="auth-alert"></div>
+    <div class="auth-form-group">
+      <label class="auth-label">Password Baru</label>
+      <input type="password" id="reset-password" class="auth-input" placeholder="Minimal 6 karakter" required>
+    </div>
+    <button class="auth-btn" style="margin-top:1.5rem" onclick="submitNewPassword('${resetToken}')">Simpan Password Baru</button>
+    <div class="auth-footer" style="margin-top:1rem">
+      <a href="login.html" class="forgot-link">Kembali ke Login</a>
+    </div>
+  `;
+  document.getElementById('tab-login').classList.add('active');
+  document.querySelector('.auth-header').style.display = 'none'; // Sembunyikan tab login/daftar
+}
+
+async function submitNewPassword(token) {
+  const newPass = document.getElementById('reset-password').value;
+  if(newPass.length < 6) return showAlert('Password minimal 6 karakter', 'error', 'resetAlert');
+  
+  try {
+    const res = await fetch('/api/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, newPassword: newPass })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Gagal reset password');
+    
+    showAlert('Password berhasil diubah! Silakan login.', 'success', 'resetAlert');
+    setTimeout(() => window.location.href = 'login.html', 2000);
+  } catch(err) {
+    showAlert(err.message, 'error', 'resetAlert');
+  }
+}
 </script>
 </body>
 </html>
