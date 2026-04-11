@@ -136,17 +136,6 @@ async function loadFeaturedProducts() {
   initFadeIn();
 }
 
-// ── LOAD RECOMMENDED (index.html) ──
-async function loadRecommendedProducts() {
-  const grid = document.getElementById('recommendedGrid');
-  if (!grid) return;
-  const all = await Products.getAll();
-  // Filter only some products (e.g., items from index 3 to 6 or random 3)
-  const products = all.length > 3 ? all.slice(3, 6) : all.slice(0, 3);
-  grid.innerHTML = products.map(p => renderProductCard(p)).join('');
-  initFadeIn();
-}
-
 // ── LOAD SHOP ──
 async function loadShopProducts(filter = 'Semua', search = '') {
   const grid = document.getElementById('shopGrid');
