@@ -8,11 +8,11 @@ const crypto = require('crypto');
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// Middleware
+// Middleware - ORDER MATTERS!
+// 1. JSON parser
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
 
-// CORS Headers
+// 2. CORS Headers
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
@@ -20,6 +20,12 @@ app.use((req, res, next) => {
   if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
+
+// 3. Static files (CSS, JS, images, etc) - HIGH PRIORITY
+app.use(express.static(path.join(__dirname), {
+  maxAge: '1h',
+  etag: false
+}));
 
 // ── API: Admin Login ──
 app.post('/api/admin-login', (req, res) => {
@@ -183,13 +189,18 @@ app.post('/api/forgot-password', (req, res) => {
 });
 
 // ── Serve static files (fallback untuk SPA) ──
-app.get('/*', (req, res) => {
-  // Jika file tidak ada, serve index.html
-  const filepath = path.join(__dirname, req.path);
-  if (filepath.includes('api')) {
-    return res.status(404).json({ error: 'API endpoint not found' });
+// Only redirect HTML pages, not CSS/JS/images
+app.get(['/', '/index.html', '/shop.html', '/login.html', '/register.html', '/checkout.html', '/order-success.html', '/admin/dashboard.html'], (req, res) => {
+  res.sendFile(path.join(__dirname, req.path === '/' ? 'index.html' : req.path));
+});
+
+// Catch-all: serve index.html for SPA routing (only for non-API, non-static routes)
+app.use((req, res) => {
+  // Jika bukan API dan file tidak ada, serve index.html untuk SPA
+  if (!req.path.includes('.') && !req.path.startsWith('/api')) {
+    return res.sendFile(path.join(__dirname, 'index.html'));
   }
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.status(404).json({ error: 'Not found' });
 });
 
 // ── Start Server ──
