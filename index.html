@@ -199,7 +199,7 @@
       <div class="hero-initials" style="display: none;">PH</div>
     </div>
     <div class="float-badge badge1">🎭 Cosplayer</div>
-    <div class="float-badge badge2">💙 Since 2020</div>
+    <div class="float-badge badge2">💙 Since 2016</div>
   </div>
 </section>
 
@@ -232,8 +232,8 @@
       <p>Aika Sesilia adalah cosplayer berbasis di Indonesia yang dikenal dengan kostum detail dan penuh karakter. Setiap merchandise yang dijual adalah ekspresi nyata dari passion Aika dalam dunia cosplay.</p>
       <p>Setiap produk dipilih dan dikurasi langsung oleh Aika — memastikan kualitas terbaik untuk para fans tercinta.</p>
       <div class="about-stats">
-        <div class="stat"><span>50K+</span><p>Followers</p></div>
-        <div class="stat"><span>200+</span><p>Kostum</p></div>
+        <div class="stat"><span>136K+</span><p>Followers</p></div>
+        <div class="stat"><span>100+</span><p>Cosplay</p></div>
         <div class="stat"><span>5★</span><p>Rating</p></div>
       </div>
     </div>
@@ -337,15 +337,21 @@
     // ── SUDAH LOGIN ──
     const initials = (session.username || session.email || 'U')
       .replace(/[^a-zA-Z0-9]/g,'').slice(0,2).toUpperCase();
+      
+    const savedAvatar = localStorage.getItem('aika_avatar_' + session.email);
+    const avatarContent = savedAvatar 
+      ? `<img src="${savedAvatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
+      : initials;
 
     nav.innerHTML = `
       <button class="user-btn-logged" id="userMenuBtn" onclick="toggleUserDropdown()" aria-label="Menu akun">
-        <div class="user-avatar">${initials}</div>
+        <div class="user-avatar">${avatarContent}</div>
         <span>${session.username || 'Akun'}</span>
         <span style="font-size:0.65rem;opacity:0.6">▼</span>
       </button>
       <div class="user-dropdown" id="userDropdown">
         <div class="user-dropdown-header">
+          <div class="user-avatar" style="width:40px;height:40px;margin-bottom:8px;font-size:1rem;">${avatarContent}</div>
           <div class="user-dropdown-name">${session.username || 'Pengguna'}</div>
           <div class="user-dropdown-email">${session.email || ''}</div>
         </div>
