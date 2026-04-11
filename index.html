@@ -11,6 +11,9 @@
 <body>
 <div class="cursor-glow"></div>
 
+<!-- Animasi Hiu -->
+<div class="swimming-shark">🦈</div>
+
 <!-- NAV -->
 <nav class="navbar">
   <div class="nav-brand">
@@ -36,6 +39,46 @@
 </nav>
 
 <style>
+  /* ── Animasi Hiu Lewat ── */
+  .swimming-shark {
+    position: fixed;
+    bottom: 20%;
+    left: -150px; /* Start off screen */
+    font-size: 5rem;
+    z-index: 100;
+    pointer-events: none; /* Klik tembus */
+    opacity: 0.8;
+    filter: drop-shadow(0 0 10px rgba(41,182,246,0.6));
+    animation: swim 20s linear infinite; /* 20s to cross screen */
+  }
+
+  @keyframes swim {
+    0% {
+      transform: translateX(0) translateY(0) scaleX(1);
+    }
+    20% {
+      transform: translateX(25vw) translateY(-20px) scaleX(1);
+    }
+    40% {
+      transform: translateX(50vw) translateY(10px) scaleX(1);
+    }
+    60% {
+      transform: translateX(75vw) translateY(-10px) scaleX(1);
+    }
+    80% {
+      transform: translateX(100vw) translateY(20px) scaleX(1);
+    }
+    81% {
+      transform: translateX(100vw) translateY(20px) scaleX(-1); /* Balik Arah */
+    }
+    90% {
+      transform: translateX(50vw) translateY(-15px) scaleX(-1);
+    }
+    100% {
+      transform: translateX(-150px) translateY(0) scaleX(-1);
+    }
+  }
+
   /* ── User Nav Button ── */
   .user-nav { position: relative; }
 
