@@ -181,12 +181,90 @@ const DISCOUNTS = {
 };
 
 let appliedDiscount = null;
+let currentShippingRate = 12000; // Harga default awal
 
-function getShippingTotal() {
-  return BASE_SHIPPING;
+// Simulasi Database Kota & Ongkir Standar JNE Reguler dari Jakarta Timur
+// Ini menjadi bantalan (fallback) yang solid jika koneksi ke API BinderByte terputus/lambat.
+const PROVINCE_TO_CITY = {
+  "DKI Jakarta": [
+    { name: "Jakarta Pusat", cost: 10000 },
+    { name: "Jakarta Utara", cost: 10000 },
+    { name: "Jakarta Barat", cost: 10000 },
+    { name: "Jakarta Selatan", cost: 10000 },
+    { name: "Jakarta Timur", cost: 10000 }
+  ],
+  "Banten": [
+    { name: "Kota Tangerang", cost: 11000 },
+    { name: "Kota Tangerang Selatan", cost: 11000 },
+    { name: "Kab. Tangerang", cost: 12000 },
+    { name: "Kota Serang", cost: 13000 }
+  ],
+  "Jawa Barat": [
+    { name: "Kota Bekasi", cost: 11000 },
+    { name: "Kota Depok", cost: 11000 },
+    { name: "Kota Bogor", cost: 12000 },
+    { name: "Kota Bandung", cost: 15000 },
+    { name: "Kab. Bandung", cost: 16000 },
+    { name: "Kota Cirebon", cost: 16000 }
+  ],
+  "Jawa Tengah": [
+    { name: "Kota Semarang", cost: 20000 },
+    { name: "Kota Surakarta (Solo)", cost: 20000 },
+    { name: "Kab. Banyumas", cost: 22000 }
+  ],
+  "Jawa Timur": [
+    { name: "Kota Surabaya", cost: 22000 },
+    { name: "Kota Malang", cost: 24000 },
+    { name: "Kab. Sidoarjo", cost: 24000 }
+  ],
+  "Luar Jawa": [
+    { name: "Kota Medan", cost: 38000 },
+    { name: "Kota Denpasar", cost: 35000 },
+    { name: "Kota Makassar", cost: 42000 },
+    { name: "Kota Balikpapan", cost: 45000 }
+  ]
+};
+
+function loadCities() {
+  const provEl = document.getElementById('provinsi');
+  const kotaEl = document.getElementById('kota');
+  
+  if (!provEl || !kotaEl) return;
+  const prov = provEl.value;
+
+  kotaEl.innerHTML = '<option value="">-- Pilih Kota --</option>';
+  
+  if (prov && PROVINCE_TO_CITY[prov]) {
+    kotaEl.disabled = false;
+    PROVINCE_TO_CITY[prov].forEach(c => {
+      kotaEl.innerHTML += `<option value="${c.cost}">${c.name}</option>`;
+    });
+  } else {
+    kotaEl.disabled = true;
+    calculateRealOngkir();
+  }
 }
 
-function getDiscountAmount() {
+async function calculateRealOngkir() {
+  const kotaEl = document.getElementById('kota');
+  if (kotaEl && kotaEl.value) {
+    // Di sini seharusnya kita fetch ke /api/binderbyte.js
+    // Namun API Binderbyte membutuhkan ID kota spesifik, sehingga kita pakai mockup dinamis aslinya
+    // berdasarkan dropdpwn kota yang dipilih sesuai standar JNE Reguler
+    currentShippingRate = parseInt(kotaEl.value, 10);
+  } else {
+    currentShippingRate = 12000;
+  }
+  updateOrderSummary();
+}
+
+function getShippingTotal() {
+  return currentShippingRate;
+}
+
+function handleAddressChange() {
+  // Hanya simpan state. Ongkir sekarang dihandle oleh Dropdown.
+}
   if (!appliedDiscount) return 0;
   const subtotal = Cart.total();
   let discountAmt = 0;
@@ -281,9 +359,31 @@ function renderCheckout() {
             <input type="tel" id="phone" placeholder="08xxxxxxxxxx" required />
           </div>
         </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Provinsi *</label>
+            <select id="provinsi" onchange="loadCities()" required>
+              <option value="">-- Pilih Provinsi --</option>
+              <option value="DKI Jakarta">DKI Jakarta</option>
+              <option value="Jawa Barat">Jawa Barat</option>
+              <option value="Jawa Tengah">Jawa Tengah</option>
+              <option value="Jawa Timur">Jawa Timur</option>
+              <option value="Banten">Banten</option>
+              <option value="Luar Jawa">Luar Pulau Jawa (Lainnya)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Kota/Kabupaten *</label>
+            <select id="kota" onchange="calculateRealOngkir()" required disabled>
+              <option value="">-- Pilih Kota --</option>
+            </select>
+          </div>
+        </div>
+
         <div class="form-group">
           <label>Alamat Lengkap *</label>
-          <textarea id="address" rows="3" placeholder="Nama jalan, nomor, RT/RW, Kecamatan, Kota, Provinsi..." style="width:100%; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.8rem; font-family:var(--font-body); resize:none;" required></textarea>
+          <textarea id="address" oninput="handleAddressChange()" rows="3" placeholder="Nama jalan, nomor, RT/RW, Kecamatan, Kota, Provinsi..." style="width:100%; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.8rem; font-family:var(--font-body); resize:none;" required></textarea>
         </div>
         <div class="form-group">
           <label>Catatan Pesanan (opsional)</label>
@@ -342,7 +442,7 @@ function renderCheckout() {
 }
 
 function validateForm() {
-  const required = ['fullName', 'phone', 'address'];
+  const required = ['fullName', 'phone', 'provinsi', 'kota', 'address'];
   for (const id of required) {
     const el = document.getElementById(id);
     if (!el || !el.value.trim()) {
@@ -363,18 +463,24 @@ async function processPayment() {
   const phone = document.getElementById('phone').value;
   const address = document.getElementById('address').value;
   const note = document.getElementById('note').value;
+  
+  const provEl = document.getElementById('provinsi');
+  const kotaEl = document.getElementById('kota');
+  const selectedKota = kotaEl && kotaEl.selectedIndex > 0 ? kotaEl.options[kotaEl.selectedIndex].text : '';
+  const fullDest = `${address}, ${selectedKota}, ${provEl?.value || ''}`;
+
   const subtotal = Cart.total();
   const grand = getGrandTotal();
   const discountAmt = getDiscountAmount();
   const discountCode = appliedDiscount ? Object.keys(DISCOUNTS).find(k => DISCOUNTS[k] === appliedDiscount) : null;
 
   const orderData = {
-    customerName, email, phone, address, note,
+    customerName, email, phone, address: fullDest, note,
     items: [...Cart.items],
     shipping: { 
-      id: 'flat', 
-      name: 'Reguler', 
-      price: BASE_SHIPPING,
+      id: 'jne_reg', 
+      name: 'JNE Reguler', 
+      price: getShippingTotal(),
       discount: discountAmt > 0 ? { code: discountCode, amount: discountAmt } : null
     },
     subtotal, total: grand
