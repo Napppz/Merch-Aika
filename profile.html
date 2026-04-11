@@ -108,7 +108,13 @@
 
 <div class="profile-container">
   <aside class="profile-sidebar">
-    <div class="profile-avatar" id="profAvatar">?</div>
+    <div class="profile-avatar" id="profAvatarContainer" style="position:relative; cursor:pointer;" onclick="document.getElementById('avatarUpload').click()" title="Klik untuk ubah foto">
+      <div id="profAvatarText" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">?</div>
+      <div style="position:absolute; inset:0; background:rgba(0,0,0,0.5); border-radius:50%; display:flex; align-items:center; justify-content:center; opacity:0; transition:0.3s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
+        <span style="font-size:0.8rem; color:#fff;">Ubah</span>
+      </div>
+    </div>
+    <input type="file" id="avatarUpload" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
     <div class="profile-name" id="profName">Loading...</div>
     <div class="profile-email" id="profEmail">loading@...</div>
     <div class="profile-nav">
@@ -220,7 +226,9 @@
     }
     currentUser = JSON.parse(userStr);
     
-    document.getElementById('profAvatar').textContent = currentUser.username.charAt(0).toUpperCase();
+    // Set up Avatar
+    loadAvatar();
+
     document.getElementById('profName').textContent = currentUser.username;
     document.getElementById('profEmail').textContent = currentUser.email;
 
@@ -238,6 +246,32 @@
     event.target.classList.add('active');
     document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
     document.getElementById('tab-' + tabId).classList.add('active');
+  }
+
+  function loadAvatar() {
+    const saved = localStorage.getItem('aika_avatar_' + currentUser.email);
+    const container = document.getElementById('profAvatarText');
+    if (saved) {
+      container.innerHTML = `<img src="${saved}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+    } else {
+      container.innerHTML = currentUser.username.charAt(0).toUpperCase();
+    }
+  }
+
+  function handleAvatarUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Uh oh! Ukuran foto maksimal 2MB ya.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const dataUrl = e.target.result;
+      localStorage.setItem('aika_avatar_' + currentUser.email, dataUrl);
+      loadAvatar();
+    };
+    reader.readAsDataURL(file);
   }
 
   function logout() {
@@ -368,6 +402,8 @@
     btn.disabled = true;
     btn.textContent = 'Mengirim...';
 
+    const avatarStr = localStorage.getItem('aika_avatar_' + currentUser.email) || '';
+
     try {
       const res = await fetch('/api/reviews', {
         method: 'POST',
@@ -376,7 +412,8 @@
           order_id: currentReviewOrderId,
           customer_name: currentUser.username,
           rating: parseInt(rating),
-          comment: comment
+          comment: comment,
+          avatar: avatarStr
         })
       });
 
@@ -442,7 +479,7 @@
       
       localStorage.setItem('aika_session', JSON.stringify(currentUser));
       document.getElementById('profName').textContent = newName;
-      document.getElementById('profAvatar').textContent = newName.charAt(0).toUpperCase();
+      loadAvatar();
 
       alert('Pengaturan akun berhasil disimpan!');
       document.getElementById('settingPassword').value = '';

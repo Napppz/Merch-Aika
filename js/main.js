@@ -177,8 +177,8 @@ async function loadReviews() {
         </q>
         <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--card-border); padding-top:1rem;">
           <div style="display:flex; align-items:center; gap:0.8rem;">
-            <div style="width:35px; height:35px; border-radius:50%; background:var(--aqua); color:var(--deep-ocean); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1rem; font-family:var(--font-display)">
-              ${r.customer_name.charAt(0).toUpperCase()}
+            <div style="width:35px; height:35px; border-radius:50%; background:var(--aqua); color:var(--deep-ocean); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1rem; font-family:var(--font-display); overflow:hidden;">
+              ${r.avatar ? `<img src="${r.avatar}" alt="Foto ${r.customer_name}" style="width:100%;height:100%;object-fit:cover;">` : r.customer_name.charAt(0).toUpperCase()}
             </div>
             <div style="font-weight:700; color:var(--white); font-size:0.95rem;">${r.customer_name}</div>
           </div>
