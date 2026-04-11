@@ -403,19 +403,27 @@
     const items = allOrders[orderId] || [];
     if (!items || items.length === 0) return;
     
-    let cart = JSON.parse(localStorage.getItem('aika_cart') || '[]');
+    const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+    const key = userStr ? `aika_cart_${JSON.parse(userStr).email}` : 'aika_cart_guest';
+    
+    let cart = JSON.parse(localStorage.getItem(key) || '[]');
     items.forEach(orderItem => {
-      cart.push({
-        id: orderItem.id || Date.now() + Math.random(),
-        name: orderItem.name,
-        price: orderItem.price,
-        qty: orderItem.qty,
-        image: orderItem.image || ''
-      });
+      let existing = cart.find(i => i.id === orderItem.id || i.name === orderItem.name);
+      if (existing) {
+        existing.qty += (orderItem.qty || 1);
+      } else {
+        cart.push({
+          id: orderItem.id || Date.now() + Math.random(),
+          name: orderItem.name,
+          price: orderItem.price,
+          qty: orderItem.qty || 1,
+          image: orderItem.image || ''
+        });
+      }
     });
-    localStorage.setItem('aika_cart', JSON.stringify(cart));
+    localStorage.setItem(key, JSON.stringify(cart));
     alert('Barang berhasil ditambahkan ke keranjang!');
-    window.location.href = 'cart.html';
+    window.location.href = 'index.html'; // Go back to shop instead of non-existent cart.html
   }
 
   /* --- PENGATURAN AKUN --- */
@@ -518,21 +526,23 @@
 
   function addWishlistToCart(idx) {
     let wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
-    let cart = JSON.parse(localStorage.getItem('aika_cart') || '[]');
+    
+    const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+    const key = userStr ? `aika_cart_${JSON.parse(userStr).email}` : 'aika_cart_guest';
+    let cart = JSON.parse(localStorage.getItem(key) || '[]');
+    
     let item = wishlist[idx];
     if(!item) return;
     
-    // Cek apakah item sudah ada di keranjang
     let exist = cart.find(c => c.name === item.name);
     if(exist) {
-      // qty di cart update tidak apa-apa, tapi sederhana kita add baru
       exist.qty = (exist.qty || 1) + 1;
     } else {
       item.qty = 1;
       cart.push(item);
     }
     
-    localStorage.setItem('aika_cart', JSON.stringify(cart));
+    localStorage.setItem(key, JSON.stringify(cart));
     alert(item.name + ' ditambahkan ke keranjang!');
   }
 </script>
