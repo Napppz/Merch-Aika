@@ -536,19 +536,26 @@ document.getElementById('forgotModal').addEventListener('click', function(e) {
   if (e.target === this) closeForgot();
 });
 
-function sendReset() {
+async function sendReset() {
   const email = document.getElementById('forgot-email').value.trim();
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return showAlert('Masukkan email yang valid!', 'error', 'forgotAlert');
   }
 
-  fetch('/api/forgot-password', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email })
-  }).catch(() => {});
-
-  showAlert('Jika email terdaftar, instruksi reset password telah dikirim. Periksa inbox kamu!', 'success', 'forgotAlert');
+  showAlert('Memproses...', 'success', 'forgotAlert');
+  try {
+    const res = await fetch('/api/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Server error');
+    
+    showAlert('Instruksi reset password telah dikirim. Periksa inbox/spam kamu!', 'success', 'forgotAlert');
+  } catch (err) {
+    showAlert(err.message, 'error', 'forgotAlert');
+  }
 }
 
 /* ── Auto-fill if coming from register ── */
