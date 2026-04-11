@@ -22,8 +22,8 @@ module.exports = async function handler(req, res) {
     // Cek apakah user ada
     const userRes = await query('SELECT * FROM users WHERE email = $1', [email]);
     if (userRes.rows.length === 0) {
-      // Return 200 biar hacker ga tau email ini ke daftar apa ga (security best practice)
-      return res.status(200).json({ success: true });
+      // Kita ubah menjadi error eksplisit agar tau kalau emailnya memang tidak ada di database
+      return res.status(404).json({ error: 'Email tidak terdaftar di sistem kami.' });
     }
 
     // Bikin Token Reset Acak (Hex)
@@ -69,11 +69,16 @@ module.exports = async function handler(req, res) {
       `,
     };
 
-    await transporter.sendMail(mailOptions);
-    res.status(200).json({ success: true, message: 'Reset link dikirim' });
+    try {
+      await transporter.sendMail(mailOptions);
+      res.status(200).json({ success: true, message: 'Reset link dikirim' });
+    } catch (mailErr) {
+      console.error('Nodemailer Error:', mailErr.message);
+      return res.status(500).json({ error: 'Gagal mengirim email (Masalah Kredensial/SMTP)' });
+    }
 
   } catch (err) {
     console.error('Reset error:', err.message);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: err.message || 'Internal Server Error' });
   }
 };
