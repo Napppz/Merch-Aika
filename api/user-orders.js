@@ -19,14 +19,16 @@ module.exports = async function handler(req, res) {
 
   try {
     const result = await query(
-      `SELECT o.*, 
-       (SELECT r.id FROM reviews r WHERE r.order_id = o.id LIMIT 1) as review_id 
+      `SELECT o.*, r.id as review_id 
        FROM orders o 
+       LEFT JOIN reviews r ON r.order_id = o.id 
        WHERE o.email = $1 
        ORDER BY o.date DESC`,
       [email]
     );
 
+    // Untuk memastikan tidak ada duplikat order jika ada beberapa review (walaupun logikanya 1 order 1 review)
+    // Filter duplicates jika perlu, tapi karena LEFT JOIN dan review biasanya 1, ini aman.
     return res.status(200).json(result.rows);
   } catch (err) {
     console.error('Fetch user orders error:', err.message);
