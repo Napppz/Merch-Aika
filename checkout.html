@@ -120,6 +120,7 @@
       .steps { padding: 0 1.2rem; }
     }
   </style>
+  <script src="https://app.midtrans.com/snap/snap.js" data-client-key="Mid-client-rbcBCNfW1x_BkKv2"></script>
 </head>
 <body>
 
@@ -495,17 +496,17 @@ async function processPayment() {
   }
   localStorage.setItem('last_order', JSON.stringify(order));
 
-  // ==== DUITKU INTEGRATION ====
-  showToast('⏳ Mengalihkan ke halaman pembayaran...');
+  // ==== MIDTRANS INTEGRATION ====
+  showToast('⏳ Menghubungkan ke Midtrans...');
 
   try {
-    const response = await fetch('/api/duitku-pay', {
+    const response = await fetch('/api/midtrans-pay', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         orderId: order.id, 
         amount: grand, 
-        items: Cart.items,
+        items: Object.values(Cart.items), // Pastikan mengubah map items-nya karena Midtrans pakai array
         customerName, 
         email, 
         phone 
@@ -513,14 +514,29 @@ async function processPayment() {
     });
     
     const result = await response.json();
-    if (response.ok && result.paymentUrl) {
-      Cart.clear(); // Clear cart as they are proceeding to reliable payment
-      window.location.href = result.paymentUrl;
+    if (response.ok && result.token) {
+      Cart.clear(); // Bersihkan keranjang
+      // Panggil Snap Pop Up dari Midtrans
+      window.snap.pay(result.token, {
+        onSuccess: function(r){
+          handlePaymentSuccess(order, r);
+        },
+        onPending: function(r){
+          handlePaymentPending(order, r);
+        },
+        onError: function(r){
+          showToast('❌ Pembayaran Gagal!');
+          console.error(r);
+        },
+        onClose: function(){
+          showToast('⚠️ Anda menutup jendela sebelum pembayaran selesai.');
+        }
+      });
     } else {
-      throw new Error(result.error || 'Gagal generate URL Duitku');
+      throw new Error(result.error || 'Server error, harap coba lagi');
     }
   } catch (err) {
-    showToast('❌ Pembayaran gagal divalidasi. Coba lagi: ' + err.message);
+    showToast('❌ Pembayaran gagal divalidasi: ' + err.message);
     console.error(err);
   }
 }
