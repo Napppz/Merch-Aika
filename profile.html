@@ -180,7 +180,7 @@
           <div class="order-header">
             <div>
               <div class="order-id">#${o.id}</div>
-              <div class="order-date">${new Date(o.created_at || Date.now()).toLocaleDateString('id-ID')}</div>
+              <div class="order-date">${new Date(o.date || o.created_at || Date.now()).toLocaleDateString('id-ID')}</div>
             </div>
             <div class="order-status ${o.status || 'pending'}">${o.status?.toUpperCase() || 'PENDING'}</div>
           </div>

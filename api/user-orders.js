@@ -19,7 +19,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const result = await query(
-      'SELECT * FROM orders WHERE customer_email = $1 ORDER BY created_at DESC',
+      'SELECT * FROM orders WHERE email = $1 ORDER BY date DESC',
       [email]
     );
 
