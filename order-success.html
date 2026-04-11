@@ -117,7 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="detail-row"><span>Email</span><span>${order.email}</span></div>
     <div class="detail-row"><span>Alamat</span><span>${order.address}</span></div>
     <div class="detail-row"><span>Pengiriman</span><span>${order.shipping?.name || '-'}</span></div>
-    ${order.shipping?.resi ? `<div class="detail-row"><span>No. Resi (JNE)</span><span style="font-weight:700; color:var(--aqua); letter-spacing:1px">${order.shipping.resi}</span></div>` : ''}
     <div class="detail-row"><span>Status</span><span style="color:var(--aqua)">✅ Dibayar</span></div>
     <div class="items-list">${itemsHtml}</div>
     <div class="detail-row"><span>Ongkos Kirim</span><span>${formatPrice(order.shipping?.price || 0)}</span></div>
