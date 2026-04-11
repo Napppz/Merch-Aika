@@ -439,6 +439,17 @@ async function handlePaymentPending(order, result) {
 document.addEventListener('DOMContentLoaded', () => {
   Cart.updateUI();
   renderCheckout();
+
+  // Auto-fill user data from session
+  const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+  if (userStr) {
+    const user = JSON.parse(userStr);
+    const emailInput = document.getElementById('email');
+    if (emailInput) {
+      emailInput.value = user.email;
+      emailInput.readOnly = true; // Lock email to ensure it links correctly
+    }
+  }
 });
 </script>
 </body>
