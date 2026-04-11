@@ -44,7 +44,13 @@ const Orders = {
 };
 
 // ── WISHLIST TOGGLE ──
-window.toggleWishlist = function(btn, product) {
+window.toggleWishlist = function(btn) {
+  const product = {
+    id: btn.getAttribute('data-id'),
+    name: btn.getAttribute('data-name'),
+    price: parseInt(btn.getAttribute('data-price') || '0', 10),
+    image: btn.getAttribute('data-img') || ''
+  };
   let wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
   const existsIndex = wishlist.findIndex(w => w.id === product.id);
   
@@ -78,7 +84,13 @@ function renderProductCard(p, compact = false) {
   return `
     <div class="product-card fade-in">
       <div class="product-img-wrap" style="position:relative;">
-        <button style="position:absolute; top:12px; left:12px; z-index:10; background:rgba(3,9,31,0.6); backdrop-filter:blur(4px); border:1px solid var(--card-border); border-radius:50%; width:36px; height:36px; color:${heartColor}; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:var(--transition);" onclick='toggleWishlist(this, ${JSON.stringify({id: p.id, name: p.name, price: p.price, image: p.image || ''})})' aria-label="Favorit">
+        <button style="position:absolute; top:12px; left:12px; z-index:10; background:rgba(3,9,31,0.6); backdrop-filter:blur(4px); border:1px solid var(--card-border); border-radius:50%; width:36px; height:36px; color:${heartColor}; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:var(--transition);" 
+          data-id="${p.id}" 
+          data-name='${(p.name || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;")}' 
+          data-price="${p.price}" 
+          data-img="${p.image || ''}" 
+          onclick='toggleWishlist(this)' 
+          aria-label="Favorit">
           <svg width="20" height="20" fill="${heartFill}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
         </button>
         ${p.image
@@ -95,7 +107,12 @@ function renderProductCard(p, compact = false) {
             <div class="product-price">${formatPrice(p.price)}</div>
             ${p.oldPrice ? `<div class="product-old-price">${formatPrice(p.oldPrice)}</div>` : ''}
           </div>
-          <button class="add-cart-btn" onclick='Cart.add(${JSON.stringify({id: p.id, name: p.name, price: p.price, image: p.image || ''})})'>
+          <button class="add-cart-btn" 
+            data-id="${p.id}" 
+            data-name='${(p.name || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;")}' 
+            data-price="${p.price}" 
+            data-img="${p.image || ''}" 
+            onclick="Cart.addFromBtn(this)">
             + Keranjang
           </button>
         </div>

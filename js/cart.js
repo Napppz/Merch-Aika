@@ -27,6 +27,15 @@ const Cart = {
     showToast(`✓ ${product.name} ditambahkan ke keranjang!`);
   },
 
+  addFromBtn(btn) {
+    this.add({
+      id: btn.getAttribute('data-id'),
+      name: btn.getAttribute('data-name'),
+      price: parseInt(btn.getAttribute('data-price') || '0', 10),
+      image: btn.getAttribute('data-img') || ''
+    });
+  },
+
   remove(id) {
     this.items = this.items.filter(i => i.id !== id);
     this.save();
