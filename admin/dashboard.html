@@ -665,6 +665,10 @@ const Orders = {
     const res = await fetch('/api/orders', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
     if (!res.ok) throw new Error('Gagal update pesanan');
     return await res.json();
+  },
+  async delete(id) {
+    const res = await fetch('/api/orders?id=' + id, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Gagal menghapus pesanan');
   }
 };
 function formatPrice(n) { return 'Rp ' + (n||0).toLocaleString('id-ID'); }
@@ -906,6 +910,7 @@ async function renderOrders(filter = 'all') {
       <td>
         <div class="action-btns">
           <button class="btn-edit" onclick='viewOrder("${o.id}")'>👁 Detail</button>
+          <button class="btn-del" onclick='deleteOrder("${o.id}")'>🗑 Hapus</button>
         </div>
       </td>
     </tr>
@@ -986,6 +991,18 @@ async function viewOrder(id) {
 }
 
 function closeOrderModal() { document.getElementById('orderModal').classList.remove('show'); }
+
+async function deleteOrder(id) {
+  if (!confirm('Apakah Anda yakin ingin menghapus pesanan ' + id + ' secara permanen?')) return;
+  try {
+    await Orders.delete(id);
+    showToast('🗑 Pesanan ' + id + ' berhasil dihapus');
+    renderOrders(currentOrderFilter);
+    renderDashboard(); // Update count
+  } catch (e) {
+    showToast('⚠ Gagal menghapus: ' + e.message);
+  }
+}
 
 // ── SETTINGS ──
 function saveMidtransConfig() {
