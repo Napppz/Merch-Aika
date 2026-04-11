@@ -288,10 +288,11 @@
           <div class="order-footer">
             <span>Total Bayar <strong style="color:var(--aqua);font-size:1.1rem;margin-left:5px">Rp ${(o.total).toLocaleString('id-ID')}</strong></span>
             <div style="display:flex; gap:0.5rem;">
+              ${o.status === 'shipped' ? `<button class="btn-primary" style="padding:0.4rem 1rem;font-size:0.8rem;border-radius:6px;display:flex;align-items:center;gap:5px" onclick="confirmDelivery('${o.id}')">📦 Konfirmasi Diterima</button>` : ''}
               <button class="btn-ghost" style="padding:0.4rem 1rem;font-size:0.8rem;border-radius:6px;display:flex;align-items:center;gap:5px" onclick="reorderItems('${o.id}')">🛒 Beli Lagi</button>
             </div>
           </div>
-          ${o.status === 'completed' || o.status === 'paid' || o.status === 'shipped' ? `
+          ${o.status === 'completed' ? `
             <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--card-border)">
               ${o.review_id 
                 ? '<span style="color:var(--aqua)">⭐ Ulasan Terkirim</span>' 
@@ -305,6 +306,22 @@
     } catch (err) {
       console.error(err);
       list.innerHTML = '<p style="color:#ef4444">Gagal memuat pesanan.</p>';
+    }
+  }
+
+  async function confirmDelivery(orderId) {
+    if(!confirm("Apakah Anda yakin paket telah diterima dengan baik?")) return;
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: orderId, status: 'completed' })
+      });
+      if(!res.ok) throw new Error("Gagal konfirmasi pesanan.");
+      alert("Terima kasih! Pesanan Selesai. Silakan berikan ulasan Anda.");
+      loadOrders(); // Muat ulang list
+    } catch(err) {
+      alert(err.message);
     }
   }
 
