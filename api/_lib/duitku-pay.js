@@ -22,14 +22,15 @@ module.exports = async function handler(req, res) {
     const isSandbox = envStr !== 'production';
 
     const baseUrl = isSandbox 
-      ? 'https://sandbox.duitku.com/webapi/api/merchant/createinvoice' 
-      : 'https://app-prod.duitku.com/webapi/api/merchant/createinvoice';
+      ? 'https://api-sandbox.duitku.com/api/merchant/createInvoice' 
+      : 'https://api-prod.duitku.com/api/merchant/createInvoice';
 
-    // Generate Signature (MD5: merchantCode + merchantOrderId + paymentAmount + apiKey)
+    // Generate Signature (SHA256: merchantCode + timestamp + apiKey)
     const orderIdStr = String(orderId);
     const amountNum = parseInt(amount);
-    const signaturePlain = merchantCode + orderIdStr + amountNum + apiKey;
-    const signature = crypto.createHash('md5').update(signaturePlain).digest('hex');
+    const timestamp = Date.now().toString();
+    const signaturePlain = merchantCode + timestamp + apiKey;
+    const signature = crypto.createHash('sha256').update(signaturePlain).digest('hex');
 
     // Mendapatkan URL website ini (Host) untuk dimasukkan ke Return / Callback URL Duitku
     const host = req.headers.origin || req.headers.host || 'merch-aika.vercel.app';
@@ -52,7 +53,6 @@ module.exports = async function handler(req, res) {
 
     // Buat data request untuk Duitku
     const payload = {
-      merchantCode: merchantCode,
       paymentAmount: amountNum,
       merchantOrderId: orderIdStr,
       productDetails: `Pembayaran Pesanan Aika Sesilia #${orderIdStr}`,
@@ -62,7 +62,6 @@ module.exports = async function handler(req, res) {
       itemDetails: itemDetails,
       callbackUrl: callbackUrl,
       returnUrl: returnUrl,
-      signature: signature,
       expiryPeriod: 60 // Expire in 60 minutes
     };
 
@@ -71,7 +70,10 @@ module.exports = async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'x-duitku-signature': signature,
+        'x-duitku-timestamp': timestamp,
+        'x-duitku-merchantcode': merchantCode
       },
       body: JSON.stringify(payload)
     });
