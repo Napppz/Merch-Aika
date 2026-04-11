@@ -8,8 +8,8 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
   service: 'gmail', // atau 'smtp.mailtrap.io' untuk testing
   auth: {
-    user: process.env.SMTP_USER,   // e.g. "noreply.aika@gmail.com"
-    pass: process.env.SMTP_PASS,   // App Password (bukan password biasa)
+    user: process.env.EMAIL_USER || process.env.SMTP_USER || 'aika.sesilia.merch@gmail.com',   // Gunakan fallback agar mirip dengan orders.js
+    pass: process.env.EMAIL_PASS || process.env.SMTP_PASS || 'your-app-password-here',   // App Password
   },
 });
 
@@ -96,14 +96,9 @@ module.exports = async function handler(req, res) {
   };
 
   try {
-    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-      await transporter.sendMail(mailOptions);
-      return res.status(200).json({ success: true, message: 'OTP dikirim via email' });
-    } else {
-      // SMTP belum dikonfigurasi — mode demo
-      console.log(`[DEMO] OTP for ${email}: ${otp}`);
-      return res.status(200).json({ success: true, message: 'Demo mode: OTP di console', demo: true });
-    }
+    // Hilangkan if (process.env.SMTP_USER...) blocker agar fallback ke default email tetap dieksekusi 
+    await transporter.sendMail(mailOptions);
+    return res.status(200).json({ success: true, message: 'OTP dikirim via email' });
   } catch (err) {
     console.error('Email send error:', err.message);
     return res.status(500).json({ error: 'Gagal mengirim email', detail: err.message });
