@@ -324,6 +324,7 @@ function updateOrderSummary() {
     discountRow.style.display = 'none';
   }
 
+  document.getElementById('shippingRow').innerHTML = `<span>Ongkos Kirim</span><span>${formatPrice(shipping)}</span>`;
   document.getElementById('grandTotal').innerHTML = `<span>Total</span><span>${formatPrice(grand)}</span>`;
 }
 
