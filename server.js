@@ -24,7 +24,17 @@ app.use((req, res, next) => {
 // 3. Static files (CSS, JS, images, etc) - HIGH PRIORITY
 app.use(express.static(path.join(__dirname), {
   maxAge: '1h',
-  etag: false
+  etag: false,
+  setHeaders: (res, path) => {
+    // Set proper MIME types
+    if (path.endsWith('.css')) res.setHeader('Content-Type', 'text/css');
+    if (path.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript');
+    if (path.endsWith('.json')) res.setHeader('Content-Type', 'application/json');
+    if (path.endsWith('.html')) res.setHeader('Content-Type', 'text/html');
+    if (path.endsWith('.svg')) res.setHeader('Content-Type', 'image/svg+xml');
+    if (path.endsWith('.woff')) res.setHeader('Content-Type', 'font/woff');
+    if (path.endsWith('.woff2')) res.setHeader('Content-Type', 'font/woff2');
+  }
 }));
 
 // ── API: Admin Login ──
