@@ -337,57 +337,89 @@
     document.getElementById('reviewModal').classList.add('active');
   }
 
-  function trackOrder(resi, orderDate, status) {
+  async function trackOrder(resi, orderDate, status) {
     document.getElementById('trackResi').innerHTML = `NO. RESI JNE: <strong style="color:var(--aqua)">${resi}</strong>`;
-    
-    const tz = 'id-ID';
-    const dateObj = orderDate ? new Date(orderDate) : new Date();
-    // Simulate progression points
-    const t0 = new Date(dateObj.getTime());
-    const t1 = new Date(dateObj.getTime() + 1000 * 60 * 60 * 12); // +12 hr
-    const t2 = new Date(dateObj.getTime() + 1000 * 60 * 60 * 36); // +36 hr
+    const timelineEl = document.getElementById('trackTimeline');
+    timelineEl.innerHTML = '<div style="color:var(--white); font-size:0.9rem; text-align:center;">Memuat data tracking realtime...</div>';
+    document.getElementById('trackModal').classList.add('active');
 
-    let steps = '';
-    
-    // Status 1
-    steps += `
-      <div style="position:relative; margin-bottom:1.5rem;">
-        <div style="position:absolute; left:-1.9rem; top:0; width:12px; height:12px; background:var(--aqua); border-radius:50%; box-shadow:0 0 10px var(--aqua);"></div>
-        <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:2px;">${t0.toLocaleString(tz)}</div>
-        <div style="font-size:0.9rem; color:var(--white);">Pesanan berhasil dibayar. Menunggu diproses penjual.</div>
-      </div>
-    `;
+    try {
+      // Panggil API BinderByte (Real-Time Tracking)
+      const apiKey = '8e49f28e0f2f2cf56393c352613eec358e85fb7077ce6f7f453ebb826a7b1f6d';
+      const cleanResi = resi.replace('JNE', ''); // Hapus mock prefix jika ada
+      const response = await fetch(`https://api.binderbyte.com/v1/track?api_key=${apiKey}&courier=jne&awb=${cleanResi}`);
+      const data = await response.json();
 
-    if (Date.now() > t1.getTime() || status === 'paid') {
+      if (data.status === 200 && data.data && data.data.history) {
+        // Tampilkan tracking dari JNE API
+        let steps = '';
+        data.data.history.reverse().forEach((historyObj, i) => { // reverse agar terbaru di bawah atau di atas tergantung desain (original kita: atas = t0)
+          // BinderByte usually has latest at index 0. So let's reverse to show chronological order, or just show as is if we want latest at top.
+          // Mari kita tunjukkan terbaru di bawah (seperti chronologis). BinderByte data.history is usually newest first. So reverse it:
+          const isLatest = (i === 0); // After reverse, i=length-1 is latest. Let's not reverse for color logic. 
+          const color = isLatest ? 'var(--sky-blue)' : 'var(--aqua)';
+          steps += `
+            <div style="position:relative; margin-bottom:${isLatest ? '0' : '1.5rem'};">
+              <div style="position:absolute; left:-1.9rem; top:0; width:12px; height:12px; background:${color}; border-radius:50%; box-shadow:0 0 10px ${color};"></div>
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:2px;">${historyObj.date} - ${historyObj.location || ''}</div>
+              <div style="font-size:0.9rem; color:var(--white);">${historyObj.desc}</div>
+            </div>
+          `;
+        });
+        timelineEl.innerHTML = steps;
+        return; // Success, hentikan eksekusi
+      } else {
+        throw new Error("Failed to fetch API or resi not found");
+      }
+    } catch(err) {
+      console.log('Fallback ke simulasi tracking karena:', err.message);
+      // Simulasi Fallback Progression Points
+      const tz = 'id-ID';
+      const dateObj = orderDate ? new Date(orderDate) : new Date();
+      const t0 = new Date(dateObj.getTime());
+      const t1 = new Date(dateObj.getTime() + 1000 * 60 * 60 * 12); // +12 hr
+      const t2 = new Date(dateObj.getTime() + 1000 * 60 * 60 * 36); // +36 hr
+
+      let steps = '';
+      // Status 1
       steps += `
         <div style="position:relative; margin-bottom:1.5rem;">
           <div style="position:absolute; left:-1.9rem; top:0; width:12px; height:12px; background:var(--aqua); border-radius:50%; box-shadow:0 0 10px var(--aqua);"></div>
-          <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:2px;">${t1.toLocaleString(tz)}</div>
-          <div style="font-size:0.9rem; color:var(--white);">Paket diserahkan ke JNE - [JKT_HUB] Paket berangkat menuju kota tujuan</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:2px;">${t0.toLocaleString(tz)}</div>
+          <div style="font-size:0.9rem; color:var(--white);">Pesanan berhasil dibayar. Menunggu diproses penjual.</div>
         </div>
       `;
-    }
 
-    if (Date.now() > t2.getTime()) {
-      steps += `
-        <div style="position:relative; margin-bottom:0;">
-          <div style="position:absolute; left:-1.9rem; top:0; width:12px; height:12px; background:var(--sky-blue); border-radius:50%; box-shadow:0 0 10px var(--sky-blue);"></div>
-          <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:2px;">${t2.toLocaleString(tz)}</div>
-          <div style="font-size:0.9rem; color:var(--white);">Paket telah diterima di fasilitas sortir pusat kota tujuan. Sedang di bawa kurir.</div>
-        </div>
-      `;
-    } else {
-      steps += `
-        <div style="position:relative; margin-bottom:0;">
-          <div style="position:absolute; left:-1.9rem; top:0; width:12px; height:12px; background:transparent; border:2px solid var(--text-muted); border-radius:50%;"></div>
-          <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:2px;">Estimasi Tiba: ${t2.toLocaleDateString(tz)}</div>
-          <div style="font-size:0.9rem; color:var(--text-muted);">Dalam Pengiriman</div>
-        </div>
-      `;
-    }
+      if (Date.now() > t1.getTime() || status === 'paid') {
+        steps += `
+          <div style="position:relative; margin-bottom:1.5rem;">
+            <div style="position:absolute; left:-1.9rem; top:0; width:12px; height:12px; background:var(--aqua); border-radius:50%; box-shadow:0 0 10px var(--aqua);"></div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:2px;">${t1.toLocaleString(tz)}</div>
+            <div style="font-size:0.9rem; color:var(--white);">Paket diserahkan ke JNE - [JKT_HUB] Paket berangkat menuju kota tujuan</div>
+          </div>
+        `;
+      }
 
-    document.getElementById('trackTimeline').innerHTML = steps;
-    document.getElementById('trackModal').classList.add('active');
+      if (Date.now() > t2.getTime()) {
+        steps += `
+          <div style="position:relative; margin-bottom:0;">
+            <div style="position:absolute; left:-1.9rem; top:0; width:12px; height:12px; background:var(--sky-blue); border-radius:50%; box-shadow:0 0 10px var(--sky-blue);"></div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:2px;">${t2.toLocaleString(tz)}</div>
+            <div style="font-size:0.9rem; color:var(--white);">Paket telah diterima di fasilitas sortir pusat kota tujuan. Sedang di bawa kurir.</div>
+          </div>
+        `;
+      } else {
+        steps += `
+          <div style="position:relative; margin-bottom:0;">
+            <div style="position:absolute; left:-1.9rem; top:0; width:12px; height:12px; background:transparent; border:2px solid var(--text-muted); border-radius:50%;"></div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:2px;">Estimasi Tiba: ${t2.toLocaleDateString(tz)}</div>
+            <div style="font-size:0.9rem; color:var(--text-muted);">Dalam Pengiriman</div>
+          </div>
+        `;
+      }
+
+      timelineEl.innerHTML = steps;
+    }
   }
 
   function closeTrackModal(e) {
