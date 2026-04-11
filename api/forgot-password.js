@@ -41,10 +41,10 @@ module.exports = async function handler(req, res) {
       );
     `);
 
+    await query(`DELETE FROM password_reset_tokens WHERE email = $1`, [email]);
     await query(`
       INSERT INTO password_reset_tokens (email, token, expires_at)
       VALUES ($1, $2, $3)
-      ON CONFLICT (email) DO UPDATE SET token = $2, expires_at = $3;
     `, [email, token, expiresAt]);
 
     // Kirim Email
