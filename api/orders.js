@@ -5,8 +5,8 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER || 'aika.sesilia.merch@gmail.com', // Ganti email toko Anda
-    pass: process.env.EMAIL_PASS || 'your-app-password-here'        // Bikin App Password di Google Account
+    user: process.env.EMAIL_USER || 'rizkytyan17@gmail.com', // Ganti email toko Anda
+    pass: process.env.EMAIL_PASS || 'pzvpylhvnunlfdmq'        // Bikin App Password di Google Account
   }
 });
 
