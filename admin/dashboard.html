@@ -906,7 +906,9 @@ async function renderOrders(filter = 'all') {
       <td class="td-price">${formatPrice(o.total)}</td>
       <td style="font-size:0.8rem">${o.shipping?.name || '-'}</td>
       <td>${statusBadge(o.status)}</td>
-      <td style="font-size:0.75rem;color:var(--text-muted)">${o.date ? new Date(o.date).toLocaleDateString('id-ID') : '-'}</td>
+      <td style="font-size:0.75rem;color:var(--text-muted)">
+        ${o.date ? new Date(o.date).toLocaleString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
+      </td>
       <td>
         <div class="action-btns">
           <button class="btn-edit" onclick='viewOrder("${o.id}")'>👁 Detail</button>
@@ -937,6 +939,7 @@ async function viewOrder(id) {
       <div class="form-group"><label>Customer</label><input readonly value="${order.customerName}" style="background:rgba(3,9,31,0.6)"></div>
       <div class="form-group"><label>Email</label><input readonly value="${order.email}" style="background:rgba(3,9,31,0.6)"></div>
       <div class="form-group" style="grid-column:1/-1"><label>Alamat</label><input readonly value="${order.address||'-'}" style="background:rgba(3,9,31,0.6)"></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Tanggal & Waktu Pesan</label><input readonly value="${order.date ? new Date(order.date).toLocaleString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-'}" style="background:rgba(3,9,31,0.6); color: var(--aqua);"></div>
     </div>
     <div style="background:rgba(3,9,31,0.5);border:1px solid var(--card-border);border-radius:8px;padding:1rem;margin-bottom:1rem">
       <h4 style="color:var(--aqua);margin-bottom:0.8rem;font-size:0.85rem">ITEM PESANAN</h4>
