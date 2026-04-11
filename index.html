@@ -237,7 +237,7 @@
   </div>
   <div class="hero-image-wrap">
     <div class="hero-circle">
-      <img src="images/Profil/phoebe.JPG" alt="Phoebe" class="hero-img" onerror="this.src='https://ui-avatars.com/api/?name=Phoebe&size=300&background=1565C0&color=fff'" />
+      <img src="images/Profil/phoebe.JPG" alt="Phoebe" class="hero-img" id="mainHeroImage" onerror="this.src='https://ui-avatars.com/api/?name=Phoebe&size=300&background=1565C0&color=fff'" />
       <div class="hero-initials" style="display: none;">PH</div>
     </div>
     <div class="float-badge badge1">🎭 Cosplayer</div>
@@ -360,7 +360,17 @@
 
 <script src="js/cart.js"></script>
 <script src="js/main.js"></script>
-<script>loadFeaturedProducts();</script>
+<script>
+  loadFeaturedProducts();
+  
+  // Load Hero Image settings
+  fetch('/api/settings').then(res => res.json())
+    .then(data => {
+      if (data.hero_image) {
+        document.getElementById('mainHeroImage').src = data.hero_image;
+      }
+    }).catch(err => console.log('Gagal memuat settings', err));
+</script>
 
 <script>
 /* ── User Auth Navbar ── */
