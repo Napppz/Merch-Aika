@@ -7,8 +7,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
-  <!-- Midtrans Snap.js -->
-  <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="YOUR_MIDTRANS_CLIENT_KEY"></script>
   <style>
     .checkout-layout {
       max-width: 1100px;
@@ -433,7 +431,7 @@ function renderCheckout() {
         <button class="btn-primary payment-btn" onclick="processPayment()">
           💳 Bayar Sekarang
         </button>
-        <div class="midtrans-logo">Pembayaran aman via Midtrans</div>
+        <div class="duitku-logo" style="text-align:center;font-size:0.75rem;margin-top:0.5rem;color:var(--text-muted);opacity:0.8;">Pembayaran aman via Duitku</div>
         <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:0.8rem;flex-wrap:wrap">
           <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Mastercard-logo.svg/64px-Mastercard-logo.svg.png" height="20" alt="Mastercard" title="Mastercard">
           <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" height="20" alt="Visa" title="Visa">
@@ -499,56 +497,34 @@ async function processPayment() {
   }
   localStorage.setItem('last_order', JSON.stringify(order));
 
-  // ==== MIDTRANS INTEGRATION ====
-  // In production: call your backend to get snap_token from Midtrans API
-  // Your backend should call: POST https://app.sandbox.midtrans.com/snap/v1/transactions
-  // Then return the token to frontend.
-  //
-  // Demo simulation (replace with real backend call):
+  // ==== DUITKU INTEGRATION ====
+  showToast('⏳ Mengalihkan ke halaman pembayaran...');
 
-  showToast('⏳ Memproses pembayaran...');
-
-  // PRODUCTION: Call your backend
-  // fetch('/api/create-transaction', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({ order_id: order.id, gross_amount: grand, customer: { name: customerName, email, phone } })
-  // })
-  // .then(r => r.json())
-  // .then(({ token }) => {
-  //   snap.pay(token, {
-  //     onSuccess: async function(result) {
-  //       await Orders.update(order.id, { status: 'paid', payment: result });
-  //       Cart.clear();
-  //       window.location.href = 'order-success.html?id=' + order.id;
-  //     },
-  //     onPending: async function(result) {
-  //       await Orders.update(order.id, { status: 'pending_payment', payment: result });
-  //       Cart.clear();
-  //       window.location.href = 'order-success.html?id=' + order.id;
-  //     },
-  //     onError(result) { showToast('❌ Pembayaran gagal. Silakan coba lagi.'); console.error(result); },
-  //     onClose() { showToast('⚠ Pembayaran dibatalkan.'); }
-  //   });
-  // });
-
-  // DEMO: Simulate snap popup
-  setTimeout(() => {
-    const confirmed = confirm(
-      `🛒 DEMO MIDTRANS SANDBOX\n\n` +
-      `Order: ${order.id}\n` +
-      `Customer: ${customerName}\n` +
-      `Total: ${formatPrice(grand)}\n\n` +
-      `✅ Klik OK untuk simulasi pembayaran berhasil\n` +
-      `❌ Klik Cancel untuk simulasi pending\n\n` +
-      `(Pada production, ini akan membuka popup Midtrans Snap)`
-    );
-    if (confirmed) {
-      handlePaymentSuccess(order, { transaction_id: 'TXN-' + Date.now(), payment_type: 'demo' });
+  try {
+    const response = await fetch('/api/duitku-pay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        orderId: order.id, 
+        amount: grand, 
+        items: Cart.items,
+        customerName, 
+        email, 
+        phone 
+      })
+    });
+    
+    const result = await response.json();
+    if (response.ok && result.paymentUrl) {
+      Cart.clear(); // Clear cart as they are proceeding to reliable payment
+      window.location.href = result.paymentUrl;
     } else {
-      handlePaymentPending(order, { transaction_id: 'TXN-' + Date.now() });
+      throw new Error(result.error || 'Gagal generate URL Duitku');
     }
-  }, 1500);
+  } catch (err) {
+    showToast('❌ Pembayaran gagal divalidasi. Coba lagi: ' + err.message);
+    console.error(err);
+  }
 }
 
 async function handlePaymentSuccess(order, result) {
