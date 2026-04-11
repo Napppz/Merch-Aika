@@ -207,6 +207,25 @@
   </div>
 </div>
 
+<!-- Tracking Modal -->
+<div id="trackModal" class="cart-overlay" onclick="closeTrackModal(event)" style="display:flex; align-items:center; justify-content:center; z-index:9999;">
+  <div class="profile-sidebar" style="position:relative; width:90%; max-width:400px; background:linear-gradient(145deg, var(--midnight-blue), var(--deep-ocean)); border:1px solid var(--aqua); box-shadow: 0 10px 40px rgba(41,182,246,0.2); padding-top:2.5rem;" onclick="event.stopPropagation()">
+    <!-- Decorative Icon -->
+    <div style="position:absolute; top:-25px; left:50%; transform:translateX(-50%); width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, var(--aqua), var(--sky-blue)); display:flex; align-items:center; justify-content:center; font-size:1.8rem; border:4px solid var(--deep-ocean); box-shadow: 0 0 20px rgba(41,182,246,0.3);">
+      📦
+    </div>
+    
+    <h3 style="color:var(--white); margin-bottom:0.2rem; font-family:var(--font-display); font-size:1.4rem; text-align:center;">Lacak Paket</h3>
+    <p id="trackResi" style="text-align:center; color:var(--text-muted); font-size:0.85rem; letter-spacing:1px; margin-bottom:1.5rem;"></p>
+    
+    <div style="position:relative; padding-left:1.5rem; border-left:2px dashed var(--card-border); margin:0 0.5rem 1.5rem;" id="trackTimeline">
+      <!-- Injected by JS -->
+    </div>
+    
+    <button class="btn-ghost w100" onclick="closeTrackModal()" style="border-radius:12px; font-size:0.95rem; border-color:var(--card-border)">Tutup</button>
+  </div>
+</div>
+
 <script>
   let currentUser = null;
   let currentReviewOrderId = null;
@@ -288,7 +307,10 @@
           </div>
           <div class="order-footer">
             <span>Total Bayar <strong style="color:var(--aqua);font-size:1.1rem;margin-left:5px">Rp ${(o.total).toLocaleString('id-ID')}</strong></span>
-            <button class="btn-ghost" style="padding:0.4rem 1rem;font-size:0.8rem;border-radius:6px;display:flex;align-items:center;gap:5px" onclick="reorderItems('${o.id}')">🛒 Beli Lagi</button>
+            <div style="display:flex; gap:0.5rem;">
+              ${shippingInfo?.resi ? `<button class="btn-ghost" style="padding:0.4rem 1rem;font-size:0.8rem;border-radius:6px;display:flex;align-items:center;gap:5px;border-color:var(--aqua);color:var(--aqua);" onclick="trackOrder('${shippingInfo.resi}', '${o.date || o.created_at}', '${o.status}')">📍 Lacak Paket</button>` : ''}
+              <button class="btn-ghost" style="padding:0.4rem 1rem;font-size:0.8rem;border-radius:6px;display:flex;align-items:center;gap:5px" onclick="reorderItems('${o.id}')">🛒 Beli Lagi</button>
+            </div>
           </div>
           ${o.status === 'paid' ? `
             <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--card-border)">
@@ -313,6 +335,64 @@
     document.getElementById('reviewRating').value = '5';
     document.getElementById('reviewComment').value = '';
     document.getElementById('reviewModal').classList.add('active');
+  }
+
+  function trackOrder(resi, orderDate, status) {
+    document.getElementById('trackResi').innerHTML = `NO. RESI JNE: <strong style="color:var(--aqua)">${resi}</strong>`;
+    
+    const tz = 'id-ID';
+    const dateObj = orderDate ? new Date(orderDate) : new Date();
+    // Simulate progression points
+    const t0 = new Date(dateObj.getTime());
+    const t1 = new Date(dateObj.getTime() + 1000 * 60 * 60 * 12); // +12 hr
+    const t2 = new Date(dateObj.getTime() + 1000 * 60 * 60 * 36); // +36 hr
+
+    let steps = '';
+    
+    // Status 1
+    steps += `
+      <div style="position:relative; margin-bottom:1.5rem;">
+        <div style="position:absolute; left:-1.9rem; top:0; width:12px; height:12px; background:var(--aqua); border-radius:50%; box-shadow:0 0 10px var(--aqua);"></div>
+        <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:2px;">${t0.toLocaleString(tz)}</div>
+        <div style="font-size:0.9rem; color:var(--white);">Pesanan berhasil dibayar. Menunggu diproses penjual.</div>
+      </div>
+    `;
+
+    if (Date.now() > t1.getTime() || status === 'paid') {
+      steps += `
+        <div style="position:relative; margin-bottom:1.5rem;">
+          <div style="position:absolute; left:-1.9rem; top:0; width:12px; height:12px; background:var(--aqua); border-radius:50%; box-shadow:0 0 10px var(--aqua);"></div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:2px;">${t1.toLocaleString(tz)}</div>
+          <div style="font-size:0.9rem; color:var(--white);">Paket diserahkan ke JNE - [JKT_HUB] Paket berangkat menuju kota tujuan</div>
+        </div>
+      `;
+    }
+
+    if (Date.now() > t2.getTime()) {
+      steps += `
+        <div style="position:relative; margin-bottom:0;">
+          <div style="position:absolute; left:-1.9rem; top:0; width:12px; height:12px; background:var(--sky-blue); border-radius:50%; box-shadow:0 0 10px var(--sky-blue);"></div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:2px;">${t2.toLocaleString(tz)}</div>
+          <div style="font-size:0.9rem; color:var(--white);">Paket telah diterima di fasilitas sortir pusat kota tujuan. Sedang di bawa kurir.</div>
+        </div>
+      `;
+    } else {
+      steps += `
+        <div style="position:relative; margin-bottom:0;">
+          <div style="position:absolute; left:-1.9rem; top:0; width:12px; height:12px; background:transparent; border:2px solid var(--text-muted); border-radius:50%;"></div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:2px;">Estimasi Tiba: ${t2.toLocaleDateString(tz)}</div>
+          <div style="font-size:0.9rem; color:var(--text-muted);">Dalam Pengiriman</div>
+        </div>
+      `;
+    }
+
+    document.getElementById('trackTimeline').innerHTML = steps;
+    document.getElementById('trackModal').classList.add('active');
+  }
+
+  function closeTrackModal(e) {
+    if (e && e.target.id !== 'trackModal') return;
+    document.getElementById('trackModal').classList.remove('active');
   }
 
   function closeReviewModal(e) {
