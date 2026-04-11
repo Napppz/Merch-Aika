@@ -270,6 +270,12 @@
       const dataUrl = e.target.result;
       localStorage.setItem('aika_avatar_' + currentUser.email, dataUrl);
       loadAvatar();
+      updateNavAvatar();
+      
+      // Update session to trigger updates in navbar if navigating back
+      currentUser.avatarUpdated = Date.now();
+      localStorage.setItem('aika_session', JSON.stringify(currentUser));
+        
     };
     reader.readAsDataURL(file);
   }
@@ -480,6 +486,10 @@
       localStorage.setItem('aika_session', JSON.stringify(currentUser));
       document.getElementById('profName').textContent = newName;
       loadAvatar();
+      
+      // Update the main user document object name too if needed
+      let userEls = document.querySelectorAll('.user-dropdown-name, #userMenuBtn span:not([style])');
+      userEls.forEach(el => el.textContent = newName);
 
       alert('Pengaturan akun berhasil disimpan!');
       document.getElementById('settingPassword').value = '';
@@ -488,6 +498,16 @@
   }
 
   /* --- BUKU ALAMAT --- */
+  function updateNavAvatar() {
+    const saved = localStorage.getItem('aika_avatar_' + currentUser.email);
+    if (!saved) return;
+    
+    // Perbarui foto di navigasi jika script index.html juga dijalankan
+    const userAvatars = document.querySelectorAll('.user-avatar');
+    userAvatars.forEach(el => {
+      el.innerHTML = `<img src="${saved}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+    });
+  }
   function loadAddress() {
     const list = document.getElementById('addressList');
     const addresses = JSON.parse(localStorage.getItem('aika_address_' + currentUser.email) || '[]');
