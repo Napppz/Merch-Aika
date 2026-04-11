@@ -497,7 +497,7 @@
           <div class="img-upload-area" style="padding: 1rem;">
             <input type="file" id="heroImageFile" accept="image/*" onchange="previewHeroImage(this)" />
             <div class="upload-icon" style="font-size: 1.5rem;">📷</div>
-            <div class="upload-text">Ubah Foto Utama Navbar/Hero<br><small>JPG, PNG, WebP — Maks 2MB</small></div>
+            <div class="upload-text">Ubah Foto Utama Navbar/Hero<br><small>JPG, PNG, WebP — Maks 8MB</small></div>
             <img id="heroImagePreview" class="img-preview" alt="Preview Profil" />
           </div>
           <input type="hidden" id="heroImageUrl" />
@@ -1037,7 +1037,7 @@ async function loadSettings() {
 function previewHeroImage(input) {
   if (!input.files || !input.files[0]) return;
   const file = input.files[0];
-  if (file.size > 2 * 1024 * 1024) { showToast('Ukuran maksimal 2MB!'); return; }
+  if (file.size > 8 * 1024 * 1024) { showToast('Ukuran maksimal 8MB!'); return; }
   
   const reader = new FileReader();
   reader.onload = e => {
