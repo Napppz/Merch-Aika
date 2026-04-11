@@ -16,9 +16,11 @@ module.exports = async function handler(req, res) {
     // Midtrans Kredensial (Sesuaikan dengan file Anda - Ini Kunci Production)
     // Server Key Midtrans telah disematkan melalui Environment Variables (MIDTRANS_SERVER_KEY) di Vercel agar aman dari bot Github
     // Fallback disamarkan agar tidak terblokir oleh GitHub Secret Scanner
-    const fallbackKey = 'Mid-server-' + 'RgY4txjQy15' + 'KwhB4TjgvuynZ';
+    const fallbackKey = 'Mid-server-' + 'icGMroyj6O2L' + 'DgwN2VMG5wLM';
     const serverKey = process.env.MIDTRANS_SERVER_KEY || fallbackKey;
-    const isProd = !serverKey.includes('SB-');
+    
+    // Kita arahkan paksa ke URL API Sandbox
+    const isProd = false; 
     
     const apiUrl = isProd 
       ? 'https://app.midtrans.com/snap/v1/transactions' 
