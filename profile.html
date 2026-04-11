@@ -165,8 +165,8 @@
   async function loadOrders() {
     const list = document.getElementById('ordersList');
     try {
-      // Memanggil API orders yang dimodifikasi untuk mencari by email
-      const res = await fetch('/api/user-orders?email=' + encodeURIComponent(currentUser.email));
+      // Memanggil API orders yang dimodifikasi untuk mencari by email (bebas cache)
+      const res = await fetch('/api/user-orders?email=' + encodeURIComponent(currentUser.email) + '&_t=' + Date.now());
       if (!res.ok) throw new Error('Failed fetch');
       const orders = await res.json();
 
@@ -182,10 +182,13 @@
               <div class="order-id">#${o.id}</div>
               <div class="order-date">${new Date(o.date || o.created_at || Date.now()).toLocaleDateString('id-ID')}</div>
             </div>
-            <div class="order-status ${o.status || 'pending'}">${o.status?.toUpperCase() || 'PENDING'}</div>
+            <div class="order-status ${o.status || 'pending'}">
+              ${o.status === 'paid' ? 'BERHASIL (LUNAS)' : (o.status?.toUpperCase() || 'PENDING')}
+            </div>
           </div>
           <div class="order-items">
-            ${(typeof o.items === 'string' ? JSON.parse(o.items) : o.items).map(i => `
+            ${(Array.isArray(o.items) ? o.items : 
+              (typeof o.items === 'string' ? JSON.parse(o.items) : [])).map(i => `
               <div class="order-item">
                 <span>${i.qty}x ${i.name}</span>
                 <span>Rp ${(i.price * i.qty).toLocaleString('id-ID')}</span>
