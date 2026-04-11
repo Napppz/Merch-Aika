@@ -476,6 +476,7 @@ async function processPayment() {
   const grand = getGrandTotal();
   const discountAmt = getDiscountAmount();
   const discountCode = appliedDiscount ? Object.keys(DISCOUNTS).find(k => DISCOUNTS[k] === appliedDiscount) : null;
+  const mockResi = 'JNE' + Date.now().toString().slice(-6) + Math.floor(Math.random()*10000).toString().padStart(4, '0');
 
   const orderData = {
     customerName, email, phone, address: fullDest, note,
@@ -484,6 +485,7 @@ async function processPayment() {
       id: 'jne_reg', 
       name: 'JNE Reguler', 
       price: getShippingTotal(),
+      resi: mockResi,
       discount: discountAmt > 0 ? { code: discountCode, amount: discountAmt } : null
     },
     subtotal, total: grand

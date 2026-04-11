@@ -261,6 +261,9 @@
 
       list.innerHTML = orders.map(o => {
         let itemsArr = Array.isArray(o.items) ? o.items : (typeof o.items === 'string' ? JSON.parse(o.items) : []);
+        let shippingInfo = null;
+        try { shippingInfo = typeof o.shipping === 'string' ? JSON.parse(o.shipping) : o.shipping; } catch(e) {}
+        
         allOrders[o.id] = itemsArr;
         
         return `
@@ -269,6 +272,7 @@
             <div>
               <div class="order-id">#${o.id}</div>
               <div class="order-date">${new Date(o.date || o.created_at || Date.now()).toLocaleDateString('id-ID')}</div>
+              ${shippingInfo?.resi ? `<div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Resi (${shippingInfo.name}): <strong style="color:var(--white)">${shippingInfo.resi}</strong></div>` : ''}
             </div>
             <div class="order-status ${o.status || 'pending'}">
               ${o.status === 'paid' ? 'BERHASIL (LUNAS)' : (o.status?.toUpperCase() || 'PENDING')}
