@@ -1,9 +1,18 @@
 // ── CART MANAGEMENT ──
 const Cart = {
-  items: JSON.parse(localStorage.getItem('aika_cart') || '[]'),
+  items: [],
+
+  load() {
+    const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+    const key = userStr ? `aika_cart_${JSON.parse(userStr).email}` : 'aika_cart_guest';
+    this.items = JSON.parse(localStorage.getItem(key) || '[]');
+    this.updateUI();
+  },
 
   save() {
-    localStorage.setItem('aika_cart', JSON.stringify(this.items));
+    const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+    const key = userStr ? `aika_cart_${JSON.parse(userStr).email}` : 'aika_cart_guest';
+    localStorage.setItem(key, JSON.stringify(this.items));
     this.updateUI();
   },
 
@@ -80,13 +89,31 @@ const Cart = {
 };
 
 // Initialize UI on load
-document.addEventListener('DOMContentLoaded', () => Cart.updateUI());
+document.addEventListener('DOMContentLoaded', () => {
+  Cart.load();
+});
 
 function toggleCart() {
   const sidebar = document.getElementById('cartSidebar');
   const overlay = document.getElementById('cartOverlay');
   if (sidebar) sidebar.classList.toggle('open');
   if (overlay) overlay.classList.toggle('active');
+}
+
+function goToCheckout() {
+  const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+  if (!userStr) {
+    showToast('⚠ Anda harus login untuk checkout!');
+    setTimeout(() => {
+      window.location.href = 'login.html';
+    }, 1500);
+    return;
+  }
+  if (Cart.items.length === 0) {
+    showToast('⚠ Keranjang masih kosong!');
+    return;
+  }
+  window.location.href = 'checkout.html';
 }
 
 function formatPrice(num) {

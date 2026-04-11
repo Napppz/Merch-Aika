@@ -301,7 +301,7 @@
   <div class="cart-items" id="cartItems"></div>
   <div class="cart-footer">
     <div class="cart-total">Total: <strong id="cartTotal">Rp 0</strong></div>
-    <button class="btn-primary w100" onclick="window.location.href='checkout.html'">Checkout →</button>
+    <button class="btn-primary w100" onclick="goToCheckout()">Checkout →</button>
   </div>
 </aside>
 
@@ -338,7 +338,7 @@
           <div class="user-dropdown-name">${session.username || 'Pengguna'}</div>
           <div class="user-dropdown-email">${session.email || ''}</div>
         </div>
-        <a href="login.html" class="dropdown-item">👤 Profil Saya</a>
+        <a href="profile.html" class="dropdown-item">👤 Profil & Pesanan</a>
         <a href="shop.html" class="dropdown-item">🛍️ Belanja</a>
         <button class="dropdown-item logout" onclick="doLogout()">🚪 Keluar</button>
       </div>
