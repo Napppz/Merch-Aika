@@ -174,8 +174,77 @@
 <script>
 const BASE_SHIPPING = 15000; // Flat shipping rate if 'Metode Pengiriman' is removed
 
+const DISCOUNTS = {
+  'AIKA10': { type: 'percent', value: 10, label: 'Diskon 10%' },
+  'FREESHIP': { type: 'fixed', value: BASE_SHIPPING, label: 'Gratis Ongkir' },
+  'SUPER20K': { type: 'fixed', value: 20000, label: 'Potongan Rp 20.000' }
+};
+
+let appliedDiscount = null;
+
 function getShippingTotal() {
   return BASE_SHIPPING;
+}
+
+function getDiscountAmount() {
+  if (!appliedDiscount) return 0;
+  const subtotal = Cart.total();
+  let discountAmt = 0;
+  if (appliedDiscount.type === 'percent') {
+    discountAmt = (subtotal * appliedDiscount.value) / 100;
+  } else if (appliedDiscount.type === 'fixed') {
+    discountAmt = appliedDiscount.value;
+  }
+  
+  // Cap at subtotal + shipping
+  const shipping = getShippingTotal();
+  if (discountAmt > subtotal + shipping) discountAmt = subtotal + shipping;
+  return discountAmt;
+}
+
+function getGrandTotal() {
+  const subtotal = Cart.total();
+  const shipping = getShippingTotal();
+  const discountAmt = getDiscountAmount();
+  return subtotal + shipping - discountAmt;
+}
+
+function applyDiscount() {
+  const codeEl = document.getElementById('discountCode');
+  const msgEl = document.getElementById('discountMessage');
+  const code = codeEl.value.trim().toUpperCase();
+
+  if (!code) {
+    msgEl.innerHTML = '<span style="color: #ff5252;">Masukkan kode diskon!</span>';
+    return;
+  }
+
+  if (DISCOUNTS[code]) {
+    appliedDiscount = DISCOUNTS[code];
+    msgEl.innerHTML = `<span style="color: var(--gold);">🎉 Kode ${code} berhasil diterapkan! (${appliedDiscount.label})</span>`;
+    showToast('Kode diskon diterapkan!');
+  } else {
+    appliedDiscount = null;
+    msgEl.innerHTML = '<span style="color: #ff5252;">Kode diskon tidak valid atau kadaluarsa.</span>';
+  }
+  updateOrderSummary();
+}
+
+function updateOrderSummary() {
+  const subtotal = Cart.total();
+  const shipping = getShippingTotal();
+  const grand = getGrandTotal();
+  const discountAmt = getDiscountAmount();
+
+  const discountRow = document.getElementById('discountRow');
+  if (appliedDiscount) {
+    discountRow.innerHTML = `<span>Diskon (${appliedDiscount.label})</span><span style="color: var(--gold);">- ${formatPrice(discountAmt)}</span>`;
+    discountRow.style.display = 'flex';
+  } else {
+    discountRow.style.display = 'none';
+  }
+
+  document.getElementById('grandTotal').innerHTML = `<span>Total</span><span>${formatPrice(grand)}</span>`;
 }
 
 function renderCheckout() {
@@ -194,7 +263,7 @@ function renderCheckout() {
 
   const subtotal = Cart.total();
   const shipping = getShippingTotal();
-  const grand = subtotal + shipping;
+  const grand = getGrandTotal();
 
   content.innerHTML = `
     <!-- LEFT: FORM -->
@@ -237,11 +306,21 @@ function renderCheckout() {
           </div>
         `).join('')}
         <hr class="order-divider">
+
+        <!-- Discount Code Input -->
+        <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+          <input type="text" id="discountCode" placeholder="Kode Promo (opsional)" style="flex:1; border-radius:8px; border:1px solid var(--card-border); background:rgba(3,9,31,0.6); padding:0.5rem 1rem; color:var(--white);" />
+          <button class="btn-primary" onclick="applyDiscount()" style="padding: 0.5rem 1rem; font-size:0.85rem">Terapkan</button>
+        </div>
+        <div id="discountMessage" style="font-size: 0.8rem; margin-bottom: 1rem; text-align:left;"></div>
+
         <div class="order-total-row">
           <span>Subtotal</span><span>${formatPrice(subtotal)}</span>
         </div>
         <div class="order-total-row" id="shippingRow">
           <span>Ongkos Kirim</span><span>${formatPrice(shipping)}</span>
+        </div>
+        <div class="order-total-row" id="discountRow" style="display:none; color: var(--gold);">
         </div>
         <hr class="order-divider">
         <div class="order-total-row grand" id="grandTotal">
@@ -285,12 +364,19 @@ async function processPayment() {
   const address = document.getElementById('address').value;
   const note = document.getElementById('note').value;
   const subtotal = Cart.total();
-  const grand = subtotal + getShippingTotal();
+  const grand = getGrandTotal();
+  const discountAmt = getDiscountAmount();
+  const discountCode = appliedDiscount ? Object.keys(DISCOUNTS).find(k => DISCOUNTS[k] === appliedDiscount) : null;
 
   const orderData = {
     customerName, email, phone, address, note,
     items: [...Cart.items],
-    shipping: { id: 'flat', name: 'Reguler', price: BASE_SHIPPING },
+    shipping: { 
+      id: 'flat', 
+      name: 'Reguler', 
+      price: BASE_SHIPPING,
+      discount: discountAmt > 0 ? { code: discountCode, amount: discountAmt } : null
+    },
     subtotal, total: grand
   };
 
