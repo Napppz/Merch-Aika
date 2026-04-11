@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profil Saya — Aika Sesilia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .profile-container {
+      max-width: 1000px;
+      margin: 8rem auto 4rem;
+      padding: 0 2rem;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 2rem;
+    }
+    .profile-sidebar {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      text-align: center;
+      height: fit-content;
+    }
+    .profile-avatar {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--sea-blue), var(--aqua));
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      font-weight: 700;
+      margin: 0 auto 1rem;
+    }
+    .profile-name { font-family: var(--font-display); color: var(--white); font-size: 1.2rem; margin-bottom: 0.5rem; }
+    .profile-email { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; }
+    .profile-nav button {
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 0.8rem;
+      margin-bottom: 0.5rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      text-align: left;
+      font-family: var(--font-body);
+    }
+    .profile-nav button.active, .profile-nav button:hover {
+      background: rgba(41,182,246,0.1);
+      color: var(--aqua);
+      border-color: var(--aqua);
+    }
+
+    .profile-content {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 2rem;
+    }
+    .content-section { display: none; }
+    .content-section.active { display: block; }
+    .content-section h2 { font-family: var(--font-display); color: var(--white); margin-bottom: 1.5rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.5rem; }
+
+    /* Orders List */
+    .order-card {
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-sm);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      background: rgba(3,9,31,0.5);
+    }
+    .order-header { display: flex; justify-content: space-between; border-bottom: 1px solid var(--card-border); padding-bottom: 1rem; margin-bottom: 1rem; }
+    .order-id { color: var(--aqua); font-weight: 700; }
+    .order-date { color: var(--text-muted); font-size: 0.85rem; }
+    .order-status {
+      padding: 4px 12px; border-radius: 50px; font-size: 0.8rem; font-weight: 700;
+    }
+    .order-status.paid { background: rgba(34,197,94,0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+    .order-status.pending { background: rgba(234,179,8,0.15); color: #fde047; border: 1px solid rgba(234,179,8,0.3); }
+    .order-status.processing { background: rgba(41,182,246,0.15); color: var(--aqua); border: 1px solid rgba(41,182,246,0.3); }
+
+    .order-items { margin-bottom: 1rem; }
+    .order-item { display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; padding: 0.5rem 0; color: var(--text-main); }
+    .order-footer { display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
+    
+    /* Review Form */
+    .review-btn { background: var(--aqua); color: var(--deep-ocean); border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; cursor: pointer; font-weight: 700; }
+
+    @media (max-width: 768px) {
+      .profile-container { grid-template-columns: 1fr; margin-top: 6rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV (Diisi oleh main.js jika ada, kita buat simple sementara) -->
+<nav class="navbar">
+  <a href="index.html" class="nav-brand">✦ Aika Sesilia</a>
+  <div class="nav-actions">
+    <a href="index.html" class="btn-ghost" style="padding: 0.5rem 1rem">Kembali ke Toko</a>
+  </div>
+</nav>
+
+<div class="profile-container">
+  <aside class="profile-sidebar">
+    <div class="profile-avatar" id="profAvatar">?</div>
+    <div class="profile-name" id="profName">Loading...</div>
+    <div class="profile-email" id="profEmail">loading@...</div>
+    <div class="profile-nav">
+      <button class="active" onclick="switchTab('orders')">Riwayat Pesanan</button>
+      <button onclick="switchTab('settings')">Pengaturan Akun</button>
+      <button onclick="logout()">Keluar</button>
+    </div>
+  </aside>
+
+  <main class="profile-content">
+    <section id="tab-orders" class="content-section active">
+      <h2>Riwayat Pesanan</h2>
+      <div id="ordersList">Loading pesanan...</div>
+    </section>
+
+    <section id="tab-settings" class="content-section">
+      <h2>Pengaturan Akun</h2>
+      <p style="color:var(--text-muted)">Fitur pengaturan profil akan segera hadir.</p>
+    </section>
+  </main>
+</div>
+
+<script>
+  let currentUser = null;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+    if (!userStr) {
+      window.location.href = 'login.html';
+      return;
+    }
+    currentUser = JSON.parse(userStr);
+    
+    document.getElementById('profAvatar').textContent = currentUser.username.charAt(0).toUpperCase();
+    document.getElementById('profName').textContent = currentUser.username;
+    document.getElementById('profEmail').textContent = currentUser.email;
+
+    loadOrders();
+  });
+
+  function switchTab(tabId) {
+    document.querySelectorAll('.profile-nav button').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('tab-' + tabId).classList.add('active');
+  }
+
+  function logout() {
+    localStorage.removeItem('aika_session');
+    sessionStorage.removeItem('aika_session');
+    window.location.href = 'login.html';
+  }
+
+  async function loadOrders() {
+    const list = document.getElementById('ordersList');
+    try {
+      // Memanggil API orders yang dimodifikasi untuk mencari by email
+      const res = await fetch('/api/user-orders?email=' + encodeURIComponent(currentUser.email));
+      if (!res.ok) throw new Error('Failed fetch');
+      const orders = await res.json();
+
+      if (orders.length === 0) {
+        list.innerHTML = '<p style="color:var(--text-muted)">Anda belum memiliki pesanan.</p>';
+        return;
+      }
+
+      list.innerHTML = orders.map(o => `
+        <div class="order-card">
+          <div class="order-header">
+            <div>
+              <div class="order-id">#${o.id}</div>
+              <div class="order-date">${new Date(o.created_at || Date.now()).toLocaleDateString('id-ID')}</div>
+            </div>
+            <div class="order-status ${o.status || 'pending'}">${o.status?.toUpperCase() || 'PENDING'}</div>
+          </div>
+          <div class="order-items">
+            ${(typeof o.items === 'string' ? JSON.parse(o.items) : o.items).map(i => `
+              <div class="order-item">
+                <span>${i.qty}x ${i.name}</span>
+                <span>Rp ${(i.price * i.qty).toLocaleString('id-ID')}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="order-footer">
+            <span>Total Bayar</span>
+            <span style="color:var(--aqua);font-size:1.1rem">Rp ${(o.total).toLocaleString('id-ID')}</span>
+          </div>
+          ${o.status === 'paid' ? `
+            <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--card-border)">
+              <button class="review-btn" onclick="giveReview('${o.id}')">Beri Ulasan ⭐</button>
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+
+    } catch (err) {
+      console.error(err);
+      list.innerHTML = '<p style="color:#ef4444">Gagal memuat pesanan.</p>';
+    }
+  }
+
+  function giveReview(orderId) {
+    alert('Fitur Review (Ulasan) untuk pesanan ' + orderId + ' akan segera beroperasi sepenuhnya! Saat ini integrasi dengan database ulasan sedang disiapkan.');
+  }
+</script>
+</body>
+</html>
