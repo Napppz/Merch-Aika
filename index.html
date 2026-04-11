@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
+<body style="background: #87DFFF;">
 <div class="cursor-glow"></div>
 
 <!-- NAV -->
@@ -36,6 +36,27 @@
 </nav>
 
 <style>
+  /* ── Override Background Halaman Utama ── */
+  body {
+    background: #87DFFF !important;
+    color: #03091f !important;
+  }
+  .hero-bg {
+    background: radial-gradient(ellipse at 20% 50%, rgba(255, 255, 255, 0.3) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+                linear-gradient(135deg, #87DFFF 0%, #68BDE0 100%) !important;
+  }
+  /* Mengatur warna teks khusus di halaman utama agar bisa dibaca di Background Biru Terang */
+  .hero-title, .hero-sub, .hero-tagline, .section-eyebrow, h2, p, .stat p, .stat span, .contact-card {
+    color: #03091f !important;
+    text-shadow: none !important;
+  }
+  .nav-links a {
+    color: #071a3e;
+  }
+  .nav-links a:hover, .nav-links a.active {
+    color: #0a3872;
+  }
   /* ── User Nav Button ── */
   .user-nav { position: relative; }
 
