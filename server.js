@@ -1,12 +1,13 @@
 // server.js — Development Server untuk Aika Sesilia
-// Jalankan dengan: npm run dev
+// Jalankan dengan: npm run dev atau: node server.js
 
 const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
 
 const app = express();
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 3000;
+const IS_PROD = process.env.NODE_ENV === 'production';
 
 // Middleware - ORDER MATTERS!
 // 1. JSON parser
@@ -21,19 +22,36 @@ app.use((req, res, next) => {
   next();
 });
 
-// 3. Static files (CSS, JS, images, etc) - HIGH PRIORITY
+// 3. Security Headers
+app.use((req, res, next) => {
+  res.header('X-Content-Type-Options', 'nosniff');
+  res.header('X-Frame-Options', 'SAMEORIGIN');
+  res.header('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
+// 4. Static files (CSS, JS, images, etc) - HIGH PRIORITY
 app.use(express.static(path.join(__dirname), {
-  maxAge: '1h',
+  maxAge: IS_PROD ? '7d' : '1h',
   etag: false,
-  setHeaders: (res, path) => {
+  setHeaders: (res, filepath) => {
     // Set proper MIME types
-    if (path.endsWith('.css')) res.setHeader('Content-Type', 'text/css');
-    if (path.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript');
-    if (path.endsWith('.json')) res.setHeader('Content-Type', 'application/json');
-    if (path.endsWith('.html')) res.setHeader('Content-Type', 'text/html');
-    if (path.endsWith('.svg')) res.setHeader('Content-Type', 'image/svg+xml');
-    if (path.endsWith('.woff')) res.setHeader('Content-Type', 'font/woff');
-    if (path.endsWith('.woff2')) res.setHeader('Content-Type', 'font/woff2');
+    if (filepath.endsWith('.css')) res.setHeader('Content-Type', 'text/css; charset=utf-8');
+    if (filepath.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+    if (filepath.endsWith('.json')) res.setHeader('Content-Type', 'application/json');
+    if (filepath.endsWith('.html')) res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    if (filepath.endsWith('.svg')) res.setHeader('Content-Type', 'image/svg+xml');
+    if (filepath.endsWith('.woff')) res.setHeader('Content-Type', 'font/woff');
+    if (filepath.endsWith('.woff2')) res.setHeader('Content-Type', 'font/woff2');
+    
+    // Add cache headers
+    if (IS_PROD) {
+      if (filepath.endsWith('.js') || filepath.endsWith('.css')) {
+        res.setHeader('cache-control', 'public, max-age=31536000');
+      } else if (filepath.match(/\.(png|jpg|jpeg|gif|svg|ico|webp|woff|woff2)$/)) {
+        res.setHeader('cache-control', 'public, max-age=86400');
+      }
+    }
   }
 }));
 

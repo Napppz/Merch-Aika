@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "public": true,
   "builds": [
     {
       "src": "server.js",
@@ -13,15 +14,24 @@
     },
     {
       "src": "/css/(.*)",
-      "dest": "/css/$1"
+      "dest": "/css/$1",
+      "headers": {
+        "cache-control": "public, max-age=3600"
+      }
     },
     {
       "src": "/js/(.*)",
-      "dest": "/js/$1"
+      "dest": "/js/$1",
+      "headers": {
+        "cache-control": "public, max-age=3600"
+      }
     },
     {
       "src": "/images/(.*)",
-      "dest": "/images/$1"
+      "dest": "/images/$1",
+      "headers": {
+        "cache-control": "public, max-age=86400"
+      }
     },
     {
       "src": "/admin/(.*)",
@@ -37,6 +47,13 @@
     }
   ],
   "env": {
-    "PORT": "3000"
+    "PORT": "3000",
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "server.js": {
+      "memory": 1024,
+      "maxDuration": 60
+    }
   }
 }
