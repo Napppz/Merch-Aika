@@ -25,10 +25,11 @@ module.exports = async function handler(req, res) {
       ? 'https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry' 
       : 'https://app-prod.duitku.com/webapi/api/merchant/v2/inquiry';
 
-    // Generate Timestamp (Unix Time dalam ms) & Signature
-    const timestamp = Date.now();
-    const signaturePlain = merchantCode + timestamp + apiKey;
-    const signature = crypto.createHash('sha256').update(signaturePlain).digest('hex');
+    // Generate Signature (MD5: merchantCode + merchantOrderId + paymentAmount + apiKey)
+    const orderIdStr = String(orderId);
+    const amountNum = parseInt(amount);
+    const signaturePlain = merchantCode + orderIdStr + amountNum + apiKey;
+    const signature = crypto.createHash('md5').update(signaturePlain).digest('hex');
 
     // Mendapatkan URL website ini (Host) untuk dimasukkan ke Return / Callback URL Duitku
     const host = req.headers.origin || req.headers.host || 'merch-aika.vercel.app';
@@ -52,9 +53,9 @@ module.exports = async function handler(req, res) {
     // Buat data request untuk Duitku
     const payload = {
       merchantCode: merchantCode,
-      paymentAmount: parseInt(amount),
-      merchantOrderId: orderId,
-      productDetails: `Pembayaran Pesanan Aika Sesilia #${orderId}`,
+      paymentAmount: amountNum,
+      merchantOrderId: orderIdStr,
+      productDetails: `Pembayaran Pesanan Aika Sesilia #${orderIdStr}`,
       customerVaName: customerName || 'Pelanggan Aika',
       email: email || 'buyer@example.com',
       phoneNumber: phone || '08123456789',
@@ -62,7 +63,6 @@ module.exports = async function handler(req, res) {
       callbackUrl: callbackUrl,
       returnUrl: returnUrl,
       signature: signature,
-      timestamp: timestamp,
       expiryPeriod: 60 // Expire in 60 minutes
     };
 
@@ -80,12 +80,13 @@ module.exports = async function handler(req, res) {
 
     if (dtData.statusCode === "00") {
       // Jika berhasil, update status pesanan di database kita ke 'pending_payment'
-      await query(`UPDATE orders SET status = 'pending_payment' WHERE id = $1`, [orderId]);
+      await query(`UPDATE orders SET status = 'pending_payment' WHERE id = $1`, [orderIdStr]);
       
       // Kirim link pembayaran (paymentUrl) ke website
       return res.status(200).json({ paymentUrl: dtData.paymentUrl });
     } else {
-      return res.status(400).json({ error: dtData.statusMessage || 'Kredensial/Konfigurasi Duitku salah' });
+      console.error('Duitku Rejected:', dtData);
+      return res.status(400).json({ error: (dtData.statusMessage || 'Kredensial/Konfigurasi Duitku salah') + ' | Detail: ' + JSON.stringify(dtData) });
     }
 
   } catch (err) {
