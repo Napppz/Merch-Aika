@@ -182,8 +182,50 @@ const DISCOUNTS = {
 
 let appliedDiscount = null;
 
+// Mockup JNE Rates based on keywords in address
+const MOCK_RATES = {
+  'jakarta': 10000,
+  'bodetabek': 12000,
+  'bogor': 12000,
+  'depok': 12000,
+  'tangerang': 12000,
+  'bekasi': 12000,
+  'bandung': 15000,
+  'surabaya': 18000,
+  'semarang': 20000,
+  'yogyakarta': 18000,
+  'malang': 20000,
+  'bali': 25000,
+  'denpasar': 25000,
+  'medan': 25000,
+  'makassar': 35000,
+  'palembang': 40000,
+  'kalimantan': 45000,
+  'papua': 55000,
+  'sulawesi': 50000
+};
+
 function getShippingTotal() {
-  return BASE_SHIPPING;
+  const addressEl = document.getElementById('address');
+  if (!addressEl) return BASE_SHIPPING;
+  
+  const addrText = addressEl.value.toLowerCase();
+  
+  // Find highest matching rate
+  let rate = BASE_SHIPPING; // Default base rate if no match found
+  
+  for (const [city, cost] of Object.entries(MOCK_RATES)) {
+    if (addrText.includes(city)) {
+      rate = cost; // Overwrite rate if city matched
+      break; 
+    }
+  }
+  
+  return rate;
+}
+
+function handleAddressChange() {
+  updateOrderSummary();
 }
 
 function getDiscountAmount() {
@@ -244,6 +286,7 @@ function updateOrderSummary() {
     discountRow.style.display = 'none';
   }
 
+  document.getElementById('shippingRow').innerHTML = `<span>Ongkos Kirim</span><span>${formatPrice(shipping)}</span>`;
   document.getElementById('grandTotal').innerHTML = `<span>Total</span><span>${formatPrice(grand)}</span>`;
 }
 
@@ -283,7 +326,8 @@ function renderCheckout() {
         </div>
         <div class="form-group">
           <label>Alamat Lengkap *</label>
-          <textarea id="address" rows="3" placeholder="Nama jalan, nomor, RT/RW, Kecamatan, Kota, Provinsi..." style="width:100%; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.8rem; font-family:var(--font-body); resize:none;" required></textarea>
+          <textarea id="address" oninput="handleAddressChange()" rows="3" placeholder="Nama jalan, nomor, RT/RW, Kecamatan, Kota, Provinsi..." style="width:100%; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.8rem; font-family:var(--font-body); resize:none;" required></textarea>
+          <small style="color:var(--text-muted);font-size:0.75rem;margin-top:0.3rem;display:block;">*Ketik nama Kotamu (misal: "Bandung", "Jakarta") untuk melihat simulasi ongkir JNE di kanan.</small>
         </div>
         <div class="form-group">
           <label>Catatan Pesanan (opsional)</label>
@@ -501,6 +545,7 @@ function useAddress(idx) {
   
   if(addresses[idx]) {
     document.getElementById('address').value = addresses[idx].address;
+    handleAddressChange(); // Trigger shipping rate check manually
   }
 }
 </script>
