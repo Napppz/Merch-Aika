@@ -590,22 +590,27 @@ if (isAdmin) {
 /* ── Reset Password Link Flow ── */
 const resetToken = urlParams.get('reset');
 if (resetToken) {
-  // Ubah tab login jadi tab reset
-  document.getElementById('tab-login').classList.remove('active');
-  document.getElementById('tab-login').innerHTML = `
-    <h2 class="auth-title">Reset Password</h2>
-    <div id="resetAlert" class="auth-alert"></div>
-    <div class="auth-form-group">
-      <label class="auth-label">Password Baru</label>
-      <input type="password" id="reset-password" class="auth-input" placeholder="Minimal 6 karakter" required>
+  const authCard = document.querySelector('.auth-card');
+  authCard.innerHTML = `
+    <div class="auth-logo">
+      <span class="brand-logo">✦</span>
+      <h1>Reset Password</h1>
+      <p>Masukkan password barumu di bawah ini</p>
     </div>
-    <button class="auth-btn" style="margin-top:1.5rem" onclick="submitNewPassword('${resetToken}')">Simpan Password Baru</button>
-    <div class="auth-footer" style="margin-top:1rem">
-      <a href="login.html" class="forgot-link">Kembali ke Login</a>
+    <div class="auth-alert" id="resetAlert"></div>
+    <div class="form-group" style="margin-bottom:1.5rem">
+      <label>Password Baru</label>
+      <div class="password-wrap input-icon-wrap">
+        <span class="input-icon">🔒</span>
+        <input type="password" id="reset-password" placeholder="Minimal 6 karakter" />
+        <button class="toggle-pw" type="button" onclick="const pw=document.getElementById('reset-password'); if(pw.type==='password'){pw.type='text';this.textContent='🙈'}else{pw.type='password';this.textContent='👁'}">👁</button>
+      </div>
     </div>
+    <button class="btn-primary w100" onclick="submitNewPassword('${resetToken}')" style="padding:1rem;font-size:1rem">
+      Simpan Password →
+    </button>
+    <a href="login.html" class="auth-nav-link" style="margin-top:2rem;text-decoration:none">Kembali ke Login</a>
   `;
-  document.getElementById('tab-login').classList.add('active');
-  document.querySelector('.auth-header').style.display = 'none'; // Sembunyikan tab login/daftar
 }
 
 async function submitNewPassword(token) {
