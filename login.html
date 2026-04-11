@@ -85,35 +85,7 @@
     }
     .auth-logo p { color: var(--text-muted); font-size: 0.85rem; }
 
-    /* Tabs */
-    .auth-tabs {
-      display: flex;
-      background: rgba(3,9,31,0.4);
-      border-radius: 12px;
-      padding: 4px;
-      margin-bottom: 2rem;
-      border: 1px solid var(--card-border);
-    }
-    .auth-tab {
-      flex: 1;
-      text-align: center;
-      padding: 0.6rem;
-      border-radius: 9px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: var(--transition);
-      color: var(--text-muted);
-      border: none;
-      background: transparent;
-      font-family: var(--font-body);
-    }
-    .auth-tab.active {
-      background: var(--sea-blue);
-      color: var(--white);
-      box-shadow: 0 2px 8px rgba(21,101,192,0.4);
-    }
-    .auth-tab:hover:not(.active) { color: var(--aqua); }
+
 
     /* Input with icon */
     .input-icon-wrap { position: relative; }
@@ -194,9 +166,7 @@
     }
     .forgot-link:hover { color: var(--aqua); }
 
-    /* Form panel */
-    .form-panel { display: none; animation: fadeUp 0.4s ease; }
-    .form-panel.active { display: block; }
+
 
     /* Forgot modal overlay */
     .modal-overlay {
@@ -293,79 +263,44 @@
       <p>Aika Sesilia Merch Store</p>
     </div>
 
-    <!-- Tabs -->
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">🔑 Masuk</button>
-      <button class="auth-tab" id="tabGuest" onclick="switchTab('guest')">👤 Sebagai Tamu</button>
-    </div>
+
 
     <div class="auth-alert" id="authAlert"></div>
 
     <!-- ── LOGIN FORM ── -->
-    <div class="form-panel active" id="panelLogin">
-      <div class="form-group">
-        <label for="login-email">Email / Username</label>
-        <div class="input-icon-wrap">
-          <span class="input-icon">✉️</span>
-          <input type="text" id="login-email" placeholder="email@contoh.com" autocomplete="username"
-            onkeydown="if(event.key==='Enter')doLogin()" />
-        </div>
+    <div class="form-group">
+      <label for="login-email">Email / Username</label>
+      <div class="input-icon-wrap">
+        <span class="input-icon">✉️</span>
+        <input type="text" id="login-email" placeholder="email@contoh.com" autocomplete="username"
+          onkeydown="if(event.key==='Enter')doLogin()" />
       </div>
+    </div>
 
-      <div class="form-group" style="margin-bottom:0.5rem">
-        <label for="login-password">Password</label>
-        <div class="password-wrap input-icon-wrap">
-          <span class="input-icon">🔒</span>
-          <input type="password" id="login-password" placeholder="Password kamu" autocomplete="current-password"
-            onkeydown="if(event.key==='Enter')doLogin()" />
-          <button class="toggle-pw" type="button" onclick="togglePw()" id="pwToggle">👁</button>
-        </div>
+    <div class="form-group" style="margin-bottom:0.5rem">
+      <label for="login-password">Password</label>
+      <div class="password-wrap input-icon-wrap">
+        <span class="input-icon">🔒</span>
+        <input type="password" id="login-password" placeholder="Password kamu" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')doLogin()" />
+        <button class="toggle-pw" type="button" onclick="togglePw()" id="pwToggle">👁</button>
       </div>
+    </div>
 
-      <a href="#" class="forgot-link" onclick="openForgot();return false">Lupa password?</a>
+    <a href="#" class="forgot-link" onclick="openForgot();return false">Lupa password?</a>
 
-      <div class="remember-wrap">
-        <input type="checkbox" id="rememberMe" checked />
-        <label for="rememberMe">Ingat saya di perangkat ini</label>
-      </div>
+    <div class="remember-wrap">
+      <input type="checkbox" id="rememberMe" checked />
+      <label for="rememberMe">Ingat saya di perangkat ini</label>
+    </div>
 
-      <button class="btn-primary w100" onclick="doLogin()" style="padding:1rem;font-size:1rem" id="loginBtn">
-        Masuk →
-      </button>
+    <button class="btn-primary w100" onclick="doLogin()" style="padding:1rem;font-size:1rem" id="loginBtn">
+      Masuk →
+    </button>
 
-      <p class="auth-nav-link">Belum punya akun? <a href="register.html">Daftar Sekarang</a></p>
-    </div><!-- /panelLogin -->
+    <p class="auth-nav-link">Belum punya akun? <a href="register.html">Daftar Sekarang</a></p>
 
-    <!-- ── GUEST FORM ── -->
-    <div class="form-panel" id="panelGuest">
-      <div class="form-group">
-        <label for="guest-name">Nama Lengkap</label>
-        <div class="input-icon-wrap">
-          <span class="input-icon">👤</span>
-          <input type="text" id="guest-name" placeholder="Nama kamu" autocomplete="name" />
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="guest-email">Email (untuk konfirmasi pesanan)</label>
-        <div class="input-icon-wrap">
-          <span class="input-icon">✉️</span>
-          <input type="email" id="guest-email" placeholder="email@contoh.com" autocomplete="email" />
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="guest-phone">Nomor HP</label>
-        <div style="display:flex;gap:0.5rem">
-          <div style="background:rgba(3,9,31,0.7);border:1px solid var(--card-border);border-radius:var(--radius-sm);padding:0.8rem;color:var(--text-muted);font-size:0.9rem;white-space:nowrap;display:flex;align-items:center;gap:0.3rem;flex-shrink:0">🇮🇩 +62</div>
-          <input type="tel" id="guest-phone" placeholder="812 3456 7890" autocomplete="tel" style="flex:1" />
-        </div>
-      </div>
 
-      <button class="btn-primary w100" onclick="continueAsGuest()" style="padding:1rem;font-size:1rem">
-        Lanjut Belanja Sebagai Tamu →
-      </button>
-
-      <p class="auth-nav-link">Ingin akun penuh? <a href="register.html">Daftar Gratis</a></p>
-    </div><!-- /panelGuest -->
 
   </div><!-- /auth-card -->
 
@@ -407,14 +342,7 @@
   }
 })();
 
-/* ── Tab switch ── */
-function switchTab(tab) {
-  ['Login','Guest'].forEach(t => {
-    document.getElementById('tab'+t).classList.toggle('active', t.toLowerCase() === tab);
-    document.getElementById('panel'+t).classList.toggle('active', t.toLowerCase() === tab);
-  });
-  clearAlert();
-}
+
 
 /* ── Alert ── */
 function showAlert(msg, type='error', target='authAlert') {
@@ -500,22 +428,7 @@ function onLoginSuccess(user, remember) {
   }, 1200);
 }
 
-/* ── Guest ── */
-function continueAsGuest() {
-  const name = document.getElementById('guest-name').value.trim();
-  const email = document.getElementById('guest-email').value.trim();
-  const phone = document.getElementById('guest-phone').value.trim();
 
-  if (!name) return showAlert('Masukkan nama kamu!');
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showAlert('Masukkan email yang valid!');
-
-  sessionStorage.setItem('aika_guest', JSON.stringify({ name, email, phone: '+62'+phone.replace(/\D/g,''), isGuest: true }));
-  showAlert('Melanjutkan sebagai tamu...', 'success');
-  setTimeout(() => {
-    const redir = new URLSearchParams(location.search).get('redirect') || 'index.html';
-    window.location.href = redir;
-  }, 1000);
-}
 
 /* ── Forgot Password Modal ── */
 function openForgot() {
