@@ -22,8 +22,8 @@ module.exports = async function handler(req, res) {
     const isSandbox = envStr !== 'production';
 
     const baseUrl = isSandbox 
-      ? 'https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry' 
-      : 'https://app-prod.duitku.com/webapi/api/merchant/v2/inquiry';
+      ? 'https://sandbox.duitku.com/webapi/api/merchant/createinvoice' 
+      : 'https://app-prod.duitku.com/webapi/api/merchant/createinvoice';
 
     // Generate Signature (MD5: merchantCode + merchantOrderId + paymentAmount + apiKey)
     const orderIdStr = String(orderId);
@@ -55,7 +55,6 @@ module.exports = async function handler(req, res) {
       merchantCode: merchantCode,
       paymentAmount: amountNum,
       merchantOrderId: orderIdStr,
-      paymentMethod: "",
       productDetails: `Pembayaran Pesanan Aika Sesilia #${orderIdStr}`,
       customerVaName: customerName || 'Pelanggan Aika',
       email: email || 'buyer@example.com',
