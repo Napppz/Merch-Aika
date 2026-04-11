@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daftar Akun — Aika Sesilia</title>
+  <meta name="description" content="Buat akun baru di Aika Sesilia Merch Store untuk menikmati pengalaman berbelanja yang lebih mudah." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 30% 20%, rgba(21,101,192,0.25), transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(41,182,246,0.12), transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Animated stars */
+    .stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .star {
+      position: absolute;
+      width: 2px; height: 2px;
+      border-radius: 50%;
+      background: var(--aqua);
+      animation: twinkle var(--dur, 3s) ease-in-out infinite var(--delay, 0s);
+      opacity: 0;
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0; transform: scale(0.5); }
+      50% { opacity: 0.8; transform: scale(1.2); }
+    }
+
+    /* Auth card wrapper */
+    .auth-wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    /* Step indicator */
+    .step-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 2rem;
+    }
+    .step-dot {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 2px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: var(--card-bg);
+      transition: var(--transition);
+      position: relative;
+      z-index: 1;
+    }
+    .step-dot.active {
+      border-color: var(--aqua);
+      background: rgba(41,182,246,0.15);
+      color: var(--aqua);
+      box-shadow: 0 0 15px rgba(41,182,246,0.3);
+    }
+    .step-dot.done {
+      border-color: #22c55e;
+      background: rgba(34,197,94,0.15);
+      color: #4ade80;
+    }
+    .step-line {
+      flex: 1;
+      height: 2px;
+      background: var(--card-border);
+      margin: 0 -1px;
+      transition: var(--transition);
+      max-width: 60px;
+    }
+    .step-line.done { background: var(--aqua); }
+
+    /* Card */
+    .auth-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 28px;
+      padding: 3rem 2.5rem;
+      backdrop-filter: blur(24px);
+      box-shadow: var(--shadow-blue), 0 0 80px rgba(41,182,246,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    .auth-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--sea-blue), var(--aqua), var(--sea-blue));
+      background-size: 200% 100%;
+      animation: shimmerBar 3s linear infinite;
+    }
+    @keyframes shimmerBar {
+      0% { background-position: 0% 0%; }
+      100% { background-position: 200% 0%; }
+    }
+
+    .auth-logo {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .auth-logo .brand-logo {
+      font-size: 2.8rem;
+      display: block;
+      color: var(--aqua);
+      animation: spin 8s linear infinite;
+    }
+    .auth-logo h1 {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      color: var(--white);
+      margin: 0.6rem 0 0.2rem;
+    }
+    .auth-logo p { color: var(--text-muted); font-size: 0.85rem; }
+
+    /* Steps */
+    .form-step { display: none; animation: stepIn 0.4s ease; }
+    .form-step.active { display: block; }
+    @keyframes stepIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .step-title {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      color: var(--white);
+      margin-bottom: 0.3rem;
+    }
+    .step-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 1.8rem;
+    }
+
+    /* Input with icon */
+    .input-icon-wrap {
+      position: relative;
+    }
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1rem;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+    .input-icon-wrap input {
+      padding-left: 2.8rem !important;
+    }
+
+    /* Password strength */
+    .pw-strength {
+      margin-top: 0.5rem;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--card-border);
+      overflow: hidden;
+    }
+    .pw-strength-bar {
+      height: 100%;
+      border-radius: 2px;
+      width: 0%;
+      transition: var(--transition);
+    }
+    .pw-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+      text-align: right;
+    }
+
+    /* Phone prefix */
+    .phone-wrap {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .phone-prefix {
+      background: rgba(3, 9, 31, 0.7);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-sm);
+      padding: 0.8rem 0.8rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      flex-shrink: 0;
+    }
+    .phone-wrap input { flex: 1; }
+
+    /* Password toggle */
+    .password-wrap { position: relative; }
+    .password-wrap input { padding-right: 3rem !important; }
+    .toggle-pw {
+      position: absolute;
+      right: 1rem; top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+    .toggle-pw:hover { color: var(--aqua); }
+
+    /* OTP Input */
+    .otp-container {
+      display: flex;
+      gap: 0.8rem;
+      justify-content: center;
+      margin: 1.5rem 0;
+    }
+    .otp-input {
+      width: 52px;
+      height: 60px;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      font-family: var(--font-display);
+      background: rgba(3, 9, 31, 0.7);
+      border: 2px solid var(--card-border);
+      border-radius: 12px;
+      color: var(--white);
+      outline: none;
+      transition: var(--transition);
+      caret-color: var(--aqua);
+    }
+    .otp-input:focus {
+      border-color: var(--aqua);
+      box-shadow: 0 0 0 3px rgba(41,182,246,0.2), 0 0 15px rgba(41,182,246,0.3);
+      background: rgba(3, 9, 31, 0.9);
+    }
+    .otp-input.filled {
+      border-color: var(--aqua);
+      background: rgba(41,182,246,0.07);
+    }
+
+    .email-hint {
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+    .email-hint strong { color: var(--aqua); }
+
+    .resend-wrap {
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 1rem;
+    }
+    .resend-btn {
+      background: none;
+      border: none;
+      color: var(--aqua);
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-decoration: underline;
+      transition: var(--transition);
+    }
+    .resend-btn:disabled { opacity: 0.4; cursor: not-allowed; text-decoration: none; }
+    #resend-countdown { font-weight: 700; color: var(--aqua); }
+
+    /* Alert */
+    .auth-alert {
+      border-radius: 10px;
+      padding: 0.8rem 1rem;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      display: none;
+      animation: fadeUp 0.3s ease;
+    }
+    .auth-alert.error {
+      background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: #fca5a5;
+      display: block;
+    }
+    .auth-alert.success {
+      background: rgba(34,197,94,0.12);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: #86efac;
+      display: block;
+    }
+
+    /* Terms checkbox */
+    .checkbox-wrap {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      margin-bottom: 1.5rem;
+    }
+    .checkbox-wrap input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--aqua);
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .checkbox-wrap label {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      line-height: 1.5;
+    }
+    .checkbox-wrap label a { color: var(--aqua); text-decoration: none; }
+    .checkbox-wrap label a:hover { text-decoration: underline; }
+
+    /* Success screen */
+    .success-screen {
+      text-align: center;
+      padding: 1rem 0;
+    }
+    .success-icon {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: rgba(34,197,94,0.15);
+      border: 2px solid rgba(34,197,94,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      margin: 0 auto 1.5rem;
+      animation: successPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes successPop {
+      from { transform: scale(0); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .success-screen h2 {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      color: var(--white);
+      margin-bottom: 0.5rem;
+    }
+    .success-screen p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; }
+    .countdown-bar {
+      height: 4px;
+      border-radius: 2px;
+      background: var(--card-border);
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+    .countdown-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--sea-blue), var(--aqua));
+      border-radius: 2px;
+      animation: shrink 4s linear forwards;
+    }
+    @keyframes shrink { from { width: 100%; } to { width: 0%; } }
+
+    /* Nav link */
+    .auth-nav-link {
+      display: block;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      text-decoration: none;
+      margin-top: 1.2rem;
+      transition: var(--transition);
+    }
+    .auth-nav-link:hover { color: var(--aqua); }
+    .auth-nav-link a { color: var(--aqua); font-weight: 700; text-decoration: none; }
+    .auth-nav-link a:hover { text-decoration: underline; }
+
+    /* Loading spinner on button */
+    .btn-loading {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @media (max-width: 560px) {
+      .auth-card { padding: 2rem 1.5rem; border-radius: 20px; }
+      .otp-input { width: 42px; height: 50px; font-size: 1.2rem; }
+      .otp-container { gap: 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Animated stars -->
+<div class="stars" id="stars"></div>
+
+<div class="auth-wrapper">
+
+  <!-- Step indicator -->
+  <div class="step-indicator" id="stepIndicator">
+    <div class="step-dot active" id="dot1" title="Info Akun">1</div>
+    <div class="step-line" id="line12"></div>
+    <div class="step-dot" id="dot2" title="Keamanan">2</div>
+    <div class="step-line" id="line23"></div>
+    <div class="step-dot" id="dot3" title="Verifikasi">3</div>
+  </div>
+
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="brand-logo">✦</span>
+      <h1>Buat Akun Baru</h1>
+      <p>Aika Sesilia Merch Store</p>
+    </div>
+
+    <div class="auth-alert" id="authAlert"></div>
+
+    <!-- ── STEP 1: Info Akun ── -->
+    <div class="form-step active" id="step1">
+      <p class="step-title">Informasi Akun</p>
+      <p class="step-subtitle">Masukkan data dasar untuk akun kamu.</p>
+
+      <div class="form-group">
+        <label for="reg-username">Username</label>
+        <div class="input-icon-wrap">
+          <span class="input-icon">👤</span>
+          <input type="text" id="reg-username" placeholder="contoh: aika_fan123" autocomplete="username" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="reg-email">Alamat Email</label>
+        <div class="input-icon-wrap">
+          <span class="input-icon">✉️</span>
+          <input type="email" id="reg-email" placeholder="email@contoh.com" autocomplete="email" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="reg-phone">Nomor HP</label>
+        <div class="phone-wrap">
+          <div class="phone-prefix">🇮🇩 +62</div>
+          <div class="input-icon-wrap" style="flex:1">
+            <input type="tel" id="reg-phone" placeholder="812 3456 7890" autocomplete="tel" style="padding-left:1rem!important" />
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary w100" onclick="goStep2()" style="padding:1rem;font-size:1rem;margin-top:0.5rem">
+        Lanjut →
+      </button>
+
+      <p class="auth-nav-link">Sudah punya akun? <a href="login.html">Masuk di sini</a></p>
+    </div>
+
+    <!-- ── STEP 2: Password ── -->
+    <div class="form-step" id="step2">
+      <p class="step-title">Buat Password</p>
+      <p class="step-subtitle">Gunakan kombinasi huruf, angka, dan simbol.</p>
+
+      <div class="form-group">
+        <label for="reg-password">Password</label>
+        <div class="password-wrap input-icon-wrap">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="reg-password" placeholder="Minimal 8 karakter" autocomplete="new-password" oninput="checkStrength()" />
+          <button class="toggle-pw" type="button" onclick="togglePw('reg-password','pwToggle1')" id="pwToggle1">👁</button>
+        </div>
+        <div class="pw-strength"><div class="pw-strength-bar" id="pwBar"></div></div>
+        <div class="pw-label" id="pwLabel">—</div>
+      </div>
+
+      <div class="form-group">
+        <label for="reg-confirm">Konfirmasi Password</label>
+        <div class="password-wrap input-icon-wrap">
+          <span class="input-icon">🔑</span>
+          <input type="password" id="reg-confirm" placeholder="Ulangi password" autocomplete="new-password" oninput="checkConfirm()" />
+          <button class="toggle-pw" type="button" onclick="togglePw('reg-confirm','pwToggle2')" id="pwToggle2">👁</button>
+        </div>
+        <div class="pw-label" id="confirmLabel">—</div>
+      </div>
+
+      <div class="checkbox-wrap">
+        <input type="checkbox" id="terms" />
+        <label for="terms">Saya setuju dengan <a href="#" onclick="return false">Syarat & Ketentuan</a> serta <a href="#" onclick="return false">Kebijakan Privasi</a> Aika Sesilia.</label>
+      </div>
+
+      <div style="display:flex;gap:0.8rem">
+        <button class="btn-ghost" onclick="goStep(1)" style="padding:1rem;flex:0 0 auto">← Kembali</button>
+        <button class="btn-primary w100" onclick="goStep3()" style="padding:1rem;font-size:1rem" id="sendOtpBtn">
+          Kirim Kode Verifikasi →
+        </button>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: Verifikasi Email ── -->
+    <div class="form-step" id="step3">
+      <p class="step-title">Verifikasi Email</p>
+      <p class="email-hint">Kode 6 digit telah dikirim ke<br><strong id="emailDisplay">—</strong></p>
+
+      <div class="otp-container">
+        <input class="otp-input" type="text" maxlength="1" id="otp0" oninput="otpInput(0)" onkeydown="otpKey(event,0)" inputmode="numeric" />
+        <input class="otp-input" type="text" maxlength="1" id="otp1" oninput="otpInput(1)" onkeydown="otpKey(event,1)" inputmode="numeric" />
+        <input class="otp-input" type="text" maxlength="1" id="otp2" oninput="otpInput(2)" onkeydown="otpKey(event,2)" inputmode="numeric" />
+        <input class="otp-input" type="text" maxlength="1" id="otp3" oninput="otpInput(3)" onkeydown="otpKey(event,3)" inputmode="numeric" />
+        <input class="otp-input" type="text" maxlength="1" id="otp4" oninput="otpInput(4)" onkeydown="otpKey(event,4)" inputmode="numeric" />
+        <input class="otp-input" type="text" maxlength="1" id="otp5" oninput="otpInput(5)" onkeydown="otpKey(event,5)" inputmode="numeric" />
+      </div>
+
+      <div class="resend-wrap">
+        Tidak dapat kode? &nbsp;
+        <button class="resend-btn" id="resendBtn" onclick="resendCode()" disabled>
+          Kirim Ulang (<span id="resend-countdown">60</span>s)
+        </button>
+      </div>
+
+      <div style="display:flex;gap:0.8rem;margin-top:1.5rem">
+        <button class="btn-ghost" onclick="goStep(2)" style="padding:1rem;flex:0 0 auto">← Kembali</button>
+        <button class="btn-primary w100" onclick="verifyOtp()" style="padding:1rem;font-size:1rem" id="verifyBtn">
+          Verifikasi &amp; Daftar ✓
+        </button>
+      </div>
+    </div>
+
+    <!-- ── STEP 4: Success ── -->
+    <div class="form-step" id="step4">
+      <div class="success-screen">
+        <div class="success-icon">✅</div>
+        <h2>Akun Berhasil Dibuat!</h2>
+        <p>Selamat! Akun kamu sudah aktif.<br>Kamu akan diarahkan ke halaman login.</p>
+        <div class="countdown-bar"><div class="countdown-fill"></div></div>
+        <a href="login.html" class="btn-primary w100" style="padding:1rem;font-size:1rem;display:block">
+          Masuk Sekarang →
+        </a>
+      </div>
+    </div>
+
+  </div><!-- /auth-card -->
+
+  <a href="index.html" class="auth-nav-link" style="color:var(--text-muted);opacity:0.6;font-size:0.8rem;margin-top:1rem">
+    ← Kembali ke Toko
+  </a>
+
+</div><!-- /auth-wrapper -->
+
+<script>
+/* ─── Star generator ─── */
+(function() {
+  const container = document.getElementById('stars');
+  for (let i = 0; i < 60; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    s.style.cssText = `
+      left:${Math.random()*100}%;
+      top:${Math.random()*100}%;
+      --dur:${2+Math.random()*4}s;
+      --delay:${Math.random()*5}s;
+      width:${1+Math.random()*2}px;
+      height:${1+Math.random()*2}px;
+    `;
+    container.appendChild(s);
+  }
+})();
+
+/* ─── Form state ─── */
+let currentStep = 1;
+let generatedOtp = '';
+let resendTimer = null;
+
+function showAlert(msg, type='error') {
+  const el = document.getElementById('authAlert');
+  el.className = 'auth-alert ' + type;
+  el.innerHTML = (type==='error'?'⚠ ':'✓ ') + msg;
+  el.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  setTimeout(() => { el.className = 'auth-alert'; }, 5000);
+}
+
+/* ─── Step navigation ─── */
+function goStep(n) {
+  document.getElementById('step'+currentStep).classList.remove('active');
+  currentStep = n;
+  document.getElementById('step'+currentStep).classList.add('active');
+  updateStepDots();
+  document.getElementById('authAlert').className = 'auth-alert';
+}
+
+function updateStepDots() {
+  for (let i = 1; i <= 3; i++) {
+    const dot = document.getElementById('dot'+i);
+    dot.classList.remove('active','done');
+    if (i < currentStep) dot.classList.add('done'), dot.textContent = '✓';
+    else if (i === currentStep) dot.classList.add('active'), dot.textContent = i;
+    else dot.textContent = i;
+  }
+  ['12','23'].forEach(pair => {
+    const [a,b] = pair.split('').map(Number);
+    const line = document.getElementById('line'+pair);
+    line.classList.toggle('done', a < currentStep);
+  });
+}
+
+/* ─── Step 1 → 2 ─── */
+function goStep2() {
+  const username = document.getElementById('reg-username').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+
+  if (!username || username.length < 3) return showAlert('Username minimal 3 karakter!');
+  if (!/^[a-zA-Z0-9_\.]+$/.test(username)) return showAlert('Username hanya boleh huruf, angka, titik, dan underscore!');
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showAlert('Masukkan alamat email yang valid!');
+  if (!phone || phone.replace(/\D/g,'').length < 9) return showAlert('Masukkan nomor HP yang valid!');
+
+  goStep(2);
+}
+
+/* ─── Password strength ─── */
+function checkStrength() {
+  const pw = document.getElementById('reg-password').value;
+  const bar = document.getElementById('pwBar');
+  const label = document.getElementById('pwLabel');
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (pw.length >= 12) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+  const levels = [
+    { pct:'20%', color:'#ef4444', text:'Sangat Lemah' },
+    { pct:'40%', color:'#f97316', text:'Lemah' },
+    { pct:'60%', color:'#eab308', text:'Sedang' },
+    { pct:'80%', color:'#22c55e', text:'Kuat' },
+    { pct:'100%', color:'#10b981', text:'Sangat Kuat 💪' },
+  ];
+  const lvl = levels[Math.min(score, 4)];
+  bar.style.width = pw ? lvl.pct : '0%';
+  bar.style.background = lvl.color;
+  label.textContent = pw ? lvl.text : '—';
+  label.style.color = pw ? lvl.color : 'var(--text-muted)';
+}
+
+function checkConfirm() {
+  const pw = document.getElementById('reg-password').value;
+  const cf = document.getElementById('reg-confirm').value;
+  const label = document.getElementById('confirmLabel');
+  if (!cf) { label.textContent = '—'; label.style.color = 'var(--text-muted)'; return; }
+  if (pw === cf) { label.textContent = '✓ Password cocok'; label.style.color = '#22c55e'; }
+  else { label.textContent = '✗ Password tidak cocok'; label.style.color = '#ef4444'; }
+}
+
+function togglePw(id, btnId) {
+  const input = document.getElementById(id);
+  const btn = document.getElementById(btnId);
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+  else { input.type = 'password'; btn.textContent = '👁'; }
+}
+
+/* ─── Step 2 → 3 (send OTP) ─── */
+function goStep3() {
+  const pw = document.getElementById('reg-password').value;
+  const cf = document.getElementById('reg-confirm').value;
+  const terms = document.getElementById('terms').checked;
+
+  if (pw.length < 8) return showAlert('Password minimal 8 karakter!');
+  if (pw !== cf) return showAlert('Password dan konfirmasi tidak cocok!');
+  if (!terms) return showAlert('Kamu harus menyetujui Syarat & Ketentuan terlebih dahulu!');
+
+  const email = document.getElementById('reg-email').value.trim();
+  document.getElementById('emailDisplay').textContent = email;
+
+  // Generate OTP (in production: call backend API to send real email)
+  generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // Simulate sending → show in console for demo
+  console.log('%c[DEMO] Kode OTP: ' + generatedOtp, 'color:#29b6f6;font-size:1.2em;font-weight:bold');
+
+  // Try to call API endpoint if available
+  sendOtpEmail(email, generatedOtp);
+
+  goStep(3);
+  startResendCountdown();
+}
+
+async function sendOtpEmail(email, otp) {
+  try {
+    const res = await fetch('/api/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp })
+    });
+    if (res.ok) {
+      console.log('OTP sent via API');
+    }
+  } catch {
+    // API not available (local dev) — OTP visible in browser console
+    console.log('%c[DEMO MODE] OTP tidak dikirim via email. Kode: ' + otp, 'background:#071a3e;color:#29b6f6;padding:4px 8px;border-radius:4px');
+  }
+}
+
+/* ─── OTP Inputs ─── */
+function otpInput(idx) {
+  const input = document.getElementById('otp' + idx);
+  const val = input.value.replace(/\D/g, '');
+  input.value = val.slice(-1);
+  input.classList.toggle('filled', !!input.value);
+  if (val && idx < 5) document.getElementById('otp' + (idx+1)).focus();
+}
+
+function otpKey(e, idx) {
+  if (e.key === 'Backspace' && !document.getElementById('otp'+idx).value && idx > 0) {
+    document.getElementById('otp'+(idx-1)).focus();
+  }
+  if (e.key === 'ArrowLeft' && idx > 0) document.getElementById('otp'+(idx-1)).focus();
+  if (e.key === 'ArrowRight' && idx < 5) document.getElementById('otp'+(idx+1)).focus();
+}
+
+/* paste support */
+document.addEventListener('paste', function(e) {
+  if (currentStep !== 3) return;
+  const text = e.clipboardData.getData('text').replace(/\D/g,'').slice(0,6);
+  if (text.length === 6) {
+    text.split('').forEach((char, i) => {
+      const inp = document.getElementById('otp'+i);
+      inp.value = char;
+      inp.classList.add('filled');
+    });
+    document.getElementById('otp5').focus();
+    e.preventDefault();
+  }
+});
+
+/* ─── Resend countdown ─── */
+function startResendCountdown() {
+  let seconds = 60;
+  const btn = document.getElementById('resendBtn');
+  const cntdown = document.getElementById('resend-countdown');
+  btn.disabled = true;
+  clearInterval(resendTimer);
+  resendTimer = setInterval(() => {
+    seconds--;
+    cntdown.textContent = seconds;
+    if (seconds <= 0) {
+      clearInterval(resendTimer);
+      btn.disabled = false;
+      btn.innerHTML = 'Kirim Ulang Kode';
+    }
+  }, 1000);
+}
+
+function resendCode() {
+  const email = document.getElementById('reg-email').value.trim();
+  generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+  console.log('%c[DEMO] Kode OTP Baru: ' + generatedOtp, 'color:#4ade80;font-size:1.2em;font-weight:bold');
+  sendOtpEmail(email, generatedOtp);
+  showAlert('Kode baru telah dikirim ke ' + email, 'success');
+  const btn = document.getElementById('resendBtn');
+  btn.innerHTML = 'Kirim Ulang (<span id="resend-countdown">60</span>s)';
+  startResendCountdown();
+}
+
+/* ─── Verify OTP ─── */
+function verifyOtp() {
+  const entered = [0,1,2,3,4,5].map(i => document.getElementById('otp'+i).value).join('');
+  if (entered.length < 6) return showAlert('Masukkan 6 digit kode verifikasi!');
+
+  if (entered !== generatedOtp) {
+    showAlert('Kode verifikasi salah! Coba lagi atau kirim ulang kode.');
+    [0,1,2,3,4,5].forEach(i => {
+      const el = document.getElementById('otp'+i);
+      el.style.borderColor = '#ef4444';
+      setTimeout(() => el.style.borderColor = '', 1500);
+    });
+    return;
+  }
+
+  // ✅ OTP Correct → Save user & go to success
+  saveUser();
+  showStep4();
+}
+
+function saveUser() {
+  const user = {
+    username: document.getElementById('reg-username').value.trim(),
+    email: document.getElementById('reg-email').value.trim(),
+    phone: '+62' + document.getElementById('reg-phone').value.trim().replace(/\D/g,''),
+    password: btoa(document.getElementById('reg-password').value), // base64 (demo only — use hashing in prod)
+    registeredAt: new Date().toISOString(),
+    verified: true,
+  };
+
+  // Save to localStorage (demo) + try API
+  const users = JSON.parse(localStorage.getItem('aika_users') || '[]');
+  users.push(user);
+  localStorage.setItem('aika_users', JSON.stringify(users));
+  localStorage.setItem('aika_pending_login', user.email);
+
+  // Try real API
+  fetch('/api/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(user)
+  }).catch(() => {});
+}
+
+function showStep4() {
+  document.getElementById('step'+currentStep).classList.remove('active');
+  currentStep = 4;
+  document.getElementById('step4').classList.add('active');
+  document.getElementById('stepIndicator').style.display = 'none';
+
+  // Auto redirect after 4s
+  setTimeout(() => { window.location.href = 'login.html'; }, 4000);
+}
+</script>
+</body>
+</html>
