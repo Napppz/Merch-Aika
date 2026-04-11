@@ -4,22 +4,22 @@
    ============================ */
 
 :root {
-  --deep-ocean: #051433;
-  --midnight-blue: #0b2554;
-  --ocean-blue: #114488;
-  --sea-blue: #1873db;
-  --sky-blue: #29a0f8;
-  --aqua: #3ec8ff;
-  --foam: #cbeeff;
-  --pearl: #eff8ff;
+  --deep-ocean: #0d47a1;
+  --midnight-blue: #1565c0;
+  --ocean-blue: #1976d2;
+  --sea-blue: #1e88e5;
+  --sky-blue: #42a5f5;
+  --aqua: #64b5f6;
+  --foam: #e1f5fe;
+  --pearl: #f1f8e9;
   --white: #ffffff;
-  --gold: #ffdf6b;
-  --gold-light: #fffbea;
-  --text-main: #ebf5ff;
-  --text-muted: #a6cde8;
-  --card-bg: rgba(17, 68, 136, 0.35);
-  --card-border: rgba(62, 200, 255, 0.3);
-  --shadow-blue: 0 8px 32px rgba(24, 115, 219, 0.3);
+  --gold: #ffd54f;
+  --gold-light: #fff8e1;
+  --text-main: #f0f8ff;
+  --text-muted: #b3d4ff;
+  --card-bg: rgba(25, 118, 210, 0.45);
+  --card-border: rgba(100, 181, 246, 0.5);
+  --shadow-blue: 0 8px 32px rgba(30, 136, 229, 0.4);
   --radius: 16px;
   --radius-sm: 8px;
   --font-display: 'Cinzel Decorative', serif;
