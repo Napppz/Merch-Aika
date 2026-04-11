@@ -55,6 +55,7 @@ module.exports = async function handler(req, res) {
       merchantCode: merchantCode,
       paymentAmount: amountNum,
       merchantOrderId: orderIdStr,
+      paymentMethod: "",
       productDetails: `Pembayaran Pesanan Aika Sesilia #${orderIdStr}`,
       customerVaName: customerName || 'Pelanggan Aika',
       email: email || 'buyer@example.com',
