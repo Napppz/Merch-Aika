@@ -652,7 +652,7 @@ const Products = {
 
 const Orders = {
   async getAll() {
-    try { const res = await fetch('/api/orders'); return await res.json(); } catch { return []; }
+    try { const res = await fetch('/api/orders?t=' + Date.now()); return await res.json(); } catch { return []; }
   },
   async add(order) {
     order.id = 'ORD-' + Date.now();

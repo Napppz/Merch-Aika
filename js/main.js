@@ -29,12 +29,17 @@ function formatPrice(n) {
 // ── ORDERS ──
 const Orders = {
   async getAll() {
-    try { const res = await fetch('/api/orders'); return await res.json(); } catch { return []; }
+    try { const res = await fetch('/api/orders?t=' + Date.now()); return await res.json(); } catch { return []; }
   },
   async add(order) {
     order.id = 'ORD-' + Date.now();
     order.status = 'pending';
-    await fetch('/api/orders', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(order) });
+    order.date = new Date().toISOString(); // Attach client-side real-time date explicitly as fallback
+    const response = await fetch('/api/orders', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(order) });
+    if (response.ok) {
+       const dbOrder = await response.json();
+       return dbOrder; // Return the full DB order including auto-generated date
+    }
     return order;
   },
   async update(id, data) {
