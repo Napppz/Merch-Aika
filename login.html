@@ -246,6 +246,32 @@
     .auth-nav-link a { color: var(--aqua); font-weight: 700; text-decoration: none; }
     .auth-nav-link a:hover { text-decoration: underline; }
 
+    /* Tabs */
+    .auth-tabs {
+      display: flex;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 4px;
+      margin-bottom: 2rem;
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 0.7rem;
+      text-align: center;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 700;
+      border-radius: 10px;
+      transition: var(--transition);
+    }
+    .auth-tab.active {
+      color: var(--white);
+      background: rgba(41,182,246,0.15);
+      border: 1px solid rgba(41,182,246,0.2);
+    }
+
     @media (max-width: 560px) {
       .auth-card { padding: 2rem 1.5rem; border-radius: 20px; }
     }
@@ -264,6 +290,11 @@
     </div>
 
 
+
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-user" onclick="switchRole('user')">👤 User</div>
+      <div class="auth-tab" id="tab-admin" onclick="switchRole('admin')">🔑 Admin</div>
+    </div>
 
     <div class="auth-alert" id="authAlert"></div>
 
@@ -298,7 +329,7 @@
       Masuk →
     </button>
 
-    <p class="auth-nav-link">Belum punya akun? <a href="register.html">Daftar Sekarang</a></p>
+    <p class="auth-nav-link" id="registerLink">Belum punya akun? <a href="register.html">Daftar Sekarang</a></p>
 
 
 
@@ -376,16 +407,78 @@ function tryLocalLogin(identifier, password, remember) {
   return false;
 }
 
+/* ── Role Management ── */
+let currentRole = 'user';
+
+function switchRole(role) {
+  currentRole = role;
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + role).classList.add('active');
+  
+  const regLink = document.getElementById('registerLink');
+  const forgotLink = document.querySelector('.forgot-link');
+  const rememberWrap = document.querySelector('.remember-wrap');
+  
+  if (role === 'admin') {
+    regLink.style.display = 'none';
+    forgotLink.style.display = 'none';
+    rememberWrap.style.display = 'none';
+    document.getElementById('login-email').placeholder = 'Username Admin';
+  } else {
+    regLink.style.display = 'block';
+    forgotLink.style.display = 'block';
+    rememberWrap.style.display = 'flex';
+    document.getElementById('login-email').placeholder = 'email@contoh.com';
+  }
+  clearAlert();
+}
+
 /* ── Login ── */
 function doLogin() {
   const identifier = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   const remember = document.getElementById('rememberMe').checked;
 
-  if (!identifier) return showAlert('Masukkan email atau username kamu!');
+  if (!identifier) return showAlert(`Masukkan ${currentRole === 'admin' ? 'username' : 'email/username'} kamu!`);
   if (!password) return showAlert('Masukkan password kamu!');
 
-  // Coba API dulu
+  const btn = document.getElementById('loginBtn');
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin">✦</span> Memproses...';
+
+  if (currentRole === 'admin') {
+    // Admin Login Logic with API
+    fetch('/api/admin-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: identifier, password: password })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        localStorage.setItem('aika_admin', 'true');
+        localStorage.setItem('aika_admin_user', JSON.stringify(data.admin));
+        showAlert('Berhasil masuk Admin! Mengalihkan...', 'success');
+        setTimeout(() => window.location.href = 'admin/dashboard.html', 1000);
+      } else {
+        showAlert(data.message || 'Username atau password admin salah!');
+        document.getElementById('login-password').value = '';
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    })
+    .catch(err => {
+      console.error('Admin login error:', err);
+      showAlert('Koneksi server gagal. Coba lagi.');
+      document.getElementById('login-password').value = '';
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    });
+    return;
+  }
+
+  // User Login Logic
   fetch('/api/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -394,22 +487,22 @@ function doLogin() {
   .then(r => r.json())
   .then(data => {
     if (data.success) {
-      // ✅ Login via database berhasil
       onLoginSuccess(data.user, remember);
     } else {
-      // API menolak → coba localStorage sebagai fallback
-      // (untuk akun yang didaftarkan saat demo mode)
       if (!tryLocalLogin(identifier, password, remember)) {
         showAlert(data.message || 'Email/username atau password salah!');
         document.getElementById('login-password').value = '';
+        btn.disabled = false;
+        btn.innerHTML = originalText;
       }
     }
   })
   .catch(() => {
-    // API tidak bisa dijangkau → langsung cek localStorage
     if (!tryLocalLogin(identifier, password, remember)) {
       showAlert('Email/username atau password salah!');
       document.getElementById('login-password').value = '';
+      btn.disabled = false;
+      btn.innerHTML = originalText;
     }
   });
 }
@@ -465,13 +558,23 @@ if (pendingEmail) {
   localStorage.removeItem('aika_pending_login');
 }
 
+/* ── Initial Check & URL Params ── */
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('role') === 'admin') {
+  switchRole('admin');
+}
+
 /* ── Already logged in? ── */
 const existing = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
-if (existing) {
+const isAdmin = localStorage.getItem('aika_admin') === 'true';
+
+if (isAdmin) {
+  window.location.href = 'admin/dashboard.html';
+} else if (existing) {
   try {
     const sess = JSON.parse(existing);
     if (sess.loggedIn) {
-      const redir = new URLSearchParams(location.search).get('redirect') || 'index.html';
+      const redir = urlParams.get('redirect') || 'index.html';
       window.location.href = redir;
     }
   } catch {}
