@@ -493,22 +493,16 @@
       <div class="stat-card">
         <h3 style="font-family:var(--font-display);color:var(--white);font-size:1rem;margin-bottom:1.5rem">🏪 Info Toko</h3>
         <div class="form-group">
-          <label>Nama Toko</label>
-          <input type="text" value="Aika Sesilia Official Store" />
+          <label>Foto Profil Utama (Website Depan)</label>
+          <div class="img-upload-area" style="padding: 1rem;">
+            <input type="file" id="heroImageFile" accept="image/*" onchange="previewHeroImage(this)" />
+            <div class="upload-icon" style="font-size: 1.5rem;">📷</div>
+            <div class="upload-text">Ubah Foto Utama Navbar/Hero<br><small>JPG, PNG, WebP — Maks 2MB</small></div>
+            <img id="heroImagePreview" class="img-preview" alt="Preview Profil" />
+          </div>
+          <input type="hidden" id="heroImageUrl" />
+          <button class="btn-primary" onclick="saveHeroImage()" style="margin-top: 1rem; width: 100%;">Set Foto & Simpan</button>
         </div>
-        <div class="form-group">
-          <label>Email Toko</label>
-          <input type="email" value="aikasesilia.contact@gmail.com" />
-        </div>
-        <div class="form-group">
-          <label>No. WhatsApp</label>
-          <input type="text" value="6285171722053" placeholder="628xxxxxxxxx" />
-        </div>
-        <div class="form-group">
-          <label>Instagram</label>
-          <input type="text" value="aika_sesilia" placeholder="@aikasesilia" />
-        </div>
-        <button class="btn-primary" onclick="showToast('✓ Pengaturan disimpan!')">Simpan</button>
       </div>
       <div class="stat-card" style="grid-column:1/-1">
         <h3 style="font-family:var(--font-display);color:var(--white);font-size:1rem;margin-bottom:1rem">🗑 Data Management</h3>
@@ -692,6 +686,7 @@ async function showTab(tab) {
   if (tab === 'users') await renderUsers();
   if (tab === 'products') await renderProducts();
   if (tab === 'orders') await renderOrders('all');
+  if (tab === 'settings') await loadSettings();
 
   const sidebar = document.getElementById('adminSidebar');
   if (sidebar && sidebar.classList.contains('open')) toggleMobileMenu();
@@ -1023,6 +1018,51 @@ const mtConfig = JSON.parse(localStorage.getItem('midtrans_config') || '{}');
 if (mtConfig.clientKey) {
   document.getElementById('midtransClientKey') && (document.getElementById('midtransClientKey').value = mtConfig.clientKey);
   document.getElementById('midtransServerKey') && (document.getElementById('midtransServerKey').value = mtConfig.serverKey);
+}
+
+async function loadSettings() {
+  try {
+    const res = await fetch('/api/settings');
+    const data = await res.json();
+    if (data.hero_image) {
+      document.getElementById('heroImageUrl').value = data.hero_image;
+      document.getElementById('heroImagePreview').src = data.hero_image;
+      document.getElementById('heroImagePreview').style.display = 'block';
+    }
+  } catch (err) {
+    console.error('Gagal load settings:', err);
+  }
+}
+
+function previewHeroImage(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  if (file.size > 2 * 1024 * 1024) { showToast('Ukuran maksimal 2MB!'); return; }
+  
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('heroImagePreview').src = e.target.result;
+    document.getElementById('heroImagePreview').style.display = 'block';
+    document.getElementById('heroImageUrl').value = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function saveHeroImage() {
+  const hero_image = document.getElementById('heroImageUrl').value;
+  if (!hero_image) { showToast('Pilih foto terlebih dahulu!'); return; }
+  
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hero_image })
+    });
+    if (!res.ok) throw new Error('Gagal simpan foto');
+    showToast('✓ Foto profil utama berhasil diperbarui!');
+  } catch (err) {
+    showToast('❌ Gagal: ' + err.message);
+  }
 }
 
 // ── CLOSE MODAL ON OVERLAY CLICK ──
