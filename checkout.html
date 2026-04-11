@@ -146,8 +146,7 @@
 
 <div class="steps">
   <div class="step active" data-n="1">Data Pengiriman</div>
-  <div class="step" data-n="2">Metode Pengiriman</div>
-  <div class="step" data-n="3">Pembayaran</div>
+  <div class="step" data-n="2">Pembayaran</div>
 </div>
 
 <div class="checkout-layout" id="checkoutContent">
@@ -173,17 +172,10 @@
 <script src="js/cart.js"></script>
 <script src="js/main.js"></script>
 <script>
-const SHIPPING_OPTIONS = [
-  { id: 'jne_reg', name: 'JNE REG', desc: '2-4 hari kerja', price: 15000 },
-  { id: 'jnt_express', name: 'J&T Express', desc: '1-3 hari kerja', price: 18000 },
-  { id: 'sicepat', name: 'SiCepat BEST', desc: '1-2 hari kerja', price: 22000 },
-  { id: 'gosend', name: 'GoSend Same Day', desc: 'Hari ini (Jabodetabek)', price: 35000 },
-];
-
-let selectedShipping = SHIPPING_OPTIONS[0];
+const BASE_SHIPPING = 15000; // Flat shipping rate if 'Metode Pengiriman' is removed
 
 function getShippingTotal() {
-  return selectedShipping ? selectedShipping.price : 0;
+  return BASE_SHIPPING;
 }
 
 function renderCheckout() {
@@ -209,20 +201,11 @@ function renderCheckout() {
     <div>
       <div class="checkout-section" style="margin-bottom:1.5rem">
         <h2>📦 Data Pengiriman</h2>
+        <div id="addressOptions" style="margin-bottom:1rem;"></div>
         <div class="form-row">
           <div class="form-group">
-            <label>Nama Depan *</label>
-            <input type="text" id="firstName" placeholder="Nama depan" required />
-          </div>
-          <div class="form-group">
-            <label>Nama Belakang *</label>
-            <input type="text" id="lastName" placeholder="Nama belakang" required />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Email *</label>
-            <input type="email" id="email" placeholder="email@contoh.com" required />
+            <label>Diterima Oleh (Nama) *</label>
+            <input type="text" id="fullName" placeholder="Nama penerima" required />
           </div>
           <div class="form-group">
             <label>No. HP *</label>
@@ -231,53 +214,11 @@ function renderCheckout() {
         </div>
         <div class="form-group">
           <label>Alamat Lengkap *</label>
-          <input type="text" id="address" placeholder="Nama jalan, nomor, RT/RW..." required />
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Kota *</label>
-            <input type="text" id="city" placeholder="Kota/Kabupaten" required />
-          </div>
-          <div class="form-group">
-            <label>Provinsi *</label>
-            <select id="province">
-              <option value="">Pilih Provinsi</option>
-              <option>DKI Jakarta</option>
-              <option>Jawa Barat</option>
-              <option>Jawa Tengah</option>
-              <option>Jawa Timur</option>
-              <option>Bali</option>
-              <option>Sumatera Utara</option>
-              <option>Sulawesi Selatan</option>
-              <option>Kalimantan Timur</option>
-              <option>DIY Yogyakarta</option>
-              <option>Banten</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Kode Pos *</label>
-          <input type="text" id="postal" placeholder="12345" maxlength="5" />
+          <textarea id="address" rows="3" placeholder="Nama jalan, nomor, RT/RW, Kecamatan, Kota, Provinsi..." style="width:100%; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.8rem; font-family:var(--font-body); resize:none;" required></textarea>
         </div>
         <div class="form-group">
           <label>Catatan Pesanan (opsional)</label>
-          <input type="text" id="note" placeholder="Catatan untuk penjual..." />
-        </div>
-      </div>
-
-      <div class="checkout-section">
-        <h2>🚚 Metode Pengiriman</h2>
-        <div class="shipping-options" id="shippingOptions">
-          ${SHIPPING_OPTIONS.map((s, i) => `
-            <label class="shipping-option">
-              <input type="radio" name="shipping" value="${s.id}" ${i === 0 ? 'checked' : ''} onchange="selectShipping('${s.id}')" />
-              <div style="flex:1">
-                <div class="shipping-name">${s.name}</div>
-                <div class="shipping-desc">${s.desc}</div>
-              </div>
-              <div class="shipping-price">${formatPrice(s.price)}</div>
-            </label>
-          `).join('')}
+          <input type="text" id="note" placeholder="Catatan untuk penjual/kurir..." />
         </div>
       </div>
     </div>
@@ -321,18 +262,8 @@ function renderCheckout() {
   `;
 }
 
-function selectShipping(id) {
-  selectedShipping = SHIPPING_OPTIONS.find(s => s.id === id);
-  const subtotal = Cart.total();
-  const grand = subtotal + selectedShipping.price;
-  const shippingRow = document.getElementById('shippingRow');
-  const grandTotal = document.getElementById('grandTotal');
-  if (shippingRow) shippingRow.querySelector('span:last-child').textContent = formatPrice(selectedShipping.price);
-  if (grandTotal) grandTotal.querySelector('span:last-child').textContent = formatPrice(grand);
-}
-
 function validateForm() {
-  const required = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'province', 'postal'];
+  const required = ['fullName', 'phone', 'address'];
   for (const id of required) {
     const el = document.getElementById(id);
     if (!el || !el.value.trim()) {
@@ -347,10 +278,11 @@ function validateForm() {
 async function processPayment() {
   if (!validateForm()) return;
 
-  const customerName = `${document.getElementById('firstName').value} ${document.getElementById('lastName').value}`;
-  const email = document.getElementById('email').value;
+  const customerName = document.getElementById('fullName').value;
+  const userSession = JSON.parse(localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session') || '{}');
+  const email = userSession.email || 'customer@guest.com'; // Default falback
   const phone = document.getElementById('phone').value;
-  const address = `${document.getElementById('address').value}, ${document.getElementById('city').value}, ${document.getElementById('province').value} ${document.getElementById('postal').value}`;
+  const address = document.getElementById('address').value;
   const note = document.getElementById('note').value;
   const subtotal = Cart.total();
   const grand = subtotal + getShippingTotal();
@@ -358,7 +290,7 @@ async function processPayment() {
   const orderData = {
     customerName, email, phone, address, note,
     items: [...Cart.items],
-    shipping: selectedShipping,
+    shipping: { id: 'flat', name: 'Reguler', price: BASE_SHIPPING },
     subtotal, total: grand
   };
 
@@ -440,17 +372,51 @@ document.addEventListener('DOMContentLoaded', () => {
   Cart.updateUI();
   renderCheckout();
 
-  // Auto-fill user data from session
+  // Auto-fill user data & Add Address Book Options
   const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
   if (userStr) {
     const user = JSON.parse(userStr);
-    const emailInput = document.getElementById('email');
-    if (emailInput) {
-      emailInput.value = user.email;
-      emailInput.readOnly = true; // Lock email to ensure it links correctly
+    
+    // Auto-fill full name field
+    const fullNameInput = document.getElementById('fullName');
+    if(fullNameInput) fullNameInput.value = user.username;
+
+    // Load Addresses from LocalStorage (from dashboard/profile)
+    const userAddresses = JSON.parse(localStorage.getItem('aika_address_' + user.email) || '[]');
+    const addressOptionsContainer = document.getElementById('addressOptions');
+    
+    if (userAddresses.length > 0 && addressOptionsContainer) {
+      let optionsHtml = `<label style="color:var(--white); font-weight:700; margin-bottom:10px; display:block; font-size:0.9rem;">Pilih dari Buku Alamat:</label>`;
+      optionsHtml += `<div style="display:flex; flex-direction:column; gap:0.8rem; margin-bottom:1rem;">`;
+      
+      userAddresses.forEach((addr, idx) => {
+        optionsHtml += `
+          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(3,9,31,0.5); padding:1rem; border:1px solid var(--card-border); border-radius:var(--radius-sm); cursor:pointer;">
+            <input type="radio" name="savedAddr" value="${idx}" onchange="useAddress(${idx})" style="margin-top:4px; accent-color:var(--aqua);">
+            <div>
+              <strong style="color:var(--aqua); display:block; margin-bottom:5px;">${addr.label}</strong>
+              <span style="color:var(--text-muted); font-size:0.85rem; line-height:1.4;">${addr.address}</span>
+            </div>
+          </label>
+        `;
+      });
+      optionsHtml += `</div>`;
+      addressOptionsContainer.innerHTML = optionsHtml;
     }
   }
 });
+
+// Function to populate address textarea based on selection
+function useAddress(idx) {
+  const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+  if (!userStr) return;
+  const user = JSON.parse(userStr);
+  const addresses = JSON.parse(localStorage.getItem('aika_address_' + user.email) || '[]');
+  
+  if(addresses[idx]) {
+    document.getElementById('address').value = addresses[idx].address;
+  }
+}
 </script>
 </body>
 </html>
