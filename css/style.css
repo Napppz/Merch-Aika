@@ -4,22 +4,22 @@
    ============================ */
 
 :root {
-  --deep-ocean: #051433;
-  --midnight-blue: #0b2554;
-  --ocean-blue: #114488;
-  --sea-blue: #1873db;
-  --sky-blue: #29a0f8;
-  --aqua: #3ec8ff;
-  --foam: #cbeeff;
-  --pearl: #eff8ff;
+  --deep-ocean: #03091f;
+  --midnight-blue: #071a3e;
+  --ocean-blue: #0a3872;
+  --sea-blue: #1565c0;
+  --sky-blue: #1e88e5;
+  --aqua: #29b6f6;
+  --foam: #b3e5fc;
+  --pearl: #e8f4fd;
   --white: #ffffff;
-  --gold: #ffdf6b;
-  --gold-light: #fffbea;
-  --text-main: #ebf5ff;
-  --text-muted: #a6cde8;
-  --card-bg: rgba(17, 68, 136, 0.35);
-  --card-border: rgba(62, 200, 255, 0.3);
-  --shadow-blue: 0 8px 32px rgba(24, 115, 219, 0.3);
+  --gold: #ffd54f;
+  --gold-light: #fff8e1;
+  --text-main: #e0f0ff;
+  --text-muted: #90b8d8;
+  --card-bg: rgba(10, 56, 114, 0.4);
+  --card-border: rgba(41, 182, 246, 0.25);
+  --shadow-blue: 0 8px 32px rgba(21, 101, 192, 0.35);
   --radius: 16px;
   --radius-sm: 8px;
   --font-display: 'Cinzel Decorative', serif;
@@ -54,7 +54,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 3rem;
-  background: rgba(17, 68, 136, 0.7);
+  background: rgba(3, 9, 31, 0.85);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--card-border);
   transition: var(--transition);
@@ -145,8 +145,8 @@ body {
 .hero-bg {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at 20% 50%, rgba(24, 115, 219, 0.4) 0%, transparent 65%),
-              radial-gradient(ellipse at 80% 20%, rgba(62, 200, 255, 0.25) 0%, transparent 55%),
+  background: radial-gradient(ellipse at 20% 50%, rgba(21, 101, 192, 0.3) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 20%, rgba(41, 182, 246, 0.15) 0%, transparent 50%),
               linear-gradient(135deg, var(--deep-ocean) 0%, var(--midnight-blue) 100%);
   z-index: 0;
 }
