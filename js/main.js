@@ -117,16 +117,22 @@ async function loadReviews() {
       return;
     }
     
-    grid.innerHTML = reviews.map(r => `
-      <div class="product-card fade-in" style="padding:1.5rem; text-align:left;">
-        <div style="color:var(--gold); margin-bottom:0.5rem; font-size:1.1rem;">
+    grid.innerHTML = reviews.map((r, i) => `
+      <div class="product-card fade-in" style="padding:2rem; text-align:left; background: linear-gradient(145deg, rgba(10,56,114,0.6), rgba(3,9,31,0.8)); position:relative; box-shadow: var(--shadow-blue); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); animation-delay: ${i * 0.1}s;">
+        <div style="position:absolute; top:1rem; right:1.5rem; font-size:3rem; color:var(--aqua); opacity:0.1; font-family:var(--font-display)">"</div>
+        <div style="color:var(--gold); margin-bottom:1rem; font-size:1.2rem; filter: drop-shadow(0 0 5px rgba(255,213,79,0.5));">
           ${'⭐'.repeat(r.rating)}
         </div>
-        <q style="color:var(--text-muted); font-style:italic; display:block; margin-bottom:1rem; font-size:0.95rem;">
+        <q style="color:var(--text-main); font-style:italic; display:block; margin-bottom:1.5rem; font-size:1.05rem; line-height: 1.6;">
           "${r.comment}"
         </q>
         <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--card-border); padding-top:1rem;">
-          <div style="font-weight:700; color:var(--aqua); font-size:0.9rem;">${r.customer_name}</div>
+          <div style="display:flex; align-items:center; gap:0.8rem;">
+            <div style="width:35px; height:35px; border-radius:50%; background:var(--aqua); color:var(--deep-ocean); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1rem; font-family:var(--font-display)">
+              ${r.customer_name.charAt(0).toUpperCase()}
+            </div>
+            <div style="font-weight:700; color:var(--white); font-size:0.95rem;">${r.customer_name}</div>
+          </div>
           <div style="font-size:0.75rem; color:var(--text-muted)">${new Date(r.date || Date.now()).toLocaleDateString('id-ID')}</div>
         </div>
       </div>
