@@ -131,8 +131,35 @@
   </main>
 </div>
 
+<!-- Review Modal -->
+<div id="reviewModal" class="cart-overlay" onclick="closeReviewModal(event)">
+  <div class="profile-sidebar" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:400px;" onclick="event.stopPropagation()">
+    <h3 style="color:var(--white); margin-bottom:1rem; font-family:var(--font-display)">Beri Ulasan</h3>
+    <div id="reviewOrderId" style="color:var(--aqua); font-size:0.85rem; margin-bottom:1rem;"></div>
+    <div class="form-group">
+      <label style="color:var(--aqua); text-align:left;">Rating (1-5)</label>
+      <select id="reviewRating" style="width:100%; margin-bottom:1rem;">
+        <option value="5">⭐⭐⭐⭐⭐ (Sangat Bagus)</option>
+        <option value="4">⭐⭐⭐⭐ (Bagus)</option>
+        <option value="3">⭐⭐⭐ (Cukup)</option>
+        <option value="2">⭐⭐ (Kurang)</option>
+        <option value="1">⭐ (Sangat Kurang)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label style="color:var(--aqua); text-align:left;">Ulasan Anda</label>
+      <textarea id="reviewComment" rows="3" placeholder="Tulis pendapat Anda tentang produk kami..." style="width:100%; resize:none;"></textarea>
+    </div>
+    <div style="display:flex; gap:1rem; margin-top:1.5rem">
+      <button class="btn-ghost w100" onclick="closeReviewModal()" style="padding:0.6rem">Batal</button>
+      <button class="btn-primary w100" onclick="submitReview()" style="padding:0.6rem" id="btnSubmitReview">Kirim</button>
+    </div>
+  </div>
+</div>
+
 <script>
   let currentUser = null;
+  let currentReviewOrderId = null;
 
   document.addEventListener('DOMContentLoaded', () => {
     const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
@@ -201,7 +228,9 @@
           </div>
           ${o.status === 'paid' ? `
             <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--card-border)">
-              <button class="review-btn" onclick="giveReview('${o.id}')">Beri Ulasan ⭐</button>
+              ${o.review_id 
+                ? '<span style="color:var(--aqua)">⭐ Ulasan Terkirim</span>' 
+                : `<button class="review-btn" onclick="giveReview('${o.id}')">Beri Ulasan ⭐</button>`}
             </div>
           ` : ''}
         </div>
@@ -214,7 +243,54 @@
   }
 
   function giveReview(orderId) {
-    alert('Fitur Review (Ulasan) untuk pesanan ' + orderId + ' akan segera beroperasi sepenuhnya! Saat ini integrasi dengan database ulasan sedang disiapkan.');
+    currentReviewOrderId = orderId;
+    document.getElementById('reviewOrderId').textContent = 'Pesanan: #' + orderId;
+    document.getElementById('reviewRating').value = '5';
+    document.getElementById('reviewComment').value = '';
+    document.getElementById('reviewModal').classList.add('active');
+  }
+
+  function closeReviewModal(e) {
+    if (e && e.target.id !== 'reviewModal') return;
+    document.getElementById('reviewModal').classList.remove('active');
+  }
+
+  async function submitReview() {
+    const rating = document.getElementById('reviewRating').value;
+    const comment = document.getElementById('reviewComment').value;
+    const btn = document.getElementById('btnSubmitReview');
+
+    btn.disabled = true;
+    btn.textContent = 'Mengirim...';
+
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: currentReviewOrderId,
+          customer_name: currentUser.username,
+          rating: parseInt(rating),
+          comment: comment
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Gagal mengirim ulasan');
+
+      alert('Terima kasih! Ulasan Anda berhasil dikirim.');
+      closeReviewModal();
+      
+      const btnToHide = document.querySelector(`button[onclick="giveReview('${currentReviewOrderId}')"]`);
+      if (btnToHide) {
+        btnToHide.parentElement.innerHTML = '<span style="color:var(--aqua)">⭐ Ulasan Terkirim</span>';
+      }
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Kirim';
+    }
   }
 </script>
 </body>

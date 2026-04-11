@@ -105,8 +105,41 @@ function initFadeIn() {
   document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 }
 
+// ── RENDER REVIEWS ──
+async function loadReviews() {
+  const grid = document.getElementById('reviewsGrid');
+  if (!grid) return;
+  try {
+    const res = await fetch('/api/reviews');
+    const reviews = await res.json();
+    if (reviews.length === 0) {
+      grid.innerHTML = '<p style="text-align:center; color:var(--text-muted); grid-column:1/-1">Belum ada ulasan. Belilah produk dan jadilah yang pertama mereview!</p>';
+      return;
+    }
+    
+    grid.innerHTML = reviews.map(r => `
+      <div class="product-card fade-in" style="padding:1.5rem; text-align:left;">
+        <div style="color:var(--gold); margin-bottom:0.5rem; font-size:1.1rem;">
+          ${'⭐'.repeat(r.rating)}
+        </div>
+        <q style="color:var(--text-muted); font-style:italic; display:block; margin-bottom:1rem; font-size:0.95rem;">
+          "${r.comment}"
+        </q>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--card-border); padding-top:1rem;">
+          <div style="font-weight:700; color:var(--aqua); font-size:0.9rem;">${r.customer_name}</div>
+          <div style="font-size:0.75rem; color:var(--text-muted)">${new Date(r.date || Date.now()).toLocaleDateString('id-ID')}</div>
+        </div>
+      </div>
+    `).join('');
+    initFadeIn();
+  } catch (e) {
+    grid.innerHTML = '<p style="text-align:center; color:#ef4444; grid-column:1/-1">Gagal memuat ulasan.</p>';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initFadeIn();
+  loadReviews();
   // Navbar scroll effect
   window.addEventListener('scroll', () => {
     const nav = document.querySelector('.navbar');

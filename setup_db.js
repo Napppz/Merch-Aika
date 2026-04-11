@@ -20,6 +20,17 @@ async function init() {
     `);
 
     await pool.query(`
+      CREATE TABLE IF NOT EXISTS reviews (
+        id SERIAL PRIMARY KEY,
+        order_id VARCHAR(50) NOT NULL,
+        customer_name VARCHAR(255),
+        rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+        comment TEXT,
+        date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS orders (
         id VARCHAR(50) PRIMARY KEY,
         "customerName" VARCHAR(255),
