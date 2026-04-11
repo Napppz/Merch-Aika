@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body style="background: #87DFFF;">
+<body>
 <div class="cursor-glow"></div>
 
 <!-- NAV -->
@@ -36,27 +36,105 @@
 </nav>
 
 <style>
-  /* ── Override Background Halaman Utama ── */
+  /* ── Override Tema Pantai (Biru Laut Muda) Halaman Utama ── */
   body {
-    background: #87DFFF !important;
-    color: #03091f !important;
+    background: #e0f7fa !important; /* Soft cyan/blue base */
+    color: #01579b !important;
   }
-  .hero-bg {
-    background: radial-gradient(ellipse at 20% 50%, rgba(255, 255, 255, 0.3) 0%, transparent 60%),
-                radial-gradient(ellipse at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-                linear-gradient(135deg, #87DFFF 0%, #68BDE0 100%) !important;
+  
+  .navbar {
+    background: rgba(224, 247, 250, 0.85) !important;
+    border-bottom: 1px solid rgba(2, 119, 189, 0.2) !important;
   }
-  /* Mengatur warna teks khusus di halaman utama agar bisa dibaca di Background Biru Terang */
-  .hero-title, .hero-sub, .hero-tagline, .section-eyebrow, h2, p, .stat p, .stat span, .contact-card {
-    color: #03091f !important;
-    text-shadow: none !important;
+  .nav-brand, .nav-links a.active, .nav-links a:hover {
+    color: #0277bd !important;
   }
   .nav-links a {
-    color: #071a3e;
+    color: #01579b !important;
   }
-  .nav-links a:hover, .nav-links a.active {
-    color: #0a3872;
+  .cart-btn {
+    background: #0288d1 !important;
+    border-color: #0277bd !important;
   }
+  .cart-btn:hover {
+    background: #01579b !important;
+  }
+  .user-btn-guest, .user-btn-logged {
+    background: #0288d1 !important;
+    color: #fff !important;
+    border-color: #0277bd !important;
+  }
+
+  .hero-bg {
+    background: linear-gradient(180deg, #b3e5fc 0%, #81d4fa 100%) !important;
+  }
+  
+  .hero-title, .hero-sub, .hero-tagline, .section-eyebrow, h2, p, .stat p, .stat span {
+    color: #01579b !important;
+    text-shadow: none !important;
+  }
+  
+  .btn-primary {
+    background: #0288d1 !important;
+    color: #fff !important;
+    box-shadow: 0 4px 15px rgba(2, 136, 209, 0.4) !important;
+  }
+  .btn-ghost {
+    border-color: #0288d1 !important;
+    color: #0288d1 !important;
+  }
+
+  .wave-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    line-height: 0;
+    height: auto;
+    background: transparent !important;
+  }
+  .wave-overlay svg {
+    display: block;
+    width: calc(100% + 1.3px);
+    height: 120px;
+    z-index: 10;
+  }
+  
+  .featured, .about, .contact {
+    background: #e0f7fa !important;
+  }
+  .reviews {
+    background: #b3e5fc !important;
+  }
+  
+  .product-card, .about-card, .contact-card {
+    background: rgba(255, 255, 255, 0.6) !important;
+    border: 1px solid rgba(2, 119, 189, 0.1) !important;
+    box-shadow: 0 8px 32px rgba(2, 119, 189, 0.1) !important;
+  }
+  
+  .product-card:hover {
+    box-shadow: 0 12px 40px rgba(2, 119, 189, 0.2) !important;
+  }
+  
+  .product-name, .product-price, .product-category {
+    color: #01579b !important;
+  }
+  .product-desc {
+    color: #0277bd !important;
+  }
+  .add-cart-btn {
+    background: rgba(2, 136, 209, 0.1) !important;
+    color: #0288d1 !important;
+  }
+  .add-cart-btn:hover {
+    background: #0288d1 !important;
+    color: #fff !important;
+  }
+
+  .admin-link {
+    color: #0288d1 !important;
+    border-color: rgba(2, 136, 209, 0.4) !important;
+  }
+
   /* ── User Nav Button ── */
   .user-nav { position: relative; }
 
@@ -201,7 +279,12 @@
     <div class="bubble b2"></div>
     <div class="bubble b3"></div>
     <div class="bubble b4"></div>
-    <div class="wave-overlay"></div>
+    <div class="wave-overlay">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+        <path fill="#e0f7fa" fill-opacity="1" d="M0,224L48,229.3C96,235,192,245,288,240C384,235,480,213,576,213.3C672,213,768,235,864,229.3C960,224,1056,192,1152,192C1248,192,1344,224,1392,240L1440,256L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+        <path fill="#b3e5fc" fill-opacity="0.5" d="M0,160L48,181.3C96,203,192,245,288,250.7C384,256,480,224,576,197.3C672,171,768,149,864,160C960,171,1056,213,1152,229.3C1248,245,1344,235,1392,229.3L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+      </svg>
+    </div>
   </div>
   <div class="hero-content">
     <p class="hero-tagline">✦ Official Merchandise ✦</p>
