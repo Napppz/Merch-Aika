@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="detail-row"><span>Email</span><span>${order.email}</span></div>
     <div class="detail-row"><span>Alamat</span><span>${order.address}</span></div>
     <div class="detail-row"><span>Pengiriman</span><span>${order.shipping?.name || '-'}</span></div>
-    <div class="detail-row"><span>Status</span><span style="color:var(--aqua)">✅ Dibayar</span></div>
+    <div class="detail-row"><span>Status</span><span style="color:var(--aqua)">${order.status === 'paid' ? '📦 Dikemas' : order.status === 'shipped' ? '🚚 Dikirim' : order.status === 'completed' ? '✅ Selesai' : order.status === 'pending' ? '⏳ Menunggu Pembayaran' : order.status?.toUpperCase() || '-'}</span></div>
     <div class="items-list">${itemsHtml}</div>
     <div class="detail-row"><span>Ongkos Kirim</span><span>${formatPrice(order.shipping?.price || 0)}</span></div>
     ${order.shipping?.discount ? `<div class="detail-row"><span style="color:var(--gold)">Diskon (${order.shipping.discount.code})</span><span style="color:var(--gold)">- ${formatPrice(order.shipping.discount.amount)}</span></div>` : ''}
