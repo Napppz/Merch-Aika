@@ -117,6 +117,17 @@ body {
   font-size: 0.75rem;
   font-weight: 700;
 }
+.admin-link {
+  color: var(--gold);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 1px solid rgba(255, 213, 79, 0.4);
+  padding: 0.4rem 1rem;
+  border-radius: 50px;
+  transition: var(--transition);
+}
+.admin-link:hover { background: var(--gold); color: var(--deep-ocean); }
 
 /* ── HERO ── */
 .hero {
