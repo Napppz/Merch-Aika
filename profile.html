@@ -274,7 +274,7 @@
               <div class="order-date">${new Date(o.date || o.created_at || Date.now()).toLocaleDateString('id-ID')}</div>
             </div>
             <div class="order-status ${o.status || 'pending'}">
-              ${o.status === 'paid' ? 'BERHASIL (LUNAS)' : (o.status?.toUpperCase() || 'PENDING')}
+              ${o.status === 'paid' ? 'DIKEMAS' : o.status === 'shipped' ? 'DIKIRIM' : o.status === 'completed' ? 'SELESAI' : (o.status?.toUpperCase() || 'PENDING')}
             </div>
           </div>
           <div class="order-items">
@@ -291,7 +291,7 @@
               <button class="btn-ghost" style="padding:0.4rem 1rem;font-size:0.8rem;border-radius:6px;display:flex;align-items:center;gap:5px" onclick="reorderItems('${o.id}')">🛒 Beli Lagi</button>
             </div>
           </div>
-          ${o.status === 'paid' ? `
+          ${o.status === 'completed' || o.status === 'paid' || o.status === 'shipped' ? `
             <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--card-border)">
               ${o.review_id 
                 ? '<span style="color:var(--aqua)">⭐ Ulasan Terkirim</span>' 
