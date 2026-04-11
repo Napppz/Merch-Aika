@@ -17,7 +17,7 @@ module.exports = async function handler(req, res) {
     // Disarankan memakai env variables pada Production!
     const apiKey = process.env.DUITKU_API_KEY || 'd4d0dfa28fa1bb2d3a9f68cbb1381360';
     // Anda membutuhkan Merchant Code, silakan sesuaikan dengan punya Anda
-    const merchantCode = process.env.DUITKU_MERCHANT_CODE || 'DXXXX'; 
+    const merchantCode = process.env.DUITKU_MERCHANT_CODE || 'DS29556'; 
     const envStr = (process.env.DUITKU_ENV || 'sandbox').toLowerCase();
     const isSandbox = envStr !== 'production';
 
