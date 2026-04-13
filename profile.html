@@ -280,8 +280,8 @@
   function handleAvatarUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      alert("Uh oh! Ukuran foto maksimal 2MB ya.");
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Uh oh! Ukuran foto maksimal 5MB ya.");
       return;
     }
     const reader = new FileReader();
@@ -297,14 +297,25 @@
       
       // Save to database so it syncs across devices
       try {
-        await fetch('/api/avatar', {
+        const res = await fetch('/api/avatar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-user-email': currentUser.email },
           body: JSON.stringify({ avatar: dataUrl })
         });
-        console.log('Avatar saved to database');
+        
+        if (!res.ok) {
+          const errData = await res.json();
+          console.error('Error saving avatar:', errData);
+          alert('Gagal menyimpan foto: ' + (errData.error || 'Unknown error'));
+          return;
+        }
+        
+        const result = await res.json();
+        console.log('✅ Avatar saved to database:', result.message);
+        alert('Foto profil berhasil diperbarui!');
       } catch(err) {
         console.error('Error saving avatar to API:', err);
+        alert('Gagal mengunggah foto ke server: ' + err.message);
       }
     };
     reader.readAsDataURL(file);
