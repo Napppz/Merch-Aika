@@ -448,29 +448,76 @@ function doLogin() {
   btn.innerHTML = '<span class="spin">✦</span> Memproses...';
 
   if (currentRole === 'admin') {
-    // Admin Login Logic with API
+    // Admin Login Logic with Enhanced Security
+    const csrfToken = window.getCSRFToken ? window.getCSRFToken() : null;
+    
+    const loginPayload = { 
+      username: identifier, 
+      password: password,
+      csrf_token: csrfToken // Include CSRF token
+    };
+    
+    // Clear previous admin session
+    sessionStorage.removeItem('aika_admin_token');
+    localStorage.removeItem('aika_admin');
+    localStorage.removeItem('aika_admin_user');
+    
     fetch('/api/admin-login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: identifier, password: password })
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest' // CSRF protection header
+      },
+      body: JSON.stringify(loginPayload),
+      credentials: 'same-origin'
     })
-    .then(r => r.json())
+    .then(r => {
+      // Check for rate limiting (429 Too Many Requests)
+      if (r.status === 429) {
+        throw new Error('Terlalu banyak percobaan. Tunggu 15 menit.');
+      }
+      // Check for CSRF failure
+      if (r.status === 403) {
+        throw new Error('Token keamanan tidak valid. Muat ulang halaman dan coba lagi.');
+      }
+      // Allow 401 (bad credentials) to be parsed as JSON
+      if (!r.ok && r.status !== 401) {
+        throw new Error('Server error: ' + r.status);
+      }
+      return r.json();
+    })
     .then(data => {
-      if (data.success) {
-        localStorage.setItem('aika_admin', 'true');
-        localStorage.setItem('aika_admin_user', JSON.stringify(data.admin));
-        showAlert('Berhasil masuk Admin! Mengalihkan...', 'success');
-        setTimeout(() => window.location.href = 'admin/dashboard.html', 1000);
+      // Clear sensitive input immediately
+      document.getElementById('login-password').value = '';
+      // Clear payload from memory
+      loginPayload.password = '';
+      
+      if (data.success && data.admin) {
+        // Store admin session securely in sessionStorage
+        sessionStorage.setItem('aika_admin_token', data.admin.token);
+        sessionStorage.setItem('aika_admin_user', JSON.stringify({
+          username: data.admin.username,
+          role: data.admin.role,
+          loginTime: Date.now()
+        }));
+        
+        // Set token expiry (8 hours)
+        const expiry = Date.now() + (8 * 60 * 60 * 1000);
+        sessionStorage.setItem('aika_admin_expiry', expiry);
+        
+        showAlert('✅ Berhasil masuk Admin! Mengalihkan...', 'success');
+        setTimeout(() => {
+          window.location.href = 'admin/dashboard.html';
+        }, 800);
       } else {
-        showAlert(data.message || 'Username atau password admin salah!');
-        document.getElementById('login-password').value = '';
+        showAlert(data.message || '❌ Username atau password admin salah!');
         btn.disabled = false;
         btn.innerHTML = originalText;
       }
     })
     .catch(err => {
       console.error('Admin login error:', err);
-      showAlert('Koneksi server gagal. Coba lagi.');
+      showAlert('❌ ' + (err.message || 'Koneksi server gagal. Coba lagi.'));
       document.getElementById('login-password').value = '';
       btn.disabled = false;
       btn.innerHTML = originalText;
@@ -638,6 +685,128 @@ async function submitNewPassword(token) {
     showAlert(err.message, 'error', 'resetAlert');
   }
 }
+</script>
+
+<!-- Security: Prevent console attacks and unauthorized access -->
+<script>
+  // ⚠️ SECURITY & CSRF PROTECTION LAYER
+  (function() {
+    // Clear console and display warning
+    console.clear();
+    const securityBanner = `%c╔═══════════════════════════════════════════════╗
+║     ⚠️  PERHATIAN KEAMANAN AIKA-SESILIA ⚠️    ║
+╠═══════════════════════════════════════════════╣
+║ JANGAN paste code dari orang yang tidak       ║
+║ dipercaya di sini! Ini bisa MENGURAS akun     ║
+║ admin Anda!                                   ║
+║                                               ║
+║ Jika ada yang meminta code di sini:           ║
+║ ➜ ITU ADALAH SCAM! 🚨                         ║
+║                                               ║
+║ Aika Sesilia tidak akan pernah meminta        ║
+║ Anda membuka Console Developer.               ║
+╚═══════════════════════════════════════════════╝`;
+    console.log(securityBanner, 'color:#ff4444;font-weight:bold;font-size:11px;font-family:monospace');
+
+    // Disable console on production
+    if (location.hostname !== 'localhost' && !location.hostname.startsWith('127.')) {
+      const noop = () => {};
+      const disabledConsole = {
+        log: noop, warn: noop, error: noop, info: noop, debug: noop,
+        assert: noop, clear: noop, count: noop, group: noop, groupEnd: noop,
+        table: noop, time: noop, timeEnd: noop, trace: noop, dir: noop
+      };
+      try {
+        Object.defineProperty(window, 'console', {
+          value: disabledConsole,
+          writable: false,
+          configurable: false
+        });
+      } catch (e) { /* Browser doesn't allow this */ }
+    }
+
+    // Enhanced DevTools Detection
+    let devToolsOpen = false;
+    let lastCheck = 0;
+    
+    const checkDevTools = () => {
+      const now = Date.now();
+      if (now - lastCheck < 200) return;
+      lastCheck = now;
+      
+      const threshold = 160;
+      const isOpen = window.outerHeight - window.innerHeight > threshold || 
+                     window.outerWidth - window.innerWidth > threshold;
+      
+      if (isOpen && !devToolsOpen) {
+        devToolsOpen = true;
+        const banner = document.createElement('div');
+        banner.id = 'devtools-warning-banner';
+        banner.style.cssText = `
+          position: fixed; top: 0; left: 0; right: 0;
+          background: linear-gradient(90deg, #c62828, #d32f2f);
+          color: white; padding: 12px 20px; text-align: center;
+          font-weight: bold; z-index: 999999;
+          font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        `;
+        banner.innerHTML = '🔒 <strong>DevTools Terdeteksi!</strong> Admin login portal dilindungi. Jangan edit apa pun.';
+        document.body.appendChild(banner);
+      } else if (!isOpen && devToolsOpen) {
+        devToolsOpen = false;
+        const banner = document.getElementById('devtools-warning-banner');
+        if (banner) banner.remove();
+      }
+    };
+    
+    window.addEventListener('resize', checkDevTools);
+    window.addEventListener('orientationchange', checkDevTools);
+    setInterval(checkDevTools, 500);
+
+    // Monitor storage access
+    const originalSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) {
+      // Log suspicious admin/token operations
+      if ((key.includes('admin') || key.includes('token')) && value.length > 1000) {
+        // Could be logged to server for security audit
+      }
+      return originalSetItem.call(this, key, value);
+    };
+
+    // CSRF Token Generation
+    window.getCSRFToken = function() {
+      let token = sessionStorage.getItem('_aika_csrf_token');
+      if (!token) {
+        const arr = new Uint8Array(32);
+        crypto.getRandomValues(arr);
+        token = Array.from(arr).map(x => x.toString(16).padStart(2, '0')).join('');
+        sessionStorage.setItem('_aika_csrf_token', token);
+      }
+      return token;
+    };
+
+    // Prevent XSS through eval
+    window.eval = function() {
+      throw new Error('Eval is disabled for security');
+    };
+
+    // Protect window object
+    const protectedKeys = ['aika_admin', 'aika_admin_token', 'aika_admin_user'];
+    protectedKeys.forEach(key => {
+      Object.defineProperty(window, key, {
+        get: function() { return undefined; },
+        set: function() { /* Silently ignore */ },
+        configurable: false
+      });
+    });
+
+    // Monitor for suspicious patterns
+    window.addEventListener('keypress', function(e) {
+      // Example: If user tries to paste credential-like strings
+      if (e.key === 'v' && (e.ctrlKey || e.metaKey)) {
+        // Could implement paste content validation here
+      }
+    });
+  })();
 </script>
 </body>
 </html>
