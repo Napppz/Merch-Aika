@@ -7,8 +7,8 @@ const jwt = require('jsonwebtoken');
  * Secure against brute-force attacks
  */
 async function hashPassword(password) {
-  if (!password || password.length < 10) {
-    throw new Error('Password minimal 10 karakter');
+  if (!password || password.length < 6) {
+    throw new Error('Password minimal 6 karakter');
   }
   return await bcrypt.hash(password, 12); // 12 rounds = strong
 }
