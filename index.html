@@ -390,7 +390,25 @@
     const initials = (session.username || session.email || 'U')
       .replace(/[^a-zA-Z0-9]/g,'').slice(0,2).toUpperCase();
       
-    const savedAvatar = localStorage.getItem('aika_avatar_' + session.email);
+    let savedAvatar = localStorage.getItem('aika_avatar_' + session.email);
+    
+    // Fetch avatar from API if not in localStorage
+    if (!savedAvatar) {
+      fetch('/api/avatar', { headers: { 'x-user-email': session.email } })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data && data.avatar) {
+            savedAvatar = data.avatar;
+            localStorage.setItem('aika_avatar_' + session.email, savedAvatar);
+            // Update all avatar displays
+            document.querySelectorAll('.user-avatar').forEach(el => {
+              el.innerHTML = `<img src="${savedAvatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+            });
+          }
+        })
+        .catch(err => console.error('Error loading avatar from API:', err));
+    }
+    
     const avatarContent = savedAvatar 
       ? `<img src="${savedAvatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
       : initials;
