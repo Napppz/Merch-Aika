@@ -12,6 +12,21 @@ const Cart = {
     const email = this.getUserEmail();
     
     if (email) {
+      // Sync guest cart to database if exists
+      const guestCart = JSON.parse(localStorage.getItem('aika_cart_guest') || '[]');
+      if (guestCart.length > 0) {
+        for (const item of guestCart) {
+          try {
+            await fetch('/api/cart', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'x-user-email': email },
+              body: JSON.stringify({ product_id: item.id, quantity: item.qty })
+            });
+          } catch(e) {}
+        }
+        localStorage.removeItem('aika_cart_guest');
+      }
+
       // User is logged in, fetch from API
       try {
         const res = await fetch('/api/cart', {
@@ -227,7 +242,7 @@ function goToCheckout() {
   const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
   if (!userStr) {
     showToast('? Anda harus login untuk checkout!');
-    setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+    setTimeout(() => { window.location.href = 'login.html?redirect=checkout.html'; }, 1500);
     return;
   }
   if (Cart.items.length === 0) {
