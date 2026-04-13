@@ -18,6 +18,8 @@ async function setup() {
         password_hash VARCHAR(255) NOT NULL,
         verified     BOOLEAN DEFAULT FALSE,
         avatar       LONGTEXT,
+        role         VARCHAR(20) DEFAULT 'user',
+        last_login   TIMESTAMP WITH TIME ZONE,
         created_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
@@ -40,7 +42,7 @@ async function setup() {
     `);
     console.log('✅ Tabel "otp_codes" berhasil dibuat (atau sudah ada).');
 
-    // ── Tabel forgot_password_tokens (opsional) ──
+    // ── Tabel password_reset_tokens (opsional) ──
     await query(`
       CREATE TABLE IF NOT EXISTS password_reset_tokens (
         id         SERIAL PRIMARY KEY,
@@ -53,11 +55,38 @@ async function setup() {
     `);
     console.log('✅ Tabel "password_reset_tokens" berhasil dibuat (atau sudah ada).');
 
+    // ── Tabel audit_logs (untuk security tracking) ──
+    await query(`
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id         SERIAL PRIMARY KEY,
+        user_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        action     VARCHAR(100) NOT NULL,
+        details    JSONB,
+        ip_address VARCHAR(50),
+        user_agent TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+    `);
+    console.log('✅ Tabel "audit_logs" berhasil dibuat (atau sudah ada).');
+
+    // Index untuk audit_logs
+    await query(`CREATE INDEX IF NOT EXISTS idx_audit_user_id ON audit_logs(user_id);`);
+    await query(`CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(created_at);`);
+    console.log('✅ Index untuk audit_logs berhasil dibuat.');
+
     console.log('\n🎉 Database setup selesai!');
     console.log('\n📋 Struktur tabel:');
-    console.log('  users          : id, username, email, phone, password_hash, verified, created_at');
-    console.log('  otp_codes      : email, code, expires_at, created_at');
-    console.log('  password_reset : id, email, token, used, expires_at\n');
+    console.log('  users                : id, username, email, phone, password_hash, verified, role, last_login, created_at');
+    console.log('  otp_codes            : email, code, expires_at, created_at');
+    console.log('  password_reset_tokens: id, email, token, used, expires_at');
+    console.log('  audit_logs           : id, user_id, action, details, ip_address, user_agent, created_at\n');
+    
+    // Check JWT_SECRET
+    if (!process.env.JWT_SECRET) {
+      console.log('⚠️  PENTING: Atur environment variable JWT_SECRET di Vercel!');
+      console.log('   Minimal 32 karakter random string.');
+      console.log('   Contoh: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
+    }
 
   } catch (err) {
     console.error('❌ Error:', err.message);
