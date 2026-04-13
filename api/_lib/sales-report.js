@@ -8,12 +8,12 @@ module.exports = async (req, res) => {
       const year = req.query.year || new Date().getFullYear();
       const format = req.query.format || 'json'; // json, csv, excel
 
-      // Fetch all paid orders for the year
+      // Fetch all paid/completed orders for the year (include paid, shipped, completed)
       const result = await query(
         `SELECT 
           id, items, total, date, status
          FROM orders 
-         WHERE status = 'paid' 
+         WHERE status IN ('paid', 'shipped', 'completed') 
          AND EXTRACT(YEAR FROM date) = $1
          ORDER BY date ASC`,
         [year]
