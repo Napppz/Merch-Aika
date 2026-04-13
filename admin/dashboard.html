@@ -340,6 +340,9 @@
     <a href="#" onclick="showTab('orders')" id="nav-orders">
       <span class="nav-icon">📦</span> Pesanan
     </a>
+    <a href="#" onclick="showTab('data-management')" id="nav-data-management">
+      <span class="nav-icon">🗑️</span> Manajemen Data
+    </a>
     <a href="#" onclick="showTab('settings')" id="nav-settings">
       <span class="nav-icon">⚙️</span> Pengaturan
     </a>
@@ -469,6 +472,38 @@
     </div>
   </section>
 
+  <!-- ── DATA MANAGEMENT ── -->
+  <section class="admin-section" id="tab-data-management">
+    <div class="admin-header"><div><h1>🗑️ Manajemen Data</h1><p>Kelola dan hapus data toko</p></div></div>
+    
+    <div style="display:grid;grid-template-columns:1fr;gap:1.5rem;max-width:800px">
+      <!-- Delete Products Section -->
+      <div class="stat-card" style="border-left:4px solid #ff5252">
+        <h3 style="font-family:var(--font-display);color:#ff5252;font-size:1rem;margin-bottom:0.8rem">🛍️ Hapus Semua Produk</h3>
+        <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1rem">Tindakan ini akan menghapus <strong>SEMUA produk</strong> dari toko. Tidak dapat dibatalkan!</p>
+        <button class="btn-secondary" onclick="confirmDeleteAllProducts()" style="background:#ff5252;border-color:#ff5252;color:white;font-weight:700">⚠️ Hapus Semua Produk</button>
+      </div>
+
+      <!-- Delete Orders Section -->
+      <div class="stat-card" style="border-left:4px solid #ff9800">
+        <h3 style="font-family:var(--font-display);color:#ff9800;font-size:1rem;margin-bottom:0.8rem">📦 Hapus Semua Pesanan</h3>
+        <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1rem">Tindakan ini akan menghapus <strong>SEMUA pesanan</strong> dari database. Tidak dapat dibatalkan!</p>
+        <button class="btn-secondary" onclick="confirmDeleteAllOrders()" style="background:#ff9800;border-color:#ff9800;color:white;font-weight:700">⚠️ Hapus Semua Pesanan</button>
+      </div>
+
+      <!-- Warning Section -->
+      <div class="stat-card" style="border-left:4px solid #ffc107;background:rgba(255,193,7,0.05)">
+        <h3 style="font-family:var(--font-display);color:#ffc107;font-size:0.95rem;margin-bottom:0.8rem">⚠️ Perhatian Penting</h3>
+        <ul style="color:var(--text-muted);font-size:0.85rem;margin:0;padding-left:1.5rem">
+          <li>Tindakan delete <strong>TIDAK DAPAT DIBATALKAN</strong></li>
+          <li>Data akan dihapus dari database secara permanen</li>
+          <li>Pastikan Anda backup data sebelum menghapus</li>
+          <li>Konfirmasi ganda akan diminta sebelum eksekusi</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
   <!-- ── SETTINGS ── -->
   <section class="admin-section" id="tab-settings">
     <div class="admin-header"><div><h1>⚙️ Pengaturan</h1><p>Konfigurasi toko Anda</p></div></div>
@@ -504,14 +539,6 @@
           </div>
           <input type="hidden" id="heroImageUrl" />
           <button class="btn-primary" onclick="saveHeroImage()" style="margin-top: 1rem; width: 100%;">Set Foto & Simpan</button>
-        </div>
-      </div>
-      <div class="stat-card" style="grid-column:1/-1">
-        <h3 style="font-family:var(--font-display);color:var(--white);font-size:1rem;margin-bottom:1rem">🗑 Data Management</h3>
-        <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1rem">Kelola data toko. Hati-hati: tindakan ini tidak dapat dibatalkan!</p>
-        <div style="display:flex;gap:1rem;flex-wrap:wrap">
-          <button class="btn-secondary" onclick="if(confirm('Reset semua produk ke demo?')){localStorage.removeItem('aika_products');location.reload()}">Reset Produk Demo</button>
-          <button class="btn-secondary" onclick="if(confirm('Hapus semua pesanan?')){localStorage.removeItem('aika_orders');location.reload()}">Hapus Semua Pesanan</button>
         </div>
       </div>
     </div>
@@ -1068,6 +1095,69 @@ async function deleteOrder(id) {
     renderDashboard(); // Update count
   } catch (e) {
     showToast('⚠ Gagal menghapus: ' + e.message);
+  }
+}
+
+// ── BULK DELETE FUNCTIONS ──
+function confirmDeleteAllProducts() {
+  const msg = `⚠️ PERINGATAN KRITIS!\n\nAnda akan menghapus SEMUA ${Object.keys(Products.data || {}).length} produk secara PERMANEN.\n\nTindakan ini TIDAK DAPAT DIBATALKAN.\n\nTipe "HAPUS PRODUK" di bawah untuk konfirmasi:`;
+  const confirmation = prompt(msg);
+  if (confirmation === 'HAPUS PRODUK') {
+    deleteAllProducts();
+  } else if (confirmation !== null) {
+    showToast('❌ Konfirmasi salah. Operasi dibatalkan.');
+  }
+}
+
+async function deleteAllProducts() {
+  showToast('⏳ Menghapus semua produk...');
+  try {
+    const allProducts = await Products.getAll();
+    let deleted = 0;
+    for (const product of allProducts) {
+      try {
+        await Products.delete(product.id);
+        deleted++;
+      } catch (e) {
+        console.error('Failed to delete product:', product.id, e);
+      }
+    }
+    showToast(`✅ ${deleted} produk berhasil dihapus!`);
+    renderDashboard();
+    renderProducts();
+  } catch (e) {
+    showToast('❌ Error: ' + e.message);
+  }
+}
+
+function confirmDeleteAllOrders() {
+  const msg = `⚠️ PERINGATAN KRITIS!\n\nAnda akan menghapus SEMUA pesanan secara PERMANEN.\n\nTindakan ini TIDAK DAPAT DIBATALKAN.\n\nTipe "HAPUS PESANAN" di bawah untuk konfirmasi:`;
+  const confirmation = prompt(msg);
+  if (confirmation === 'HAPUS PESANAN') {
+    deleteAllOrders();
+  } else if (confirmation !== null) {
+    showToast('❌ Konfirmasi salah. Operasi dibatalkan.');
+  }
+}
+
+async function deleteAllOrders() {
+  showToast('⏳ Menghapus semua pesanan...');
+  try {
+    const allOrders = await Orders.getAll();
+    let deleted = 0;
+    for (const order of allOrders) {
+      try {
+        await Orders.delete(order.id);
+        deleted++;
+      } catch (e) {
+        console.error('Failed to delete order:', order.id, e);
+      }
+    }
+    showToast(`✅ ${deleted} pesanan berhasil dihapus!`);
+    renderDashboard();
+    renderOrders(currentOrderFilter);
+  } catch (e) {
+    showToast('❌ Error: ' + e.message);
   }
 }
 
