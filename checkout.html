@@ -516,7 +516,6 @@ async function processPayment() {
     
     const result = await response.json();
     if (response.ok && result.token) {
-      Cart.clear(); // Bersihkan keranjang
       // Panggil Snap Pop Up dari Midtrans
       window.snap.pay(result.token, {
         onSuccess: function(r){
@@ -551,11 +550,11 @@ async function handlePaymentSuccess(order, result) {
 
 async function handlePaymentPending(order, result) {
   await Orders.update(order.id, { status: 'pending_payment', payment: result });
-  showToast('⏳ Pembayaran pending. Selesaikan pembayaranmu!');
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  Cart.updateUI();
+    Cart.clear();
+    showToast('⏳ Pembayaran pending. Selesaikan pembayaranmu!');
+    setTimeout(() => window.location.href = 'profile.html?tab=orders', 2000);
+document.addEventListener('DOMContentLoaded', async () => {
+  await Cart.load();
   renderCheckout();
 
   // Auto-fill user data & Add Address Book Options
