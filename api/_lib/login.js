@@ -13,11 +13,11 @@ const loginSchema = Joi.object({
       'string.min': 'Email atau username minimal 3 karakter'
     }),
   password: Joi.string()
-    .min(1)
+    .min(6)
     .required()
     .messages({
       'string.empty': 'Password tidak boleh kosong',
-      'string.min': 'Password tidak boleh kosong'
+      'string.min': 'Password minimal 6 karakter'
     }),
   rememberMe: Joi.boolean().optional()
 });
