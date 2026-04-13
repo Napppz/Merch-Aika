@@ -515,6 +515,12 @@ function onLoginSuccess(user, remember) {
   } else {
     sessionStorage.setItem('aika_session', JSON.stringify(sessionData));
   }
+  
+  // Load avatar from database if exists
+  if (user.avatar) {
+    localStorage.setItem('aika_avatar_' + user.email, user.avatar);
+  }
+  
   setTimeout(() => {
     const redir = new URLSearchParams(location.search).get('redirect') || 'index.html';
     window.location.href = redir;

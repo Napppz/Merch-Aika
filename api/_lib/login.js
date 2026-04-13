@@ -28,7 +28,7 @@ module.exports = async function handler(req, res) {
   try {
     const hashedPw = hashPassword(password);
     const result = await query(
-      `SELECT id, username, email, phone, verified, created_at
+      `SELECT id, username, email, phone, verified, avatar, created_at
        FROM users
        WHERE (email = $1 OR username = $1) AND password_hash = $2`,
       [identifier.toLowerCase(), hashedPw]

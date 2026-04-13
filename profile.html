@@ -248,8 +248,27 @@
     document.getElementById('tab-' + tabId).classList.add('active');
   }
 
-  function loadAvatar() {
-    const saved = localStorage.getItem('aika_avatar_' + currentUser.email);
+  async function loadAvatar() {
+    let saved = localStorage.getItem('aika_avatar_' + currentUser.email);
+    
+    // If not in localStorage, try fetching from API
+    if (!saved) {
+      try {
+        const res = await fetch('/api/avatar', {
+          headers: { 'x-user-email': currentUser.email }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.avatar) {
+            saved = data.avatar;
+            localStorage.setItem('aika_avatar_' + currentUser.email, saved);
+          }
+        }
+      } catch(err) {
+        console.error('Error fetching avatar from API:', err);
+      }
+    }
+    
     const container = document.getElementById('profAvatarText');
     if (saved) {
       container.innerHTML = `<img src="${saved}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
@@ -266,7 +285,7 @@
       return;
     }
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = async function(e) {
       const dataUrl = e.target.result;
       localStorage.setItem('aika_avatar_' + currentUser.email, dataUrl);
       loadAvatar();
@@ -275,7 +294,18 @@
       // Update session to trigger updates in navbar if navigating back
       currentUser.avatarUpdated = Date.now();
       localStorage.setItem('aika_session', JSON.stringify(currentUser));
-        
+      
+      // Save to database so it syncs across devices
+      try {
+        await fetch('/api/avatar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-email': currentUser.email },
+          body: JSON.stringify({ avatar: dataUrl })
+        });
+        console.log('Avatar saved to database');
+      } catch(err) {
+        console.error('Error saving avatar to API:', err);
+      }
     };
     reader.readAsDataURL(file);
   }
