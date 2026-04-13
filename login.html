@@ -316,6 +316,9 @@
           onkeydown="if(event.key==='Enter')doLogin()" />
         <button class="toggle-pw" type="button" onclick="togglePw()" id="pwToggle">👁</button>
       </div>
+      <small style="color:var(--text-muted); font-size:0.8rem; margin-top:0.3rem; display:block;">
+        💡 Minimal 10 karakter: huruf besar, angka, dan simbol (!@#$%^&*)
+      </small>
     </div>
 
     <a href="#" class="forgot-link" onclick="openForgot();return false">Lupa password?</a>
@@ -490,7 +493,15 @@ function doLogin() {
       // API login dengan JWT token
       onLoginSuccess(data.user, remember, data.token);
     } else {
-      showAlert(data.error || data.message || 'Email/username atau password salah!');
+      // Tampilkan error detail jika ada validation errors
+      let errorMsg = data.error || data.message || 'Email/username atau password salah!';
+      
+      if (data.details && Array.isArray(data.details) && data.details.length > 0) {
+        // Jika ada validation details, tampilkan dengan format yang lebih jelas
+        errorMsg = data.details.map(d => d.message).join(' • ');
+      }
+      
+      showAlert(errorMsg);
       document.getElementById('login-password').value = '';
       btn.disabled = false;
       btn.innerHTML = originalText;
