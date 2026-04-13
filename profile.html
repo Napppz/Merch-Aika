@@ -349,37 +349,18 @@
   async function loadAvatar() {
     const container = document.getElementById('profAvatarText');
     let saved = null;
-    const cacheKey = 'aika_avatar_' + currentUser.email;
-    const isIos = isIOS();
 
     try {
-      // iOS: Always fetch from API dengan cache bust
-      // Desktop: Try localStorage first, fallback to API
-      if (isIos) {
-        console.log('📱 iOS detected - fetching avatar from API with cache bust');
-        const res = await fetch(`/api/avatar?email=${encodeURIComponent(currentUser.email)}&t=${Date.now()}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.avatar) {
-            saved = data.avatar;
-            console.log('✅ Avatar loaded from API (iOS)');
-          }
-        }
-      } else {
-        // Desktop: Try localStorage cache first
-        saved = localStorage.getItem(cacheKey);
-        if (!saved) {
-          console.log('💻 Desktop - Avatar not in cache, fetching from API');
-          const res = await fetch(`/api/avatar?email=${encodeURIComponent(currentUser.email)}`);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.avatar) {
-              saved = data.avatar;
-              // Cache for desktop
-              localStorage.setItem(cacheKey, saved);
-              console.log('✅ Avatar loaded from API (Desktop) and cached');
-            }
-          }
+      // LANGSUNG fetch dari API/database
+      // Jangan cache di localStorage (quota terbatas)
+      console.log('📱 Fetching avatar dari database...');
+      const res = await fetch(`/api/avatar?email=${encodeURIComponent(currentUser.email)}&t=${Date.now()}`);
+      
+      if (res.ok) {
+        const data = await res.json();
+        if (data.avatar) {
+          saved = data.avatar;
+          console.log('✅ Avatar loaded dari database');
         }
       }
     } catch(err) {
@@ -654,14 +635,18 @@
 
   /* --- BUKU ALAMAT --- */
   function updateNavAvatar() {
-    const saved = localStorage.getItem('aika_avatar_' + currentUser.email);
-    if (!saved) return;
-    
-    // Perbarui foto di navigasi jika script index.html juga dijalankan
-    const userAvatars = document.querySelectorAll('.user-avatar');
-    userAvatars.forEach(el => {
-      el.innerHTML = `<img src="${saved}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
-    });
+    // Fetch fresh dari API saat dibutuhkan
+    // Tidak gunakan localStorage cache (quota terbatas)
+    fetch(`/api/avatar?email=${encodeURIComponent(currentUser.email)}&t=${Date.now()}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data.avatar) return;
+        const userAvatars = document.querySelectorAll('.user-avatar');
+        userAvatars.forEach(el => {
+          el.innerHTML = `<img src="${data.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+        });
+      })
+      .catch(err => console.log('Avatar update failed:', err));
   }
   function loadAddress() {
     const list = document.getElementById('addressList');
@@ -810,22 +795,19 @@
       const result = await res.json();
       console.log('✅ Foto berhasil disimpan:', result.message);
       
-      // Cache untuk desktop
-      localStorage.setItem('aika_avatar_' + currentUser.email, pendingAvatarData);
+      // JANGAN cache di localStorage (quota terbatas)
+      // Hanya fetch dari API/database saja
+      // Hapus cache lama jika ada
+      try {
+        localStorage.removeItem('aika_avatar_' + currentUser.email);
+      } catch(e) {}
       
-      // Reload avatar
+      // Reload avatar dari API
       await loadAvatar();
       updateNavAvatar();
       
       alert('✅ Foto profil berhasil diperbarui!');
       closeAvatarModal();
-      
-      // Jika iOS, clear cache untuk force refresh
-      const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      if (isIos) {
-        localStorage.removeItem('aika_avatar_' + currentUser.email);
-        console.log('🔄 Cache iOS cleared');
-      }
       
     } catch (err) {
       console.error('❌ Error:', err);
