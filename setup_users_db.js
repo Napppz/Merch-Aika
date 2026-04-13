@@ -17,6 +17,7 @@ async function setup() {
         phone        VARCHAR(20),
         password_hash VARCHAR(255) NOT NULL,
         verified     BOOLEAN DEFAULT FALSE,
+        avatar       LONGTEXT,
         created_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
