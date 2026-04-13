@@ -26,21 +26,27 @@ module.exports = async function handler(req, res) {
   // Security headers
   securityHeaders(req, res);
 
-  // CORS dengan whitelist
+  // CORS - lebih fleksibel untuk development & production
   const allowedOrigins = [
     'https://merch-aika.vercel.app',
     'https://www.merch-aika.vercel.app',
     'http://localhost:3000',
-    'http://localhost:5173'
+    'http://localhost:5173',
+    'http://localhost',
+    'http://127.0.0.1'
   ];
   
   const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
+  
+  // Allow if in whitelist or if it's localhost-like
+  if (allowedOrigins.includes(origin) || 
+      (origin && (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('vercel.app')))) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
   
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -95,10 +101,26 @@ module.exports = async function handler(req, res) {
 
     const user = userResult.rows[0];
 
-    // Verify password menggunakan bcrypt
-    const isValidPassword = await verifyPassword(password, user.password_hash);
+    // Verify password (supports both SHA256 legacy & bcryptjs)
+    let isValidPassword = false;
+    try {
+      isValidPassword = await verifyPassword(password, user.password_hash);
+    } catch (pwErr) {
+      console.error('Password verification error:', pwErr.message);
+      return res.status(500).json({
+        success: false,
+        error: 'Gagal verifikasi password'
+      });
+    }
 
     if (!isValidPassword) {
+      // Log failed attempt
+      await query(
+        `INSERT INTO audit_logs (user_id, action, details, created_at)
+         VALUES ($1, $2, $3, NOW())`,
+        [user.id, 'LOGIN_FAILED', JSON.stringify({ identifier, reason: 'wrong_password', ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress })]
+      ).catch(err => console.log('Audit log failed:', err.message));
+      
       return res.status(401).json({
         success: false,
         error: 'Email/username atau password salah'
