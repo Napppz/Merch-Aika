@@ -121,7 +121,6 @@
       <button class="active" onclick="switchTab('orders')">Riwayat Pesanan</button>
       <button onclick="switchTab('wishlist')">Favorit Saya</button>
       <button onclick="switchTab('address')">Buku Alamat</button>
-      <button onclick="switchTab('shoutout')">📝 Ucapan</button>
       <button onclick="switchTab('settings')">Pengaturan Akun</button>
       <button onclick="logout()" style="color:#ef4444; border-color:rgba(239,68,68,0.3);">Keluar</button>
     </div>
@@ -175,40 +174,6 @@
       <h2>Favorit Saya (Wishlist)</h2>
       <div id="wishlistContainer" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1.5rem;">
         <!-- Wishlist items -->
-      </div>
-    </section>
-
-    <section id="tab-shoutout" class="content-section">
-      <h2>📝 Ucapan Dukungan</h2>
-      <p style="color:var(--text-muted); margin-bottom:2rem;">Tinggalkan ucapan atau testimoni Anda untuk Aika. Anda bisa menulis dengan nama Anda atau anonim sebagai "Seseorang".</p>
-      
-      <div style="background:rgba(3,9,31,0.5); padding:2rem; border:1px solid var(--card-border); border-radius:var(--radius-sm); margin-bottom:2rem;">
-        <form id="shoutoutForm" onsubmit="submitShoutout(event)" style="display:flex; flex-direction:column; gap:1.5rem;">
-          <div class="form-group" style="margin:0;">
-            <label style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
-              <input type="radio" name="shoutoutType" value="named" checked onchange="toggleShoutoutType('named')" />
-              <span>Dengan Nama Saya</span>
-            </label>
-            <label style="display:flex; align-items:center; gap:1rem;">
-              <input type="radio" name="shoutoutType" value="anonymous" onchange="toggleShoutoutType('anonymous')" />
-              <span>Anonim (Seseorang)</span>
-            </label>
-            <input type="text" id="shoutoutName" placeholder="Nama Anda" style="margin-top:1rem; width:100%;" required />
-          </div>
-          
-          <div class="form-group" style="margin:0;">
-            <label>Pesan Dukungan</label>
-            <textarea id="shoutoutMessage" rows="4" placeholder="Tulis ucapan atau testimoni Anda... (minimal 10 karakter)" style="resize:none; width:100%;" required></textarea>
-            <small style="color:var(--text-muted); display:block; margin-top:0.5rem;"><span id="charCount">0</span>/500 karakter</small>
-          </div>
-          
-          <button type="submit" class="btn-primary" style="align-self:flex-start;">Kirim Ucapan ✨</button>
-        </form>
-      </div>
-
-      <h3 style="margin:2.5rem 0 1.5rem; color:var(--white); font-family:var(--font-display);">Ucapan dari Fans</h3>
-      <div id="shoutoutsList" style="display:flex; flex-direction:column; gap:1.5rem;">
-        <div style="text-align:center; color:var(--text-muted); padding:2rem;">⏳ Memuat ucapan...</div>
       </div>
     </section>
   </main>
@@ -760,117 +725,6 @@
     
     localStorage.setItem(key, JSON.stringify(cart));
     alert(item.name + ' ditambahkan ke keranjang!');
-  }
-
-  /* --- SHOUTOUT / UCAPAN DUKUNGAN --- */
-  function toggleShoutoutType(type) {
-    const nameInput = document.getElementById('shoutoutName');
-    if (type === 'anonymous') {
-      nameInput.value = 'Seseorang';
-      nameInput.disabled = true;
-      nameInput.style.opacity = '0.6';
-    } else {
-      nameInput.value = currentUser.username;
-      nameInput.disabled = false;
-      nameInput.style.opacity = '1';
-    }
-  }
-
-  // Character counter for shoutout
-  document.addEventListener('DOMContentLoaded', () => {
-    const messageInput = document.getElementById('shoutoutMessage');
-    if (messageInput) {
-      messageInput.addEventListener('input', (e) => {
-        document.getElementById('charCount').textContent = e.target.value.length;
-      });
-    }
-    
-    // Initialize shoutout name
-    const nameInput = document.getElementById('shoutoutName');
-    if (nameInput) {
-      nameInput.value = currentUser?.username || '';
-    }
-    
-    loadShoutouts();
-  });
-
-  async function submitShoutout(e) {
-    e.preventDefault();
-    
-    const name = document.getElementById('shoutoutName').value;
-    const message = document.getElementById('shoutoutMessage').value;
-    const btn = e.target.querySelector('button[type="submit"]');
-    
-    if (message.length < 10) {
-      alert('⚠️ Pesan minimal 10 karakter');
-      return;
-    }
-    
-    if (message.length > 500) {
-      alert('⚠️ Pesan maksimal 500 karakter');
-      return;
-    }
-    
-    btn.disabled = true;
-    btn.textContent = '⏳ Mengirim...';
-    
-    try {
-      const res = await fetch('/api/shoutout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          message,
-          email: currentUser.email,
-          avatar: localStorage.getItem('aika_avatar_' + currentUser.email) || null
-        })
-      });
-      
-      if (!res.ok) throw new Error('Gagal mengirim ucapan');
-      
-      alert('✅ Ucapan Anda berhasil dikirim! Terima kasih atas dukungannya!');
-      document.getElementById('shoutoutForm').reset();
-      document.getElementById('charCount').textContent = '0';
-      document.getElementById('shoutoutName').value = currentUser.username;
-      loadShoutouts();
-      
-    } catch (err) {
-      alert('❌ Gagal mengirim ucapan: ' + err.message);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Kirim Ucapan ✨';
-    }
-  }
-
-  async function loadShoutouts() {
-    try {
-      const res = await fetch('/api/shoutout?limit=20');
-      if (!res.ok) throw new Error('Gagal memuat ucapan');
-      
-      const data = await res.json();
-      const container = document.getElementById('shoutoutsList');
-      
-      if (!data.data || data.data.length === 0) {
-        container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:2rem;">Belum ada ucapan. Jadilah yang pertama! 💫</div>';
-        return;
-      }
-      
-      container.innerHTML = data.data.map(shoutout => `
-        <div style="background:rgba(21,101,192,0.2); border:1px solid var(--card-border); border-radius:var(--radius-sm); padding:1.5rem; backdrop-filter:blur(10px);">
-          <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
-            ${shoutout.avatar ? `<img src="${shoutout.avatar}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid var(--aqua);" />` : `<div style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg, var(--sea-blue), var(--aqua)); display:flex; align-items:center; justify-content:center; color:white; font-weight:900;">${shoutout.name.charAt(0).toUpperCase()}</div>`}
-            <div>
-              <div style="color:var(--aqua); font-weight:700;">${shoutout.name}</div>
-              <div style="color:var(--text-muted); font-size:0.8rem;">${new Date(shoutout.created_at).toLocaleDateString('id-ID')}</div>
-            </div>
-          </div>
-          <p style="color:var(--text-main); line-height:1.6;">"${shoutout.message}"</p>
-        </div>
-      `).join('');
-      
-    } catch (err) {
-      console.error('Error loading shoutouts:', err);
-    }
   }
 </script>
 </body>
