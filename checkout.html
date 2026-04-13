@@ -447,7 +447,7 @@ function validateForm() {
   for (const id of required) {
     const el = document.getElementById(id);
     if (!el || !el.value.trim()) {
-      showToast('⚠ Mohon lengkapi semua data pengiriman!');
+      showToast('⚠️ Mohon lengkapi semua data pengiriman!');
       el && el.focus();
       return false;
     }

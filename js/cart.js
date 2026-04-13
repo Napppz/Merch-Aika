@@ -1,11 +1,11 @@
-// -- CART MANAGEMENT --
+﻿// -- CART MANAGEMENT --
 const Cart = {
   items: [],
   isSaving: false,
 
   getUserEmail() {
     const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
-    return userStr ? JSON.parse(userStr).email : null;
+    return userStr  JSON.parse(userStr).email : null;
   },
 
   async load() {
@@ -78,7 +78,7 @@ const Cart = {
       this.items.push({ ...product, qty: 1 });
     }
     this.updateUI();
-    showToast(`? ${product.name} ditambahkan ke keranjang!`);
+    showToast(`✅ ${product.name} ditambahkan ke keranjang!`);
 
     if (email) {
       this.isSaving = true;
@@ -121,7 +121,7 @@ const Cart = {
     if (email) {
       this.isSaving = true;
       try {
-        await fetch(`/api/cart?product_id=${id}`, {
+        await fetch(`/api/cartproduct_id=${id}`, {
           method: 'DELETE',
           headers: { 'x-user-email': email }
         });
@@ -187,11 +187,11 @@ const Cart = {
     if (!itemsEl) return;
 
     if (this.items.length === 0) {
-      itemsEl.innerHTML = '<div class="cart-empty">??<br>Keranjangmu kosong</div>';
+      itemsEl.innerHTML = '<div class="cart-empty"><br>Keranjangmu kosong</div>';
     } else {
       itemsEl.innerHTML = this.items.map(item => `
         <div class="cart-item">
-          <div class="cart-item-img">${item.image ? `<img src="${item.image}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;" onerror="this.parentElement.textContent='???'">` : '???'}</div>
+          <div class="cart-item-img">${item.image  `<img src="${item.image}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;" onerror="this.parentElement.textContent=''">` : ''}</div>
           <div class="cart-item-info">
             <div class="cart-item-name">${item.name}</div>
             <div class="cart-item-price">${formatPrice(item.price)}</div>
@@ -241,12 +241,12 @@ function toggleCart() {
 function goToCheckout() {
   const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
   if (!userStr) {
-    showToast('? Anda harus login untuk checkout!');
+    showToast('⚠️ Anda harus login untuk checkout!');
     setTimeout(() => { window.location.href = 'login.html?redirect=checkout.html'; }, 1500);
     return;
   }
   if (Cart.items.length === 0) {
-    showToast('? Keranjang masih kosong!');
+    showToast('⚠️ Keranjang masih kosong!');
     return;
   }
   window.location.href = 'checkout.html';
