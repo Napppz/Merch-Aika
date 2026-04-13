@@ -1,6 +1,7 @@
 // Security utilities untuk password hashing & JWT
 const bcrypt = require('bcryptjs');  // Pure JS, works on Vercel
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 /**
  * ✅ Hash password dengan bcrypt (12 rounds = strong)
@@ -14,10 +15,30 @@ async function hashPassword(password) {
 }
 
 /**
- * ✅ Verify password against hash
+ * ✅ Legacy: Verify password dengan SHA256 HMAC (for backward compatibility)
+ */
+function verifySHA256Password(password, hash) {
+  const salt = process.env.PASSWORD_SALT || 'aika_sesilia_salt_2024';
+  const computed = crypto.createHmac('sha256', salt).update(password).digest('hex');
+  return computed === hash;
+}
+
+/**
+ * ✅ Verify password against hash (supports both bcryptjs & SHA256 legacy)
  */
 async function verifyPassword(password, hash) {
-  return await bcrypt.compare(password, hash);
+  // Check if hash is bcryptjs format (starts with $2a$ or $2b$)
+  if (hash.startsWith('$2a$') || hash.startsWith('$2b$') || hash.startsWith('$2y$')) {
+    return await bcrypt.compare(password, hash);
+  }
+  
+  // Otherwise, try SHA256 legacy verification (64 char hex)
+  if (hash.length === 64) {
+    return verifySHA256Password(password, hash);
+  }
+  
+  // Unknown format
+  return false;
 }
 
 /**
