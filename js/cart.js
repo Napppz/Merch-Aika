@@ -1,52 +1,158 @@
-// ── CART MANAGEMENT ──
+// -- CART MANAGEMENT --
 const Cart = {
   items: [],
+  isSaving: false,
 
-  load() {
+  getUserEmail() {
     const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
-    const key = userStr ? `aika_cart_${JSON.parse(userStr).email}` : 'aika_cart_guest';
-    this.items = JSON.parse(localStorage.getItem(key) || '[]');
+    return userStr ? JSON.parse(userStr).email : null;
+  },
+
+  async load() {
+    const email = this.getUserEmail();
+    
+    if (email) {
+      // User is logged in, fetch from API
+      try {
+        const res = await fetch('/api/cart', {
+          headers: { 'x-user-email': email }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          // Map DB columns to our UI expected schema
+          this.items = data.map(i => ({
+            cart_id: i.cart_id,
+            id: i.id,
+            name: i.name,
+            price: i.price,
+            image: i.image,
+            qty: i.qty
+          }));
+        } else {
+          this.items = [];
+        }
+      } catch (e) {
+        console.error('Failed to fetch cart:', e);
+      }
+    } else {
+      // Guest user uses localStorage
+      this.items = JSON.parse(localStorage.getItem('aika_cart_guest') || '[]');
+    }
+    
     this.updateUI();
   },
 
   save() {
-    const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
-    const key = userStr ? `aika_cart_${JSON.parse(userStr).email}` : 'aika_cart_guest';
-    localStorage.setItem(key, JSON.stringify(this.items));
+    const email = this.getUserEmail();
+    if (!email) {
+      localStorage.setItem('aika_cart_guest', JSON.stringify(this.items));
+    }
     this.updateUI();
   },
 
-  add(product) {
-    const existing = this.items.find(i => i.id === product.id);
+  async add(product) {
+    if (this.isSaving) return;
+    const email = this.getUserEmail();
+    
+    const existing = this.items.find(i => i.id == product.id);
+    
+    // Optimistic UI update
     if (existing) {
       existing.qty += 1;
     } else {
       this.items.push({ ...product, qty: 1 });
     }
-    this.save();
-    showToast(`✓ ${product.name} ditambahkan ke keranjang!`);
+    this.updateUI();
+    showToast(`? ${product.name} ditambahkan ke keranjang!`);
+
+    if (email) {
+      this.isSaving = true;
+      try {
+        await fetch('/api/cart', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-email': email
+          },
+          body: JSON.stringify({ product_id: product.id, quantity: 1 })
+        });
+      } catch (err) {
+        console.error('Error adding to cart API', err);
+      } finally {
+        this.isSaving = false;
+      }
+    } else {
+      this.save();
+    }
   },
 
   addFromBtn(btn) {
     this.add({
-      id: btn.getAttribute('data-id'),
+      id: parseInt(btn.getAttribute('data-id'), 10),
       name: btn.getAttribute('data-name'),
       price: parseInt(btn.getAttribute('data-price') || '0', 10),
       image: btn.getAttribute('data-img') || ''
     });
   },
 
-  remove(id) {
-    this.items = this.items.filter(i => i.id !== id);
-    this.save();
+  async remove(id) {
+    if (this.isSaving) return;
+    const email = this.getUserEmail();
+    
+    // Optimistic UI update
+    this.items = this.items.filter(i => i.id != id);
+    this.updateUI();
+
+    if (email) {
+      this.isSaving = true;
+      try {
+        await fetch(`/api/cart?product_id=${id}`, {
+          method: 'DELETE',
+          headers: { 'x-user-email': email }
+        });
+      } catch (err) {
+        console.error('Error removing from cart API', err);
+      } finally {
+        this.isSaving = false;
+      }
+    } else {
+      this.save();
+    }
   },
 
-  updateQty(id, delta) {
-    const item = this.items.find(i => i.id === id);
-    if (item) {
-      item.qty += delta;
-      if (item.qty <= 0) this.remove(id);
-      else this.save();
+  async updateQty(id, delta) {
+    if (this.isSaving) return;
+    const email = this.getUserEmail();
+    
+    const item = this.items.find(i => i.id == id);
+    if (!item) return;
+
+    // Optimistic UI update
+    item.qty += delta;
+    if (item.qty <= 0) {
+      return this.remove(id);
+    }
+    
+    this.updateUI();
+
+    if (email) {
+      this.isSaving = true;
+      try {
+        await fetch('/api/cart', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-email': email
+          },
+          body: JSON.stringify({ product_id: item.id, quantity: item.qty })
+        });
+      } catch (err) {
+        console.error('Error updating cart API', err);
+      } finally {
+        this.isSaving = false;
+      }
+    } else {
+      this.save();
     }
   },
 
@@ -59,48 +165,56 @@ const Cart = {
   },
 
   updateUI() {
-    // Update cart count badge
     const countEl = document.getElementById('cartCount');
     if (countEl) countEl.textContent = this.count();
 
-    // Update cart items list
     const itemsEl = document.getElementById('cartItems');
     if (!itemsEl) return;
 
     if (this.items.length === 0) {
-      itemsEl.innerHTML = '<div class="cart-empty">🛒<br>Keranjangmu kosong</div>';
+      itemsEl.innerHTML = '<div class="cart-empty">??<br>Keranjangmu kosong</div>';
     } else {
       itemsEl.innerHTML = this.items.map(item => `
         <div class="cart-item">
-          <div class="cart-item-img">${item.image ? `<img src="${item.image}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;" onerror="this.parentElement.textContent='🛍️'">` : '🛍️'}</div>
+          <div class="cart-item-img">${item.image ? `<img src="${item.image}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;" onerror="this.parentElement.textContent='???'">` : '???'}</div>
           <div class="cart-item-info">
             <div class="cart-item-name">${item.name}</div>
             <div class="cart-item-price">${formatPrice(item.price)}</div>
           </div>
           <div class="cart-item-qty">
-            <button class="qty-btn" onclick="Cart.updateQty('${item.id}', -1)">−</button>
+            <button class="qty-btn" onclick="Cart.updateQty(${item.id}, -1)">-</button>
             <span>${item.qty}</span>
-            <button class="qty-btn" onclick="Cart.updateQty('${item.id}', 1)">+</button>
+            <button class="qty-btn" onclick="Cart.updateQty(${item.id}, 1)">+</button>
           </div>
         </div>
       `).join('');
     }
 
-    // Update total
     const totalEl = document.getElementById('cartTotal');
     if (totalEl) totalEl.textContent = formatPrice(this.total());
   },
 
-  clear() {
+  async clear() {
+    const email = this.getUserEmail();
     this.items = [];
-    this.save();
+    this.updateUI();
+
+    if (email) {
+      try {
+        await fetch('/api/cart', {
+          method: 'DELETE',
+          headers: { 'x-user-email': email }
+        });
+      } catch (err) {
+        console.error('Error clearing cart API', err);
+      }
+    } else {
+      localStorage.removeItem('aika_cart_guest');
+    }
   }
 };
 
-// Initialize UI on load
-document.addEventListener('DOMContentLoaded', () => {
-  Cart.load();
-});
+document.addEventListener('DOMContentLoaded', () => { Cart.load(); });
 
 function toggleCart() {
   const sidebar = document.getElementById('cartSidebar');
@@ -112,22 +226,18 @@ function toggleCart() {
 function goToCheckout() {
   const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
   if (!userStr) {
-    showToast('⚠ Anda harus login untuk checkout!');
-    setTimeout(() => {
-      window.location.href = 'login.html';
-    }, 1500);
+    showToast('? Anda harus login untuk checkout!');
+    setTimeout(() => { window.location.href = 'login.html'; }, 1500);
     return;
   }
   if (Cart.items.length === 0) {
-    showToast('⚠ Keranjang masih kosong!');
+    showToast('? Keranjang masih kosong!');
     return;
   }
   window.location.href = 'checkout.html';
 }
 
-function formatPrice(num) {
-  return 'Rp ' + num.toLocaleString('id-ID');
-}
+function formatPrice(num) { return 'Rp ' + num.toLocaleString('id-ID'); }
 
 function showToast(msg) {
   const existing = document.querySelector('.toast');
