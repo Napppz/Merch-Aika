@@ -13,7 +13,7 @@ async function setup() {
       CREATE TABLE IF NOT EXISTS carts (
         id SERIAL PRIMARY KEY,
         user_email VARCHAR(255) NOT NULL,
-        product_id INT NOT NULL,
+        product_id VARCHAR(50) NOT NULL,
         quantity INT DEFAULT 1,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

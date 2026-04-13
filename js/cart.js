@@ -1,11 +1,11 @@
-﻿// -- CART MANAGEMENT --
+// -- CART MANAGEMENT --
 const Cart = {
   items: [],
   isSaving: false,
 
   getUserEmail() {
     const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
-    return userStr  JSON.parse(userStr).email : null;
+    return userStr ? JSON.parse(userStr).email : null;
   },
 
   async load() {
@@ -103,7 +103,7 @@ const Cart = {
 
   addFromBtn(btn) {
     this.add({
-      id: parseInt(btn.getAttribute('data-id'), 10),
+      id: btn.getAttribute('data-id'),
       name: btn.getAttribute('data-name'),
       price: parseInt(btn.getAttribute('data-price') || '0', 10),
       image: btn.getAttribute('data-img') || ''
@@ -121,7 +121,7 @@ const Cart = {
     if (email) {
       this.isSaving = true;
       try {
-        await fetch(`/api/cartproduct_id=${id}`, {
+        await fetch(`/api/cart?product_id=${id}`, {
           method: 'DELETE',
           headers: { 'x-user-email': email }
         });
@@ -187,19 +187,19 @@ const Cart = {
     if (!itemsEl) return;
 
     if (this.items.length === 0) {
-      itemsEl.innerHTML = '<div class="cart-empty"><br>Keranjangmu kosong</div>';
+      itemsEl.innerHTML = '<div class="cart-empty">??<br>Keranjangmu kosong</div>';
     } else {
       itemsEl.innerHTML = this.items.map(item => `
         <div class="cart-item">
-          <div class="cart-item-img">${item.image  `<img src="${item.image}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;" onerror="this.parentElement.textContent=''">` : ''}</div>
+          <div class="cart-item-img">${item.image ? `<img src="${item.image}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;" onerror="this.parentElement.textContent='???'">` : '???'}</div>
           <div class="cart-item-info">
             <div class="cart-item-name">${item.name}</div>
             <div class="cart-item-price">${formatPrice(item.price)}</div>
           </div>
           <div class="cart-item-qty">
-            <button class="qty-btn" onclick="Cart.updateQty(${item.id}, -1)">-</button>
+            <button class="qty-btn" onclick="Cart.updateQty('${item.id}', -1)">-</button>
             <span>${item.qty}</span>
-            <button class="qty-btn" onclick="Cart.updateQty(${item.id}, 1)">+</button>
+            <button class="qty-btn" onclick="Cart.updateQty('${item.id}', 1)">+</button>
           </div>
         </div>
       `).join('');
