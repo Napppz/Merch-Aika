@@ -2,7 +2,7 @@
 // Jalankan: node setup_users_db.js
 // Membuat tabel users dan otp_codes di Neon PostgreSQL
 
-const { query } = require('./api/_db');
+const { query } = require('./api/_lib/_db');
 
 async function setup() {
   console.log('⚙ Membuat tabel users dan otp_codes...\n');
