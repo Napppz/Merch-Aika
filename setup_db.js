@@ -40,7 +40,9 @@ async function init() {
         total INTEGER,
         items JSONB,
         shipping JSONB,
-        date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        payment_proof TEXT,
+        date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
     `);
 
