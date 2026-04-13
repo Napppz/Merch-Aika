@@ -464,23 +464,45 @@
   }
 
   function openInvoice(orderId) {
-    // Untuk mudahnya kita filter orders langsung atau memanfaatkan allOrders untuk simulasinya.
-    // Tapi karena kita ingin format invoice bagus, kita bisa redirect ke order-success.html 
-    // setelah mem-push data orderId tersebut ke localStorage 'last_order' yg dipakai oleh order-success.html.
-    alert("Invoice sedang disiapkan, tunggu sementara kami membuatkan view Invoice.");
-    // Dalam kasus sebenarnya, Anda bisa fetch data dan menampilkannya di Modal atau tab baru.
-    // Mengingat file order-success.html sudah berfungsi sbg Invoice, kita re-use saja:
+    // Show loading indicator
+    const btn = event.target.closest('div');
+    if (btn) {
+      const originalText = btn.textContent;
+      btn.textContent = '⏳ Membuka invoice...';
+      btn.style.opacity = '0.6';
+      btn.style.pointerEvents = 'none';
+    }
+
     fetch('/api/user-orders?email=' + encodeURIComponent(currentUser.email) + '&_t=' + Date.now())
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        return res.json();
+      })
       .then(orders => {
         const order = orders.find(o => o.id === orderId);
-        if (order) {
-          // Parse items and shipping info properly safely before setting it
+        if (!order) {
+          throw new Error('Pesanan tidak ditemukan');
+        }
+
+        // Parse items and shipping info safely
+        try {
           if (typeof order.items === 'string') order.items = JSON.parse(order.items);
           if (typeof order.shipping === 'string') order.shipping = JSON.parse(order.shipping);
-          // Set to last_order so the success page renders it
-          localStorage.setItem('last_order', JSON.stringify(order));
-          window.location.href = 'order-success.html';
+        } catch(parseErr) {
+          console.error('Error parsing order data:', parseErr);
+        }
+
+        // Set to last_order so the success page renders it
+        localStorage.setItem('last_order', JSON.stringify(order));
+        window.location.href = 'order-success.html';
+      })
+      .catch(err => {
+        console.error('Error opening invoice:', err);
+        alert('⚠️ Gagal membuka invoice: ' + err.message);
+        if (btn) {
+          btn.textContent = originalText;
+          btn.style.opacity = '1';
+          btn.style.pointerEvents = 'auto';
         }
       });
   }
