@@ -5,8 +5,8 @@ const crypto = require('crypto');
 
 // Admin credentials (ideally from environment variables)
 const ADMIN_CREDENTIALS = {
-  username: process.env.ADMIN_USERNAME || 'aika',
-  password_hash: process.env.ADMIN_PASSWORD_HASH || 'admin123' // In production, this should be hashed
+  username: process.env.ADMIN_USERNAME || 'Aika',
+  password_hash: process.env.ADMIN_PASSWORD_HASH || 'Aikanap221301' // In production, this should be hashed
 };
 
 function hashPassword(password) {
