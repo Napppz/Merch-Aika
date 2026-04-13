@@ -245,6 +245,36 @@
   </div>
 </section>
 
+<!-- LEADERBOARD - TOP BUYERS -->
+<section class="leaderboard" id="leaderboard">
+  <div class="section-header">
+    <p class="section-eyebrow">✦ Top Supporters ✦</p>
+    <h2>Hall of Fame</h2>
+    <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 0.95rem;">Terima kasih untuk dukungan dan kepercayaan kalian!</p>
+  </div>
+  
+  <div class="leaderboard-container">
+    <div class="leaderboard-stats" id="leaderboardStats"></div>
+    <table class="leaderboard-table">
+      <thead>
+        <tr>
+          <th style="width: 60px;">Rank</th>
+          <th style="text-align: left;">Fans</th>
+          <th style="text-align: center;">Pembelian</th>
+          <th style="text-align: right;">Total Spending</th>
+        </tr>
+      </thead>
+      <tbody id="leaderboardBody">
+        <tr>
+          <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+            ⏳ Memuat data...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
 <!-- FEATURED PRODUCTS -->
 <section class="featured" id="featured">
   <div class="section-header">
@@ -362,6 +392,7 @@
 <script src="js/main.js"></script>
 <script>
   loadFeaturedProducts();
+  loadLeaderboard();
   
   // Load Hero Image settings
   fetch('/api/settings').then(res => res.json())
@@ -370,6 +401,96 @@
         document.getElementById('mainHeroImage').src = data.hero_image;
       }
     }).catch(err => console.log('Gagal memuat settings', err));
+
+  // Load Leaderboard
+  async function loadLeaderboard() {
+    try {
+      const res = await fetch('/api/leaderboard?limit=10');
+      if (!res.ok) throw new Error('Failed to load leaderboard');
+      
+      const { data } = await res.json();
+      
+      if (!data || data.length === 0) {
+        document.getElementById('leaderboardBody').innerHTML = `
+          <tr>
+            <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+              Belum ada pembeli 😢
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
+      // Render stats
+      if (data.length > 0) {
+        const topBuyer = data[0];
+        const totalSpent = data.reduce((sum, u) => sum + u.total_spent, 0);
+        const totalOrders = data.reduce((sum, u) => sum + u.total_orders, 0);
+        
+        document.getElementById('leaderboardStats').innerHTML = `
+          <div class="stat-card-lb">
+            <div class="stat-value">${data.length}</div>
+            <div class="stat-label">Top Supporters</div>
+          </div>
+          <div class="stat-card-lb">
+            <div class="stat-value">Rp ${Math.round(totalSpent / 1000000)}M</div>
+            <div class="stat-label">Total Terkumpul</div>
+          </div>
+          <div class="stat-card-lb">
+            <div class="stat-value">${totalOrders}</div>
+            <div class="stat-label">Pembelian Total</div>
+          </div>
+        `;
+      }
+      
+      // Render table
+      const tbody = document.getElementById('leaderboardBody');
+      tbody.innerHTML = data.map(user => {
+        const rankClass = user.rank === 1 ? 'rank-1' : user.rank === 2 ? 'rank-2' : user.rank === 3 ? 'rank-3' : 'rank-other';
+        const avatarHtml = user.avatar 
+          ? `<img src="${user.avatar}" alt="${user.username}" class="leaderboard-avatar" onerror="this.style.display='none'">`
+          : `<div class="leaderboard-avatar">${user.username.charAt(0).toUpperCase()}</div>`;
+        
+        return `
+          <tr>
+            <td style="text-align: center;">
+              <div class="rank-badge ${rankClass}">${user.rank}</div>
+            </td>
+            <td>
+              <div class="leaderboard-user">
+                ${avatarHtml}
+                <div class="leaderboard-name">
+                  <span class="leaderboard-username">${user.username}</span>
+                  <span class="leaderboard-email">${user.email}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="leaderboard-orders">
+                <span class="leaderboard-orders-count">${user.total_orders}</span>
+                <span class="leaderboard-items">${user.total_items} items</span>
+              </div>
+            </td>
+            <td>
+              <div class="leaderboard-spending">
+                Rp ${user.total_spent.toLocaleString('id-ID')}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      
+    } catch (err) {
+      console.error('Error loading leaderboard:', err);
+      document.getElementById('leaderboardBody').innerHTML = `
+        <tr>
+          <td colspan="4" style="text-align: center; padding: 2rem; color: #ff6b6b;">
+            ⚠️ Gagal memuat leaderboard
+          </td>
+        </tr>
+      `;
+    }
+  }
 </script>
 
 <script>

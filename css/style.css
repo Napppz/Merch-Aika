@@ -337,6 +337,204 @@ body {
 }
 .section-cta { text-align: center; margin-top: 3rem; }
 
+/* ── LEADERBOARD ── */
+.leaderboard {
+  padding: 6rem 3rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.leaderboard-container {
+  display: grid;
+  gap: 2.5rem;
+}
+
+.leaderboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.stat-card-lb {
+  background: linear-gradient(135deg, rgba(21,101,192,0.3), rgba(41,182,246,0.15));
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+  text-align: center;
+  transition: var(--transition);
+}
+
+.stat-card-lb:hover {
+  transform: translateY(-3px);
+  background: linear-gradient(135deg, rgba(21,101,192,0.4), rgba(41,182,246,0.25));
+  border-color: var(--aqua);
+}
+
+.stat-card-lb .stat-value { font-size: 2rem; color: var(--aqua); font-weight: 900; margin-bottom: 0.5rem; }
+.stat-card-lb .stat-label { color: var(--text-muted); font-size: 0.9rem; }
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+.leaderboard-table thead {
+  background: rgba(21,101,192,0.3);
+  border-bottom: 2px solid var(--card-border);
+}
+
+.leaderboard-table th {
+  padding: 1.2rem;
+  text-align: left;
+  color: var(--aqua);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.leaderboard-table td {
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid rgba(41,182,246,0.1);
+  color: var(--text-main);
+}
+
+.leaderboard-table tbody tr {
+  transition: var(--transition);
+}
+
+.leaderboard-table tbody tr:hover {
+  background: rgba(41,182,246,0.1);
+}
+
+.leaderboard-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-weight: 900;
+  font-size: 1.1rem;
+  margin: 0 auto;
+}
+
+.rank-badge.rank-1 {
+  background: linear-gradient(135deg, #ffd54f, #ffb300);
+  color: #000;
+}
+
+.rank-badge.rank-2 {
+  background: linear-gradient(135deg, #e0e0e0, #b0b0b0);
+  color: #000;
+}
+
+.rank-badge.rank-3 {
+  background: linear-gradient(135deg, #cd7f32, #9a5c1a);
+  color: #fff;
+}
+
+.rank-badge.rank-other {
+  background: linear-gradient(135deg, rgba(41,182,246,0.3), rgba(21,101,192,0.3));
+  color: var(--aqua);
+}
+
+.leaderboard-user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.leaderboard-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--sea-blue), var(--aqua));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--white);
+  flex-shrink: 0;
+  border: 2px solid var(--aqua);
+  object-fit: cover;
+}
+
+.leaderboard-name {
+  flex: 1;
+}
+
+.leaderboard-username {
+  font-weight: 700;
+  color: var(--white);
+  display: block;
+}
+
+.leaderboard-email {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: block;
+}
+
+.leaderboard-orders {
+  text-align: center;
+  min-width: 100px;
+}
+
+.leaderboard-orders-count {
+  font-weight: 700;
+  color: var(--aqua);
+  display: block;
+  font-size: 1.1rem;
+  margin-bottom: 0.2rem;
+}
+
+.leaderboard-items {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.leaderboard-spending {
+  text-align: right;
+  min-width: 140px;
+  font-weight: 700;
+  color: var(--gold);
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .leaderboard {
+    padding: 4rem 1.5rem;
+  }
+  
+  .leaderboard-table th, .leaderboard-table td {
+    padding: 0.8rem 0.6rem;
+    font-size: 0.85rem;
+  }
+  
+  .leaderboard-user {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .leaderboard-orders,
+  .leaderboard-spending {
+    text-align: center !important;
+  }
+}
+
 /* ── FEATURED / PRODUCT GRID ── */
 .featured {
   padding: 6rem 3rem;
