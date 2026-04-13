@@ -482,38 +482,55 @@ function doLogin() {
   fetch('/api/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ identifier, password })
+    body: JSON.stringify({ identifier, password, rememberMe: remember })
   })
   .then(r => r.json())
   .then(data => {
-    if (data.success) {
-      onLoginSuccess(data.user, remember);
+    if (data.success && data.token) {
+      // API login dengan JWT token
+      onLoginSuccess(data.user, remember, data.token);
     } else {
-      if (!tryLocalLogin(identifier, password, remember)) {
-        showAlert(data.message || 'Email/username atau password salah!');
-        document.getElementById('login-password').value = '';
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-      }
-    }
-  })
-  .catch(() => {
-    if (!tryLocalLogin(identifier, password, remember)) {
-      showAlert('Email/username atau password salah!');
+      showAlert(data.error || data.message || 'Email/username atau password salah!');
       document.getElementById('login-password').value = '';
       btn.disabled = false;
       btn.innerHTML = originalText;
     }
+  })
+  .catch(err => {
+    console.error('Login error:', err);
+    showAlert('Koneksi server gagal. Coba lagi.');
+    document.getElementById('login-password').value = '';
+    btn.disabled = false;
+    btn.innerHTML = originalText;
   });
 }
 
-function onLoginSuccess(user, remember) {
+function onLoginSuccess(user, remember, token) {
   showAlert('Berhasil masuk! Mengalihkan...', 'success');
-  const sessionData = { email: user.email, username: user.username, loggedIn: true };
+  
+  // Simpan JWT token
+  if (token) {
+    if (remember) {
+      localStorage.setItem('aika_token', token);
+      localStorage.removeItem('aika_session'); // Hapus old session format
+    } else {
+      sessionStorage.setItem('aika_token', token);
+    }
+  }
+  
+  // Simpan user data (tanpa sensitive info)
+  const sessionData = { 
+    id: user.id,
+    email: user.email, 
+    username: user.username,
+    role: user.role || 'user',
+    loggedIn: true 
+  };
+  
   if (remember) {
-    localStorage.setItem('aika_session', JSON.stringify(sessionData));
+    localStorage.setItem('aika_user_data', JSON.stringify(sessionData));
   } else {
-    sessionStorage.setItem('aika_session', JSON.stringify(sessionData));
+    sessionStorage.setItem('aika_user_data', JSON.stringify(sessionData));
   }
   
   // Load avatar from database if exists
@@ -578,15 +595,16 @@ if (urlParams.get('role') === 'admin') {
 }
 
 /* ── Already logged in? ── */
-const existing = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+const token = localStorage.getItem('aika_token') || sessionStorage.getItem('aika_token');
+const existing = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session') || localStorage.getItem('aika_user_data') || sessionStorage.getItem('aika_user_data');
 const isAdmin = localStorage.getItem('aika_admin') === 'true';
 
 if (isAdmin) {
   window.location.href = 'admin/dashboard.html';
-} else if (existing) {
+} else if (token || existing) {
   try {
-    const sess = JSON.parse(existing);
-    if (sess.loggedIn) {
+    const sess = JSON.parse(existing || '{}');
+    if (sess.loggedIn || token) {
       const redir = urlParams.get('redirect') || 'index.html';
       window.location.href = redir;
     }
