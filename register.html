@@ -859,27 +859,43 @@ function verifyOtp() {
 }
 
 function saveUser() {
-  const user = {
-    username: document.getElementById('reg-username').value.trim(),
-    email: document.getElementById('reg-email').value.trim(),
-    phone: '+62' + document.getElementById('reg-phone').value.trim().replace(/\D/g,''),
-    password: btoa(document.getElementById('reg-password').value), // base64 (demo only — use hashing in prod)
-    registeredAt: new Date().toISOString(),
-    verified: true,
-  };
-
-  // Save to localStorage (demo) + try API
-  const users = JSON.parse(localStorage.getItem('aika_users') || '[]');
-  users.push(user);
-  localStorage.setItem('aika_users', JSON.stringify(users));
-  localStorage.setItem('aika_pending_login', user.email);
-
-  // Try real API
+  const plainPassword = document.getElementById('reg-password').value;
+  const confirmPassword = document.getElementById('reg-confirm').value;
+  
+  // API registration dengan plain password (akan di-hash di backend)
   fetch('/api/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(user)
-  }).catch(() => {});
+    body: JSON.stringify({
+      username: document.getElementById('reg-username').value.trim(),
+      email: document.getElementById('reg-email').value.trim(),
+      phone: '+62' + document.getElementById('reg-phone').value.trim().replace(/\D/g,''),
+      password: plainPassword,
+      confirmPassword: confirmPassword,
+      verified: true
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      // Simpan token dan data user
+      localStorage.setItem('aika_token', data.token);
+      localStorage.setItem('aika_user_data', JSON.stringify(data.user));
+      // Tampilkan success page
+      showStep4();
+    } else {
+      console.error('Register error:', data.error, data.details);
+      alert('Registrasi gagal: ' + (data.error || 'Unknown error'));
+      // Kembali ke step 1
+      document.getElementById('step'+currentStep).classList.remove('active');
+      currentStep = 1;
+      document.getElementById('step1').classList.add('active');
+    }
+  })
+  .catch(err => {
+    console.error('Register error:', err);
+    alert('Koneksi gagal, coba lagi');
+  });
 }
 
 function showStep4() {
