@@ -553,6 +553,8 @@ async function handlePaymentPending(order, result) {
     Cart.clear();
     showToast('⏳ Pembayaran pending. Selesaikan pembayaranmu!');
     setTimeout(() => window.location.href = 'profile.html?tab=orders', 2000);
+  }
+
 document.addEventListener('DOMContentLoaded', async () => {
   await Cart.load();
   renderCheckout();
