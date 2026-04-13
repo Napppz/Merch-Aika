@@ -248,28 +248,52 @@
     document.getElementById('tab-' + tabId).classList.add('active');
   }
 
+  // Deteksi iOS
+  function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  }
+
   async function loadAvatar() {
-    let saved = localStorage.getItem('aika_avatar_' + currentUser.email);
-    
-    // If not in localStorage, try fetching from API
-    if (!saved) {
-      try {
-        const res = await fetch('/api/avatar', {
-          headers: { 'x-user-email': currentUser.email }
-        });
+    const container = document.getElementById('profAvatarText');
+    let saved = null;
+    const cacheKey = 'aika_avatar_' + currentUser.email;
+    const isIos = isIOS();
+
+    try {
+      // iOS: Always fetch from API dengan cache bust
+      // Desktop: Try localStorage first, fallback to API
+      if (isIos) {
+        console.log('📱 iOS detected - fetching avatar from API with cache bust');
+        const res = await fetch(`/api/avatar?email=${encodeURIComponent(currentUser.email)}&t=${Date.now()}`);
         if (res.ok) {
           const data = await res.json();
           if (data.avatar) {
             saved = data.avatar;
-            localStorage.setItem('aika_avatar_' + currentUser.email, saved);
+            console.log('✅ Avatar loaded from API (iOS)');
           }
         }
-      } catch(err) {
-        console.error('Error fetching avatar from API:', err);
+      } else {
+        // Desktop: Try localStorage cache first
+        saved = localStorage.getItem(cacheKey);
+        if (!saved) {
+          console.log('💻 Desktop - Avatar not in cache, fetching from API');
+          const res = await fetch(`/api/avatar?email=${encodeURIComponent(currentUser.email)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.avatar) {
+              saved = data.avatar;
+              // Cache for desktop
+              localStorage.setItem(cacheKey, saved);
+              console.log('✅ Avatar loaded from API (Desktop) and cached');
+            }
+          }
+        }
       }
+    } catch(err) {
+      console.error('Error loading avatar:', err);
     }
-    
-    const container = document.getElementById('profAvatarText');
+
+    // Render avatar
     if (saved) {
       container.innerHTML = `<img src="${saved}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
     } else {
@@ -287,7 +311,13 @@
     const reader = new FileReader();
     reader.onload = async function(e) {
       const dataUrl = e.target.result;
-      localStorage.setItem('aika_avatar_' + currentUser.email, dataUrl);
+      const isIos = isIOS();
+      
+      // Save to localStorage untuk desktop immediately untuk instant feedback
+      if (!isIos) {
+        localStorage.setItem('aika_avatar_' + currentUser.email, dataUrl);
+      }
+      
       loadAvatar();
       updateNavAvatar();
       
@@ -297,6 +327,7 @@
       
       // Save to database so it syncs across devices
       try {
+        console.log('⏳ Saving avatar to database...');
         const res = await fetch('/api/avatar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-user-email': currentUser.email },
@@ -305,16 +336,29 @@
         
         if (!res.ok) {
           const errData = await res.json();
-          console.error('Error saving avatar:', errData);
+          console.error('❌ Error saving avatar:', errData);
           alert('Gagal menyimpan foto: ' + (errData.error || 'Unknown error'));
           return;
         }
         
         const result = await res.json();
         console.log('✅ Avatar saved to database:', result.message);
+        
+        // Clear cache to force fresh load on iOS
+        if (isIos) {
+          localStorage.removeItem('aika_avatar_' + currentUser.email);
+          console.log('🔄 iOS cache cleared - will refetch on next load');
+        }
+        
         alert('Foto profil berhasil diperbarui!');
+        // For iOS, reload avatar to get fresh data from API
+        if (isIos) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          await loadAvatar();
+          updateNavAvatar();
+        }
       } catch(err) {
-        console.error('Error saving avatar to API:', err);
+        console.error('❌ Error saving avatar to API:', err);
         alert('Gagal mengunggah foto ke server: ' + err.message);
       }
     };
