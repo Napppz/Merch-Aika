@@ -492,8 +492,20 @@
           console.error('Error parsing order data:', parseErr);
         }
 
-        // Set to last_order so the success page renders it
-        localStorage.setItem('last_order', JSON.stringify(order));
+        // Prepare order data for storage - remove large base64 images
+        const orderForStorage = { ...order };
+        delete orderForStorage.payment_proof; // Remove large base64 image
+        delete orderForStorage.avatar; // Remove avatar if exists
+        
+        try {
+          // Try sessionStorage first (temporary, better for large data)
+          sessionStorage.setItem('last_order', JSON.stringify(orderForStorage));
+        } catch (storageErr) {
+          // Fallback: store only order ID if sessionStorage also fails
+          console.warn('SessionStorage full, using minimal data:', storageErr);
+          sessionStorage.setItem('last_order_id', orderId);
+        }
+
         window.location.href = 'order-success.html';
       })
       .catch(err => {
