@@ -1,5 +1,5 @@
 // Security utilities untuk password hashing & JWT
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');  // Pure JS, works on Vercel
 const jwt = require('jsonwebtoken');
 
 /**
