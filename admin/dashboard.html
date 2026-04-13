@@ -933,8 +933,8 @@ async function renderOrders(filter = 'all') {
 function filterOrders(val) { renderOrders(val); }
 
 function statusBadge(status) {
-  const map = { paid:'status-paid', pending:'status-pending', cancelled:'status-cancelled', processing:'status-processing', pending_payment:'status-pending', shipped:'status-shipped', completed:'status-completed' };
-  const label = { paid:'📦 Dikemas', pending:'⏳ Menunggu Pembayaran', cancelled:'❌ Dibatalkan', processing:'🔄 Diproses', pending_payment:'💳 Belum Bayar', shipped:'🚚 Dikirim', completed:'✅ Selesai' };
+  const map = { paid:'status-paid', pending:'status-pending', cancelled:'status-cancelled', processing:'status-processing', payment_pending:'status-pending', pending_payment:'status-pending', shipped:'status-shipped', completed:'status-completed' };
+  const label = { paid:'📦 Dikemas', pending:'⏳ Menunggu Pembayaran', cancelled:'❌ Dibatalkan', processing:'🔄 Diproses', payment_pending:'💳 Belum Verifikasi', pending_payment:'💳 Belum Verifikasi', shipped:'🚚 Dikirim', completed:'✅ Selesai' };
   return `<span class="status-badge ${map[status]||'status-pending'}">${label[status]||status}</span>`;
 }
 
@@ -943,7 +943,23 @@ async function viewOrder(id) {
   const order = allOrders.find(o => o.id === id);
   if (!order) return;
   const content = document.getElementById('orderDetailContent');
+  
+  // Render payment proof section jika ada
+  const paymentProofHTML = order.payment_proof ? `
+    <div style="background:rgba(76,175,80,0.1);border:2px solid #4caf50;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem">
+      <h4 style="color:#4caf50;margin-top:0;margin-bottom:1rem;font-size:0.95rem">✅ BUKTI PEMBAYARAN QRIS</h4>
+      <div style="background:var(--white);border-radius:8px;padding:1rem;text-align:center;margin-bottom:1rem;max-height:400px;overflow:auto">
+        <img src="${order.payment_proof}" alt="Bukti Transfer" style="max-width:100%;height:auto;border-radius:4px;" />
+      </div>
+      <div style="display:flex;gap:0.8rem">
+        <button class="btn-primary" onclick="verifyPayment('${order.id}')" style="flex:1;background:#4caf50;padding:0.8rem">✅ Verifikasi & Ubah ke Dikemas</button>
+        <button class="btn-secondary" onclick="rejectPayment('${order.id}')" style="flex:1;padding:0.8rem">❌ Tolak Pembayaran</button>
+      </div>
+    </div>
+  ` : '';
+  
   content.innerHTML = `
+    ${paymentProofHTML}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
       <div class="form-group"><label>Order ID</label><input readonly value="${order.id}" style="background:rgba(3,9,31,0.6)"></div>
       <div class="form-group"><label>Status</label><input readonly value="${order.status}" style="background:rgba(3,9,31,0.6)"></div>
@@ -961,7 +977,7 @@ async function viewOrder(id) {
     <div class="form-group">
       <label>Update Status</label>
       <select id="updateStatus" onchange="document.getElementById('resiWrap').style.display=this.value==='shipped'?'block':'none'" style="background:rgba(3,9,31,0.6);border:1px solid var(--card-border);border-radius:8px;padding:0.8rem 1rem;color:var(--white);width:100%;font-family:var(--font-body)">
-        <option value="pending" ${order.status==='pending'?'selected':''}>⏳ Menunggu Pembayaran</option>
+        <option value="pending" ${order.status==='pending'||order.status==='payment_pending'?'selected':''}>⏳ Menunggu Pembayaran</option>
         <option value="paid" ${order.status==='paid'?'selected':''}>📦 Dikemas</option>
         <option value="shipped" ${order.status==='shipped'?'selected':''}>🚚 Dikirim</option>
         <option value="completed" ${order.status==='completed'?'selected':''}>✅ Selesai</option>
@@ -979,19 +995,14 @@ async function viewOrder(id) {
     const st = document.getElementById('updateStatus').value;
     const resiVal = document.getElementById('updateResi').value;
     
-    // Update API now supports passing `resi` natively.
-    // However, our frontend `Orders.update` method needs to support it. 
-    // We'll pass it in the body directly.
     await fetch('/api/orders', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, status: st, resi: resiVal })
     });
     
-    // Fallback Update Local orders array so UI responds immediately
     showToast('Status & Email diupdate!');
     
-    // WA Redirect Logic "Otomatis Prompt"
     if (st === 'shipped' && order.phone) {
       let phone = order.phone.replace(/^0/, '62');
       let msg = encodeURIComponent(`Halo ${order.customerName},\n\nTerima kasih telah berbelanja di Aika Sesilia Merch! Pesanan Anda dengan ID *#${order.id}* saat ini sudah kami kirimkan. 🚚\n\nNomor Resi: *${resiVal || '-'}*\n\nJangan lupa untuk memberi ulasan setelah paket sampai. Terima kasih!`);
@@ -1002,6 +1013,48 @@ async function viewOrder(id) {
     renderOrders(currentOrderFilter);
   };
   document.getElementById('orderModal').classList.add('show');
+}
+
+async function verifyPayment(orderId) {
+  if (!confirm('Verifikasi pembayaran pesanan ini dan ubah status ke "Dikemas"?')) return;
+  
+  try {
+    const res = await fetch('/api/orders', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: orderId, status: 'paid' })
+    });
+    
+    if (res.ok) {
+      showToast('✅ Pembayaran terverifikasi! Status berubah ke Dikemas.');
+      closeOrderModal();
+      renderOrders(currentOrderFilter);
+      renderDashboard();
+    }
+  } catch (err) {
+    showToast('❌ Error: ' + err.message);
+  }
+}
+
+async function rejectPayment(orderId) {
+  if (!confirm('Tolak pembayaran pesanan ini?')) return;
+  
+  try {
+    const res = await fetch('/api/orders', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: orderId, status: 'cancelled' })
+    });
+    
+    if (res.ok) {
+      showToast('❌ Pembayaran ditolak. Pesanan dibatalkan.');
+      closeOrderModal();
+      renderOrders(currentOrderFilter);
+      renderDashboard();
+    }
+  } catch (err) {
+    showToast('❌ Error: ' + err.message);
+  }
 }
 
 function closeOrderModal() { document.getElementById('orderModal').classList.remove('show'); }

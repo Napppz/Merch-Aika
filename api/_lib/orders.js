@@ -131,7 +131,38 @@ module.exports = async (req, res) => {
       
       order = rows[0];
 
-      // (2/2) Kirim Notifikasi Email - Pesanan Dikirim
+      // (2/2) Kirim Notifikasi Email - Pembayaran Dikonfirmasi
+      if (status === 'paid' && order.email) {
+        try {
+          await transporter.sendMail({
+            from: '"Aika Sesilia Merch" <noreply@aikamerch.com>',
+            to: order.email,
+            subject: `✅ Pembayaran Dikonfirmasi - Pesanan #${order.id} Sedang Dikemas 📦`,
+            html: `
+              <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <h2 style="color: #4caf50;">✅ Pembayaran Dikonfirmasi!</h2>
+                <p>Halo ${order.customerName},</p>
+                <p>Pembayaran Anda untuk pesanan <strong>#${order.id}</strong> telah berhasil kami verifikasi.</p>
+                
+                <div style="background:#f0f8f0; padding:1.5rem; border-left: 4px solid #4caf50; border-radius:4px; margin:1.5rem 0;">
+                  <p style="margin:0;font-weight:bold;color:#333;">Status: Sedang Dikemas</p>
+                  <p style="margin:0.5rem 0; font-size:0.9rem; color:#666;">Tim kami sedang menyiapkan paket Anda. Kami akan mengirimkan nomor resi dalam waktu 1-2 hari kerja.</p>
+                </div>
+                
+                <p><strong>Detail Pesanan:</strong></p>
+                <p>Total Pembayaran: <strong>Rp ${order.total.toLocaleString('id-ID')}</strong></p>
+                
+                <p style="margin-top:1.5rem;">Terima kasih telah berbelanja di Aika Sesilia! Jika ada pertanyaan, hubungi kami.</p>
+                <p>Salam hangat,<br/><strong>Aika Sesilia</strong></p>
+              </div>
+            `
+          });
+        } catch (mailErr) {
+          console.error('Email konfirmasi pembayaran gagal:', mailErr.message);
+        }
+      }
+
+      // (3/3) Kirim Notifikasi Email - Pesanan Dikirim
       if (status === 'shipped') {
         try {
           // (Opsional) Resi JNE jika admin memasukkannya via UI
