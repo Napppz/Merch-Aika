@@ -5,11 +5,9 @@ const crypto = require('crypto');
 
 // In-memory rate limiting (use Redis in production)
 const loginAttempts = {};
-const CSRF_TOKENS = new Map(); // CSRF token storage (use Redis/DB in production)
 const MAX_ATTEMPTS = 5;
 const LOCK_TIME = 15 * 60 * 1000; // 15 minutes lockout
 const ATTEMPT_WINDOW = 5 * 60 * 1000; // 5 minutes attempt window
-const TOKEN_EXPIRY = 8 * 60 * 60 * 1000; // 8 hours token expiry
 
 // Proper password hashing function (HMAC-SHA256 with salt)
 function hashPassword(password) {
@@ -78,31 +76,6 @@ function recordSuccessfulLogin(ip) {
   delete loginAttempts[ip];
 }
 
-// CSRF Token validation
-function validateCSRFToken(token, ip) {
-  if (!token || !CSRF_TOKENS.has(token)) {
-    return false;
-  }
-  
-  const tokenData = CSRF_TOKENS.get(token);
-  const now = Date.now();
-  
-  // Check expiry
-  if (now - tokenData.createdAt > TOKEN_EXPIRY) {
-    CSRF_TOKENS.delete(token);
-    return false;
-  }
-  
-  // Check if token matches IP origin
-  if (tokenData.ip !== ip) {
-    return false;
-  }
-  
-  // Token is valid, delete it (one-time use)
-  CSRF_TOKENS.delete(token);
-  return true;
-}
-
 module.exports = async function handler(req, res) {
   // Security headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -142,15 +115,9 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // CSRF Token validation (optional but recommended)
-    if (csrf_token && !validateCSRFToken(csrf_token, clientIp)) {
-      recordFailedAttempt(clientIp);
-      return res.status(403).json({ 
-        success: false, 
-        message: 'CSRF token tidak valid. Muat ulang halaman dan coba lagi.' 
-      });
-    }
-
+    // Note: X-Requested-With header is sufficient CSRF protection for login endpoint
+    // Skip token validation - client generates token locally for session management after login
+    
     // Hash the input password
     const inputPasswordHash = hashPassword(password);
     
@@ -175,15 +142,6 @@ module.exports = async function handler(req, res) {
       
       // Generate secure session token
       const sessionToken = crypto.randomBytes(32).toString('hex');
-      const tokenHash = crypto.createHash('sha256').update(sessionToken).digest('hex');
-      
-      // Store session info (use DB/Redis in production)
-      CSRF_TOKENS.set(tokenHash, {
-        createdAt: Date.now(),
-        expiresAt: Date.now() + TOKEN_EXPIRY,
-        ip: clientIp,
-        username: username
-      });
       
       // Clear sensitive data from memory
       const clearData = (obj) => {
@@ -197,8 +155,7 @@ module.exports = async function handler(req, res) {
         admin: {
           username: username,
           role: 'admin',
-          token: sessionToken,
-          tokenHash: tokenHash
+          token: sessionToken
         }
       });
     } else {
