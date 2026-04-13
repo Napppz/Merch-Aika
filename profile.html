@@ -218,7 +218,7 @@
   let currentReviewOrderId = null;
   let allOrders = {};
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
     if (!userStr) {
       window.location.href = 'login.html';
@@ -226,8 +226,8 @@
     }
     currentUser = JSON.parse(userStr);
     
-    // Set up Avatar
-    loadAvatar();
+    // Set up Avatar - wait for it to load completely
+    await loadAvatar();
 
     document.getElementById('profName').textContent = currentUser.username;
     document.getElementById('profEmail').textContent = currentUser.email;
