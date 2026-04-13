@@ -613,9 +613,31 @@ async function submitPaymentProof() {
     const paymentResult = await paymentRes.json();
     console.log('✅ Payment proof uploaded:', paymentResult);
     
-    // Clear cart & redirect
+    // Clear cart
     Cart.clear();
-    localStorage.setItem('last_order', JSON.stringify({ ...order, status: 'payment_pending' }));
+    
+    // Clean up old storage data to prevent quota exceeded error
+    try {
+      // Remove old invoice data
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.includes('last_order') || key.includes('invoice') || key.includes('payment'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+    } catch(e) { console.warn('Cleanup error:', e); }
+    
+    // Store order in sessionStorage (without base64 images)
+    const orderForStorage = { ...order, status: 'payment_pending' };
+    delete orderForStorage.payment_proof; // Don't store large image
+    try {
+      sessionStorage.setItem('last_order', JSON.stringify(orderForStorage));
+    } catch(e) {
+      console.warn('SessionStorage full:', e);
+    }
+    
     closePaymentModal();
     showToast('✅ Pesanan dibuat! Silakan lengkapi pembayaran.');
     
