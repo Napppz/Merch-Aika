@@ -316,9 +316,6 @@
           onkeydown="if(event.key==='Enter')doLogin()" />
         <button class="toggle-pw" type="button" onclick="togglePw()" id="pwToggle">👁</button>
       </div>
-      <small style="color:var(--text-muted); font-size:0.8rem; margin-top:0.3rem; display:block;">
-        💡 Minimal 6 karakter
-      </small>
     </div>
 
     <a href="#" class="forgot-link" onclick="openForgot();return false">Lupa password?</a>
@@ -485,63 +482,38 @@ function doLogin() {
   fetch('/api/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ identifier, password, rememberMe: remember })
+    body: JSON.stringify({ identifier, password })
   })
   .then(r => r.json())
   .then(data => {
-    if (data.success && data.token) {
-      // API login dengan JWT token
-      onLoginSuccess(data.user, remember, data.token);
+    if (data.success) {
+      onLoginSuccess(data.user, remember);
     } else {
-      // Tampilkan error detail jika ada validation errors
-      let errorMsg = data.error || data.message || 'Email/username atau password salah!';
-      
-      if (data.details && Array.isArray(data.details) && data.details.length > 0) {
-        // Jika ada validation details, tampilkan dengan format yang lebih jelas
-        errorMsg = data.details.map(d => d.message).join(' • ');
+      if (!tryLocalLogin(identifier, password, remember)) {
+        showAlert(data.message || 'Email/username atau password salah!');
+        document.getElementById('login-password').value = '';
+        btn.disabled = false;
+        btn.innerHTML = originalText;
       }
-      
-      showAlert(errorMsg);
+    }
+  })
+  .catch(() => {
+    if (!tryLocalLogin(identifier, password, remember)) {
+      showAlert('Email/username atau password salah!');
       document.getElementById('login-password').value = '';
       btn.disabled = false;
       btn.innerHTML = originalText;
     }
-  })
-  .catch(err => {
-    console.error('Login error:', err);
-    showAlert('Koneksi server gagal. Coba lagi.');
-    document.getElementById('login-password').value = '';
-    btn.disabled = false;
-    btn.innerHTML = originalText;
   });
 }
 
-function onLoginSuccess(user, remember, token) {
+function onLoginSuccess(user, remember) {
   showAlert('Berhasil masuk! Mengalihkan...', 'success');
-  
-  // Simpan JWT token
-  if (token) {
-    if (remember) {
-      localStorage.setItem('aika_token', token);
-      localStorage.removeItem('aika_session'); // Hapus old session format
-    } else {
-      sessionStorage.setItem('aika_token', token);
-    }
-  }
-  
-  // Simpan user data (tanpa sensitive info)
-  const sessionData = { 
-    id: user.id,
-    email: user.email, 
-    username: user.username,
-    role: user.role || 'user',
-    loggedIn: true 
-  };
-  
+  const sessionData = { email: user.email, username: user.username, loggedIn: true };
   if (remember) {
-    localStorage.setItem('aika_user_data', JSON.stringify(sessionData));
+    localStorage.setItem('aika_session', JSON.stringify(sessionData));
   } else {
-    sessionStorage.setItem('aika_user_data', JSON.stringify(sessionData));
+    sessionStorage.setItem('aika_session', JSON.stringify(sessionData));
   }
   
   // Load avatar from database if exists
@@ -606,16 +578,15 @@ if (urlParams.get('role') === 'admin') {
 }
 
 /* ── Already logged in? ── */
-const token = localStorage.getItem('aika_token') || sessionStorage.getItem('aika_token');
-const existing = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session') || localStorage.getItem('aika_user_data') || sessionStorage.getItem('aika_user_data');
+const existing = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
 const isAdmin = localStorage.getItem('aika_admin') === 'true';
 
 if (isAdmin) {
   window.location.href = 'admin/dashboard.html';
-} else if (token || existing) {
+} else if (existing) {
   try {
-    const sess = JSON.parse(existing || '{}');
-    if (sess.loggedIn || token) {
+    const sess = JSON.parse(existing);
+    if (sess.loggedIn) {
       const redir = urlParams.get('redirect') || 'index.html';
       window.location.href = redir;
     }
