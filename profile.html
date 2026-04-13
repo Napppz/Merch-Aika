@@ -91,8 +91,101 @@
     /* Review Form */
     .review-btn { background: var(--aqua); color: var(--deep-ocean); border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; cursor: pointer; font-weight: 700; }
 
+    /* Avatar Upload Modal */
+    .avatar-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .avatar-modal.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .avatar-modal-content {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 2rem;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+    .avatar-modal-title {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      color: var(--white);
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    .avatar-preview {
+      width: 150px;
+      height: 150px;
+      margin: 1rem auto;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--sea-blue), var(--aqua));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .avatar-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .avatar-info {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin: 1rem 0;
+    }
+    .avatar-modal-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .avatar-modal-buttons button {
+      flex: 1;
+      padding: 0.8rem;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .avatar-btn-cancel {
+      background: rgba(100, 116, 139, 0.2);
+      color: var(--text-muted);
+      border: 1px solid var(--card-border);
+    }
+    .avatar-btn-cancel:hover {
+      background: rgba(100, 116, 139, 0.3);
+    }
+    .avatar-btn-confirm {
+      background: linear-gradient(135deg, var(--sea-blue), var(--aqua));
+      color: var(--white);
+      box-shadow: 0 4px 15px rgba(21, 101, 192, 0.4);
+    }
+    .avatar-btn-confirm:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(41, 182, 246, 0.5);
+    }
+    .avatar-btn-confirm:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     @media (max-width: 768px) {
       .profile-container { grid-template-columns: 1fr; margin-top: 6rem; }
+      .avatar-modal-content { max-width: 90%; }
     }
   </style>
 </head>
@@ -304,63 +397,35 @@
   function handleAvatarUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
+
+    // Validasi ukuran file
     if (file.size > 5 * 1024 * 1024) {
-      alert("Uh oh! Ukuran foto maksimal 5MB ya.");
+      alert("❌ Ukuran foto maksimal 5MB ya.");
+      event.target.value = '';
       return;
     }
+
+    // Validasi tipe file
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      alert("❌ Hanya boleh JPG, PNG, WebP, atau GIF.");
+      event.target.value = '';
+      return;
+    }
+
+    // Read file dan tampilkan preview modal
     const reader = new FileReader();
-    reader.onload = async function(e) {
+    reader.onload = function(e) {
       const dataUrl = e.target.result;
-      const isIos = isIOS();
+      console.log('📸 Showing avatar preview modal...');
+      showAvatarPreview(dataUrl, file.name);
       
-      // Save to localStorage untuk desktop immediately untuk instant feedback
-      if (!isIos) {
-        localStorage.setItem('aika_avatar_' + currentUser.email, dataUrl);
-      }
-      
-      loadAvatar();
-      updateNavAvatar();
-      
-      // Update session to trigger updates in navbar if navigating back
-      currentUser.avatarUpdated = Date.now();
-      localStorage.setItem('aika_session', JSON.stringify(currentUser));
-      
-      // Save to database so it syncs across devices
-      try {
-        console.log('⏳ Saving avatar to database...');
-        const res = await fetch('/api/avatar', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-user-email': currentUser.email },
-          body: JSON.stringify({ avatar: dataUrl })
-        });
-        
-        if (!res.ok) {
-          const errData = await res.json();
-          console.error('❌ Error saving avatar:', errData);
-          alert('Gagal menyimpan foto: ' + (errData.error || 'Unknown error'));
-          return;
-        }
-        
-        const result = await res.json();
-        console.log('✅ Avatar saved to database:', result.message);
-        
-        // Clear cache to force fresh load on iOS
-        if (isIos) {
-          localStorage.removeItem('aika_avatar_' + currentUser.email);
-          console.log('🔄 iOS cache cleared - will refetch on next load');
-        }
-        
-        alert('Foto profil berhasil diperbarui!');
-        // For iOS, reload avatar to get fresh data from API
-        if (isIos) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          await loadAvatar();
-          updateNavAvatar();
-        }
-      } catch(err) {
-        console.error('❌ Error saving avatar to API:', err);
-        alert('Gagal mengunggah foto ke server: ' + err.message);
-      }
+      // Reset input untuk bisa upload file yang sama lagi
+      event.target.value = '';
+    };
+    reader.onerror = function() {
+      alert("❌ Gagal membaca file. Coba lagi.");
+      event.target.value = '';
     };
     reader.readAsDataURL(file);
   }
@@ -692,6 +757,110 @@
     localStorage.setItem(key, JSON.stringify(cart));
     alert(item.name + ' ditambahkan ke keranjang!');
   }
+
+  /* ──────── AVATAR PREVIEW MODAL ──────── */
+  let pendingAvatarData = null;
+
+  function showAvatarPreview(imageData, fileName) {
+    pendingAvatarData = imageData;
+    
+    // Show modal
+    const modal = document.getElementById('avatarModal');
+    const preview = document.getElementById('avatarPreview');
+    const fileSize = document.getElementById('avatarFileSize');
+    
+    preview.innerHTML = `<img src="${imageData}" alt="Preview" />`;
+    
+    // Calculate file size (rough estimate from base64)
+    const bytes = Base64ToBytes(imageData);
+    const mb = (bytes / 1024 / 1024).toFixed(2);
+    fileSize.textContent = `Ukuran: ${mb}MB`;
+    
+    modal.classList.add('active');
+  }
+
+  function closeAvatarModal() {
+    pendingAvatarData = null;
+    document.getElementById('avatarModal').classList.remove('active');
+  }
+
+  async function confirmAvatarUpload() {
+    if (!pendingAvatarData) return;
+    
+    const btn = document.getElementById('avatarConfirmBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Menyimpan...';
+    
+    try {
+      console.log('⏳ Menyimpan foto profil ke database...');
+      const res = await fetch('/api/avatar', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-user-email': currentUser.email 
+        },
+        body: JSON.stringify({ avatar: pendingAvatarData })
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Gagal menyimpan foto');
+      }
+
+      const result = await res.json();
+      console.log('✅ Foto berhasil disimpan:', result.message);
+      
+      // Cache untuk desktop
+      localStorage.setItem('aika_avatar_' + currentUser.email, pendingAvatarData);
+      
+      // Reload avatar
+      await loadAvatar();
+      updateNavAvatar();
+      
+      alert('✅ Foto profil berhasil diperbarui!');
+      closeAvatarModal();
+      
+      // Jika iOS, clear cache untuk force refresh
+      const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      if (isIos) {
+        localStorage.removeItem('aika_avatar_' + currentUser.email);
+        console.log('🔄 Cache iOS cleared');
+      }
+      
+    } catch (err) {
+      console.error('❌ Error:', err);
+      alert('❌ Gagal menyimpan foto: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '✓ Simpan Foto';
+    }
+  }
+
+  function Base64ToBytes(base64) {
+    const binary_string = atob(base64.split(',')[1]);
+    const len = binary_string.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) bytes[i] = binary_string.charCodeAt(i);
+    return bytes;
+  }
 </script>
+
+<!-- Avatar Preview Modal -->
+<div id="avatarModal" class="avatar-modal">
+  <div class="avatar-modal-content">
+    <div class="avatar-modal-title">📸 Preview Foto Profil</div>
+    <div class="avatar-preview" id="avatarPreview">
+      <div style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; color:var(--text-muted);">Loading...</div>
+    </div>
+    <div class="avatar-info" id="avatarFileSize">Ukuran: menghitung...</div>
+    <div class="avatar-info" style="font-size:0.8rem; color:var(--text-muted);">
+      <p>Foto akan disimpan di profil Anda dan terlihat di semua perangkat.</p>
+    </div>
+    <div class="avatar-modal-buttons">
+      <button class="avatar-btn-cancel" onclick="closeAvatarModal()">Batal</button>
+      <button class="avatar-btn-confirm" id="avatarConfirmBtn" onclick="confirmAvatarUpload()">✓ Simpan Foto</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
