@@ -343,6 +343,9 @@
     <a href="#" onclick="showTab('data-management')" id="nav-data-management">
       <span class="nav-icon">🗑️</span> Manajemen Data
     </a>
+    <a href="#" onclick="showTab('sales-report')" id="nav-sales-report">
+      <span class="nav-icon">📈</span> Laporan Penjualan
+    </a>
     <a href="#" onclick="showTab('settings')" id="nav-settings">
       <span class="nav-icon">⚙️</span> Pengaturan
     </a>
@@ -500,6 +503,80 @@
           <li>Pastikan Anda backup data sebelum menghapus</li>
           <li>Konfirmasi ganda akan diminta sebelum eksekusi</li>
         </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SALES REPORT ── -->
+  <section class="admin-section" id="tab-sales-report">
+    <div class="admin-header"><div><h1>📈 Laporan Penjualan</h1><p>Analisis penjualan bulanan per produk</p></div></div>
+    
+    <div style="display:grid;grid-template-columns:1fr;gap:2rem">
+      <!-- Month Selector -->
+      <div class="stat-card">
+        <h3 style="font-family:var(--font-display);color:var(--aqua);font-size:1rem;margin-bottom:1.5rem">📅 Pilih Bulan</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1rem">
+          <button class="btn-secondary" onclick="loadSalesReport(1)" style="border-color:var(--card-border);color:var(--text-muted)">Januari</button>
+          <button class="btn-secondary" onclick="loadSalesReport(2)" style="border-color:var(--card-border);color:var(--text-muted)">Februari</button>
+          <button class="btn-secondary" onclick="loadSalesReport(3)" style="border-color:var(--card-border);color:var(--text-muted)">Maret</button>
+          <button class="btn-secondary" onclick="loadSalesReport(4)" style="border-color:var(--card-border);color:var(--text-muted)">April</button>
+          <button class="btn-secondary" onclick="loadSalesReport(5)" style="border-color:var(--card-border);color:var(--text-muted)">Mei</button>
+          <button class="btn-secondary" onclick="loadSalesReport(6)" style="border-color:var(--card-border);color:var(--text-muted)">Juni</button>
+          <button class="btn-secondary" onclick="loadSalesReport(7)" style="border-color:var(--card-border);color:var(--text-muted)">Juli</button>
+          <button class="btn-secondary" onclick="loadSalesReport(8)" style="border-color:var(--card-border);color:var(--text-muted)">Agustus</button>
+          <button class="btn-secondary" onclick="loadSalesReport(9)" style="border-color:var(--card-border);color:var(--text-muted)">September</button>
+          <button class="btn-secondary" onclick="loadSalesReport(10)" style="border-color:var(--card-border);color:var(--text-muted)">Oktober</button>
+          <button class="btn-secondary" onclick="loadSalesReport(11)" style="border-color:var(--card-border);color:var(--text-muted)">November</button>
+          <button class="btn-secondary" onclick="loadSalesReport(12)" style="border-color:var(--card-border);color:var(--text-muted)">Desember</button>
+        </div>
+      </div>
+
+      <!-- Report Summary -->
+      <div id="reportSummary" style="display:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.5rem">
+        <div class="stat-card">
+          <div class="stat-icon">📊</div>
+          <div class="stat-label" style="margin-bottom:0.5rem">Total Penjualan Bulan Ini</div>
+          <div class="stat-value" id="reportMonthTotal">Rp 0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📦</div>
+          <div class="stat-label" style="margin-bottom:0.5rem">Total Item Terjual</div>
+          <div class="stat-value" id="reportItemsTotal">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🛍️</div>
+          <div class="stat-label" style="margin-bottom:0.5rem">Jumlah Produk Terjual</div>
+          <div class="stat-value" id="reportProductCount">0</div>
+        </div>
+      </div>
+
+      <!-- Report Table -->
+      <div id="reportTableContainer" style="display:none">
+        <div class="admin-toolbar">
+          <h2>Detail Penjualan Produk</h2>
+          <div style="display:flex;gap:0.8rem">
+            <button class="btn-primary" onclick="downloadReportCSV()" style="background:var(--aqua);border-color:var(--aqua)">📥 Download CSV</button>
+            <button class="btn-secondary" onclick="downloadReportExcel()" style="border-color:var(--card-border);color:var(--text-muted)">📥 Download Excel</button>
+          </div>
+        </div>
+        <div class="products-table-wrap">
+          <table>
+            <thead>
+              <tr style="background:rgba(41,182,246,0.1);border-bottom:2px solid var(--card-border)">
+                <th style="padding:1rem;text-align:left;color:var(--aqua);font-weight:700">Produk</th>
+                <th style="padding:1rem;text-align:center;color:var(--aqua);font-weight:700">Qty</th>
+                <th style="padding:1rem;text-align:right;color:var(--aqua);font-weight:700">Harga Total</th>
+              </tr>
+            </thead>
+            <tbody id="reportTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div id="reportEmpty" class="stat-card" style="text-align:center;padding:2rem">
+        <div style="font-size:2.5rem;margin-bottom:1rem">📭</div>
+        <p style="color:var(--text-muted);margin:0">Pilih bulan untuk melihat laporan penjualan</p>
       </div>
     </div>
   </section>
@@ -1273,12 +1350,155 @@ async function saveHeroImage() {
   }
 }
 
+// ── SALES REPORT ──
+const monthNames = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+let currentReportData = null;
+
+async function loadSalesReport(month) {
+  const year = new Date().getFullYear();
+  const btnSelector = document.querySelectorAll('#tab-sales-report .stat-card:first-child button');
+  
+  // Highlight selected month
+  btnSelector.forEach(btn => btn.style.background = btn.style.borderColor = 'var(--card-border)');
+  event.target.style.background = event.target.style.borderColor = 'var(--aqua)';
+  
+  showToast('⏳ Loading laporan...');
+  
+  try {
+    const res = await fetch(`/api/sales-report?month=${month}&year=${year}`);
+    if (!res.ok) throw new Error('Gagal load laporan');
+    
+    const data = await res.json();
+    currentReportData = { ...data, month };
+    
+    // Hide empty state, show report
+    document.getElementById('reportEmpty').style.display = 'none';
+    document.getElementById('reportSummary').style.display = 'grid';
+    document.getElementById('reportTableContainer').style.display = 'block';
+    
+    // Update summary
+    const monthData = data.monthly[month];
+    const monthTotal = Object.values(monthData || {}).reduce((sum, p) => sum + (p.revenue || 0), 0);
+    const itemsTotal = Object.values(monthData || {}).reduce((sum, p) => sum + (p.quantity || 0), 0);
+    const productCount = Object.keys(monthData || {}).length;
+    
+    document.getElementById('reportMonthTotal').innerText = formatCurrency(monthTotal);
+    document.getElementById('reportItemsTotal').innerText = itemsTotal;
+    document.getElementById('reportProductCount').innerText = productCount;
+    
+    // Render table
+    const tbody = document.getElementById('reportTableBody');
+    tbody.innerHTML = '';
+    
+    Object.values(monthData || {}).forEach(product => {
+      const tr = document.createElement('tr');
+      tr.style.borderBottom = '1px solid var(--card-border)';
+      tr.innerHTML = `
+        <td style="padding:1rem;color:var(--white)">${product.name}</td>
+        <td style="padding:1rem;text-align:center;color:var(--aqua);font-weight:700">${product.quantity}</td>
+        <td style="padding:1rem;text-align:right;color:#86efac;font-weight:700">${formatCurrency(product.revenue)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    
+    if (productCount === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" style="padding:2rem;text-align:center;color:var(--text-muted)">Tidak ada penjualan di bulan ini</td></tr>';
+    }
+    
+    showToast(`✅ Laporan ${monthNames[month]} dimuat (${productCount} produk)`);
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Error: ' + err.message);
+  }
+}
+
+function formatCurrency(amount) {
+  return 'Rp ' + Math.round(amount).toLocaleString('id-ID');
+}
+
+async function downloadReportCSV() {
+  if (!currentReportData) {
+    showToast('⚠ Load laporan terlebih dahulu!');
+    return;
+  }
+  
+  const month = currentReportData.month;
+  const year = currentReportData.year || new Date().getFullYear();
+  const monthData = currentReportData.monthly[month];
+  
+  let csv = `LAPORAN PENJUALAN - ${monthNames[month]} ${year}\n`;
+  csv += `Generated: ${new Date().toLocaleString('id-ID')}\n`;
+  csv += `\nNama Produk,Kuantitas,Total Harga\n`;
+  
+  let grandTotal = 0;
+  Object.values(monthData || {}).forEach(product => {
+    csv += `"${product.name}",${product.quantity},${product.revenue}\n`;
+    grandTotal += product.revenue;
+  });
+  
+  csv += `\nTOTAL,${Object.values(monthData || {}).reduce((sum, p) => sum + p.quantity, 0)},${grandTotal}\n`;
+  
+  // Download
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `laporan-${monthNames[month]}-${year}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  showToast('✅ CSV berhasil diunduh!');
+}
+
+async function downloadReportExcel() {
+  if (!currentReportData) {
+    showToast('⚠ Load laporan terlebih dahulu!');
+    return;
+  }
+  
+  showToast('⏳ Generating Excel file...');
+  
+  // For now, download as CSV with Excel extension
+  // For true Excel format, implement with xlsx library later
+  const month = currentReportData.month;
+  const year = currentReportData.year || new Date().getFullYear();
+  const monthData = currentReportData.monthly[month];
+  
+  // Tab-separated format also opens nicely in Excel
+  let tsv = `Laporan Penjualan - ${monthNames[month]} ${year}\n`;
+  tsv += `Generated: ${new Date().toLocaleString('id-ID')}\n`;
+  tsv += `\nNama Produk\tKuantitas\tTotal Harga\n`;
+  
+  let grandTotal = 0;
+  Object.values(monthData || {}).forEach(product => {
+    tsv += `${product.name}\t${product.quantity}\t${product.revenue}\n`;
+    grandTotal += product.revenue;
+  });
+  
+  tsv += `\nTOTAL\t${Object.values(monthData || {}).reduce((sum, p) => sum + p.quantity, 0)}\t${grandTotal}\n`;
+  
+  const blob = new Blob([tsv], { type: 'text/plain;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `laporan-${monthNames[month]}-${year}.xlsx`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  showToast('✅ Excel berhasil diunduh!');
+}
+
 // ── CLOSE MODAL ON OVERLAY CLICK ──
 document.getElementById('productModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
 document.getElementById('orderModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeOrderModal(); });
 
 // ── INIT ──
 renderDashboard();
+loadSettings();
 </script>
 </body>
 </html>
