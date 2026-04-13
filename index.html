@@ -378,6 +378,11 @@
   const nav = document.getElementById('userNav');
   if (!nav) return;
 
+  // Deteksi iOS
+  function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  }
+
   // Baca sesi login
   let session = null;
   try {
@@ -390,16 +395,32 @@
     const initials = (session.username || session.email || 'U')
       .replace(/[^a-zA-Z0-9]/g,'').slice(0,2).toUpperCase();
       
-    let savedAvatar = localStorage.getItem('aika_avatar_' + session.email);
+    let savedAvatar = null;
+    const isIos = isIOS();
+    const cacheKey = 'aika_avatar_' + session.email;
     
-    // Fetch avatar from API if not in localStorage
+    // iOS: Always fetch from API dengan cache bust
+    // Desktop: Try localStorage cache first
+    if (!isIos) {
+      savedAvatar = localStorage.getItem(cacheKey);
+    }
+    
+    // Fetch avatar from API if not in cache (iOS always, Desktop if not cached)
     if (!savedAvatar) {
-      fetch('/api/avatar', { headers: { 'x-user-email': session.email } })
+      const url = isIos 
+        ? `/api/avatar?email=${encodeURIComponent(session.email)}&t=${Date.now()}`
+        : `/api/avatar?email=${encodeURIComponent(session.email)}`;
+      
+      fetch(url)
         .then(r => r.ok ? r.json() : null)
         .then(data => {
           if (data && data.avatar) {
             savedAvatar = data.avatar;
-            localStorage.setItem('aika_avatar_' + session.email, savedAvatar);
+            // Cache only on desktop
+            if (!isIos) {
+              localStorage.setItem(cacheKey, savedAvatar);
+            }
+            console.log(`✅ Avatar loaded (${isIos ? 'iOS' : 'Desktop'})`, data.avatar.substring(0, 30) + '...');
             // Update all avatar displays
             document.querySelectorAll('.user-avatar').forEach(el => {
               el.innerHTML = `<img src="${savedAvatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
