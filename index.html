@@ -424,17 +424,12 @@
       // Render stats
       if (data.length > 0) {
         const topBuyer = data[0];
-        const totalSpent = data.reduce((sum, u) => sum + u.total_spent, 0);
         const totalOrders = data.reduce((sum, u) => sum + u.total_orders, 0);
         
         document.getElementById('leaderboardStats').innerHTML = `
           <div class="stat-card-lb">
             <div class="stat-value">${data.length}</div>
             <div class="stat-label">Top Supporters</div>
-          </div>
-          <div class="stat-card-lb">
-            <div class="stat-value">Rp ${Math.round(totalSpent / 1000000)}M</div>
-            <div class="stat-label">Total Terkumpul</div>
           </div>
           <div class="stat-card-lb">
             <div class="stat-value">${totalOrders}</div>
@@ -461,7 +456,6 @@
                 ${avatarHtml}
                 <div class="leaderboard-name">
                   <span class="leaderboard-username">${user.username}</span>
-                  <span class="leaderboard-email">${user.email}</span>
                 </div>
               </div>
             </td>
