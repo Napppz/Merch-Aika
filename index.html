@@ -396,23 +396,39 @@
       .replace(/[^a-zA-Z0-9]/g,'').slice(0,2).toUpperCase();
       
     let savedAvatar = null;
+    const isIos = isIOS();
+    const cacheKey = 'aika_avatar_' + session.email;
     
-    // HANYA fetch dari API, jangan cache di localStorage (quota terbatas)
-    const url = `/api/avatar?email=${encodeURIComponent(session.email)}&t=${Date.now()}`;
+    // iOS: Always fetch from API dengan cache bust
+    // Desktop: Try localStorage cache first
+    if (!isIos) {
+      savedAvatar = localStorage.getItem(cacheKey);
+    }
+    
+    // Fetch avatar from API if not in cache (iOS always, Desktop if not cached)
+    if (!savedAvatar) {
+      const url = isIos 
+        ? `/api/avatar?email=${encodeURIComponent(session.email)}&t=${Date.now()}`
+        : `/api/avatar?email=${encodeURIComponent(session.email)}`;
       
-    fetch(url)
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data && data.avatar) {
-          savedAvatar = data.avatar;
-          console.log('✅ Avatar loaded dari database');
-          // Update all avatar displays
-          document.querySelectorAll('.user-avatar').forEach(el => {
-            el.innerHTML = `<img src="${savedAvatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
-          });
-        }
-      })
-      .catch(err => console.error('Avatar load error:', err));
+      fetch(url)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data && data.avatar) {
+            savedAvatar = data.avatar;
+            // Cache only on desktop
+            if (!isIos) {
+              localStorage.setItem(cacheKey, savedAvatar);
+            }
+            console.log(`✅ Avatar loaded (${isIos ? 'iOS' : 'Desktop'})`, data.avatar.substring(0, 30) + '...');
+            // Update all avatar displays
+            document.querySelectorAll('.user-avatar').forEach(el => {
+              el.innerHTML = `<img src="${savedAvatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+            });
+          }
+        })
+        .catch(err => console.error('Error loading avatar from API:', err));
+    }
     
     const avatarContent = savedAvatar 
       ? `<img src="${savedAvatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
