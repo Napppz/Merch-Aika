@@ -1,5 +1,13 @@
 module.exports = async function handler(req, res) {
-  const route = req.query.route;
+  // Extract route from URL path or query parameter
+  // In Vercel, the dynamic segment [route] comes as part of req.url
+  let route = req.query.route;
+  
+  // If not in query, try to extract from URL path
+  if (!route) {
+    const pathMatch = req.url?.match(/\/api\/([^/?]+)/);
+    route = pathMatch ? pathMatch[1] : null;
+  }
   
   if (!route) {
     return res.status(400).json({ error: 'Rute tidak lengkap' });

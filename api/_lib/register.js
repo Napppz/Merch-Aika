@@ -55,21 +55,27 @@ module.exports = async function handler(req, res) {
     });
   });
 
-  // CORS dengan whitelist
+  // CORS - lebih fleksibel untuk development & production
   const allowedOrigins = [
     'https://merch-aika.vercel.app',
     'https://www.merch-aika.vercel.app',
     'http://localhost:3000',
-    'http://localhost:5173'
+    'http://localhost:5173',
+    'http://localhost',
+    'http://127.0.0.1'
   ];
   
   const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
+  
+  // Allow if in whitelist or if it's localhost-like
+  if (allowedOrigins.includes(origin) || 
+      (origin && (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('vercel.app')))) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
   
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   
   if (req.method === 'OPTIONS') return res.status(200).end();
 
