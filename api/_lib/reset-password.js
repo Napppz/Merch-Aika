@@ -1,5 +1,11 @@
 const { query } = require('./_db');
-const { hashPassword } = require('./auth-utils'); // Gunakan bcryptjs dari auth-utils
+const crypto = require('crypto');
+
+function hashPassword(password) {
+  // Menggunakan SHA-256 + salt untuk keamanan
+  const salt = process.env.PASSWORD_SALT || 'aika_sesilia_salt_2024';
+  return crypto.createHmac('sha256', salt).update(password).digest('hex');
+}
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -37,8 +43,8 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Waktu reset password sudah habis (lewat 15 menit), coba minta link lagi.' });
     }
 
-    // Hash password menggunakan bcryptjs (sama seperti saat register & login)
-    const hashed = await hashPassword(newPassword);
+    // Hash password menggunakan SHA-256 (sama seperti saat register & login)
+    const hashed = hashPassword(newPassword);
 
     // Update password di tabel Users
     await query('UPDATE users SET password_hash = $1 WHERE email = $2', [hashed, entry.email]);
