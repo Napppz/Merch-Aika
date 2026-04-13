@@ -27,26 +27,80 @@ module.exports = async (req, res) => {
         [id, customerName, email, address, status, total, typeof items === 'string' ? items : JSON.stringify(items), typeof shipping === 'string' ? shipping : JSON.stringify(shipping)]
       );
 
-      // (1/2) Kirim Notifikasi Email - Pesanan Baru / Dikemas
+      // (1/2) Kirim Notifikasi Email - Pesanan Baru ke Customer
       try {
         await transporter.sendMail({
           from: '"Aika Sesilia Merch" <noreply@aikamerch.com>',
           to: email, // Email pembeli
-          subject: `Terima Kasih, ${customerName}! Pesanan #${id} Sedang Dikemas 📦`,
+          subject: `Terima Kasih, ${customerName}! Pesanan #${id} Diterima 📦`,
           html: `
             <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
               <h2 style="color: #29b6f6;">Halo, ${customerName}!</h2>
               <p>Terima kasih telah berbelanja di Aika Sesilia Merch.</p>
-              <p>Pesanan Anda dengan nomor <strong>#${id}</strong> saat ini sedang <strong>DIKEMAS</strong> oleh tim kami dan akan segera diurus pengirimannya.</p>
-              <p>Total Belanja: <strong>Rp ${total.toLocaleString('id-ID')}</strong></p>
-              <p>Silakan tunggu email selanjutnya ketika resi sudah tersedia.</p>
+              <p>Pesanan Anda dengan nomor <strong>#${id}</strong> telah diterima dan sedang menunggu pembayaran.</p>
+              <p><strong>Total Pembayaran: Rp ${total.toLocaleString('id-ID')}</strong></p>
+              <p>Silakan selesaikan pembayaran melalui aplikasi atau website untuk melanjutkan.</p>
+              <p>Terima kasih atas kepercayaan Anda!</p>
               <br/>
               <p>Salam hangat,<br/>Aika Sesilia</p>
             </div>
           `
         });
       } catch (mailErr) {
-        console.error('Gagal mengirim email (POST):', mailErr.message);
+        console.error('Gagal mengirim email ke customer:', mailErr.message);
+      }
+
+      // (1b) Kirim Notifikasi Email ke Admin
+      try {
+        const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'rizkytyan17@gmail.com';
+        const itemsHTML = (Array.isArray(items) ? items : (typeof items === 'string' ? JSON.parse(items) : []))
+          .map(item => `<li>${item.name} × ${item.qty} = Rp ${(item.price * item.qty).toLocaleString('id-ID')}</li>`)
+          .join('');
+        
+        await transporter.sendMail({
+          from: '"Aika Sesilia Merch" <noreply@aikamerch.com>',
+          to: adminEmail,
+          subject: `🚨 Pesanan Baru #${id} - Menunggu Pembayaran`,
+          html: `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background:#f5f5f5; padding:2rem; border-radius:8px;">
+              <h2 style="color: #ff6b6b; border-bottom: 2px solid #ff6b6b; padding-bottom:1rem;">⚠️ PESANAN BARU MASUK</h2>
+              
+              <h3 style="color:#333;margin-top:1.5rem;">Informasi Pesanan:</h3>
+              <table style="width:100%;border-collapse:collapse;margin-bottom:1rem;">
+                <tr style="background:#e8e8e8;">
+                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">No. Pesanan</td>
+                  <td style="padding:0.8rem;border:1px solid #ddd;"><strong>#${id}</strong></td>
+                </tr>
+                <tr>
+                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Nama Pelanggan</td>
+                  <td style="padding:0.8rem;border:1px solid #ddd;">${customerName}</td>
+                </tr>
+                <tr style="background:#e8e8e8;">
+                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Email</td>
+                  <td style="padding:0.8rem;border:1px solid #ddd;">${email}</td>
+                </tr>
+                <tr>
+                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Alamat Pengiriman</td>
+                  <td style="padding:0.8rem;border:1px solid #ddd;">${address}</td>
+                </tr>
+                <tr style="background:#e8e8e8;">
+                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Total</td>
+                  <td style="padding:0.8rem;border:1px solid #ddd;color:#ff6b6b;font-weight:bold;">Rp ${total.toLocaleString('id-ID')}</td>
+                </tr>
+              </table>
+              
+              <h3 style="color:#333;">Item Pesanan:</h3>
+              <ul style="background:#fff; padding:1.5rem; border-left: 4px solid #ff6b6b; border-radius:4px;">
+                ${itemsHTML}
+              </ul>
+              
+              <p style="color:#666;margin-top:1.5rem;">Status: <strong style="color:#ff9800;">⏳ MENUNGGU PEMBAYARAN</strong></p>
+              <p style="font-size:0.9rem;color:#999;margin-top:2rem;">Email ini dikirim otomatis oleh sistem. Mohon segera verifikasi pembayaran pesanan ini.</p>
+            </div>
+          `
+        });
+      } catch (mailErr) {
+        console.error('Gagal mengirim email ke admin:', mailErr.message);
       }
 
       return res.status(201).json(rows[0]);
