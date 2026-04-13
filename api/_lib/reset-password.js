@@ -1,10 +1,5 @@
 const { query } = require('./_db');
-const crypto = require('crypto');
-
-function hashPassword(password) {
-  const salt = process.env.PASSWORD_SALT || 'aika_sesilia_salt_2024';
-  return crypto.createHmac('sha256', salt).update(password).digest('hex');
-}
+const { hashPassword } = require('./auth-utils'); // Gunakan bcryptjs dari auth-utils
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -42,18 +37,18 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Waktu reset password sudah habis (lewat 15 menit), coba minta link lagi.' });
     }
 
-    // Passwordnya kita hash 
-    const hashed = hashPassword(newPassword);
+    // Hash password menggunakan bcryptjs (sama seperti saat register & login)
+    const hashed = await hashPassword(newPassword);
 
     // Update password di tabel Users
     await query('UPDATE users SET password_hash = $1 WHERE email = $2', [hashed, entry.email]);
 
-    // Hapus Tokken dari tabel biar ngga dipakai dua kali
+    // Hapus Token dari tabel biar ngga dipakai dua kali
     await query('DELETE FROM password_reset_tokens WHERE email = $1', [entry.email]);
 
     res.status(200).json({ success: true, message: 'Password berhasil diperbarui!' });
   } catch (err) {
     console.error('Update Password error:', err.message);
-    res.status(500).json({ error: 'Failed' });
+    res.status(500).json({ error: err.message || 'Failed to reset password' });
   }
 };
