@@ -29,14 +29,10 @@ const registerSchema = Joi.object({
       'string.pattern.base': 'No HP tidak valid. Format: 08xx atau +62xx'
     }),
   password: Joi.string()
-    .min(10)
-    .pattern(/[A-Z]/)
-    .pattern(/[0-9]/)
-    .pattern(/[!@#$%^&*]/)
+    .min(6)
     .required()
     .messages({
-      'string.min': 'Password minimal 10 karakter',
-      'string.pattern.base': 'Password harus berisi: Huruf besar, angka, dan karakter spesial (!@#$%^&*)'
+      'string.min': 'Password minimal 6 karakter'
     }),
   confirmPassword: Joi.string()
     .required()
