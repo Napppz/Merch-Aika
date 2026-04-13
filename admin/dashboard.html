@@ -352,7 +352,7 @@
   </nav>
   <div class="sidebar-footer">
     <a href="../index.html" target="_blank">🌐 Lihat Toko</a>
-    <a href="../login.html?role=admin" onclick="localStorage.removeItem('aika_admin')" style="margin-top:0.8rem">🚪 Keluar</a>
+    <a href="#" onclick="adminLogout(event)" style="margin-top:0.8rem">🚪 Keluar</a>
   </div>
 </aside>
 
@@ -733,9 +733,83 @@ function toggleMobileMenu() {
   else overlay.classList.remove('show');
 }
 
-// ── AUTH CHECK ──
-if (localStorage.getItem('aika_admin') !== 'true') {
-  window.location.href = 'login.html';
+// ── SECURE AUTH CHECK ──
+function validateAdminSession() {
+  const token = sessionStorage.getItem('aika_admin_token');
+  const admin = sessionStorage.getItem('aika_admin_user');
+  const expiry = sessionStorage.getItem('aika_admin_expiry');
+  
+  // Check if all required session data exists
+  if (!token || !admin) {
+    // Clear any legacy localStorage admin data
+    localStorage.removeItem('aika_admin');
+    localStorage.removeItem('aika_admin_user');
+    window.location.href = '../login.html?role=admin';
+    return false;
+  }
+  
+  // Check if session has expired
+  if (expiry && Date.now() > parseInt(expiry)) {
+    sessionStorage.clear();
+    localStorage.removeItem('aika_admin');
+    window.location.href = '../login.html?role=admin&session=expired';
+    return false;
+  }
+  
+  // Extend session expiry on each page load
+  const newExpiry = Date.now() + (8 * 60 * 60 * 1000); // 8 hours
+  sessionStorage.setItem('aika_admin_expiry', newExpiry);
+  
+  return true;
+}
+
+// Validate admin session on page load
+if (!validateAdminSession()) {
+  throw new Error('Admin session invalid');
+}
+
+// ── ADMIN LOGOUT FUNCTION ──
+async function adminLogout(event) {
+  event.preventDefault();
+  
+  if (!confirm('Yakin ingin keluar dari dashboard admin?')) {
+    return;
+  }
+  
+  const token = sessionStorage.getItem('aika_admin_token');
+  
+  try {
+    // Call logout endpoint
+    const res = await fetch('/api/admin-logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({ token: token }),
+      credentials: 'same-origin'
+    });
+    
+    const data = await res.json();
+    
+    // Clear session regardless of server response
+    sessionStorage.removeItem('aika_admin_token');
+    sessionStorage.removeItem('aika_admin_user');
+    sessionStorage.removeItem('aika_admin_expiry');
+    localStorage.removeItem('aika_admin');
+    localStorage.removeItem('aika_admin_user');
+    localStorage.removeItem('aika_admin_expiry');
+    
+    // Redirect to login
+    window.location.href = '../login.html?role=admin&logged_out=1';
+    
+  } catch (err) {
+    console.error('Logout error:', err);
+    // Even on error, clear session and redirect
+    sessionStorage.clear();
+    localStorage.removeItem('aika_admin');
+    window.location.href = '../login.html?role=admin';
+  }
 }
 
 // ── DATA HELPERS (Neon DB API) ──
