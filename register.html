@@ -488,13 +488,13 @@
     <!-- ── STEP 2: Password ── -->
     <div class="form-step" id="step2">
       <p class="step-title">Buat Password</p>
-      <p class="step-subtitle">Gunakan kombinasi huruf, angka, dan simbol.</p>
+      <p class="step-subtitle">Minimal 6 karakter.</p>
 
       <div class="form-group">
         <label for="reg-password">Password</label>
         <div class="password-wrap input-icon-wrap">
           <span class="input-icon">🔒</span>
-          <input type="password" id="reg-password" placeholder="Minimal 8 karakter" autocomplete="new-password" oninput="checkStrength()" />
+          <input type="password" id="reg-password" placeholder="Minimal 6 karakter" autocomplete="new-password" oninput="checkStrength()" />
           <button class="toggle-pw" type="button" onclick="togglePw('reg-password','pwToggle1')" id="pwToggle1">👁</button>
         </div>
         <div class="pw-strength"><div class="pw-strength-bar" id="pwBar"></div></div>
@@ -650,17 +650,19 @@ function checkStrength() {
   const bar = document.getElementById('pwBar');
   const label = document.getElementById('pwLabel');
   let score = 0;
-  if (pw.length >= 8) score++;
-  if (pw.length >= 12) score++;
-  if (/[A-Z]/.test(pw)) score++;
-  if (/[0-9]/.test(pw)) score++;
-  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  
+  // Minimal 6 karakter
+  if (pw.length >= 6) score += 2; // Meets requirement
+  if (pw.length >= 10) score += 1; // Bonus for longer
+  if (/[A-Z]/.test(pw)) score += 1; // Bonus for uppercase
+  if (/[0-9]/.test(pw)) score += 1; // Bonus for digits
+  if (/[^A-Za-z0-9]/.test(pw)) score += 1; // Bonus for special chars
 
   const levels = [
-    { pct:'20%', color:'#ef4444', text:'Sangat Lemah' },
-    { pct:'40%', color:'#f97316', text:'Lemah' },
-    { pct:'60%', color:'#eab308', text:'Sedang' },
-    { pct:'80%', color:'#22c55e', text:'Kuat' },
+    { pct:'20%', color:'#ef4444', text:'Terlalu Pendek' },
+    { pct:'50%', color:'#eab308', text:'Cukup ✓' },
+    { pct:'75%', color:'#22c55e', text:'Bagus' },
+    { pct:'90%', color:'#10b981', text:'Kuat' },
     { pct:'100%', color:'#10b981', text:'Sangat Kuat 💪' },
   ];
   const lvl = levels[Math.min(score, 4)];
