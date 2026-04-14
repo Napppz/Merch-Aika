@@ -5,7 +5,7 @@ const { query } = require('./_db');
 const crypto = require('crypto');
 
 function hashPassword(password) {
-  const salt = process.env.PASSWORD_SALT || 'aika_sesilia_salt_2024';
+  const salt = process.env.PASSWORD_SALT || 'aika_sesilia_salt_2024_secure';
   return crypto.createHmac('sha256', salt).update(password).digest('hex');
 }
 
