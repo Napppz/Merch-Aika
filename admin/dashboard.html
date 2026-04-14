@@ -7,6 +7,31 @@
   
   <!-- ⚠️ SECURITY: LOGIN PROTECTION - Must run before page loads -->
   <script>
+    // Helper to display error and countdown before redirect
+    function showProtectionError(title, message, details, url) {
+      try {
+        document.getElementById('errorTitle').textContent = title;
+        document.getElementById('errorMsg').textContent = message;
+        document.getElementById('errorDetails').textContent = details;
+        document.getElementById('protectionError').style.display = 'flex';
+        
+        // Countdown
+        let remaining = 3;
+        const countdownEl = document.getElementById('countdown');
+        const interval = setInterval(() => {
+          remaining--;
+          countdownEl.textContent = remaining;
+          if (remaining <= 0) {
+            clearInterval(interval);
+            window.location.replace(url);
+          }
+        }, 1000);
+      } catch(e) {
+        // Fallback if DOM manipulation fails
+        setTimeout(() => window.location.replace(url), 3000);
+      }
+    }
+
     (function() {
       console.log('[SECURITY] ================================');
       console.log('[SECURITY] Dashboard protection script STARTED');
@@ -26,7 +51,13 @@
         console.error('[SECURITY]   2. localStorage was cleared');
         console.error('[SECURITY]   3. Page is in private/incognito mode');
         console.error('[SECURITY] Redirecting to login for re-authentication...');
-        window.location.replace('/login.html?role=admin&error=no_token');
+        
+        showProtectionError(
+          '⚠️ No Token Found',
+          'Admin token not found in localStorage.',
+          'Possible causes:\n• Login did not complete successfully\n• Browser cleared localStorage\n• Private/incognito mode limitations',
+          '/login.html?role=admin&error=no_token'
+        );
         return;
       }
 
@@ -100,7 +131,13 @@
           console.warn('[SECURITY] Current time:', new Date(now * 1000).toISOString());
           console.warn('[SECURITY] Age:', (now - payload.exp) + ' seconds');
           localStorage.removeItem('adminToken');
-          window.location.replace('/login.html?role=admin&error=token_expired');
+          
+          showProtectionError(
+            '⏰ Token Expired',
+            'Your admin session has expired.',
+            'Token expired at: ' + new Date(payload.exp * 1000).toLocaleString() + '\nPlease login again.',
+            '/login.html?role=admin&error=token_expired'
+          );
           return;
         }
 
@@ -116,11 +153,32 @@
         console.error('[SECURITY] ❌ Critical error during token validation:', error);
         console.error('[SECURITY] Error message:', error.message);
         console.error('[SECURITY] Error stack:', error.stack);
+        console.error('[SECURITY] 💡 Debug info available at /admin/debug.html');
         localStorage.removeItem('adminToken');
-        window.location.replace('/login.html?role=admin&error=invalid_token');
+        
+        showProtectionError(
+          '❌ Token Validation Error',
+          'Failed to validate admin token.',
+          'Error: ' + error.message + '\nvist /admin/debug.html for more info',
+          '/login.html?role=admin&error=invalid_token'
+        );
       }
     })();
   </script>
+  
+  <!-- Error Display (shown if protection script finds errors) -->
+  <div id="protectionError" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); z-index:99999; display:flex; align-items:center; justify-content:center;">
+    <div style="background:var(--card-bg); border:2px solid #ff6b6b; border-radius:12px; padding:2rem; max-width:500px; text-align:center;">
+      <div style="font-size:3rem; margin-bottom:1rem;">⚠️</div>
+      <h2 style="color:#ff6b6b; margin-bottom:1rem;" id="errorTitle">Authentication Error</h2>
+      <p style="color:var(--text-muted); margin-bottom:1.5rem;" id="errorMsg">Token validation failed.</p>
+      <div style="background:rgba(255,107,107,0.1); border:1px solid #ff6b6b; border-radius:8px; padding:1rem; margin-bottom:1.5rem; text-align:left; max-height:200px; overflow-y:auto;">
+        <code id="errorDetails" style="color:#ffb3b3; font-size:0.85rem; word-break:break-word;">Loading...</code>
+      </div>
+      <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1rem;">Redirecting to login in <span id="countdown">3</span> seconds...</p>
+      <a href="/admin/debug.html" style="display:inline-block; padding:0.7rem 1.5rem; background:var(--aqua); color:var(--midnight-blue); text-decoration:none; border-radius:8px; font-weight:bold;">View Debug Info</a>
+    </div>
+  </div>
   
   <!-- Debug Logger System -->
   <script>
