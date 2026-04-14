@@ -17,8 +17,8 @@ function hashPassword(password) {
 
 // ⚠️ CRITICAL: Pre-hash the admin password
 // NEVER store plain text passwords!
-// Generate correct hash: hashPassword('your_password')
-const DEFAULT_PASSWORD_HASH = hashPassword('Aikanap2213');
+// Generate correct hash: node generate-admin-hash.js
+const DEFAULT_PASSWORD_HASH = '000f49c6d3cfa4232f61c54c6348a4c7d4f825870ba6c53e81b92745add01db6';
 const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || DEFAULT_PASSWORD_HASH;
 
 // Log untuk debugging (helpful untuk troubleshooting)
