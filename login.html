@@ -496,38 +496,69 @@ function doLogin() {
       loginPayload.password = '';
       
       if (data.success && data.admin) {
-        console.log('[LOGIN] Admin login successful');
-        console.log('[LOGIN] User:', data.admin.username);
+        console.log('[LOGIN] ✅ ADMIN LOGIN SUCCESSFUL');
+        console.log('[LOGIN] Username:', data.admin.username);
+        console.log('[LOGIN] Admin ID:', data.admin.id);
         
         // Simple session-based auth (no token verification needed)
         // Store admin session info in localStorage
-        localStorage.setItem('aika_admin_logged', 'true');
-        localStorage.setItem('aika_admin_user', JSON.stringify({
-          id: data.admin.id,
-          username: data.admin.username,
-          role: data.admin.role,
-          loginTime: Date.now()
-        }));
+        try {
+          localStorage.setItem('aika_admin_logged', 'true');
+          localStorage.setItem('aika_admin_user', JSON.stringify({
+            id: data.admin.id,
+            username: data.admin.username,
+            role: data.admin.role,
+            loginTime: Date.now()
+          }));
+          console.log('[LOGIN] ✅ Session data stored in localStorage');
+        } catch (e) {
+          console.error('[LOGIN] ❌ Failed to store session:', e.message);
+          showAlert('❌ Gagal menyimpan session: ' + e.message);
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+          return;
+        }
         
-        console.log('[LOGIN] Session stored successfully');
+        // Verify session was actually stored
+        const verify_logged = localStorage.getItem('aika_admin_logged');
+        const verify_user = localStorage.getItem('aika_admin_user');
+        console.log('[LOGIN] Verification after store:');
+        console.log('[LOGIN]   - aika_admin_logged:', verify_logged);
+        console.log('[LOGIN]   - aika_admin_user length:', verify_user ? verify_user.length : 0);
+        
+        if (verify_logged !== 'true' || !verify_user) {
+          console.error('[LOGIN] ❌ Session verification FAILED');
+          showAlert('❌ Session tidak tersimpan dengan benar');
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+          return;
+        }
+        
+        console.log('[LOGIN] ✅ Session verification PASSED');
         
         // Close any open modals
         const forgotModal = document.getElementById('forgotModal');
         if (forgotModal) forgotModal.classList.remove('active');
         
         // Show confirmation message
-        showAlert('✅ Berhasil masuk Admin! Mengalihkan...', 'success');
+        showAlert('✅ Berhasil masuk Admin! Mengalihkan ke dashboard...', 'success');
         
-        // Redirect with minimal delay
+        // Redirect with proper delay
         setTimeout(() => {
-          console.log('[LOGIN] Executing redirect to /admin/dashboard.html');
-          console.log('[LOGIN] Session data before redirect:');
-          console.log('  - aika_admin_logged:', localStorage.getItem('aika_admin_logged'));
-          console.log('  - aika_admin_user exists:', !!localStorage.getItem('aika_admin_user'));
+          console.log('[LOGIN] 🔄 EXECUTING REDIRECT TO DASHBOARD');
+          console.log('[LOGIN] Final session check before redirect:');
+          console.log('[LOGIN]   - aika_admin_logged:', localStorage.getItem('aika_admin_logged'));
+          console.log('[LOGIN]   - aika_admin_user:', localStorage.getItem('aika_admin_user').substring(0, 80) + '...');
           
-          // Direct redirect using replace
+          // Use replace to prevent back button from returning to login
           window.location.replace('/admin/dashboard.html');
-        }, 300); // Very minimal delay
+          
+          // Fallback (shouldn't execute if replace works)
+          console.log('[LOGIN] ⚠️ FALLBACK: If you see this, replace might not have worked');
+          setTimeout(() => {
+            window.location.href = '/admin/dashboard.html';
+          }, 500);
+        }, 1000); // Give browser 1 second to persist localStorage
       } else {
         console.error('[LOGIN] Login response missing success flag:', data);
         showAlert(data.message || '❌ Username atau password admin salah!');
