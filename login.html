@@ -276,79 +276,6 @@
       .auth-card { padding: 2rem 1.5rem; border-radius: 20px; }
     }
   </style>
-
-  <!-- Debug Logging System - MUST be in HEAD before HTML elements use it -->
-  <script>
-    // Debug Logger class
-    class DebugLogger {
-      constructor(prefix) {
-        this.prefix = prefix;
-        this.logs = [];
-        this.loadFromStorage();
-      }
-      
-      log(msg, type = 'log') {
-        const timestamp = new Date().toLocaleTimeString();
-        const entry = {
-          time: timestamp,
-          prefix: this.prefix,
-          msg: msg,
-          type: type
-        };
-        
-        this.logs.push(entry);
-        
-        // Also log to console
-        const logMsg = `[${this.prefix}] ${msg}`;
-        if (type === 'error') console.error(logMsg);
-        else if (type === 'warn') console.warn(logMsg);
-        else console.log(logMsg);
-        
-        this.saveToStorage();
-      }
-      
-      saveToStorage() {
-        try {
-          localStorage.setItem('adminDebugLogs', JSON.stringify({
-            logs: this.logs,
-            lastUpdate: Date.now()
-          }));
-        } catch(e) {
-          console.error('Failed to save debug logs:', e);
-        }
-      }
-      
-      loadFromStorage() {
-        try {
-          const stored = localStorage.getItem('adminDebugLogs');
-          if (stored) {
-            const data = JSON.parse(stored);
-            this.logs = data.logs || [];
-          }
-        } catch(e) {
-          // Ignore load errors
-        }
-      }
-      
-      clear() {
-        this.logs = [];
-        localStorage.removeItem('adminDebugLogs');
-      }
-    }
-
-    const debugLog = new DebugLogger('LOGIN');
-
-    // Function stubs - prevent "not defined" error
-    function doLogin() {}
-    function togglePw() {}
-    function openForgot() {}
-    function closeForgot() {}
-    function switchRole() {}
-    function showAlert() {}
-    function clearAlert() {}
-    function sendReset() {}
-    function onLoginSuccess() {}
-  </script>
 </head>
 <body>
 
@@ -545,9 +472,6 @@ function doLogin() {
       credentials: 'same-origin'
     })
     .then(r => {
-      debugLog.log('API Response Status: ' + r.status);
-      debugLog.log('Response HTTP Status: ' + (r.status === 200 ? '✅ 200 OK' : '⚠️ ' + r.status));
-      
       // Check for rate limiting (429 Too Many Requests)
       if (r.status === 429) {
         throw new Error('Terlalu banyak percobaan. Tunggu 15 menit.');
@@ -568,87 +492,29 @@ function doLogin() {
       // Clear payload from memory
       loginPayload.password = '';
       
-      debugLog.log('📦 RAW API Response received');
-      debugLog.log('Response structure: success=' + data.success + ', has admin=' + (data.admin ? 'YES' : 'NO'));
-      if (data.admin) {
-        debugLog.log('  admin.id=' + data.admin.id);
-        debugLog.log('  admin.username=' + data.admin.username);
-        debugLog.log('  admin.role=' + data.admin.role);
-        debugLog.log('  admin.token=' + (data.admin.token ? 'STRING(' + data.admin.token.length + ' chars)' : 'MISSING'));
-      }
-      
       if (data.success && data.admin) {
-        debugLog.log('✅ Success! Token: ' + (data.admin.token ? 'YES' : 'NO'));
-        debugLog.log('Admin ID: ' + data.admin.id);
-        
         // Store admin token in localStorage (for dashboard protection check)
-        // IMPORTANT: langsung store, jangan tunggu
-        try {
-          debugLog.log('💾 Storing adminToken...');
-          localStorage.setItem('adminToken', data.admin.token);
-          debugLog.log('  ✅ setItem("adminToken", ...) completed');
-          
-          const storedToken = localStorage.getItem('adminToken');
-          debugLog.log('  ✅ Verify: ' + (storedToken ? 'Retrieved (' + storedToken.length + ' chars)' : 'NOT FOUND'));
-          
-          debugLog.log('💾 Storing aika_admin_user...');
-          localStorage.setItem('aika_admin_user', JSON.stringify({
-            username: data.admin.username,
-            role: data.admin.role,
-            loginTime: Date.now()
-          }));
-          debugLog.log('  ✅ setItem("aika_admin_user", ...) completed');
-          
-          const storedUser = localStorage.getItem('aika_admin_user');
-          debugLog.log('  ✅ Verify: ' + (storedUser ? 'Retrieved' : 'NOT FOUND'));
-          
-          debugLog.log('✅ Token & user info stored');
-        } catch(err) {
-          debugLog.log('❌ Failed to store in localStorage: ' + err.message, 'error');
-          debugLog.log('Error name: ' + err.name, 'error');
-          showAlert('❌ Gagal menyimpan sesi. Coba refresh halaman.');
-          btn.disabled = false;
-          btn.innerHTML = originalText;
-          return;
-        }
+        localStorage.setItem('adminToken', data.admin.token);
         
-        // VERIFICATION: Double-check localStorage before redirecting
-        debugLog.log('🔍 FINAL VERIFICATION BEFORE REDIRECT');
-        const verifyToken = localStorage.getItem('adminToken');
-        const verifyUser = localStorage.getItem('aika_admin_user');
-        debugLog.log('  adminToken: ' + (verifyToken ? '✅ YES (' + verifyToken.substring(0,20) + '...)' : '❌ NO'));
-        debugLog.log('  aika_admin_user: ' + (verifyUser ? '✅ YES' : '❌ NO'));
+        // Also store user info
+        localStorage.setItem('aika_admin_user', JSON.stringify({
+          username: data.admin.username,
+          role: data.admin.role,
+          loginTime: Date.now()
+        }));
         
-        if (!verifyToken || !verifyUser) {
-          debugLog.log('❌ CRITICAL: Token verification failed!', 'error');
-          showAlert('❌ Token verification failed.');
-          btn.disabled = false;
-          btn.innerHTML = originalText;
-          return;
-        }
-        
-        debugLog.log('✅ ALL CHECKS PASSED - Ready to redirect');
-        debugLog.log('Executing: window.location.replace(/admin/dashboard.html)');
-        showAlert('✅ Berhasil masuk! Masuk ke dashboard...', 'success');
-        
-        // DELAY 2 seconds to ensure token is fully persisted to disk
-        // (Some browsers need more time for localStorage flush)
+        showAlert('✅ Berhasil masuk Admin! Mengalihkan...', 'success');
         setTimeout(() => {
-          window.location.replace('/admin/dashboard.html');
-        }, 2000);
+          window.location.href = 'admin/dashboard.html';
+        }, 800);
       } else {
-        debugLog.log('❌ Response not successful', 'warn');
-        if (!data.success) debugLog.log('  Reason: success=false', 'warn');
-        if (!data.admin) debugLog.log('  Reason: admin=missing', 'warn');
-        if (data.admin && !data.admin.token) debugLog.log('  Reason: admin.token=missing', 'warn');
         showAlert(data.message || '❌ Username atau password admin salah!');
         btn.disabled = false;
         btn.innerHTML = originalText;
       }
     })
     .catch(err => {
-      debugLog.log('❌ FETCH ERROR: ' + err.message, 'error');
-      debugLog.log('  Name: ' + err.name, 'error');
+      console.error('Admin login error:', err);
       showAlert('❌ ' + (err.message || 'Koneksi server gagal. Coba lagi.'));
       document.getElementById('login-password').value = '';
       btn.disabled = false;
