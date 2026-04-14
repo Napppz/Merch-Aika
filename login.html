@@ -299,35 +299,37 @@
     <div class="auth-alert" id="authAlert"></div>
 
     <!-- ── LOGIN FORM ── -->
-    <div class="form-group">
-      <label for="login-email">Email / Username</label>
-      <div class="input-icon-wrap">
-        <span class="input-icon">✉️</span>
-        <input type="text" id="login-email" placeholder="email@contoh.com" autocomplete="username"
-          onkeydown="if(event.key==='Enter')doLogin()" />
+    <form id="loginForm" onsubmit="return false;">
+      <div class="form-group">
+        <label for="login-email">Email / Username</label>
+        <div class="input-icon-wrap">
+          <span class="input-icon">✉️</span>
+          <input type="text" id="login-email" name="email" placeholder="email@contoh.com" autocomplete="username"
+            onkeydown="if(event.key==='Enter')doLogin()" />
+        </div>
       </div>
-    </div>
 
-    <div class="form-group" style="margin-bottom:0.5rem">
-      <label for="login-password">Password</label>
-      <div class="password-wrap input-icon-wrap">
-        <span class="input-icon">🔒</span>
-        <input type="password" id="login-password" placeholder="Password kamu" autocomplete="current-password"
-          onkeydown="if(event.key==='Enter')doLogin()" />
-        <button class="toggle-pw" type="button" onclick="togglePw()" id="pwToggle">👁</button>
+      <div class="form-group" style="margin-bottom:0.5rem">
+        <label for="login-password">Password</label>
+        <div class="password-wrap input-icon-wrap">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="login-password" name="password" placeholder="Password kamu" autocomplete="current-password"
+            onkeydown="if(event.key==='Enter')doLogin()" />
+          <button class="toggle-pw" type="button" onclick="togglePw()" id="pwToggle">👁</button>
+        </div>
       </div>
-    </div>
 
-    <a href="#" class="forgot-link" onclick="openForgot();return false">Lupa password?</a>
+      <a href="#" class="forgot-link" onclick="openForgot();return false">Lupa password?</a>
 
-    <div class="remember-wrap">
-      <input type="checkbox" id="rememberMe" checked />
-      <label for="rememberMe">Ingat saya di perangkat ini</label>
-    </div>
+      <div class="remember-wrap">
+        <input type="checkbox" id="rememberMe" checked />
+        <label for="rememberMe">Ingat saya di perangkat ini</label>
+      </div>
 
-    <button class="btn-primary w100" onclick="doLogin()" style="padding:1rem;font-size:1rem" id="loginBtn">
-      Masuk →
-    </button>
+      <button type="button" class="btn-primary w100" onclick="doLogin()" style="padding:1rem;font-size:1rem" id="loginBtn">
+        Masuk →
+      </button>
+    </form>
 
     <p class="auth-nav-link" id="registerLink">Belum punya akun? <a href="register.html">Daftar Sekarang</a></p>
 
@@ -681,17 +683,19 @@ if (resetToken) {
       <p>Masukkan password barumu di bawah ini</p>
     </div>
     <div class="auth-alert" id="resetAlert"></div>
-    <div class="form-group" style="margin-bottom:1.5rem">
-      <label>Password Baru</label>
-      <div class="password-wrap input-icon-wrap">
-        <span class="input-icon">🔒</span>
-        <input type="password" id="reset-password" placeholder="Minimal 6 karakter" />
-        <button class="toggle-pw" type="button" onclick="const pw=document.getElementById('reset-password'); if(pw.type==='password'){pw.type='text';this.textContent='🙈'}else{pw.type='password';this.textContent='👁'}">👁</button>
+    <form id="resetForm" onsubmit="return false;">
+      <div class="form-group" style="margin-bottom:1.5rem">
+        <label>Password Baru</label>
+        <div class="password-wrap input-icon-wrap">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="reset-password" name="newPassword" placeholder="Minimal 6 karakter" />
+          <button class="toggle-pw" type="button" onclick="const pw=document.getElementById('reset-password'); if(pw.type==='password'){pw.type='text';this.textContent='🙈'}else{pw.type='password';this.textContent='👁'}">👁</button>
+        </div>
       </div>
-    </div>
-    <button class="btn-primary w100" onclick="submitNewPassword('${resetToken}')" style="padding:1rem;font-size:1rem">
-      Simpan Password →
-    </button>
+      <button type="button" class="btn-primary w100" onclick="submitNewPassword('${resetToken}')" style="padding:1rem;font-size:1rem">
+        Simpan Password →
+      </button>
+    </form>
     <a href="login.html" class="auth-nav-link" style="margin-top:2rem;text-decoration:none">Kembali ke Login</a>
   `;
 }

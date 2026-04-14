@@ -448,6 +448,7 @@
     <div class="auth-alert" id="authAlert"></div>
 
     <!-- ── STEP 1: Info Akun ── -->
+    <form id="registerForm1" onsubmit="return false;">
     <div class="form-step active" id="step1">
       <p class="step-title">Informasi Akun</p>
       <p class="step-subtitle">Masukkan data dasar untuk akun kamu.</p>
@@ -456,7 +457,7 @@
         <label for="reg-username">Username</label>
         <div class="input-icon-wrap">
           <span class="input-icon">👤</span>
-          <input type="text" id="reg-username" placeholder="contoh: aika_fan123" autocomplete="username" />
+          <input type="text" id="reg-username" name="username" placeholder="contoh: aika_fan123" autocomplete="username" />
         </div>
       </div>
 
@@ -464,7 +465,7 @@
         <label for="reg-email">Alamat Email</label>
         <div class="input-icon-wrap">
           <span class="input-icon">✉️</span>
-          <input type="email" id="reg-email" placeholder="email@contoh.com" autocomplete="email" />
+          <input type="email" id="reg-email" name="email" placeholder="email@contoh.com" autocomplete="email" />
         </div>
       </div>
 
@@ -478,14 +479,16 @@
         </div>
       </div>
 
-      <button class="btn-primary w100" onclick="goStep2()" style="padding:1rem;font-size:1rem;margin-top:0.5rem">
+      <button type="button" class="btn-primary w100" onclick="goStep2()" style="padding:1rem;font-size:1rem;margin-top:0.5rem">
         Lanjut →
       </button>
 
       <p class="auth-nav-link">Sudah punya akun? <a href="login.html">Masuk di sini</a></p>
     </div>
+    </form>
 
     <!-- ── STEP 2: Password ── -->
+    <form id="registerForm2" onsubmit="return false;">
     <div class="form-step" id="step2">
       <p class="step-title">Buat Password</p>
       <p class="step-subtitle">Minimal 6 karakter.</p>
@@ -494,7 +497,7 @@
         <label for="reg-password">Password</label>
         <div class="password-wrap input-icon-wrap">
           <span class="input-icon">🔒</span>
-          <input type="password" id="reg-password" placeholder="Minimal 6 karakter" autocomplete="new-password" oninput="checkStrength()" />
+          <input type="password" id="reg-password" name="password" placeholder="Minimal 6 karakter" autocomplete="new-password" oninput="checkStrength()" />
           <button class="toggle-pw" type="button" onclick="togglePw('reg-password','pwToggle1')" id="pwToggle1">👁</button>
         </div>
         <div class="pw-strength"><div class="pw-strength-bar" id="pwBar"></div></div>
@@ -505,7 +508,7 @@
         <label for="reg-confirm">Konfirmasi Password</label>
         <div class="password-wrap input-icon-wrap">
           <span class="input-icon">🔑</span>
-          <input type="password" id="reg-confirm" placeholder="Ulangi password" autocomplete="new-password" oninput="checkConfirm()" />
+          <input type="password" id="reg-confirm" name="confirmPassword" placeholder="Ulangi password" autocomplete="new-password" oninput="checkConfirm()" />
           <button class="toggle-pw" type="button" onclick="togglePw('reg-confirm','pwToggle2')" id="pwToggle2">👁</button>
         </div>
         <div class="pw-label" id="confirmLabel">—</div>
@@ -517,12 +520,13 @@
       </div>
 
       <div style="display:flex;gap:0.8rem">
-        <button class="btn-ghost" onclick="goStep(1)" style="padding:1rem;flex:0 0 auto">← Kembali</button>
-        <button class="btn-primary w100" onclick="goStep3()" style="padding:1rem;font-size:1rem" id="sendOtpBtn">
+        <button type="button" class="btn-ghost" onclick="goStep(1)" style="padding:1rem;flex:0 0 auto">← Kembali</button>
+        <button type="button" class="btn-primary w100" onclick="goStep3()" style="padding:1rem;font-size:1rem" id="sendOtpBtn">
           Kirim Kode Verifikasi →
         </button>
       </div>
     </div>
+    </form>
 
     <!-- ── STEP 3: Verifikasi Email ── -->
     <div class="form-step" id="step3">
