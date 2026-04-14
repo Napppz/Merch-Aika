@@ -764,41 +764,6 @@ function toggleMobileMenu() {
   else overlay.classList.remove('show');
 }
 
-// ── SECURE AUTH CHECK ──
-function validateAdminSession() {
-  const token = sessionStorage.getItem('aika_admin_token');
-  const admin = sessionStorage.getItem('aika_admin_user');
-  const expiry = sessionStorage.getItem('aika_admin_expiry');
-  
-  // Check if all required session data exists
-  if (!token || !admin) {
-    // Clear any legacy localStorage admin data
-    localStorage.removeItem('aika_admin');
-    localStorage.removeItem('aika_admin_user');
-    window.location.href = '../login.html?role=admin';
-    return false;
-  }
-  
-  // Check if session has expired
-  if (expiry && Date.now() > parseInt(expiry)) {
-    sessionStorage.clear();
-    localStorage.removeItem('aika_admin');
-    window.location.href = '../login.html?role=admin&session=expired';
-    return false;
-  }
-  
-  // Extend session expiry on each page load
-  const newExpiry = Date.now() + (8 * 60 * 60 * 1000); // 8 hours
-  sessionStorage.setItem('aika_admin_expiry', newExpiry);
-  
-  return true;
-}
-
-// Validate admin session on page load
-if (!validateAdminSession()) {
-  throw new Error('Admin session invalid');
-}
-
 // ── ADMIN LOGOUT FUNCTION ──
 async function adminLogout(event) {
   event.preventDefault();
