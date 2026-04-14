@@ -461,7 +461,9 @@ function doLogin() {
     
     // Clear previous admin session (clean slate)
     sessionStorage.removeItem('aika_admin_token');
+    localStorage.removeItem('adminToken'); // Old token-based key
     localStorage.removeItem('aika_admin');
+    localStorage.removeItem('aika_admin_expiry');
     localStorage.removeItem('aika_admin_user');
     localStorage.removeItem('aika_admin_logged'); // Clear session flag
     
