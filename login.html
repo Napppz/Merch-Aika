@@ -499,24 +499,29 @@ function doLogin() {
         console.log('[LOGIN] Admin ID:', data.admin.id);
         
         // Store admin token in localStorage (for dashboard protection check)
-        localStorage.setItem('adminToken', data.admin.token);
-        console.log('[LOGIN] Token stored in localStorage:', localStorage.getItem('adminToken') ? 'YES' : 'NO');
+        // IMPORTANT: langsung store, jangan tunggu
+        try {
+          localStorage.setItem('adminToken', data.admin.token);
+          localStorage.setItem('aika_admin_user', JSON.stringify({
+            username: data.admin.username,
+            role: data.admin.role,
+            loginTime: Date.now()
+          }));
+          console.log('[LOGIN] ✅ Token & user info stored in localStorage');
+        } catch(err) {
+          console.error('[LOGIN] ❌ Failed to store in localStorage:', err);
+          showAlert('❌ Gagal menyimpan sesi. Coba refresh halaman.');
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+          return;
+        }
         
-        // Also store user info
-        localStorage.setItem('aika_admin_user', JSON.stringify({
-          username: data.admin.username,
-          role: data.admin.role,
-          loginTime: Date.now()
-        }));
-        console.log('[LOGIN] User info stored');
+        // Show success but DON'T block redirect
+        showAlert('✅ Berhasil masuk! Masuk ke dashboard...', 'success');
+        console.log('[LOGIN] ✅ Redirecting to dashboard immediately...');
         
-        showAlert('✅ Berhasil masuk Admin! Mengalihkan...', 'success');
-        console.log('[LOGIN] Redirecting to /admin/dashboard.html in 800ms...');
-        
-        setTimeout(() => {
-          console.log('[LOGIN] Executing redirect now');
-          window.location.href = '/admin/dashboard.html';  // ✅ Absolute path
-        }, 800);
+        // Redirect LANGSUNG tanpa timeout (remove setTimeout yang bisa diblock alert)
+        window.location.replace('/admin/dashboard.html');
       } else {
         console.log('[LOGIN] Response not successful:', data);
         showAlert(data.message || '❌ Username atau password admin salah!');
