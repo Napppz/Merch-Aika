@@ -459,10 +459,11 @@ function doLogin() {
       csrf_token: csrfToken // Include CSRF token
     };
     
-    // Clear previous admin session
+    // Clear previous admin session (clean slate)
     sessionStorage.removeItem('aika_admin_token');
     localStorage.removeItem('aika_admin');
     localStorage.removeItem('aika_admin_user');
+    localStorage.removeItem('aika_admin_logged'); // Clear session flag
     
     fetch('/api/admin-login', {
       method: 'POST',

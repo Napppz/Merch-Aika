@@ -8,31 +8,47 @@
   <!-- ⚠️ SECURITY: LOGIN PROTECTION - Simple Session Check -->
   <script>
     (function() {
+      console.clear();
+      console.log('%c=== DASHBOARD SECURITY CHECK ===', 'font-size:16px;font-weight:bold;color:blue');
+      
       // Simple session-based protection (no JWT token verification)
-      const isAdminLogged = localStorage.getItem('aika_admin_logged') === 'true';
+      const isAdminLogged = localStorage.getItem('aika_admin_logged');
       const adminUser = localStorage.getItem('aika_admin_user');
       
-      console.log('[SECURITY] Admin Session Check');
-      console.log('[SECURITY] Logged:', isAdminLogged);
-      console.log('[SECURITY] User data:', adminUser ? '✓ EXISTS' : '✗ MISSING');
+      console.log('Checking session flags:');
+      console.log('%caika_admin_logged = ' + isAdminLogged, 'color:' + (isAdminLogged === 'true' ? 'green' : 'red'));
+      console.log('%caika_admin_user = ' + (adminUser ? '✓ Exists' : '✗ Missing'), 'color:' + (adminUser ? 'green' : 'red'));
       
-      if (!isAdminLogged || !adminUser) {
-        console.warn('[SECURITY] No admin session. Redirecting to login.');
+      const hasValidSession = isAdminLogged === 'true' && adminUser;
+      
+      if (!hasValidSession) {
+        console.warn('%c❌ NO VALID SESSION - REDIRECTING TO LOGIN', 'color:red;font-size:14px;font-weight:bold');
+        console.log('Clearing corrupted session data...');
         localStorage.removeItem('aika_admin_logged');
         localStorage.removeItem('aika_admin_user');
-        window.location.replace('/login.html?role=admin');
+        
+        // Redirect with slight delay to ensure console logs appear
+        setTimeout(() => {
+          window.location.replace('/login.html?role=admin');
+        }, 100);
         return;
       }
 
       try {
         const user = JSON.parse(adminUser);
-        console.log('[SECURITY] ✅ Admin session verified:', user.username);
-        // Session valid, proceed to load dashboard
+        console.log('%c✅ ADMIN SESSION VALID', 'color:green;font-size:14px;font-weight:bold');
+        console.log('Logged in as:', user.username, '(ID:' + user.id + ')');
+        console.log('Session started:', new Date(user.loginTime).toLocaleString());
+        console.log('%c=== DASHBOARD LOADING ===', 'font-size:14px;font-weight:bold;color:green');
       } catch (error) {
-        console.error('[SECURITY] ❌ Session data corrupted:', error.message);
+        console.error('%c❌ SESSION DATA CORRUPTED', 'color:red;font-size:14px;font-weight:bold');
+        console.error('Error:', error.message);
         localStorage.removeItem('aika_admin_logged');
         localStorage.removeItem('aika_admin_user');
-        window.location.replace('/login.html?role=admin');
+        
+        setTimeout(() => {
+          window.location.replace('/login.html?role=admin');
+        }, 100);
       }
     })();
   </script>
