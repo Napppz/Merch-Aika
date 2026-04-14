@@ -72,6 +72,8 @@ function recordFailedAttempt(ip) {
     if (loginAttempts[ip].count >= MAX_ATTEMPTS) {
       loginAttempts[ip].locked = true;
       loginAttempts[ip].lockedAt = Date.now();
+      // Log suspicious activity
+      console.log(`[SECURITY] IP ${ip} locked out after ${MAX_ATTEMPTS} failed attempts`);
     }
   }
 }
@@ -83,9 +85,21 @@ function recordSuccessfulLogin(ip) {
 
 module.exports = async function handler(req, res) {
   // Security headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const allowedOrigins = [
+    'https://merch-aika.vercel.app',
+    'https://aika-sesilia.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:5000'
+  ];
+  
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
