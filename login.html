@@ -505,7 +505,7 @@ function doLogin() {
         
         showAlert('✅ Berhasil masuk Admin! Mengalihkan...', 'success');
         setTimeout(() => {
-          window.location.href = 'admin/dashboard.html';
+          window.location.href = '/admin/dashboard.html';  // ✅ Absolute path
         }, 800);
       } else {
         showAlert(data.message || '❌ Username atau password admin salah!');
