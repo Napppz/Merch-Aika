@@ -631,10 +631,11 @@ function doLogin() {
         debugLog.log('Executing: window.location.replace(/admin/dashboard.html)');
         showAlert('✅ Berhasil masuk! Masuk ke dashboard...', 'success');
         
-        // DELAY 1 second so user can see console if they're watching
+        // DELAY 2 seconds to ensure token is fully persisted to disk
+        // (Some browsers need more time for localStorage flush)
         setTimeout(() => {
           window.location.replace('/admin/dashboard.html');
-        }, 1000);
+        }, 2000);
       } else {
         debugLog.log('❌ Response not successful', 'warn');
         if (!data.success) debugLog.log('  Reason: success=false', 'warn');
