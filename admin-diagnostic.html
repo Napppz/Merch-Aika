@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login Diagnostic</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #1a1a1a;
+            color: #0f0;
+            padding: 20px;
+        }
+        .diagnostic-box {
+            border: 2px solid #0f0;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .status-ok { color: #0f0; }
+        .status-error { color: #f00; }
+        .status-warn { color: #ff0; }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0a0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Admin Login Diagnostic Tool</h1>
+    
+    <div class="diagnostic-box">
+        <h3>1. Check localStorage Token</h3>
+        <p>Status: <span id="token-status"></span></p>
+        <p>Token: <span id="token-value" style="word-break: break-all;"></span></p>
+        <button onclick="checkToken()">Check Token</button>
+    </div>
+
+    <div class="diagnostic-box">
+        <h3>2. Verify Token Format</h3>
+        <p>Status: <span id="format-status"></span></p>
+        <p>Header: <span id="token-header"></span></p>
+        <p>Payload: <span id="token-payload"></span></p>
+        <p>Signature: <span id="token-sig"></span></p>
+        <button onclick="verifyFormat()">Verify Format</button>
+    </div>
+
+    <div class="diagnostic-box">
+        <h3>3. Check Token Expiry</h3>
+        <p>Status: <span id="expiry-status"></span></p>
+        <p>Exp Time: <span id="exp-time"></span></p>
+        <p>Current Time: <span id="current-time"></span></p>
+        <p>Valid: <span id="valid-status"></span></p>
+        <button onclick="checkExpiry()">Check Expiry</button>
+    </div>
+
+    <div class="diagnostic-box">
+        <h3>4. Test API Login Endpoint</h3>
+        <p>Status: <span id="api-status"></span></p>
+        <p>Response: <span id="api-response"></span></p>
+        <input type="text" id="test-username" placeholder="Username (default: Aika)" style="padding: 5px; margin: 5px 0;">
+        <input type="password" id="test-password" placeholder="Password" style="padding: 5px; margin: 5px 0;">
+        <button onclick="testAPI()">Test Login API</button>
+    </div>
+
+    <div class="diagnostic-box">
+        <h3>5. Dashboard Access Test</h3>
+        <p>Status: <span id="dashboard-status"></span></p>
+        <button onclick="testDashboardRedirect()">Test Dashboard Redirect</button>
+        <button onclick="clearToken()">Clear Token & Reset</button>
+    </div>
+
+    <div class="diagnostic-box">
+        <h3>6. Debug Logs</h3>
+        <pre id="debug-logs" style="background: #000; padding: 10px; max-height: 300px; overflow-y: auto;"></pre>
+        <button onclick="clearLogs()">Clear Logs</button>
+    </div>
+
+    <script>
+        let debugLogs = [];
+
+        function log(msg, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMsg = `[${timestamp}] ${type.toUpperCase()}: ${msg}`;
+            debugLogs.push(logMsg);
+            document.getElementById('debug-logs').textContent = debugLogs.join('\n');
+            console.log(logMsg);
+        }
+
+        function clearLogs() {
+            debugLogs = [];
+            document.getElementById('debug-logs').textContent = '';
+        }
+
+        function checkToken() {
+            log('Checking localStorage token...');
+            const token = localStorage.getItem('adminToken');
+            
+            if (!token) {
+                document.getElementById('token-status').className = 'status-error';
+                document.getElementById('token-status').textContent = '❌ NO TOKEN';
+                document.getElementById('token-value').textContent = 'null';
+                log('No adminToken found in localStorage', 'error');
+                return;
+            }
+            
+            document.getElementById('token-status').className = 'status-ok';
+            document.getElementById('token-status').textContent = '✅ TOKEN FOUND';
+            document.getElementById('token-value').textContent = token.substring(0, 50) + '...';
+            log('Token found: ' + token.substring(0, 50) + '...', 'ok');
+        }
+
+        function verifyFormat() {
+            log('Verifying token format...');
+            const token = localStorage.getItem('adminToken');
+            
+            if (!token) {
+                document.getElementById('format-status').className = 'status-error';
+                document.getElementById('format-status').textContent = '❌ NO TOKEN';
+                log('No token to verify', 'error');
+                return;
+            }
+            
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+                document.getElementById('format-status').className = 'status-error';
+                document.getElementById('format-status').textContent = `❌ INVALID (${parts.length} parts)`;
+                log(`Invalid token format: expected 3 parts, got ${parts.length}`, 'error');
+                return;
+            }
+            
+            document.getElementById('format-status').className = 'status-ok';
+            document.getElementById('format-status').textContent = '✅ VALID FORMAT';
+            document.getElementById('token-header').textContent = parts[0].substring(0, 30) + '...';
+            document.getElementById('token-payload').textContent = parts[1].substring(0, 30) + '...';
+            document.getElementById('token-sig').textContent = parts[2].substring(0, 30) + '...';
+            log('Token format valid (3 parts)', 'ok');
+        }
+
+        function checkExpiry() {
+            log('Checking token expiry...');
+            const token = localStorage.getItem('adminToken');
+            
+            if (!token) {
+                document.getElementById('expiry-status').className = 'status-error';
+                document.getElementById('expiry-status').textContent = '❌ NO TOKEN';
+                return;
+            }
+            
+            try {
+                const parts = token.split('.');
+                const payload = JSON.parse(atob(parts[1]));
+                const now = Math.floor(Date.now() / 1000);
+                const expiry = payload.exp;
+                
+                const expDate = new Date(expiry * 1000).toLocaleString();
+                const nowDate = new Date(now * 1000).toLocaleString();
+                
+                document.getElementById('exp-time').textContent = expDate;
+                document.getElementById('current-time').textContent = nowDate;
+                
+                if (expiry < now) {
+                    document.getElementById('expiry-status').className = 'status-error';
+                    document.getElementById('expiry-status').textContent = '❌ EXPIRED';
+                    document.getElementById('valid-status').className = 'status-error';
+                    document.getElementById('valid-status').textContent = '❌ INVALID';
+                    log(`Token expired at ${expDate}`, 'error');
+                } else {
+                    const remaining = Math.floor((expiry - now) / 3600);
+                    document.getElementById('expiry-status').className = 'status-ok';
+                    document.getElementById('expiry-status').textContent = `✅ VALID (${remaining}h remaining)`;
+                    document.getElementById('valid-status').className = 'status-ok';
+                    document.getElementById('valid-status').textContent = '✅ ACTIVE';
+                    log(`Token valid for ${remaining} hours`, 'ok');
+                }
+            } catch (err) {
+                document.getElementById('expiry-status').className = 'status-error';
+                document.getElementById('expiry-status').textContent = '❌ ERROR: ' + err.message;
+                log('Error checking expiry: ' + err.message, 'error');
+            }
+        }
+
+        async function testAPI() {
+            log('Testing admin-login API...');
+            const username = document.getElementById('test-username').value || 'Aika';
+            const password = document.getElementById('test-password').value;
+            
+            if (!password) {
+                log('Password required for API test', 'warn');
+                document.getElementById('api-status').className = 'status-warn';
+                document.getElementById('api-status').textContent = '⚠️ ENTER PASSWORD';
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/admin-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    document.getElementById('api-status').className = 'status-ok';
+                    document.getElementById('api-status').textContent = '✅ LOGIN SUCCESS';
+                    document.getElementById('api-response').textContent = JSON.stringify(data, null, 2);
+                    log('API login successful', 'ok');
+                } else {
+                    document.getElementById('api-status').className = 'status-error';
+                    document.getElementById('api-status').textContent = '❌ LOGIN FAILED';
+                    document.getElementById('api-response').textContent = data.message;
+                    log('API login failed: ' + data.message, 'error');
+                }
+            } catch (err) {
+                document.getElementById('api-status').className = 'status-error';
+                document.getElementById('api-status').textContent = '❌ API ERROR';
+                document.getElementById('api-response').textContent = err.message;
+                log('API error: ' + err.message, 'error');
+            }
+        }
+
+        function testDashboardRedirect() {
+            log('Testing dashboard redirect...');
+            const token = localStorage.getItem('adminToken');
+            
+            if (!token) {
+                document.getElementById('dashboard-status').className = 'status-error';
+                document.getElementById('dashboard-status').textContent = '❌ NO TOKEN - Would redirect to login';
+                log('No token - dashboard would redirect to login', 'warn');
+                return;
+            }
+            
+            document.getElementById('dashboard-status').className = 'status-ok';
+            document.getElementById('dashboard-status').textContent = '✅ TOKEN EXISTS - Redirecting...';
+            log('Redirecting to dashboard...', 'ok');
+            setTimeout(() => {
+                window.location.href = '/admin/dashboard.html';
+            }, 1000);
+        }
+
+        function clearToken() {
+            log('Clearing token & resetting...');
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('aika_admin_user');
+            sessionStorage.clear();
+            
+            document.getElementById('token-status').textContent = '❌ CLEARED';
+            document.getElementById('format-status').textContent = '-';
+            document.getElementById('expiry-status').textContent = '-';
+            document.getElementById('dashboard-status').textContent = '-';
+            
+            log('Token cleared successfully', 'ok');
+        }
+
+        // Auto-check on load
+        window.addEventListener('load', () => {
+            log('Diagnostic tool loaded');
+            checkToken();
+            verifyFormat();
+            checkExpiry();
+        });
+    </script>
+</body>
+</html>
