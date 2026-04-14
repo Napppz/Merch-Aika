@@ -5,82 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard Admin — Aika Sesilia</title>
   
-  <!-- ⚠️ SECURITY: LOGIN PROTECTION - Simple Session Check -->
+  <!-- ⚠️ SECURITY: LOGIN PROTECTION -->
   <script>
-    // IMMEDIATE security check - no delay
     (function() {
-      console.log('%c[DASHBOARD] === SECURITY CHECK START ===', 'font-size:14px;font-weight:bold;color:blue');
+      const logged = localStorage.getItem('aika_admin_logged');
+      const userStr = localStorage.getItem('aika_admin_user');
       
-      // Wait a tiny bit for DOM to be ready
-      if (document.readyState === 'loading') {
-        console.log('[DASHBOARD] Document still loading, waiting...');
-        document.addEventListener('DOMContentLoaded', performSecurityCheck);
+      console.log('[DASHBOARD] Security check: logged=' + logged + ', user=' + (userStr ? 'yes' : 'no'));
+      
+      // Check session
+      if (logged !== 'true' || !userStr) {
+        console.log('[DASHBOARD] No valid session, redirecting to login');
+        window.location.replace('/login.html?role=admin');
         return;
       }
       
-      performSecurityCheck();
-      
-      function performSecurityCheck() {
-        console.log('[DASHBOARD] Performing security check...');
-        
-        // Simple session-based protection (no JWT token verification)
-        const isAdminLogged = localStorage.getItem('aika_admin_logged');
-        const adminUser = localStorage.getItem('aika_admin_user');
-        
-        console.log('[DASHBOARD] LocalStorage contents:');
-        console.log('[DASHBOARD]   - aika_admin_logged:', isAdminLogged, '(type: ' + typeof isAdminLogged + ')');
-        console.log('[DASHBOARD]   - aika_admin_user:', adminUser ? '✓ ' + adminUser.length + ' chars' : '✗ Missing');
-        
-        // Strict check for valid session
-        const isLogged = (isAdminLogged === 'true');
-        const hasUser = (adminUser && adminUser.length > 0);
-        const hasValidSession = isLogged && hasUser;
-        
-        console.log('[DASHBOARD] Session analysis:');
-        console.log('[DASHBOARD]   - Is logged (true)?', isLogged);
-        console.log('[DASHBOARD]   - Has user data?', hasUser);
-        console.log('[DASHBOARD]   - VALID?', hasValidSession);
-        
-        if (!hasValidSession) {
-          console.log('%c[DASHBOARD] ❌ NO VALID SESSION - MUST REDIRECT', 'color:red;font-weight:bold;font-size:13px');
-          console.log('[DASHBOARD] Clearing any corrupted data...');
-          localStorage.removeItem('aika_admin_logged');
-          localStorage.removeItem('aika_admin_user');
-          
-          // Redirect to login
-          setTimeout(() => {
-            console.log('[DASHBOARD] 🔄 Redirecting to login page...');
-            window.location.replace('/login.html?role=admin');
-          }, 150);
-          return; // Stop here - don't load dashboard
-        }
-
-        // Verify session data is valid JSON
-        try {
-          const user = JSON.parse(adminUser);
-          console.log('%c[DASHBOARD] ✅ SESSION VALID - DASHBOARD LOADING', 'color:green;font-weight:bold;font-size:13px');
-          console.log('[DASHBOARD] Admin user:', user.username);
-          console.log('[DASHBOARD] Admin ID:', user.id);
-          console.log('[DASHBOARD] Admin role:', user.role);
-          console.log('[DASHBOARD] Logged in at:', new Date(user.loginTime).toLocaleString());
-          console.log('%c[DASHBOARD] === SECURITY CHECK PASSED ===', 'font-size:13px;font-weight:bold;color:green');
-          // Session is valid - dashboard will load normally below
-        } catch (error) {
-          console.error('%c[DASHBOARD] ❌ SESSION DATA CORRUPTED', 'color:red;font-weight:bold;font-size:13px');
-          console.error('[DASHBOARD] JSON parse error:', error.message);
-          console.error('[DASHBOARD] Raw admin user:', adminUser);
-          console.log('[DASHBOARD] Clearing corrupted data and redirecting...');
-          
-          localStorage.removeItem('aika_admin_logged');
-          localStorage.removeItem('aika_admin_user');
-          
-          setTimeout(() => {
-            console.log('[DASHBOARD] 🔄 Redirecting to login (corrupted data)...');
-            window.location.replace('/login.html?role=admin');
-          }, 150);
-          return;
-        }
+      // Try to parse user data
+      try {
+        const user = JSON.parse(userStr);
+        console.log('[DASHBOARD] Session OK for user: ' + user.username);
+      } catch (e) {
+        console.log('[DASHBOARD] Session data corrupted, redirecting');
+        localStorage.removeItem('aika_admin_logged');
+        localStorage.removeItem('aika_admin_user');
+        window.location.replace('/login.html?role=admin');
+        return;
       }
+      
+      // Session valid - dashboard will load
     })();
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
