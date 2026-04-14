@@ -86,16 +86,14 @@
 
 <div class="section">
   <h2>2. Admin Login Test</h2>
-  <form id="testLoginForm">
-    <div>
-      <label>Username: <input type="text" id="test-username" value="Aika" style="width:150px"></label>
-    </div>
-    <div>
-      <label>Password: <input type="password" id="test-password" value="" style="width:150px"></label>
-    </div>
-    <button type="button" onclick="testAdminLogin()">Test Login /api/admin-login</button>
-    <button type="button" onclick="testAdminLogin2()">Test Login /api/admin-login (alternative)</button>
-  </form>
+  <div>
+    <label>Username: <input type="text" id="test-username" value="Aika" style="width:150px"></label>
+  </div>
+  <div>
+    <label>Password: <input type="password" id="test-password" value="" style="width:150px"></label>
+  </div>
+  <button onclick="testAdminLogin()">Test Login /api/admin-login</button>
+  <button onclick="testAdminLogin2()">Test Login /api/admin-login (alternative)</button>
   <div id="login-result"></div>
 </div>
 
@@ -209,24 +207,14 @@ function inspectLocalStorage() {
   const oldAdmin = localStorage.getItem('aika_admin');
   if (oldToken || oldAdmin) {
     html += `<div class="status warning">
-      <strong>⚠️ Old token keys detected (from previous auth system):</strong><br>
-      adminToken: ${oldToken ? '✗ EXISTS (remove)' : '✓ Not set'}<br>
-      aika_admin: ${oldAdmin ? '✗ EXISTS (remove)' : '✓ Not set'}<br><br>
-      <button onclick="cleanupOldKeys()" style="background:#ff9800">🧹 Clean Up Old Keys</button>
+      <strong>⚠️ Old token keys detected:</strong><br>
+      adminToken: ${oldToken ? 'EXISTS' : 'NOT SET'}<br>
+      aika_admin: ${oldAdmin ? 'EXISTS' : 'NOT SET'}
     </div>`;
     log('Old token-based keys found in localStorage', 'warning');
   }
   
   result.innerHTML = html;
-}
-
-function cleanupOldKeys() {
-  localStorage.removeItem('adminToken');
-  localStorage.removeItem('aika_admin');
-  localStorage.removeItem('aika_admin_expiry');
-  log('Old token keys cleaned up', 'success');
-  inspectLocalStorage(); // Refresh display
-}
 }
 
 function inspectSessionStorage() {
@@ -475,17 +463,12 @@ function createManualSession(username) {
 
 function clearSession() {
   log('Clearing all admin sessions', 'info');
-  // Clear new session-based storage
   localStorage.removeItem('aika_admin_logged');
   localStorage.removeItem('aika_admin_user');
-  // Clear old token-based storage
-  localStorage.removeItem('adminToken');
-  localStorage.removeItem('aika_admin');
-  localStorage.removeItem('aika_admin_expiry');
   sessionStorage.clear();
   
   const result = document.getElementById('manual-result');
-  result.innerHTML = '<div class="status info">✓ All sessions cleared (both old and new)</div>';
+  result.innerHTML = '<div class="status info">✓ All sessions cleared</div>';
   log('Sessions cleared', 'success');
 }
 

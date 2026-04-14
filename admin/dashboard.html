@@ -838,10 +838,6 @@ async function adminLogout(event) {
     // Clear session storage (session-based auth)
     localStorage.removeItem('aika_admin_logged');
     localStorage.removeItem('aika_admin_user');
-    // Also clear any old token-based keys
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('aika_admin');
-    localStorage.removeItem('aika_admin_expiry');
     
     // Redirect to login
     window.location.href = '/login.html?role=admin&logged_out=1';
@@ -851,9 +847,6 @@ async function adminLogout(event) {
     // Even on error, clear session and redirect
     localStorage.removeItem('aika_admin_logged');
     localStorage.removeItem('aika_admin_user');
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('aika_admin');
-    localStorage.removeItem('aika_admin_expiry');
     window.location.href = '/login.html?role=admin';
   }
 }
