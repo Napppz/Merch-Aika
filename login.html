@@ -492,9 +492,15 @@ function doLogin() {
       // Clear payload from memory
       loginPayload.password = '';
       
+      console.log('[LOGIN] API Response:', data);
+      
       if (data.success && data.admin) {
+        console.log('[LOGIN] Success! Token:', data.admin.token ? 'YES' : 'NO');
+        console.log('[LOGIN] Admin ID:', data.admin.id);
+        
         // Store admin token in localStorage (for dashboard protection check)
         localStorage.setItem('adminToken', data.admin.token);
+        console.log('[LOGIN] Token stored in localStorage:', localStorage.getItem('adminToken') ? 'YES' : 'NO');
         
         // Also store user info
         localStorage.setItem('aika_admin_user', JSON.stringify({
@@ -502,12 +508,17 @@ function doLogin() {
           role: data.admin.role,
           loginTime: Date.now()
         }));
+        console.log('[LOGIN] User info stored');
         
         showAlert('✅ Berhasil masuk Admin! Mengalihkan...', 'success');
+        console.log('[LOGIN] Redirecting to /admin/dashboard.html in 800ms...');
+        
         setTimeout(() => {
+          console.log('[LOGIN] Executing redirect now');
           window.location.href = '/admin/dashboard.html';  // ✅ Absolute path
         }, 800);
       } else {
+        console.log('[LOGIN] Response not successful:', data);
         showAlert(data.message || '❌ Username atau password admin salah!');
         btn.disabled = false;
         btn.innerHTML = originalText;

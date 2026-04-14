@@ -8,10 +8,13 @@
   <!-- ⚠️ SECURITY: LOGIN PROTECTION - Must run before page loads -->
   <script>
     (function() {
+      console.log('[SECURITY] Dashboard protection script running...');
+      
       const token = localStorage.getItem('adminToken');
+      console.log('[SECURITY] Token in localStorage:', token ? `YES (${token.substring(0,20)}...)` : 'NO');
       
       if (!token) {
-        console.warn('[SECURITY] No admin token found. Redirecting to login.');
+        console.warn('[SECURITY] ❌ No admin token found. Redirecting to login.');
         window.location.replace('/login.html?role=admin&error=no_token');
         return;
       }
@@ -19,36 +22,52 @@
       try {
         // Parse JWT token (format: header.payload.signature)
         const parts = token.split('.');
+        console.log('[SECURITY] Token parts count:', parts.length);
+        
         if (parts.length !== 3) {
-          console.error('[SECURITY] Invalid token format (wrong parts count):', parts.length);
+          console.error('[SECURITY] ❌ Invalid token format (wrong parts count):', parts.length);
           throw new Error('Invalid token format');
         }
 
-        const payload = JSON.parse(atob(parts[1]));
+        let payload;
+        try {
+          // Try base64url decode (modern)
+          payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
+        } catch(e1) {
+          // Fallback for atob
+          try {
+            payload = JSON.parse(atob(parts[1]));
+          } catch(e2) {
+            throw new Error('Cannot decode payload: ' + e2.message);
+          }
+        }
+        
+        console.log('[SECURITY] Token payload:', payload);
+        
         const now = Math.floor(Date.now() / 1000);
+        console.log('[SECURITY] Current time (Unix):', now, '| Token exp:', payload.exp);
 
         // Validate payload
         if (!payload || typeof payload !== 'object') {
-          console.error('[SECURITY] Invalid payload structure');
+          console.error('[SECURITY] ❌ Invalid payload structure');
           throw new Error('Invalid payload');
         }
 
         // Check expiry (give 5 second grace period)
         if (payload.exp && payload.exp < (now - 5)) {
-          console.warn('[SECURITY] Token expired at:', new Date(payload.exp * 1000));
+          console.warn('[SECURITY] ❌ Token expired at:', new Date(payload.exp * 1000));
+          console.warn('[SECURITY] Time remaining:', (payload.exp - now) + ' seconds');
           localStorage.removeItem('adminToken');
           window.location.replace('/login.html?role=admin&error=token_expired');
           return;
         }
 
         // Token valid, continue loading dashboard
-        console.log('[SECURITY] Admin token verified:', { 
-          username: payload.username, 
-          role: payload.role,
-          exp: new Date(payload.exp * 1000)
-        });
+        const timeUntilExp = payload.exp - now;
+        console.log('[SECURITY] ✅ Admin token verified successfully!');
+        console.log('[SECURITY] User:', payload.username, '| Role:', payload.role, '| Expires in:', timeUntilExp, 'seconds');
       } catch (error) {
-        console.error('[SECURITY] Token verification failed:', error.message);
+        console.error('[SECURITY] ❌ Token verification failed:', error.message, error);
         localStorage.removeItem('adminToken');
         window.location.replace('/login.html?role=admin&error=invalid_token');
       }
