@@ -493,17 +493,15 @@ function doLogin() {
       loginPayload.password = '';
       
       if (data.success && data.admin) {
-        // Store admin session securely in sessionStorage
-        sessionStorage.setItem('aika_admin_token', data.admin.token);
-        sessionStorage.setItem('aika_admin_user', JSON.stringify({
+        // Store admin token in localStorage (for dashboard protection check)
+        localStorage.setItem('adminToken', data.admin.token);
+        
+        // Also store user info
+        localStorage.setItem('aika_admin_user', JSON.stringify({
           username: data.admin.username,
           role: data.admin.role,
           loginTime: Date.now()
         }));
-        
-        // Set token expiry (8 hours)
-        const expiry = Date.now() + (8 * 60 * 60 * 1000);
-        sessionStorage.setItem('aika_admin_expiry', expiry);
         
         showAlert('✅ Berhasil masuk Admin! Mengalihkan...', 'success');
         setTimeout(() => {

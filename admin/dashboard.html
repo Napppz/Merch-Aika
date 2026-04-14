@@ -4,6 +4,45 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard Admin — Aika Sesilia</title>
+  
+  <!-- ⚠️ SECURITY: LOGIN PROTECTION - Must run before page loads -->
+  <script>
+    (function() {
+      const token = localStorage.getItem('adminToken');
+      
+      if (!token) {
+        console.warn('[SECURITY] No admin token found. Redirecting to login.');
+        window.location.replace('/admin/login.html');
+        return;
+      }
+
+      try {
+        // Parse JWT token (format: header.payload.signature)
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+          throw new Error('Invalid token format');
+        }
+
+        const payload = JSON.parse(atob(parts[1]));
+        const now = Math.floor(Date.now() / 1000);
+
+        // Check expiry
+        if (payload.exp && payload.exp < now) {
+          console.warn('[SECURITY] Token expired. Redirecting to login.');
+          localStorage.removeItem('adminToken');
+          window.location.replace('/admin/login.html');
+          return;
+        }
+
+        // Token valid, continue loading dashboard
+        console.log('[SECURITY] Admin token verified:', { username: payload.username, role: payload.role });
+      } catch (error) {
+        console.error('[SECURITY] Token verification failed:', error.message);
+        localStorage.removeItem('adminToken');
+        window.location.replace('/admin/login.html');
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
@@ -776,7 +815,7 @@ async function adminLogout(event) {
     return;
   }
   
-  const token = sessionStorage.getItem('aika_admin_token');
+  const token = localStorage.getItem('adminToken') || sessionStorage.getItem('aika_admin_token');
   
   try {
     // Call logout endpoint
@@ -792,13 +831,14 @@ async function adminLogout(event) {
     
     const data = await res.json();
     
-    // Clear session regardless of server response
-    sessionStorage.removeItem('aika_admin_token');
-    sessionStorage.removeItem('aika_admin_user');
-    sessionStorage.removeItem('aika_admin_expiry');
+    // Clear ALL session storage (both localStorage and sessionStorage)
+    localStorage.removeItem('adminToken');
     localStorage.removeItem('aika_admin');
     localStorage.removeItem('aika_admin_user');
     localStorage.removeItem('aika_admin_expiry');
+    sessionStorage.removeItem('aika_admin_token');
+    sessionStorage.removeItem('aika_admin_user');
+    sessionStorage.removeItem('aika_admin_expiry');
     
     // Redirect to login
     window.location.href = '../login.html?role=admin&logged_out=1';
@@ -806,6 +846,7 @@ async function adminLogout(event) {
   } catch (err) {
     console.error('Logout error:', err);
     // Even on error, clear session and redirect
+    localStorage.removeItem('adminToken');
     sessionStorage.clear();
     localStorage.removeItem('aika_admin');
     window.location.href = '../login.html?role=admin';
