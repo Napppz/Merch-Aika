@@ -15,7 +15,13 @@ Coba login dengan:
 - **Username:** `Aika` (case-sensitive)
 - **Password:** `Aikanap2213` (case-sensitive - perhatikan huruf besar)
 
-Jika berhasil → Password lama masih aktif ✅
+**Hash yang benar untuk password ini:**
+```
+000f49c6d3cfa4232f61c54c6348a4c7d4f825870ba6c53e81b92745add01db6
+```
+
+Jika berhasil → Password lama masih aktif ✅  
+Jika gagal → Lanjut ke Langkah 2
 
 ### 2. Jika Tetap Gagal - Gunakan Custom Password
 
