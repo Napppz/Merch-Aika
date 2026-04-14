@@ -9,55 +9,80 @@
   <script>
     // IMMEDIATE security check - no delay
     (function() {
-      // Don't clear console here - keep login redirect logs visible
-      console.log('%c[DASHBOARD] Starting security check...', 'font-size:12px;color:blue');
+      console.log('%c[DASHBOARD] === SECURITY CHECK START ===', 'font-size:14px;font-weight:bold;color:blue');
       
-      // Simple session-based protection (no JWT token verification)
-      const isAdminLogged = localStorage.getItem('aika_admin_logged');
-      const adminUser = localStorage.getItem('aika_admin_user');
-      
-      console.log('[DASHBOARD] Session check:');
-      console.log('[DASHBOARD] aika_admin_logged =', isAdminLogged);
-      console.log('[DASHBOARD] aika_admin_user =', adminUser ? '✓ Exists (' + adminUser.length + ' chars)' : '✗ Missing');
-      
-      // Strict check for valid session
-      const hasValidSession = (isAdminLogged === 'true') && (adminUser && adminUser.length > 0);
-      
-      console.log('[DASHBOARD] Valid session?', hasValidSession);
-      
-      if (!hasValidSession) {
-        console.log('%c[DASHBOARD] ❌ No valid session - redirecting to login', 'color:red;font-weight:bold');
-        
-        // Clear any corrupted data
-        localStorage.removeItem('aika_admin_logged');
-        localStorage.removeItem('aika_admin_user');
-        
-        // Redirect to login
-        setTimeout(() => {
-          console.log('[DASHBOARD] Executing redirect to /login.html?role=admin');
-          window.location.replace('/login.html?role=admin');
-        }, 100);
-        return; // Stop here - don't load dashboard
+      // Wait a tiny bit for DOM to be ready
+      if (document.readyState === 'loading') {
+        console.log('[DASHBOARD] Document still loading, waiting...');
+        document.addEventListener('DOMContentLoaded', performSecurityCheck);
+        return;
       }
+      
+      performSecurityCheck();
+      
+      function performSecurityCheck() {
+        console.log('[DASHBOARD] Performing security check...');
+        
+        // Simple session-based protection (no JWT token verification)
+        const isAdminLogged = localStorage.getItem('aika_admin_logged');
+        const adminUser = localStorage.getItem('aika_admin_user');
+        
+        console.log('[DASHBOARD] LocalStorage contents:');
+        console.log('[DASHBOARD]   - aika_admin_logged:', isAdminLogged, '(type: ' + typeof isAdminLogged + ')');
+        console.log('[DASHBOARD]   - aika_admin_user:', adminUser ? '✓ ' + adminUser.length + ' chars' : '✗ Missing');
+        
+        // Strict check for valid session
+        const isLogged = (isAdminLogged === 'true');
+        const hasUser = (adminUser && adminUser.length > 0);
+        const hasValidSession = isLogged && hasUser;
+        
+        console.log('[DASHBOARD] Session analysis:');
+        console.log('[DASHBOARD]   - Is logged (true)?', isLogged);
+        console.log('[DASHBOARD]   - Has user data?', hasUser);
+        console.log('[DASHBOARD]   - VALID?', hasValidSession);
+        
+        if (!hasValidSession) {
+          console.log('%c[DASHBOARD] ❌ NO VALID SESSION - MUST REDIRECT', 'color:red;font-weight:bold;font-size:13px');
+          console.log('[DASHBOARD] Clearing any corrupted data...');
+          localStorage.removeItem('aika_admin_logged');
+          localStorage.removeItem('aika_admin_user');
+          
+          // Redirect to login
+          setTimeout(() => {
+            console.log('[DASHBOARD] 🔄 Redirecting to login page...');
+            window.location.replace('/login.html?role=admin');
+          }, 150);
+          return; // Stop here - don't load dashboard
+        }
 
-      // Verify session data is valid JSON
-      try {
-        const user = JSON.parse(adminUser);
-        console.log('%c[DASHBOARD] ✅ Session valid! User: ' + user.username, 'color:green;font-weight:bold');
-        console.log('[DASHBOARD] User details:', user);
-        console.log('%c=== DASHBOARD WILL LOAD ===', 'font-size:14px;font-weight:bold;color:green');
-        // Session is valid - dashboard will load normally below
-      } catch (error) {
-        console.error('%c[DASHBOARD] ❌ Session data corrupted', 'color:red;font-weight:bold');
-        console.error('[DASHBOARD] Error:', error.message);
-        console.log('[DASHBOARD] Clearing session and redirecting...');
-        
-        localStorage.removeItem('aika_admin_logged');
-        localStorage.removeItem('aika_admin_user');
-        
-        setTimeout(() => {
-          window.location.replace('/login.html?role=admin');
-        }, 100);
+        // Verify session data is valid JSON
+        try {
+          const user = JSON.parse(adminUser);
+          console.log('%c[DASHBOARD] ✅ SESSION VALID - DASHBOARD LOADING', 'color:green;font-weight:bold;font-size:13px');
+          console.log('[DASHBOARD] Admin user:', user.username);
+          console.log('[DASHBOARD] Admin ID:', user.id);
+          console.log('[DASHBOARD] Admin role:', user.role);
+          console.log('[DASHBOARD] Logged in at:', new Date(user.loginTime).toLocaleString());
+          console.log('%c[DASHBOARD] === SECURITY CHECK PASSED ===', 'font-size:13px;font-weight:bold;color:green');
+          // Session is valid - dashboard will load normally below
+        } catch (error) {
+          console.error('%c[DASHBOARD] ❌ SESSION DATA CORRUPTED', 'color:red;font-weight:bold;font-size:13px');
+          console.error('[DASHBOARD] JSON parse error:', error.message);
+          console.error('[DASHBOARD] Raw admin user:', adminUser);
+          console.log('[DASHBOARD] Clearing corrupted data and redirecting...');
+          
+          localStorage.removeItem('aika_admin_logged');
+          localStorage.removeItem('aika_admin_user');
+          
+          setTimeout(() => {
+            console.log('[DASHBOARD] 🔄 Redirecting to login (corrupted data)...');
+            window.location.replace('/login.html?role=admin');
+          }, 150);
+          return;
+        }
+      }
+    })();
+  </script>
         return;
       }
     })();
