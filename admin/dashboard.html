@@ -8,38 +8,81 @@
   <!-- ⚠️ SECURITY: LOGIN PROTECTION - Must run before page loads -->
   <script>
     (function() {
-      const token = localStorage.getItem('adminToken');
+      // Debug logging untuk troubleshoot
+      const DEBUG = true;
+      const log = (msg) => DEBUG && console.log('[SECURITY]', msg);
+      
+      // Check localStorage dengan backup fallback
+      let token = localStorage.getItem('adminToken');
+      
+      // Fallback ke sessionStorage jika ada
+      if (!token) {
+        token = sessionStorage.getItem('aika_admin_token');
+        if (token) log('Token found in sessionStorage (fallback)');
+      }
       
       if (!token) {
-        console.warn('[SECURITY] No admin token found. Redirecting to login.');
-        window.location.replace('/admin/login.html');
+        log('❌ No admin token found. Redirecting to login.');
+        document.body.innerHTML = '';  // Clear body first
+        setTimeout(() => {
+          window.location.replace('/login.html?role=admin');
+        }, 100);
         return;
       }
 
       try {
+        log('✓ Token found, parsing...');
+        
         // Parse JWT token (format: header.payload.signature)
         const parts = token.split('.');
         if (parts.length !== 3) {
-          throw new Error('Invalid token format');
+          throw new Error(`Invalid token format: ${parts.length} parts instead of 3`);
         }
 
+        log('✓ Token has 3 parts');
+
+        // Decode payload
         const payload = JSON.parse(atob(parts[1]));
+        log('✓ Token payload decoded:', { username: payload.username, role: payload.role });
+
         const now = Math.floor(Date.now() / 1000);
 
         // Check expiry
         if (payload.exp && payload.exp < now) {
-          console.warn('[SECURITY] Token expired. Redirecting to login.');
+          log('❌ Token expired. Redirecting to login.');
           localStorage.removeItem('adminToken');
-          window.location.replace('/admin/login.html');
+          sessionStorage.removeItem('aika_admin_token');
+          document.body.innerHTML = '';
+          setTimeout(() => {
+            window.location.replace('/login.html?role=admin&session=expired');
+          }, 100);
           return;
         }
 
-        // Token valid, continue loading dashboard
-        console.log('[SECURITY] Admin token verified:', { username: payload.username, role: payload.role });
+        log('✅ Admin token verified! User: ' + payload.username);
+        log('Token expires at:', new Date(payload.exp * 1000).toLocaleString());
+        
       } catch (error) {
-        console.error('[SECURITY] Token verification failed:', error.message);
+        log('❌ Token verification failed:', error.message);
+        console.error('[SECURITY] Full error:', error);
+        
         localStorage.removeItem('adminToken');
-        window.location.replace('/admin/login.html');
+        sessionStorage.removeItem('aika_admin_token');
+        
+        document.body.innerHTML = `
+          <div style="display:flex; align-items:center; justify-content:center; min-height:100vh; font-family:monospace; color:#f44336;">
+            <div style="text-align:center;">
+              <h2>🔐 Session Error</h2>
+              <p>Token verification failed: ${error.message}</p>
+              <p><small style="color:#999;">Redirecting to login...</small></p>
+            </div>
+          </div>
+        `;
+        
+        setTimeout(() => {
+          window.location.replace('/login.html?role=admin');
+        }, 2000);
+        return;
       }
     })();
   </script>
