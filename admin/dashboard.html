@@ -29,17 +29,28 @@
           throw new Error('Invalid token format');
         }
 
+        // Function to properly decode base64url in browser
+        function base64urlDecode(str) {
+          // Add padding if needed
+          let padded = str;
+          const padLength = (4 - (str.length % 4)) % 4;
+          if (padLength) {
+            padded = str + '='.repeat(padLength);
+          }
+          // Replace base64url chars
+          const base64 = padded.replace(/-/g, '+').replace(/_/g, '/');
+          return decodeURIComponent(atob(base64).split('').map((c) => {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+          }).join(''));
+        }
+
         let payload;
         try {
-          // Try base64url decode (modern)
-          payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
-        } catch(e1) {
-          // Fallback for atob
-          try {
-            payload = JSON.parse(atob(parts[1]));
-          } catch(e2) {
-            throw new Error('Cannot decode payload: ' + e2.message);
-          }
+          payload = JSON.parse(base64urlDecode(parts[1]));
+          console.log('[SECURITY] Payload decoded successfully');
+        } catch(err) {
+          console.error('[SECURITY] ❌ Failed to decode payload:', err.message);
+          throw new Error('Cannot decode payload: ' + err.message);
         }
         
         console.log('[SECURITY] Token payload:', payload);
