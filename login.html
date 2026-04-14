@@ -494,50 +494,29 @@ function doLogin() {
       // Clear payload from memory
       loginPayload.password = '';
       
-      if (data.success && data.admin && data.admin.token) {
+      if (data.success && data.admin) {
         console.log('[LOGIN] Admin login successful');
-        console.log('[LOGIN] Token received:', data.admin.token.substring(0, 30) + '...');
+        console.log('[LOGIN] User:', data.admin.username);
         
-        // Validate token format before storing (header.payload.signature)
-        const tokenParts = data.admin.token.split('.');
-        if (tokenParts.length !== 3) {
-          console.error('[LOGIN] Invalid token format:', tokenParts.length, 'parts');
-          showAlert('❌ Token dari server tidak valid. Hubungi administrator.');
-          btn.disabled = false;
-          btn.innerHTML = originalText;
-          return;
-        }
-        
-        // Store admin token in localStorage (for dashboard protection check)
-        localStorage.setItem('adminToken', data.admin.token);
-        console.log('[LOGIN] Token stored in localStorage');
-        
-        // Verify it was stored
-        const storedToken = localStorage.getItem('adminToken');
-        if (!storedToken) {
-          console.error('[LOGIN] Failed to store token!');
-          showAlert('❌ Gagal menyimpan session. Coba refresh browser.');
-          btn.disabled = false;
-          btn.innerHTML = originalText;
-          return;
-        }
-        
-        console.log('[LOGIN] Verification: Token stored successfully');
-        
-        // Also store user info
+        // Simple session-based auth (no token verification needed)
+        // Store admin session info in localStorage
+        localStorage.setItem('aika_admin_logged', 'true');
         localStorage.setItem('aika_admin_user', JSON.stringify({
+          id: data.admin.id,
           username: data.admin.username,
           role: data.admin.role,
           loginTime: Date.now()
         }));
         
+        console.log('[LOGIN] Session stored successfully');
+        
         showAlert('✅ Berhasil masuk Admin! Mengalihkan...', 'success');
         setTimeout(() => {
           console.log('[LOGIN] Redirecting to dashboard...');
           window.location.href = '/admin/dashboard.html';
-        }, 1000);
+        }, 800);
       } else {
-        console.error('[LOGIN] Login response missing token or success flag:', data);
+        console.error('[LOGIN] Login response missing success flag:', data);
         showAlert(data.message || '❌ Username atau password admin salah!');
         btn.disabled = false;
         btn.innerHTML = originalText;

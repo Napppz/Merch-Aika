@@ -5,84 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard Admin — Aika Sesilia</title>
   
-  <!-- ⚠️ SECURITY: LOGIN PROTECTION - Must run before page loads -->
+  <!-- ⚠️ SECURITY: LOGIN PROTECTION - Simple Session Check -->
   <script>
     (function() {
-      // Debug logging untuk troubleshoot
-      const DEBUG = true;
-      const log = (msg) => DEBUG && console.log('[SECURITY]', msg);
+      // Simple session-based protection (no JWT token verification)
+      const isAdminLogged = localStorage.getItem('aika_admin_logged') === 'true';
+      const adminUser = localStorage.getItem('aika_admin_user');
       
-      // Check localStorage dengan backup fallback
-      let token = localStorage.getItem('adminToken');
+      console.log('[SECURITY] Admin Session Check');
+      console.log('[SECURITY] Logged:', isAdminLogged);
+      console.log('[SECURITY] User data:', adminUser ? '✓ EXISTS' : '✗ MISSING');
       
-      // Fallback ke sessionStorage jika ada
-      if (!token) {
-        token = sessionStorage.getItem('aika_admin_token');
-        if (token) log('Token found in sessionStorage (fallback)');
-      }
-      
-      if (!token) {
-        log('❌ No admin token found. Redirecting to login.');
-        document.body.innerHTML = '';  // Clear body first
-        setTimeout(() => {
-          window.location.replace('/login.html?role=admin');
-        }, 100);
+      if (!isAdminLogged || !adminUser) {
+        console.warn('[SECURITY] No admin session. Redirecting to login.');
+        localStorage.removeItem('aika_admin_logged');
+        localStorage.removeItem('aika_admin_user');
+        window.location.replace('/login.html?role=admin');
         return;
       }
 
       try {
-        log('✓ Token found, parsing...');
-        
-        // Parse JWT token (format: header.payload.signature)
-        const parts = token.split('.');
-        if (parts.length !== 3) {
-          throw new Error(`Invalid token format: ${parts.length} parts instead of 3`);
-        }
-
-        log('✓ Token has 3 parts');
-
-        // Decode payload
-        const payload = JSON.parse(atob(parts[1]));
-        log('✓ Token payload decoded:', { username: payload.username, role: payload.role });
-
-        const now = Math.floor(Date.now() / 1000);
-
-        // Check expiry
-        if (payload.exp && payload.exp < now) {
-          log('❌ Token expired. Redirecting to login.');
-          localStorage.removeItem('adminToken');
-          sessionStorage.removeItem('aika_admin_token');
-          document.body.innerHTML = '';
-          setTimeout(() => {
-            window.location.replace('/login.html?role=admin&session=expired');
-          }, 100);
-          return;
-        }
-
-        log('✅ Admin token verified! User: ' + payload.username);
-        log('Token expires at:', new Date(payload.exp * 1000).toLocaleString());
-        
+        const user = JSON.parse(adminUser);
+        console.log('[SECURITY] ✅ Admin session verified:', user.username);
+        // Session valid, proceed to load dashboard
       } catch (error) {
-        log('❌ Token verification failed:', error.message);
-        console.error('[SECURITY] Full error:', error);
-        
-        localStorage.removeItem('adminToken');
-        sessionStorage.removeItem('aika_admin_token');
-        
-        document.body.innerHTML = `
-          <div style="display:flex; align-items:center; justify-content:center; min-height:100vh; font-family:monospace; color:#f44336;">
-            <div style="text-align:center;">
-              <h2>🔐 Session Error</h2>
-              <p>Token verification failed: ${error.message}</p>
-              <p><small style="color:#999;">Redirecting to login...</small></p>
-            </div>
-          </div>
-        `;
-        
-        setTimeout(() => {
-          window.location.replace('/login.html?role=admin');
-        }, 2000);
-        return;
+        console.error('[SECURITY] ❌ Session data corrupted:', error.message);
+        localStorage.removeItem('aika_admin_logged');
+        localStorage.removeItem('aika_admin_user');
+        window.location.replace('/login.html?role=admin');
       }
     })();
   </script>
@@ -858,41 +808,30 @@ async function adminLogout(event) {
     return;
   }
   
-  const token = localStorage.getItem('adminToken') || sessionStorage.getItem('aika_admin_token');
-  
   try {
-    // Call logout endpoint
+    // Call logout endpoint (optional server-side cleanup)
     const res = await fetch('/api/admin-logout', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest'
       },
-      body: JSON.stringify({ token: token }),
       credentials: 'same-origin'
     });
     
-    const data = await res.json();
-    
-    // Clear ALL session storage (both localStorage and sessionStorage)
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('aika_admin');
+    // Clear session storage (session-based auth)
+    localStorage.removeItem('aika_admin_logged');
     localStorage.removeItem('aika_admin_user');
-    localStorage.removeItem('aika_admin_expiry');
-    sessionStorage.removeItem('aika_admin_token');
-    sessionStorage.removeItem('aika_admin_user');
-    sessionStorage.removeItem('aika_admin_expiry');
     
     // Redirect to login
-    window.location.href = '../login.html?role=admin&logged_out=1';
+    window.location.href = '/login.html?role=admin&logged_out=1';
     
   } catch (err) {
     console.error('Logout error:', err);
     // Even on error, clear session and redirect
-    localStorage.removeItem('adminToken');
-    sessionStorage.clear();
-    localStorage.removeItem('aika_admin');
-    window.location.href = '../login.html?role=admin';
+    localStorage.removeItem('aika_admin_logged');
+    localStorage.removeItem('aika_admin_user');
+    window.location.href = '/login.html?role=admin';
   }
 }
 
