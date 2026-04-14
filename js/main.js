@@ -178,7 +178,7 @@ async function loadReviews() {
           ${'⭐'.repeat(r.rating)}
         </div>
         <q style="color:var(--text-main); font-style:italic; display:block; margin-bottom:1.5rem; font-size:1.05rem; line-height: 1.6;">
-          "${r.comment}"
+          ${r.comment}
         </q>
         <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--card-border); padding-top:1rem;">
           <div style="display:flex; align-items:center; gap:0.8rem;">
