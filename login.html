@@ -472,6 +472,9 @@ function doLogin() {
       credentials: 'same-origin'
     })
     .then(r => {
+      console.log('[LOGIN] API Response Status:', r.status);
+      console.log('[LOGIN] Response HTTP Status:', r.status === 200 ? '✅ 200 OK' : '⚠️ ' + r.status);
+      
       // Check for rate limiting (429 Too Many Requests)
       if (r.status === 429) {
         throw new Error('Terlalu banyak percobaan. Tunggu 15 menit.');
@@ -492,7 +495,17 @@ function doLogin() {
       // Clear payload from memory
       loginPayload.password = '';
       
-      console.log('[LOGIN] API Response:', data);
+      console.log('[LOGIN] 📦 RAW API Response:', data);
+      console.log('[LOGIN] Response structure:');
+      console.log('[LOGIN]   - success:', typeof data.success, '=', data.success);
+      console.log('[LOGIN]   - message:', data.message);
+      console.log('[LOGIN]   - admin:', typeof data.admin, data.admin ? 'exists' : 'null');
+      if (data.admin) {
+        console.log('[LOGIN]   - admin.id:', typeof data.admin.id, '=', data.admin.id);
+        console.log('[LOGIN]   - admin.username:', typeof data.admin.username, '=', data.admin.username);
+        console.log('[LOGIN]   - admin.role:', typeof data.admin.role, '=', data.admin.role);
+        console.log('[LOGIN]   - admin.token:', data.admin.token ? `STRING(${data.admin.token.length} chars)` : 'MISSING');
+      }
       
       if (data.success && data.admin) {
         console.log('[LOGIN] Success! Token:', data.admin.token ? 'YES' : 'NO');
@@ -501,15 +514,29 @@ function doLogin() {
         // Store admin token in localStorage (for dashboard protection check)
         // IMPORTANT: langsung store, jangan tunggu
         try {
+          console.log('[LOGIN] 💾 Storing adminToken...');
           localStorage.setItem('adminToken', data.admin.token);
+          console.log('[LOGIN]   ✅ setItem("adminToken", ...) completed');
+          
+          const storedToken = localStorage.getItem('adminToken');
+          console.log('[LOGIN]   ✅ Immediate verify: ' + (storedToken ? `Retrieved (${storedToken.length} chars)` : 'NOT FOUND'));
+          
+          console.log('[LOGIN] 💾 Storing aika_admin_user...');
           localStorage.setItem('aika_admin_user', JSON.stringify({
             username: data.admin.username,
             role: data.admin.role,
             loginTime: Date.now()
           }));
+          console.log('[LOGIN]   ✅ setItem("aika_admin_user", ...) completed');
+          
+          const storedUser = localStorage.getItem('aika_admin_user');
+          console.log('[LOGIN]   ✅ Immediate verify: ' + (storedUser ? 'Retrieved' : 'NOT FOUND'));
+          
           console.log('[LOGIN] ✅ Token & user info stored in localStorage');
         } catch(err) {
           console.error('[LOGIN] ❌ Failed to store in localStorage:', err);
+          console.error('[LOGIN] Error name:', err.name);
+          console.error('[LOGIN] Error message:', err.message);
           showAlert('❌ Gagal menyimpan sesi. Coba refresh halaman.');
           btn.disabled = false;
           btn.innerHTML = originalText;
@@ -517,7 +544,7 @@ function doLogin() {
         }
         
         // VERIFICATION: Double-check localStorage before redirecting
-        console.log('[LOGIN] 📋 VERIFICATION BEFORE REDIRECT:');
+        console.log('[LOGIN] 🔍 FINAL VERIFICATION BEFORE REDIRECT:');
         const verifyToken = localStorage.getItem('adminToken');
         const verifyUser = localStorage.getItem('aika_admin_user');
         console.log('[LOGIN]   adminToken in localStorage:', verifyToken ? `✅ YES (${verifyToken.substring(0,30)}...)` : '❌ NO');
@@ -539,14 +566,21 @@ function doLogin() {
         // Redirect LANGSUNG tanpa timeout (remove setTimeout yang bisa diblock alert)
         window.location.replace('/admin/dashboard.html');
       } else {
-        console.log('[LOGIN] Response not successful:', data);
+        console.log('[LOGIN] ❌ Response not successful or missing admin data');
+        console.log('[LOGIN] Reason:');
+        if (!data.success) console.log('[LOGIN]   - success = false');
+        if (!data.admin) console.log('[LOGIN]   - admin = missing/null');
+        if (data.admin && !data.admin.token) console.log('[LOGIN]   - admin.token = missing');
         showAlert(data.message || '❌ Username atau password admin salah!');
         btn.disabled = false;
         btn.innerHTML = originalText;
       }
     })
     .catch(err => {
-      console.error('Admin login error:', err);
+      console.error('[LOGIN] ❌ FETCH ERROR during API call:');
+      console.error('[LOGIN]   Error name:', err.name);
+      console.error('[LOGIN]   Error message:', err.message);
+      console.error('[LOGIN]   Full error:', err);
       showAlert('❌ ' + (err.message || 'Koneksi server gagal. Coba lagi.'));
       document.getElementById('login-password').value = '';
       btn.disabled = false;
