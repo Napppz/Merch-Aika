@@ -18,8 +18,13 @@ function hashPassword(password) {
 // ⚠️ CRITICAL: Pre-hash the admin password
 // NEVER store plain text passwords!
 // Generate correct hash: hashPassword('your_password')
-const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || 
-  hashPassword('Aikanap2213'); // Store only the hash
+const DEFAULT_PASSWORD_HASH = hashPassword('Aikanap2213');
+const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || DEFAULT_PASSWORD_HASH;
+
+// Log untuk debugging (helpful untuk troubleshooting)
+if (process.env.NODE_ENV === 'development') {
+  console.log('[ADMIN-LOGIN] Using password hash:', ADMIN_PASSWORD_HASH === DEFAULT_PASSWORD_HASH ? 'DEFAULT' : 'FROM_ENV');
+}
 
 const ADMIN_CREDENTIALS = {
   username: process.env.ADMIN_USERNAME || 'Aika',
@@ -120,6 +125,16 @@ module.exports = async function handler(req, res) {
     
     // Hash the input password
     const inputPasswordHash = hashPassword(password);
+    
+    // DEBUG: Log untuk troubleshooting (jangan hardcode di production!)
+    if (process.env.DEBUG_ADMIN_LOGIN === 'true') {
+      console.log('[DEBUG-ADMIN-LOGIN]', {
+        inputUsername: username,
+        inputHashLength: inputPasswordHash.length,
+        expectedHashLength: ADMIN_CREDENTIALS.password_hash.length,
+        usernameMatch: username === ADMIN_CREDENTIALS.username
+      });
+    }
     
     // Verify credentials with timing-safe comparison
     // This prevents timing attacks
