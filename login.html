@@ -492,9 +492,35 @@ function doLogin() {
       // Clear payload from memory
       loginPayload.password = '';
       
-      if (data.success && data.admin) {
+      if (data.success && data.admin && data.admin.token) {
+        console.log('[LOGIN] Admin login successful');
+        console.log('[LOGIN] Token received:', data.admin.token.substring(0, 30) + '...');
+        
+        // Validate token format before storing (header.payload.signature)
+        const tokenParts = data.admin.token.split('.');
+        if (tokenParts.length !== 3) {
+          console.error('[LOGIN] Invalid token format:', tokenParts.length, 'parts');
+          showAlert('❌ Token dari server tidak valid. Hubungi administrator.');
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+          return;
+        }
+        
         // Store admin token in localStorage (for dashboard protection check)
         localStorage.setItem('adminToken', data.admin.token);
+        console.log('[LOGIN] Token stored in localStorage');
+        
+        // Verify it was stored
+        const storedToken = localStorage.getItem('adminToken');
+        if (!storedToken) {
+          console.error('[LOGIN] Failed to store token!');
+          showAlert('❌ Gagal menyimpan session. Coba refresh browser.');
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+          return;
+        }
+        
+        console.log('[LOGIN] Verification: Token stored successfully');
         
         // Also store user info
         localStorage.setItem('aika_admin_user', JSON.stringify({
@@ -505,9 +531,11 @@ function doLogin() {
         
         showAlert('✅ Berhasil masuk Admin! Mengalihkan...', 'success');
         setTimeout(() => {
+          console.log('[LOGIN] Redirecting to dashboard...');
           window.location.href = 'admin/dashboard.html';
         }, 2000);
       } else {
+        console.error('[LOGIN] Login response missing token or success flag:', data);
         showAlert(data.message || '❌ Username atau password admin salah!');
         btn.disabled = false;
         btn.innerHTML = originalText;
@@ -515,6 +543,10 @@ function doLogin() {
     })
     .catch(err => {
       console.error('Admin login error:', err);
+      console.error('Error details:', {
+        message: err.message,
+        stack: err.stack
+      });
       showAlert('❌ ' + (err.message || 'Koneksi server gagal. Coba lagi.'));
       document.getElementById('login-password').value = '';
       btn.disabled = false;
