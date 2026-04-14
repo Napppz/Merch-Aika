@@ -86,14 +86,16 @@
 
 <div class="section">
   <h2>2. Admin Login Test</h2>
-  <div>
-    <label>Username: <input type="text" id="test-username" value="Aika" style="width:150px"></label>
-  </div>
-  <div>
-    <label>Password: <input type="password" id="test-password" value="" style="width:150px"></label>
-  </div>
-  <button onclick="testAdminLogin()">Test Login /api/admin-login</button>
-  <button onclick="testAdminLogin2()">Test Login /api/admin-login (alternative)</button>
+  <form onsubmit="return false;">
+    <div>
+      <label>Username: <input type="text" id="test-username" value="Aika" style="width:150px" name="username"></label>
+    </div>
+    <div>
+      <label>Password: <input type="password" id="test-password" value="" style="width:150px" name="password"></label>
+    </div>
+    <button type="button" onclick="testAdminLogin()">Test Login /api/admin-login</button>
+    <button type="button" onclick="testAdminLogin2()">Test Login /api/admin-login (alternative)</button>
+  </form>
   <div id="login-result"></div>
 </div>
 
@@ -202,19 +204,11 @@ function inspectLocalStorage() {
     log('No admin user data in localStorage', 'warning');
   }
   
-  // Check for old token-based keys
-  const oldToken = localStorage.getItem('adminToken');
-  const oldAdmin = localStorage.getItem('aika_admin');
-  if (oldToken || oldAdmin) {
-    html += `<div class="status warning">
-      <strong>⚠️ Old token keys detected:</strong><br>
-      adminToken: ${oldToken ? 'EXISTS' : 'NOT SET'}<br>
-      aika_admin: ${oldAdmin ? 'EXISTS' : 'NOT SET'}
-    </div>`;
-    log('Old token-based keys found in localStorage', 'warning');
-  }
-  
   result.innerHTML = html;
+  
+  // Clear any old token-based keys
+  localStorage.removeItem('adminToken');
+  localStorage.removeItem('aika_admin');
 }
 
 function inspectSessionStorage() {
@@ -423,11 +417,18 @@ async function testPath(path) {
   log(`Testing path: ${path}`, 'info');
   
   try {
-    const response = await fetch(path, { method: 'HEAD' });
-    log(`Path test status: ${response.status}`, response.ok ? 'success' : 'warning');
-    result.innerHTML = `<div class="status ${response.ok ? 'success' : 'warning'}">
+    // Use GET for HTML pages, skip API endpoints (they need POST)
+    const method = path.includes('/api/') ? 'OPTIONS' : 'HEAD';
+    const response = await fetch(path, { method });
+    
+    // 405 is OK for API endpoints (they only allow POST)
+    const isSuccess = response.ok || (path.includes('/api/') && response.status === 405);
+    const statusText = response.status === 405 ? '405 (POST only)' : response.statusText;
+    
+    log(`Path test status: ${response.status}`, isSuccess ? 'success' : 'warning');
+    result.innerHTML = `<div class="status ${isSuccess ? 'success' : 'warning'}">
       <strong>${path}</strong><br>
-      Status: ${response.status} ${response.statusText}
+      Status: ${response.status} ${statusText}
     </div>`;
   } catch (error) {
     log(`Path test error: ${error.message}`, 'error');
