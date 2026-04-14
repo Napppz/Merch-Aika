@@ -14,10 +14,30 @@ const transporter = nodemailer.createTransport({
 });
 
 module.exports = async function handler(req, res) {
-  // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // ─── SECURITY HEADERS ───
+  const allowedOrigins = [
+    'https://merch-aika.vercel.app',
+    'https://aika-sesilia.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:5000'
+  ];
+  
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  // Security headers
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'");
+  
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   if (req.method !== 'POST') {

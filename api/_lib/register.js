@@ -1,5 +1,6 @@
-// api/register.js — Vercel Serverless Function
+// api/_lib/register.js — Vercel Serverless Function
 // Menyimpan data user baru ke Neon PostgreSQL
+// 🔐 SECURITY: Force verified=false, CORS whitelist, security headers
 
 const { query } = require('./_db');
 const crypto = require('crypto');
@@ -12,23 +13,44 @@ function hashPassword(password) {
 }
 
 module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // ─── SECURITY HEADERS ───
+  const allowedOrigins = [
+    'https://merch-aika.vercel.app',
+    'https://aika-sesilia.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:5000'
+  ];
+  
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  // Security headers
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'");
+  
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { username, email, phone, password, verified } = req.body;
+  const { username, email, phone, password } = req.body;
+  
+  // ⚠️ SECURITY: DO NOT accept 'verified' from client - ALWAYS force to false
+  // User MUST go through email verification process
 
   // Validasi
   if (!username || !email || !password) {
     return res.status(400).json({ error: 'Data tidak lengkap' });
-  }
-  if (!verified) {
-    return res.status(400).json({ error: 'Email belum diverifikasi' });
   }
 
   try {
@@ -41,23 +63,20 @@ module.exports = async function handler(req, res) {
       return res.status(409).json({ error: 'Email atau username sudah terdaftar' });
     }
 
-    // Simpan user
+    // Simpan user dengan verified = FALSE (harus OTP verification dulu)
     const hashedPw = hashPassword(password);
     const result = await query(
       `INSERT INTO users (username, email, phone, password_hash, verified, created_at)
-       VALUES ($1, $2, $3, $4, true, NOW())
+       VALUES ($1, $2, $3, $4, FALSE, NOW())
        RETURNING id, username, email, phone, created_at`,
       [username.toLowerCase(), email.toLowerCase(), phone || null, hashedPw]
     );
 
     const newUser = result.rows[0];
 
-    // Hapus OTP yang sudah dipakai
-    await query('DELETE FROM otp_codes WHERE email = $1', [email.toLowerCase()]).catch(() => {});
-
     return res.status(201).json({
       success: true,
-      message: 'Akun berhasil dibuat',
+      message: 'Akun berhasil dibuat. Verifikasi email kamu untuk melanjutkan.',
       user: {
         id: newUser.id,
         username: newUser.username,
@@ -66,7 +85,7 @@ module.exports = async function handler(req, res) {
     });
 
   } catch (err) {
-    console.error('Register error:', err.message);
+    console.error('[REGISTER] Error:', err.message);
     return res.status(500).json({ error: 'Terjadi kesalahan server', detail: err.message });
   }
 };
