@@ -1,4 +1,18 @@
+const { securityCheck } = require('./_lib/security-middleware');
+
 module.exports = async function handler(req, res) {
+  // Security checks for all endpoints
+  // - Payload limit: 15MB max
+  // - Request timeout: 30 seconds max
+  const isSafe = securityCheck(req, res, {
+    maxPayloadMB: 15,
+    timeoutSeconds: 30
+  });
+  
+  if (!isSafe) {
+    return; // Response already sent by security check
+  }
+
   // Extract route from URL path or query parameter
   // In Vercel, the dynamic segment [route] comes as part of req.url
   let route = req.query.route;
