@@ -12,7 +12,7 @@
       
       if (!token) {
         console.warn('[SECURITY] No admin token found. Redirecting to login.');
-        window.location.replace('/admin/login.html');
+        window.location.replace('/login.html?role=admin&error=no_token');
         return;
       }
 
@@ -20,26 +20,37 @@
         // Parse JWT token (format: header.payload.signature)
         const parts = token.split('.');
         if (parts.length !== 3) {
+          console.error('[SECURITY] Invalid token format (wrong parts count):', parts.length);
           throw new Error('Invalid token format');
         }
 
         const payload = JSON.parse(atob(parts[1]));
         const now = Math.floor(Date.now() / 1000);
 
-        // Check expiry
-        if (payload.exp && payload.exp < now) {
-          console.warn('[SECURITY] Token expired. Redirecting to login.');
+        // Validate payload
+        if (!payload || typeof payload !== 'object') {
+          console.error('[SECURITY] Invalid payload structure');
+          throw new Error('Invalid payload');
+        }
+
+        // Check expiry (give 5 second grace period)
+        if (payload.exp && payload.exp < (now - 5)) {
+          console.warn('[SECURITY] Token expired at:', new Date(payload.exp * 1000));
           localStorage.removeItem('adminToken');
-          window.location.replace('/admin/login.html');
+          window.location.replace('/login.html?role=admin&error=token_expired');
           return;
         }
 
         // Token valid, continue loading dashboard
-        console.log('[SECURITY] Admin token verified:', { username: payload.username, role: payload.role });
+        console.log('[SECURITY] Admin token verified:', { 
+          username: payload.username, 
+          role: payload.role,
+          exp: new Date(payload.exp * 1000)
+        });
       } catch (error) {
         console.error('[SECURITY] Token verification failed:', error.message);
         localStorage.removeItem('adminToken');
-        window.location.replace('/admin/login.html');
+        window.location.replace('/login.html?role=admin&error=invalid_token');
       }
     })();
   </script>
