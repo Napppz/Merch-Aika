@@ -459,12 +459,6 @@ function doLogin() {
       csrf_token: csrfToken // Include CSRF token
     };
     
-    // Clear previous admin session (clean slate)
-    sessionStorage.removeItem('aika_admin_token');
-    localStorage.removeItem('aika_admin');
-    localStorage.removeItem('aika_admin_user');
-    localStorage.removeItem('aika_admin_logged'); // Clear session flag
-    
     fetch('/api/admin-login', {
       method: 'POST',
       headers: { 
@@ -637,10 +631,10 @@ if (urlParams.get('role') === 'admin') {
 
 /* ── Already logged in? ── */
 const existing = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
-const isAdmin = localStorage.getItem('aika_admin') === 'true';
+const isAdminLogged = localStorage.getItem('aika_admin_logged') === 'true';
 
-if (isAdmin) {
-  window.location.href = 'admin/dashboard.html';
+if (isAdminLogged) {
+  window.location.href = '/admin/dashboard.html';
 } else if (existing) {
   try {
     const sess = JSON.parse(existing);
