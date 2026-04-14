@@ -660,9 +660,19 @@ if (urlParams.get('role') === 'admin') {
 /* ── Already logged in? ── */
 const existing = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
 const isAdminLogged = localStorage.getItem('aika_admin_logged') === 'true';
+const adminUser = localStorage.getItem('aika_admin_user');
 
-if (isAdminLogged) {
-  window.location.href = '/admin/dashboard.html';
+// ONLY redirect to dashboard if BOTH session keys are valid
+if (isAdminLogged && adminUser) {
+  try {
+    JSON.parse(adminUser); // Validate JSON
+    console.log('[LOGIN-CHECK] ✅ Valid admin session detected, redirecting to dashboard');
+    window.location.href = '/admin/dashboard.html';
+  } catch (e) {
+    console.log('[LOGIN-CHECK] ⚠️ Session data corrupted, allowing new login');
+    localStorage.removeItem('aika_admin_logged');
+    localStorage.removeItem('aika_admin_user');
+  }
 } else if (existing) {
   try {
     const sess = JSON.parse(existing);
