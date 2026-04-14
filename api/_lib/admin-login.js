@@ -1,7 +1,9 @@
-// api/_lib/admin-login.js — Secure Admin Authentication
-// ⚠️ SECURITY-FOCUSED: Hash passwords, rate limiting, CSRF protection, timing-safe comparison
+// api/_lib/admin-login.js — Secure Admin Authentication (Database-backed)
+// ⚠️ SECURITY-FOCUSED: Password hashes stored in Neon DB, JWT tokens, rate limiting
 
 const crypto = require('crypto');
+const db = require('./_db');
+const { generateJWT } = require('./jwt-manager');
 
 // In-memory rate limiting (use Redis in production)
 const loginAttempts = {};
@@ -14,22 +16,6 @@ function hashPassword(password) {
   const salt = process.env.PASSWORD_SALT || 'aika_sesilia_salt_2024_secure';
   return crypto.createHmac('sha256', salt).update(password).digest('hex');
 }
-
-// ⚠️ CRITICAL: Pre-hash the admin password
-// NEVER store plain text passwords!
-// Generate correct hash: node generate-admin-hash.js
-const DEFAULT_PASSWORD_HASH = '000f49c6d3cfa4232f61c54c6348a4c7d4f825870ba6c53e81b92745add01db6';
-const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || DEFAULT_PASSWORD_HASH;
-
-// Log untuk debugging (helpful untuk troubleshooting)
-if (process.env.NODE_ENV === 'development') {
-  console.log('[ADMIN-LOGIN] Using password hash:', ADMIN_PASSWORD_HASH === DEFAULT_PASSWORD_HASH ? 'DEFAULT' : 'FROM_ENV');
-}
-
-const ADMIN_CREDENTIALS = {
-  username: process.env.ADMIN_USERNAME || 'Aika',
-  password_hash: ADMIN_PASSWORD_HASH // Only hash stored, never plain text
-};
 
 function getClientIp(req) {
   return req.headers['x-forwarded-for']?.split(',')[0].trim() || 
@@ -78,9 +64,15 @@ function recordFailedAttempt(ip) {
   }
 }
 
-function recordSuccessfulLogin(ip) {
+function recordSuccessfulLogin(ip, adminId) {
   // Clear attempts on successful login
   delete loginAttempts[ip];
+  
+  // Update last_login timestamp in database
+  db.query(
+    'UPDATE admins SET last_login = NOW() WHERE id = $1',
+    [adminId]
+  ).catch(err => console.error('Failed to update last_login:', err));
 }
 
 module.exports = async function handler(req, res) {
@@ -112,9 +104,8 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { username, password, csrf_token } = req.body;
+  const { username, password } = req.body;
   const clientIp = getClientIp(req);
-  const requestOrigin = req.headers.origin || req.headers.referer;
 
   // Validate required fields
   if (!username || !password) {
@@ -125,7 +116,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    // Check rate limiting (returns remaining time if locked)
+    // Check rate limiting
     const lockoutStatus = isLockedOut(clientIp);
     if (lockoutStatus && lockoutStatus !== false) {
       return res.status(429).json({ 
@@ -134,79 +125,75 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // Note: X-Requested-With header is sufficient CSRF protection for login endpoint
-    // Skip token validation - client generates token locally for session management after login
-    
-    // Hash the input password
-    const inputPasswordHash = hashPassword(password);
-    
-    // DEBUG: Log untuk troubleshooting (jangan hardcode di production!)
-    if (process.env.DEBUG_ADMIN_LOGIN === 'true') {
-      console.log('[DEBUG-ADMIN-LOGIN]', {
-        inputUsername: username,
-        inputHashLength: inputPasswordHash.length,
-        expectedHashLength: ADMIN_CREDENTIALS.password_hash.length,
-        usernameMatch: username === ADMIN_CREDENTIALS.username
+    // Query admin dari Neon database
+    const result = await db.query(
+      'SELECT id, username, password_hash, role, status FROM admins WHERE username = $1 AND status = $2',
+      [username, 'active']
+    );
+
+    if (result.rows.length === 0) {
+      // Admin not found or inactive
+      recordFailedAttempt(clientIp);
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Username atau password admin salah!' 
       });
     }
+
+    const admin = result.rows[0];
     
-    // Verify credentials with timing-safe comparison
-    // This prevents timing attacks
-    const usernameMatch = username === ADMIN_CREDENTIALS.username;
+    // Hash input password dan bandingkan
+    const inputPasswordHash = hashPassword(password);
     
     let passwordMatch = false;
     try {
       passwordMatch = crypto.timingSafeEqual(
         Buffer.from(inputPasswordHash),
-        Buffer.from(ADMIN_CREDENTIALS.password_hash)
+        Buffer.from(admin.password_hash)
       );
     } catch (e) {
-      // timingSafeEqual throws if buffers are different lengths
       passwordMatch = false;
     }
 
-    if (usernameMatch && passwordMatch) {
-      // ✅ LOGIN SUCCESS
-      recordSuccessfulLogin(clientIp);
-      
-      // Generate secure session token
-      const sessionToken = crypto.randomBytes(32).toString('hex');
-      
-      // Clear sensitive data from memory
-      const clearData = (obj) => {
-        for (let key in obj) delete obj[key];
-      };
-      clearData(req.body);
-      
-      return res.status(200).json({
-        success: true,
-        message: 'Login admin berhasil',
-        admin: {
-          username: username,
-          role: 'admin',
-          token: sessionToken
-        }
-      });
-    } else {
-      // ❌ LOGIN FAILED
+    if (!passwordMatch) {
+      // Password salah
       recordFailedAttempt(clientIp);
-      const attempts = loginAttempts[clientIp];
-      const remainingAttempts = MAX_ATTEMPTS - attempts.count;
-      
-      // Generic error message (no username enumeration)
-      const errorMsg = remainingAttempts <= 1 
-        ? 'Username atau password admin salah! (1 percobaan tersisa)'
-        : 'Username atau password admin salah!';
-      
       return res.status(401).json({ 
         success: false, 
-        message: errorMsg
+        message: 'Username atau password admin salah!' 
       });
     }
+
+    // ✅ LOGIN SUCCESS - Generate JWT token
+    recordSuccessfulLogin(clientIp, admin.id);
+    
+    const jwtToken = generateJWT({
+      adminId: admin.id,
+      username: admin.username,
+      role: admin.role,
+      type: 'admin'
+    });
+    
+    // Clear sensitive data from memory
+    const clearData = (obj) => {
+      for (let key in obj) delete obj[key];
+    };
+    clearData(req.body);
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Login admin berhasil',
+      admin: {
+        id: admin.id,
+        username: admin.username,
+        role: admin.role,
+        token: jwtToken
+      }
+    });
+
   } catch (err) {
     console.error('Admin login error:', err);
     
-    // Don't reveal internal error details to client
     return res.status(500).json({ 
       success: false, 
       message: 'Server error. Hubungi administrator.' 
