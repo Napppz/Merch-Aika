@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Login Flow Tracer - Full Step by Step</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 20px;
+      margin: 0;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #4ec9b0;
+      border-bottom: 2px solid #4ec9b0;
+      padding-bottom: 10px;
+    }
+    .step {
+      background: #252526;
+      border-left: 4px solid #007acc;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .step.pending {
+      border-left-color: #dcdcaa;
+      background: #2d2d30;
+    }
+    .step.success {
+      border-left-color: #4ec9b0;
+      background: #1e3a3a;
+    }
+    .step.error {
+      border-left-color: #f48771;
+      background: #3a1e1e;
+    }
+    .step h3 {
+      margin: 0 0 10px 0;
+      color: #9cdcfe;
+    }
+    .step.success h3 { color: #4ec9b0; }
+    .step.error h3 { color: #f48771; }
+    .step.pending h3 { color: #dcdcaa; }
+    
+    .log {
+      background: #1e1e1e;
+      border: 1px solid #3e3e42;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 3px;
+      font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .log-line {
+      margin: 3px 0;
+    }
+    .log-line.info { color: #9cdcfe; }
+    .log-line.success { color: #4ec9b0; }
+    .log-line.error { color: #f48771; }
+    .log-line.warn { color: #dcdcaa; }
+    
+    .button-group {
+      margin: 20px 0;
+    }
+    button {
+      background: #007acc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    button:hover { background: #005a9e; }
+    button.danger { background: #d16969; }
+    button.danger:hover { background: #c44e4e; }
+    
+    .credentials {
+      background: #1e3a3a;
+      border: 1px solid #4ec9b0;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .credentials h4 {
+      margin: 0 0 10px 0;
+      color: #4ec9b0;
+    }
+    .cred-item {
+      margin: 5px 0;
+      color: #ce9178;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🔍 Login Flow Tracer - Step by Step Debugging</h1>
+  
+  <div class="credentials">
+    <h4>📋 Test Credentials</h4>
+    <div class="cred-item">Username: <strong>Aika</strong></div>
+    <div class="cred-item">Password: <strong>Aikanap2213</strong></div>
+    <div class="cred-item">Domain: <strong>merch-aika.vercel.app</strong></div>
+  </div>
+
+  <div class="button-group">
+    <button onclick="startFullTrace()">▶ Start Full Login Trace</button>
+    <button onclick="clearAllSteps()" class="danger">🗑 Clear All</button>
+  </div>
+
+  <!-- Step 1: Pre-Login State -->
+  <div class="step pending" id="step1">
+    <h3>📍 Step 1: Pre-Login State</h3>
+    <div class="log" id="step1-log"></div>
+  </div>
+
+  <!-- Step 2: API Call -->
+  <div class="step pending" id="step2">
+    <h3>📍 Step 2: Call /api/admin-login</h3>
+    <div class="log" id="step2-log"></div>
+  </div>
+
+  <!-- Step 3: API Response -->
+  <div class="step pending" id="step3">
+    <h3>📍 Step 3: Parse API Response</h3>
+    <div class="log" id="step3-log"></div>
+  </div>
+
+  <!-- Step 4: Store Session -->
+  <div class="step pending" id="step4">
+    <h3>📍 Step 4: Store Session in localStorage</h3>
+    <div class="log" id="step4-log"></div>
+  </div>
+
+  <!-- Step 5: Verify Session -->
+  <div class="step pending" id="step5">
+    <h3>📍 Step 5: Verify Session Stored</h3>
+    <div class="log" id="step5-log"></div>
+  </div>
+
+  <!-- Step 6: Simulate Redirect -->
+  <div class="step pending" id="step6">
+    <h3>📍 Step 6: Simulate Dashboard Check</h3>
+    <div class="log" id="step6-log"></div>
+  </div>
+
+  <!-- Step 7: Final Verification -->
+  <div class="step pending" id="step7">
+    <h3>📍 Step 7: Final Verification</h3>
+    <div class="log" id="step7-log"></div>
+  </div>
+
+  <div class="button-group">
+    <button onclick="goToActualLogin()">✓ Go to Actual Login Page</button>
+    <button onclick="goToDashboard()">✓ Go to Dashboard</button>
+  </div>
+</div>
+
+<script>
+function log(stepNum, message, type = 'info') {
+  const logDiv = document.getElementById(`step${stepNum}-log`);
+  if (!logDiv) return;
+  
+  const line = document.createElement('div');
+  line.className = `log-line ${type}`;
+  
+  const timestamp = new Date().toLocaleTimeString();
+  let icon = '•';
+  if (type === 'success') icon = '✓';
+  if (type === 'error') icon = '✗';
+  if (type === 'warn') icon = '⚠';
+  
+  line.textContent = `${timestamp} ${icon} ${message}`;
+  logDiv.appendChild(line);
+  logDiv.scrollTop = logDiv.scrollHeight;
+}
+
+function setStepStatus(stepNum, status) {
+  const step = document.getElementById(`step${stepNum}`);
+  if (!step) return;
+  
+  step.classList.remove('pending', 'success', 'error');
+  step.classList.add(status);
+}
+
+async function startFullTrace() {
+  console.clear();
+  console.log('=== STARTING FULL LOGIN TRACE ===');
+  
+  try {
+    // ========== STEP 1 ==========
+    console.log('\n--- STEP 1: Pre-Login State ---');
+    setStepStatus(1, 'pending');
+    log(1, 'Checking browser capabilities...', 'info');
+    
+    const hasLocalStorage = typeof(Storage) !== 'undefined';
+    log(1, `localStorage available: ${hasLocalStorage ? '✓' : '✗'}`, hasLocalStorage ? 'success' : 'error');
+    
+    const hasSessionStorage = typeof(sessionStorage) !== 'undefined';
+    log(1, `sessionStorage available: ${hasSessionStorage ? '✓' : '✗'}`, hasSessionStorage ? 'success' : 'error');
+    
+    log(1, `Current URL: ${window.location.href}`, 'info');
+    log(1, `Domain: ${window.location.hostname}`, 'info');
+    
+    // Clear old sessions
+    localStorage.removeItem('aika_admin_logged');
+    localStorage.removeItem('aika_admin_user');
+    log(1, 'Cleared old session data', 'success');
+    
+    setStepStatus(1, 'success');
+    
+    // Wait a moment
+    await new Promise(r => setTimeout(r, 1000));
+    
+    // ========== STEP 2 ==========
+    console.log('\n--- STEP 2: API Call ---');
+    setStepStatus(2, 'pending');
+    log(2, 'Preparing API request...', 'info');
+    
+    const apiUrl = 'https://merch-aika.vercel.app/api/admin-login';
+    const payload = { username: 'Aika', password: 'Aikanap2213' };
+    
+    log(2, `Target: ${apiUrl}`, 'info');
+    log(2, `Method: POST`, 'info');
+    log(2, `Username: ${payload.username}`, 'info');
+    
+    log(2, 'Sending request...', 'warn');
+    
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    log(2, `Response Status: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+    
+    setStepStatus(2, response.ok ? 'success' : 'error');
+    await new Promise(r => setTimeout(r, 1000));
+    
+    // ========== STEP 3 ==========
+    console.log('\n--- STEP 3: Parse Response ---');
+    setStepStatus(3, 'pending');
+    
+    const data = await response.json();
+    log(3, `Response received (${JSON.stringify(data).length} bytes)`, 'info');
+    
+    if (data.success) {
+      log(3, `✓ Login successful: ${data.message}`, 'success');
+      log(3, `Admin ID: ${data.admin.id}`, 'info');
+      log(3, `Username: ${data.admin.username}`, 'info');
+      log(3, `Role: ${data.admin.role}`, 'info');
+      log(3, `Token received (${data.admin.token.length} chars)`, 'info');
+      setStepStatus(3, 'success');
+    } else {
+      log(3, `✗ Login failed: ${data.message}`, 'error');
+      setStepStatus(3, 'error');
+      throw new Error(data.message);
+    }
+    
+    await new Promise(r => setTimeout(r, 1000));
+    
+    // ========== STEP 4 ==========
+    console.log('\n--- STEP 4: Store Session ---');
+    setStepStatus(4, 'pending');
+    
+    log(4, 'Storing session flags...', 'info');
+    
+    localStorage.setItem('aika_admin_logged', 'true');
+    log(4, `localStorage.setItem('aika_admin_logged', 'true')`, 'success');
+    
+    const userObj = {
+      id: data.admin.id,
+      username: data.admin.username,
+      role: data.admin.role,
+      loginTime: Date.now()
+    };
+    
+    localStorage.setItem('aika_admin_user', JSON.stringify(userObj));
+    log(4, `localStorage.setItem('aika_admin_user', {...})`, 'success');
+    
+    setStepStatus(4, 'success');
+    await new Promise(r => setTimeout(r, 1000));
+    
+    // ========== STEP 5 ==========
+    console.log('\n--- STEP 5: Verify Session ---');
+    setStepStatus(5, 'pending');
+    
+    log(5, 'Reading stored session...', 'info');
+    
+    const storedLogged = localStorage.getItem('aika_admin_logged');
+    const storedUser = localStorage.getItem('aika_admin_user');
+    
+    log(5, `aika_admin_logged = ${storedLogged}`, storedLogged === 'true' ? 'success' : 'error');
+    log(5, `aika_admin_user = ${storedUser ? '(JSON exists)' : '(MISSING)'}`, storedUser ? 'success' : 'error');
+    
+    if (storedLogged === 'true' && storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      log(5, `User in storage: ${parsedUser.username}`, 'success');
+      setStepStatus(5, 'success');
+    } else {
+      log(5, 'Session data incomplete!', 'error');
+      setStepStatus(5, 'error');
+      throw new Error('Session not stored properly');
+    }
+    
+    await new Promise(r => setTimeout(r, 1000));
+    
+    // ========== STEP 6 ==========
+    console.log('\n--- STEP 6: Simulate Dashboard Check ---');
+    setStepStatus(6, 'pending');
+    
+    log(6, 'Simulating dashboard security check...', 'info');
+    
+    // This is what dashboard.html does
+    const isAdminLogged = localStorage.getItem('aika_admin_logged') === 'true';
+    const adminUser = localStorage.getItem('aika_admin_user');
+    
+    log(6, `Check 1: isAdminLogged = ${isAdminLogged}`, isAdminLogged ? 'success' : 'error');
+    log(6, `Check 2: adminUser exists = ${!!adminUser}`, adminUser ? 'success' : 'error');
+    
+    if (!isAdminLogged || !adminUser) {
+      log(6, 'Dashboard would REDIRECT to login!', 'error');
+      setStepStatus(6, 'error');
+      throw new Error('Dashboard security check failed');
+    }
+    
+    try {
+      const user = JSON.parse(adminUser);
+      log(6, `Parse check: User = ${user.username}`, 'success');
+      log(6, 'Dashboard would LOAD successfully!', 'success');
+      setStepStatus(6, 'success');
+    } catch (e) {
+      log(6, `Parse error: ${e.message}`, 'error');
+      setStepStatus(6, 'error');
+      throw e;
+    }
+    
+    await new Promise(r => setTimeout(r, 1000));
+    
+    // ========== STEP 7 ==========
+    console.log('\n--- STEP 7: Final Verification ---');
+    setStepStatus(7, 'pending');
+    
+    log(7, '✓✓✓ ALL CHECKS PASSED ✓✓✓', 'success');
+    log(7, 'Session is properly stored', 'success');
+    log(7, 'Dashboard should load without redirect', 'success');
+    log(7, 'Ready to test actual login!', 'success');
+    
+    setStepStatus(7, 'success');
+    
+    console.log('\n=== ALL STEPS PASSED ===');
+    
+  } catch (error) {
+    console.error('TRACE FAILED:', error);
+    log(7, `Error: ${error.message}`, 'error');
+    setStepStatus(7, 'error');
+  }
+}
+
+function goToActualLogin() {
+  window.location.href = 'https://merch-aika.vercel.app/login.html?role=admin';
+}
+
+function goToDashboard() {
+  window.location.href = 'https://merch-aika.vercel.app/admin/dashboard.html';
+}
+
+function clearAllSteps() {
+  for (let i = 1; i <= 7; i++) {
+    document.getElementById(`step${i}-log`).innerHTML = '';
+    setStepStatus(i, 'pending');
+  }
+}
+</script>
+
+</body>
+</html>
