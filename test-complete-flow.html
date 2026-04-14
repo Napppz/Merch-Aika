@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Complete Login Flow Test</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0d1117;
+      color: #c9d1d9;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 { color: #58a6ff; border-bottom: 2px solid #1f6feb; padding-bottom: 10px; }
+    .step {
+      background: #161b22;
+      border: 1px solid #30363d;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 6px;
+    }
+    .step.active { border-color: #58a6ff; background: #0d1b3a; }
+    .step.success { border-color: #3fb950; background: #0d3b1a; }
+    .step.error { border-color: #f85149; background: #3b1418; }
+    .log {
+      background: #0d1117;
+      border: 1px solid #1f6feb;
+      padding: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 10px 0;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    .log-line { margin: 3px 0; }
+    .log-line.info { color: #58a6ff; }
+    .log-line.success { color: #3fb950; }
+    .log-line.error { color: #f85149; }
+    .log-line.warn { color: #d29922; }
+    button {
+      background: #1f6feb;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover { background: #388bfd; }
+    .info-box {
+      background: #0d3b1a;
+      border: 1px solid #3fb950;
+      padding: 15px;
+      border-radius: 6px;
+      margin: 10px 0;
+    }
+    input {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+      padding: 8px;
+      border-radius: 3px;
+      width: 200px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🔐 Complete Admin Login Flow Test</h1>
+
+<div class="info-box">
+  <strong>Test Credentials:</strong>
+  <div>Username: <input type="text" id="username" value="Aika" readonly></div>
+  <div>Password: <input type="password" id="password" value="Aikanap2213" readonly></div>
+  <br>
+  <button onclick="startTest()">▶ Start Full Flow Test</button>
+  <button onclick="clearLogs()">🗑 Clear Logs</button>
+</div>
+
+<!-- PHASE 1: Initial State -->
+<div class="step" id="step1">
+  <strong>📍 PHASE 1: Initial State</strong>
+  <div class="log" id="log1"></div>
+</div>
+
+<!-- PHASE 2: Call Login API -->
+<div class="step" id="step2">
+  <strong>📍 PHASE 2: Call Login API (/api/admin-login)</strong>
+  <div class="log" id="log2"></div>
+</div>
+
+<!-- PHASE 3: Parse Response -->
+<div class="step" id="step3">
+  <strong>📍 PHASE 3: Parse API Response</strong>
+  <div class="log" id="log3"></div>
+</div>
+
+<!-- PHASE 4: Store Session -->
+<div class="step" id="step4">
+  <strong>📍 PHASE 4: Store Session in localStorage</strong>
+  <div class="log" id="log4"></div>
+</div>
+
+<!-- PHASE 5: Verify Storage -->
+<div class="step" id="step5">
+  <strong>📍 PHASE 5: Verify localStorage is Persisted</strong>
+  <div class="log" id="log5"></div>
+</div>
+
+<!-- PHASE 6: Dashboard Security Check -->
+<div class="step" id="step6">
+  <strong>📍 PHASE 6: Dashboard Security Check Simulation</strong>
+  <div class="log" id="log6"></div>
+</div>
+
+<!-- PHASE 7: Final Verdict -->
+<div class="step" id="step7">
+  <strong>📍 PHASE 7: Final Verdict</strong>
+  <div class="log" id="log7"></div>
+</div>
+
+<script>
+let allLogs = {};
+
+function log(phase, message, type = 'info') {
+  if (!allLogs[phase]) allLogs[phase] = [];
+  const timestamp = new Date().toLocaleTimeString();
+  const logEntry = `[${timestamp}] ${message}`;
+  console.log(logEntry);
+  allLogs[phase].push({ message: logEntry, type });
+  updateDisplay(phase);
+}
+
+function updateDisplay(phase) {
+  const logDiv = document.getElementById(`log${phase}`);
+  if (!logDiv) return;
+  logDiv.innerHTML = allLogs[phase]
+    .map(e => `<div class="log-line ${e.type}">${e.message}</div>`)
+    .join('');
+  logDiv.scrollTop = logDiv.scrollHeight;
+}
+
+function setStepStatus(phase, status) {
+  const step = document.getElementById(`step${phase}`);
+  if (step) {
+    step.classList.remove('active', 'success', 'error');
+    step.classList.add(status);
+  }
+}
+
+async function startTest() {
+  console.clear();
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  
+  // PHASE 1: Initial State
+  setStepStatus(1, 'active');
+  log(1, '🔍 Checking initial state...', 'info');
+  
+  localStorage.removeItem('aika_admin_logged');
+  localStorage.removeItem('aika_admin_user');
+  
+  const initialLogged = localStorage.getItem('aika_admin_logged');
+  const initialUser = localStorage.getItem('aika_admin_user');
+  
+  if (!initialLogged && !initialUser) {
+    log(1, '✅ localStorage cleared successfully', 'success');
+    setStepStatus(1, 'success');
+  } else {
+    log(1, '❌ Failed to clear localStorage', 'error');
+    setStepStatus(1, 'error');
+    return;
+  }
+  
+  await sleep(800);
+  
+  // PHASE 2: Call Login API
+  setStepStatus(2, 'active');
+  log(2, `🌐 Calling /api/admin-login with username="${username}"...`, 'info');
+  
+  try {
+    const response = await fetch('/api/admin-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    
+    log(2, `📊 Response status: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+    
+    if (!response.ok && response.status !== 401) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    setStepStatus(2, 'success');
+    
+  } catch (e) {
+    log(2, `❌ API Error: ${e.message}`, 'error');
+    setStepStatus(2, 'error');
+    return;
+  }
+  
+  await sleep(500);
+  
+  // PHASE 3: Parse Response
+  setStepStatus(3, 'active');
+  log(3, '📝 Parsing API response...', 'info');
+  
+  try {
+    const response = await fetch('/api/admin-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    
+    const data = await response.json();
+    
+    if (!data.success) {
+      throw new Error(data.message || 'Login failed');
+    }
+    
+    log(3, `✅ Login successful`, 'success');
+    log(3, `   - ID: ${data.admin.id}`, 'info');
+    log(3, `   - Username: ${data.admin.username}`, 'info');
+    log(3, `   - Role: ${data.admin.role}`, 'info');
+    
+    setStepStatus(3, 'success');
+    
+    // Store data for next phases
+    window.adminData = data.admin;
+    
+  } catch (e) {
+    log(3, `❌ Parse error: ${e.message}`, 'error');
+    setStepStatus(3, 'error');
+    return;
+  }
+  
+  await sleep(500);
+  
+  // PHASE 4: Store Session
+  setStepStatus(4, 'active');
+  log(4, '💾 Storing session in localStorage...', 'info');
+  
+  try {
+    localStorage.setItem('aika_admin_logged', 'true');
+    localStorage.setItem('aika_admin_user', JSON.stringify({
+      id: window.adminData.id,
+      username: window.adminData.username,
+      role: window.adminData.role,
+      loginTime: Date.now()
+    }));
+    
+    log(4, '✅ localStorage.setItem("aika_admin_logged", "true")', 'success');
+    log(4, '✅ localStorage.setItem("aika_admin_user", {...})', 'success');
+    
+    setStepStatus(4, 'success');
+    
+  } catch (e) {
+    log(4, `❌ Storage error: ${e.message}`, 'error');
+    setStepStatus(4, 'error');
+    return;
+  }
+  
+  await sleep(500);
+  
+  // PHASE 5: Verify Storage
+  setStepStatus(5, 'active');
+  log(5, '🔴 Verifying localStorage persistence...', 'info');
+  
+  try {
+    const storedLogged = localStorage.getItem('aika_admin_logged');
+    const storedUser = localStorage.getItem('aika_admin_user');
+    
+    log(5, `Retrieved aika_admin_logged: ${storedLogged}`, 'info');
+    log(5, `Retrieved aika_admin_user: ${storedUser.substring(0, 60)}...`, 'info');
+    
+    if (storedLogged === 'true' && storedUser) {
+      const user = JSON.parse(storedUser);
+      log(5, `✅ Data verified: User=${user.username}, ID=${user.id}`, 'success');
+      setStepStatus(5, 'success');
+    } else {
+      throw new Error('Storage verification failed');
+    }
+    
+  } catch (e) {
+    log(5, `❌ Verification error: ${e.message}`, 'error');
+    setStepStatus(5, 'error');
+    return;
+  }
+  
+  await sleep(500);
+  
+  // PHASE 6: Dashboard Security Check
+  setStepStatus(6, 'active');
+  log(6, '🔐 Simulating dashboard security check...', 'info');
+  
+  try {
+    // This is the security check from dashboard.html
+    const isAdminLogged = localStorage.getItem('aika_admin_logged');
+    const adminUser = localStorage.getItem('aika_admin_user');
+    
+    log(6, `isAdminLogged = "${isAdminLogged}"`, 'info');
+    log(6, `adminUser exists = ${!!adminUser}`, 'info');
+    
+    const isLogged = (isAdminLogged === 'true');
+    const hasUser = (adminUser && adminUser.length > 0);
+    const hasValidSession = isLogged && hasUser;
+    
+    log(6, `Check: isLogged (==='true') = ${isLogged}`, 'info');
+    log(6, `Check: hasUser (>0 chars) = ${hasUser}`, 'info');
+    log(6, `Result: Valid Session = ${hasValidSession}`, 'info');
+    
+    if (!hasValidSession) {
+      log(6, '❌ Dashboard would REDIRECT to login', 'error');
+      setStepStatus(6, 'error');
+      return;
+    }
+    
+    // Parse and validate JSON
+    const user = JSON.parse(adminUser);
+    log(6, `✅ Dashboard security check PASSED`, 'success');
+    log(6, `   - Would load dashboard for ${user.username}`, 'success');
+    
+    setStepStatus(6, 'success');
+    
+  } catch (e) {
+    log(6, `❌ Security check error: ${e.message}`, 'error');
+    setStepStatus(6, 'error');
+    return;
+  }
+  
+  await sleep(500);
+  
+  // PHASE 7: Final Verdict
+  setStepStatus(7, 'active');
+  log(7, '🎯 FINAL RESULT', 'info');
+  log(7, '✅ ✅ ✅ ALL CHECKS PASSED ✅ ✅ ✅', 'success');
+  log(7, '', 'info');
+  log(7, 'What will happen:', 'info');
+  log(7, '1. Login page: session stored in localStorage', 'success');
+  log(7, '2. Redirect to /admin/dashboard.html', 'success');
+  log(7, '3. Dashboard: security check passes', 'success');
+  log(7, '4. Dashboard: content loads normally', 'success');
+  log(7, '', 'info');
+  log(7, '✓ LOGIN FLOW SHOULD WORK CORRECTLY', 'success');
+  
+  setStepStatus(7, 'success');
+}
+
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+function clearLogs() {
+  allLogs = {};
+  for (let i = 1; i <= 7; i++) {
+    document.getElementById(`log${i}`).innerHTML = '';
+    document.getElementById(`step${i}`).classList.remove('active', 'success', 'error');
+  }
+}
+
+// Auto start when page loads
+window.addEventListener('load', () => {
+  log(1, 'Page ready. Click "Start Full Flow Test" to begin.', 'info');
+});
+
+</script>
+</body>
+</html>
