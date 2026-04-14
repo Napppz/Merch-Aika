@@ -121,6 +121,28 @@
       }
     })();
   </script>
+  
+  <!-- Debug Logger System -->
+  <script>
+    // Display login logs if they exist
+    if (localStorage.getItem('adminDebugLogs')) {
+      try {
+        const debugData = JSON.parse(localStorage.getItem('adminDebugLogs'));
+        console.log('\n📝 LOGIN DEBUG LOGS:');
+        console.log('========================');
+        if (debugData.logs && debugData.logs.length > 0) {
+          debugData.logs.forEach(entry => {
+            const style = entry.type === 'error' ? 'color: #ff6b6b' : 
+                         entry.type === 'warn' ? 'color: #ffd43b' : 'color: #51cf66';
+            console.log(`%c[${entry.time}] [${entry.prefix}] ${entry.msg}`, style);
+          });
+        }
+        console.log('========================\n');
+      } catch(e) {
+        console.warn('Failed to load debug logs:', e);
+      }
+    }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
