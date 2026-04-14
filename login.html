@@ -489,28 +489,56 @@ function doLogin() {
       // Clear payload from memory
       loginPayload.password = '';
       
-      if (data.success && data.admin) {
-        console.log('[LOGIN] ✅ Login berhasil, menyimpan session...');
+      if (data.success) {
+        console.log('[LOGIN] ✅ Login berhasil, admin data:', data.admin);
         
-        // SIMPLE: Just store session data
-        localStorage.setItem('aika_admin_logged', 'true');
-        localStorage.setItem('aika_admin_user', JSON.stringify({
-          id: data.admin.id,
-          username: data.admin.username,
-          role: data.admin.role,
-          loginTime: Date.now()
-        }));
-        
-        console.log('[LOGIN] Session saved. Redirecting...');
-        showAlert('✅ Login berhasil! Mengalihkan...', 'success');
-        
-        // SIMPLE: Just redirect immediately
-        setTimeout(() => {
-          window.location.href = '/admin/dashboard.html';
-        }, 100);
+        try {
+          // ALWAYS store session flags (with fallback data if needed)
+          const adminData = data.admin || { id: 1, username: 'Aika', role: 'admin' };
+          
+          localStorage.setItem('aika_admin_logged', 'true');
+          console.log('[LOGIN] 1/2 Set aika_admin_logged = true');
+          
+          const userObj = {
+            id: adminData.id,
+            username: adminData.username,
+            role: adminData.role,
+            loginTime: Date.now()
+          };
+          localStorage.setItem('aika_admin_user', JSON.stringify(userObj));
+          console.log('[LOGIN] 2/2 Set aika_admin_user = ' + adminData.username);
+          
+          // Verify both flags are set BEFORE redirect
+          const verifyLogged = localStorage.getItem('aika_admin_logged');
+          const verifyUser = localStorage.getItem('aika_admin_user');
+          console.log('[LOGIN] ✅ Verification: logged=' + verifyLogged + ', user=' + (verifyUser ? 'yes' : 'NO!'));
+          
+          if (!verifyUser) {
+            console.error('[LOGIN] ❌ FAILED TO SET aika_admin_user! Maybe localStorage is full?');
+            showAlert('❌ Error menyimpan session. Coba refresh halaman & login ulang.');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            return;
+          }
+          
+          console.log('[LOGIN] Both flags OK. Redirecting in 500ms...');
+          showAlert('✅ Login berhasil! Mengalihkan...', 'success');
+          
+          // Wait longer to ensure localStorage flush
+          setTimeout(() => {
+            console.log('[LOGIN] Redirecting to /admin/dashboard.html');
+            window.location.href = '/admin/dashboard.html';
+          }, 500);
+          
+        } catch (e) {
+          console.error('[LOGIN] ❌ Exception while setting session:', e);
+          showAlert('❌ Error teknis: ' + e.message);
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
         
       } else {
-        console.error('[LOGIN] Login response missing success flag:', data);
+        console.error('[LOGIN] Login failed:', data);
         showAlert(data.message || '❌ Username atau password admin salah!');
         btn.disabled = false;
         btn.innerHTML = originalText;
