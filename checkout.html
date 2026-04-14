@@ -80,6 +80,15 @@
       justify-content: center;
       gap: 0.5rem;
     }
+    /* Shipping Method Styling */
+    label[id*="methodLabel"] { 
+      transition: var(--transition) !important; 
+    }
+    label[id*="methodLabel"]:has(input:checked) { 
+      border-color: var(--aqua) !important; 
+      background: rgba(41,182,246,0.1) !important;
+      box-shadow: 0 0 15px rgba(41,182,246,0.2) !important;
+    }
     .empty-cart-msg {
       text-align: center;
       padding: 4rem 2rem;
@@ -223,6 +232,14 @@ const PROVINCE_TO_CITY = {
   ]
 };
 
+// Shipping methods
+const SHIPPING_METHODS = {
+  'jne': { name: 'JNE Reguler', desc: 'Pengiriman standar (5-7 hari kerja)', type: 'variable' },
+  'cod_event': { name: 'COD di Event', desc: 'Ambil & bayar langsung di acara Aika', type: 'free' }
+};
+
+let currentShippingMethod = 'jne'; // Default to JNE
+
 function loadCities() {
   const provEl = document.getElementById('provinsi');
   const kotaEl = document.getElementById('kota');
@@ -257,7 +274,34 @@ async function calculateRealOngkir() {
 }
 
 function getShippingTotal() {
-  return currentShippingRate;
+  if (currentShippingMethod === 'cod_event') {
+    return 0; // COD di Event adalah gratis ongkir
+  }
+  return currentShippingRate; // JNE rate dari kota
+}
+
+function updateShippingMethod(method) {
+  currentShippingMethod = method;
+  
+  // Update UI: hide/show JNE section
+  const jneSection = document.getElementById('jneShippingSection');
+  const provinsiField = document.getElementById('provinsi');
+  const kotaField = document.getElementById('kota');
+  
+  if (method === 'jne') {
+    jneSection.style.display = 'block';
+    provinsiField.required = true;
+    kotaField.required = true;
+  } else if (method === 'cod_event') {
+    jneSection.style.display = 'none';
+    provinsiField.required = false;
+    kotaField.required = false;
+    // Clear province/city selection
+    provinsiField.value = '';
+    kotaField.value = '';
+  }
+  
+  updateOrderSummary();
 }
 
 function handleAddressChange() {
@@ -350,6 +394,52 @@ function renderCheckout() {
       <div class="checkout-section" style="margin-bottom:1.5rem">
         <h2>📦 Data Pengiriman</h2>
         <div id="addressOptions" style="margin-bottom:1rem;"></div>
+        
+        <!-- Shipping Method Selection -->
+        <div class="form-group" style="margin-bottom:1.5rem;">
+          <label style="display:block; margin-bottom:0.8rem; font-weight:700;">🚚 Metode Pengiriman *</label>
+          <div style="display:flex; flex-direction:column; gap:0.8rem;">
+            <label style="display:flex; align-items:center; gap:1rem; padding:1rem; border:1px solid var(--card-border); border-radius:8px; cursor:pointer; transition:var(--transition);" id="methodJneLabel">
+              <input type="radio" name="shippingMethod" value="jne" checked onchange="updateShippingMethod('jne')" style="accent-color:var(--aqua);" />
+              <div style="flex:1;">
+                <div style="color:var(--white); font-weight:700; font-size:0.95rem;">📬 JNE Reguler</div>
+                <div style="color:var(--text-muted); font-size:0.8rem;">Pengiriman standar (5-7 hari kerja) ke seluruh Indonesia</div>
+              </div>
+            </label>
+            <label style="display:flex; align-items:center; gap:1rem; padding:1rem; border:1px solid var(--card-border); border-radius:8px; cursor:pointer; transition:var(--transition);" id="methodCodLabel">
+              <input type="radio" name="shippingMethod" value="cod_event" onchange="updateShippingMethod('cod_event')" style="accent-color:var(--aqua);" />
+              <div style="flex:1;">
+                <div style="color:var(--white); font-weight:700; font-size:0.95rem;">🎪 COD di Event</div>
+                <div style="color:var(--text-muted); font-size:0.8rem;">Ambil langsung & bayar saat acara (GRATIS ongkir)</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Shipping Location (only for JNE) -->
+        <div id="jneShippingSection" style="display:block;">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Provinsi *</label>
+              <select id="provinsi" onchange="loadCities()" required>
+                <option value="">-- Pilih Provinsi --</option>
+                <option value="DKI Jakarta">DKI Jakarta</option>
+                <option value="Jawa Barat">Jawa Barat</option>
+                <option value="Jawa Tengah">Jawa Tengah</option>
+                <option value="Jawa Timur">Jawa Timur</option>
+                <option value="Banten">Banten</option>
+                <option value="Luar Jawa">Luar Pulau Jawa (Lainnya)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Kota/Kabupaten *</label>
+              <select id="kota" onchange="calculateRealOngkir()" required disabled>
+                <option value="">-- Pilih Kota --</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         <div class="form-row">
           <div class="form-group">
             <label>Diterima Oleh (Nama) *</label>
@@ -358,27 +448,6 @@ function renderCheckout() {
           <div class="form-group">
             <label>No. HP *</label>
             <input type="tel" id="phone" placeholder="08xxxxxxxxxx" required />
-          </div>
-        </div>
-        
-        <div class="form-row">
-          <div class="form-group">
-            <label>Provinsi *</label>
-            <select id="provinsi" onchange="loadCities()" required>
-              <option value="">-- Pilih Provinsi --</option>
-              <option value="DKI Jakarta">DKI Jakarta</option>
-              <option value="Jawa Barat">Jawa Barat</option>
-              <option value="Jawa Tengah">Jawa Tengah</option>
-              <option value="Jawa Timur">Jawa Timur</option>
-              <option value="Banten">Banten</option>
-              <option value="Luar Jawa">Luar Pulau Jawa (Lainnya)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Kota/Kabupaten *</label>
-            <select id="kota" onchange="calculateRealOngkir()" required disabled>
-              <option value="">-- Pilih Kota --</option>
-            </select>
           </div>
         </div>
 
@@ -558,10 +627,15 @@ async function submitPaymentProof() {
   const address = document.getElementById('address').value;
   const note = document.getElementById('note').value;
   
-  const provEl = document.getElementById('provinsi');
-  const kotaEl = document.getElementById('kota');
-  const selectedKota = kotaEl && kotaEl.selectedIndex > 0 ? kotaEl.options[kotaEl.selectedIndex].text : '';
-  const fullDest = `${address}, ${selectedKota}, ${provEl?.value || ''}`;
+  let fullDest = address;
+  
+  // For JNE shipment, add city and province info
+  if (currentShippingMethod === 'jne') {
+    const provEl = document.getElementById('provinsi');
+    const kotaEl = document.getElementById('kota');
+    const selectedKota = kotaEl && kotaEl.selectedIndex > 0 ? kotaEl.options[kotaEl.selectedIndex].text : '';
+    fullDest = `${address}, ${selectedKota}, ${provEl?.value || ''}`;
+  }
 
   const subtotal = Cart.total();
   const grand = getGrandTotal();
@@ -572,8 +646,9 @@ async function submitPaymentProof() {
     customerName, email, phone, address: fullDest, note,
     items: [...Cart.items],
     shipping: { 
-      id: 'jne_reg', 
-      name: 'JNE Reguler', 
+      method: currentShippingMethod,
+      id: currentShippingMethod === 'jne' ? 'jne_reg' : 'cod_event',
+      name: currentShippingMethod === 'jne' ? 'JNE Reguler' : 'COD di Event',
       price: getShippingTotal(),
       discount: discountAmt > 0 ? { code: discountCode, amount: discountAmt } : null
     },
@@ -653,7 +728,13 @@ async function submitPaymentProof() {
 }
 
 function validateForm() {
-  const required = ['fullName', 'phone', 'provinsi', 'kota', 'address'];
+  const required = ['fullName', 'phone', 'address'];
+  
+  // Add province and city to required if JNE method is selected
+  if (currentShippingMethod === 'jne') {
+    required.push('provinsi', 'kota');
+  }
+  
   for (const id of required) {
     const el = document.getElementById(id);
     if (!el || !el.value.trim()) {
