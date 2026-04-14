@@ -534,8 +534,8 @@ function doLogin() {
         showAlert('✅ Berhasil masuk Admin! Mengalihkan...', 'success');
         setTimeout(() => {
           console.log('[LOGIN] Redirecting to dashboard...');
-          window.location.href = 'admin/dashboard.html';
-        }, 2000);
+          window.location.href = '/admin/dashboard.html';
+        }, 1000);
       } else {
         console.error('[LOGIN] Login response missing token or success flag:', data);
         showAlert(data.message || '❌ Username atau password admin salah!');
