@@ -516,9 +516,25 @@ function doLogin() {
           return;
         }
         
+        // VERIFICATION: Double-check localStorage before redirecting
+        console.log('[LOGIN] 📋 VERIFICATION BEFORE REDIRECT:');
+        const verifyToken = localStorage.getItem('adminToken');
+        const verifyUser = localStorage.getItem('aika_admin_user');
+        console.log('[LOGIN]   adminToken in localStorage:', verifyToken ? `✅ YES (${verifyToken.substring(0,30)}...)` : '❌ NO');
+        console.log('[LOGIN]   aika_admin_user in localStorage:', verifyUser ? '✅ YES' : '❌ NO');
+        
+        if (!verifyToken || !verifyUser) {
+          console.error('[LOGIN] ❌ CRITICAL: Token verification failed before redirect!');
+          showAlert('❌ Token verification failed. Hubungi administrator.');
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+          return;
+        }
+        
         // Show success but DON'T block redirect
         showAlert('✅ Berhasil masuk! Masuk ke dashboard...', 'success');
-        console.log('[LOGIN] ✅ Redirecting to dashboard immediately...');
+        console.log('[LOGIN] ✅ READY TO REDIRECT: All checks passed');
+        console.log('[LOGIN] ✅ window.location.replace(\'/admin/dashboard.html\')');
         
         // Redirect LANGSUNG tanpa timeout (remove setTimeout yang bisa diblock alert)
         window.location.replace('/admin/dashboard.html');

@@ -8,13 +8,24 @@
   <!-- ⚠️ SECURITY: LOGIN PROTECTION - Must run before page loads -->
   <script>
     (function() {
-      console.log('[SECURITY] Dashboard protection script running...');
+      console.log('[SECURITY] ================================');
+      console.log('[SECURITY] Dashboard protection script STARTED');
+      console.log('[SECURITY] Page URL:', window.location.href);
+      console.log('[SECURITY] ================================');
       
       const token = localStorage.getItem('adminToken');
-      console.log('[SECURITY] Token in localStorage:', token ? `✅ YES (${token.substring(0,20)}...)` : '❌ NO');
+      console.log('[SECURITY] 📋 localStorage check:');
+      console.log('[SECURITY]   adminToken:', token ? `✅ YES (${token.substring(0,20)}...)` : '❌ NO');
+      console.log('[SECURITY]   aika_admin_user:', localStorage.getItem('aika_admin_user') ? '✅ YES' : '❌ NO');
+      console.log('[SECURITY]   All keys:', Object.keys(localStorage).filter(k => k.includes('admin') || k.includes('aika')));
       
       if (!token) {
-        console.warn('[SECURITY] ❌ No admin token found. Redirecting to login.');
+        console.error('[SECURITY] ❌ CRITICAL: No admin token found!');
+        console.error('[SECURITY] This means either:');
+        console.error('[SECURITY]   1. Login.html did not store token properly');
+        console.error('[SECURITY]   2. localStorage was cleared');
+        console.error('[SECURITY]   3. Page is in private/incognito mode');
+        console.error('[SECURITY] Redirecting to login for re-authentication...');
         window.location.replace('/login.html?role=admin&error=no_token');
         return;
       }
@@ -40,8 +51,9 @@
               .replace(/-/g, '+')
               .replace(/_/g, '/');
               
-            const decoded = atob(base64);
-            return decodeURIComponent(atob(base64).split('').map((c) => {
+            const decoded = atob(base64);  // ✅ Hanya dipanggil 1x
+            // Convert UTF-8
+            return decodeURIComponent(decoded.split('').map((c) => {
               return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
             }).join(''));
           } catch(e) {
@@ -94,13 +106,16 @@
 
         // Token valid, continue loading dashboard ✅
         const timeUntilExp = payload.exp - now;
-        console.log('[SECURITY] ✅ Admin token VALID!');
+        console.log('[SECURITY] ✅✅✅ Admin token VALID! ✅✅✅');
         console.log('[SECURITY] User: ' + payload.username + ' | Role: ' + payload.role);
         console.log('[SECURITY] Token expires in: ' + timeUntilExp + ' seconds (~' + Math.round(timeUntilExp/3600) + ' hours)');
-        console.log('[SECURITY] ✅ Dashboard loaded successfully!');
+        console.log('[SECURITY] ================================');
+        console.log('[SECURITY] ✅ Dashboard AUTHORIZED to load');
+        console.log('[SECURITY] ================================');
       } catch (error) {
         console.error('[SECURITY] ❌ Critical error during token validation:', error);
         console.error('[SECURITY] Error message:', error.message);
+        console.error('[SECURITY] Error stack:', error.stack);
         localStorage.removeItem('adminToken');
         window.location.replace('/login.html?role=admin&error=invalid_token');
       }
