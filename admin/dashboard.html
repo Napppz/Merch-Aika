@@ -11,7 +11,7 @@
       console.log('[SECURITY] Dashboard protection script running...');
       
       const token = localStorage.getItem('adminToken');
-      console.log('[SECURITY] Token in localStorage:', token ? `YES (${token.substring(0,20)}...)` : 'NO');
+      console.log('[SECURITY] Token in localStorage:', token ? `✅ YES (${token.substring(0,20)}...)` : '❌ NO');
       
       if (!token) {
         console.warn('[SECURITY] ❌ No admin token found. Redirecting to login.');
@@ -25,60 +25,82 @@
         console.log('[SECURITY] Token parts count:', parts.length);
         
         if (parts.length !== 3) {
-          console.error('[SECURITY] ❌ Invalid token format (wrong parts count):', parts.length);
+          console.error('[SECURITY] ❌ Invalid token format (expected 3 parts, got ' + parts.length + ')');
           throw new Error('Invalid token format');
         }
 
-        // Function to properly decode base64url in browser
+        // Function to decode base64url (browser-compatible)
         function base64urlDecode(str) {
-          // Add padding if needed
-          let padded = str;
-          const padLength = (4 - (str.length % 4)) % 4;
-          if (padLength) {
-            padded = str + '='.repeat(padLength);
+          try {
+            let padded = str;
+            const padLength = (4 - (str.length % 4)) % 4;
+            if (padLength) padded = str + '='.repeat(padLength);
+            
+            const base64 = padded
+              .replace(/-/g, '+')
+              .replace(/_/g, '/');
+              
+            const decoded = atob(base64);
+            return decodeURIComponent(atob(base64).split('').map((c) => {
+              return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+          } catch(e) {
+            throw new Error('Base64 decode failed: ' + e.message);
           }
-          // Replace base64url chars
-          const base64 = padded.replace(/-/g, '+').replace(/_/g, '/');
-          return decodeURIComponent(atob(base64).split('').map((c) => {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-          }).join(''));
         }
 
         let payload;
         try {
-          payload = JSON.parse(base64urlDecode(parts[1]));
-          console.log('[SECURITY] Payload decoded successfully');
+          const payloadStr = base64urlDecode(parts[1]);
+          payload = JSON.parse(payloadStr);
+          console.log('[SECURITY] ✅ JWT payload decoded');
         } catch(err) {
-          console.error('[SECURITY] ❌ Failed to decode payload:', err.message);
-          throw new Error('Cannot decode payload: ' + err.message);
+          console.error('[SECURITY] ❌ Failed to decode/parse JWT payload:', err.message);
+          throw err;
         }
         
-        console.log('[SECURITY] Token payload:', payload);
+        console.log('[SECURITY] Token payload:', {
+          adminId: payload.adminId,
+          username: payload.username,
+          role: payload.role,
+          iat: payload.iat,
+          exp: payload.exp
+        });
         
         const now = Math.floor(Date.now() / 1000);
-        console.log('[SECURITY] Current time (Unix):', now, '| Token exp:', payload.exp);
+        console.log('[SECURITY] Time check - Now:', now, '| Token exp:', payload.exp, '| Diff:', (payload.exp - now) + 's');
 
-        // Validate payload
+        // Validate payload has required fields
         if (!payload || typeof payload !== 'object') {
-          console.error('[SECURITY] ❌ Invalid payload structure');
-          throw new Error('Invalid payload');
+          console.error('[SECURITY] ❌ Payload is not an object');
+          throw new Error('Invalid payload structure');
         }
 
-        // Check expiry (give 5 second grace period)
-        if (payload.exp && payload.exp < (now - 5)) {
-          console.warn('[SECURITY] ❌ Token expired at:', new Date(payload.exp * 1000));
-          console.warn('[SECURITY] Time remaining:', (payload.exp - now) + ' seconds');
+        if (!payload.adminId || !payload.username) {
+          console.error('[SECURITY] ❌ Missing required payload fields (adminId or username)');
+          throw new Error('Missing required token fields');
+        }
+
+        // Check expiry (STRICT - no grace period for testing)
+        if (payload.exp && payload.exp < now) {
+          console.warn('[SECURITY] ❌ Token has expired');
+          console.warn('[SECURITY] Expired at:', new Date(payload.exp * 1000).toISOString());
+          console.warn('[SECURITY] Current time:', new Date(now * 1000).toISOString());
+          console.warn('[SECURITY] Age:', (now - payload.exp) + ' seconds');
           localStorage.removeItem('adminToken');
           window.location.replace('/login.html?role=admin&error=token_expired');
           return;
         }
 
-        // Token valid, continue loading dashboard
+        // Token valid, continue loading dashboard ✅
         const timeUntilExp = payload.exp - now;
-        console.log('[SECURITY] ✅ Admin token verified successfully!');
-        console.log('[SECURITY] User:', payload.username, '| Role:', payload.role, '| Expires in:', timeUntilExp, 'seconds');
+        console.log('[SECURITY] ✅ Admin token VALID!');
+        console.log('[SECURITY] User: ' + payload.username + ' | Role: ' + payload.role);
+        console.log('[SECURITY] Token expires in: ' + timeUntilExp + ' seconds (~' + Math.round(timeUntilExp/3600) + ' hours)');
+        console.log('[SECURITY] ✅ Dashboard loaded successfully!');
       } catch (error) {
-        console.error('[SECURITY] ❌ Token verification failed:', error.message, error);
+        console.error('[SECURITY] ❌ Critical error during token validation:', error);
+        console.error('[SECURITY] Error message:', error.message);
         localStorage.removeItem('adminToken');
         window.location.replace('/login.html?role=admin&error=invalid_token');
       }
