@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Quick Login Test</title>
+  <style>
+    body { font-family: Arial; max-width: 600px; margin: 50px auto; padding: 20px; }
+    .box { border: 2px solid #ccc; padding: 20px; border-radius: 8px; margin: 10px 0; }
+    button { padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; background: #007bff; color: white; cursor: pointer; }
+    .log { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 4px; font-family: monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+<h1>🔧 Admin Login Quick Test</h1>
+
+<div class="box">
+  <h3>Step 1: Setup Session Manually</h3>
+  <button onclick="setupSession()">Create Fake Session</button>
+  <button onclick="goToDashboard()">Go to Dashboard</button>
+  <div id="step1-log" class="log"></div>
+</div>
+
+<div class="box">
+  <h3>Step 2: Real Login via API</h3>
+  <button onclick="testRealLogin()">Test Real Login API</button>
+  <div id="step2-log" class="log"></div>
+</div>
+
+<div class="box">
+  <h3>Step 3: Check localStorage</h3>
+  <button onclick="checkStorage()">Check Storage</button>
+  <div id="step3-log" class="log"></div>
+</div>
+
+<script>
+function log(elementId, msg) {
+  const el = document.getElementById(elementId);
+  el.innerHTML += msg + '<br>';
+  console.log(msg);
+}
+
+function setupSession() {
+  log('step1-log', '[TEST] Setting up fake admin session...');
+  localStorage.setItem('aika_admin_logged', 'true');
+  localStorage.setItem('aika_admin_user', JSON.stringify({
+    id: 1,
+    username: 'Aika',
+    role: 'admin',
+    loginTime: Date.now()
+  }));
+  log('step1-log', '✅ Session created');
+  log('step1-log', 'Now click "Go to Dashboard" button');
+}
+
+function goToDashboard() {
+  log('step1-log', '[TEST] Redirecting to /admin/dashboard.html...');
+  setTimeout(() => {
+    window.location.href = '/admin/dashboard.html';
+  }, 500);
+}
+
+async function testRealLogin() {
+  log('step2-log', '[TEST] Calling real login API...');
+  
+  try {
+    const res = await fetch('/api/admin-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'Aika', password: 'Aikanap2213' })
+    });
+    
+    log('step2-log', `[TEST] API Status: ${res.status}`);
+    const data = await res.json();
+    
+    if (data.success) {
+      log('step2-log', '✅ Login successful, storing session...');
+      localStorage.setItem('aika_admin_logged', 'true');
+      localStorage.setItem('aika_admin_user', JSON.stringify({
+        id: data.admin.id,
+        username: data.admin.username,
+        role: data.admin.role,
+        loginTime: Date.now()
+      }));
+      log('step2-log', '✅ Session stored');
+      log('step2-log', '⏳ Redirecting in 2 seconds...');
+      
+      setTimeout(() => {
+        log('step2-log', '🔄 Redirecting to dashboard...');
+        window.location.href = '/admin/dashboard.html';
+      }, 2000);
+    } else {
+      log('step2-log', '❌ Login failed: ' + data.message);
+    }
+  } catch (e) {
+    log('step2-log', '❌ Error: ' + e.message);
+  }
+}
+
+function checkStorage() {
+  const logged = localStorage.getItem('aika_admin_logged');
+  const user = localStorage.getItem('aika_admin_user');
+  
+  log('step3-log', 'aika_admin_logged = ' + (logged ? logged : 'NOT SET'));
+  
+  if (user) {
+    try {
+      const u = JSON.parse(user);
+      log('step3-log', 'aika_admin_user = ' + u.username + ' (ID: ' + u.id + ')');
+    } catch (e) {
+      log('step3-log', 'aika_admin_user = CORRUPTED');
+    }
+  } else {
+    log('step3-log', 'aika_admin_user = NOT SET');
+  }
+}
+
+// Auto check on load
+window.addEventListener('load', () => {
+  log('step3-log', '[AUTO] Checking current storage...');
+  checkStorage();
+});
+</script>
+
+</body>
+</html>
