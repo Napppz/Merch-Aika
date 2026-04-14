@@ -511,11 +511,23 @@ function doLogin() {
         
         console.log('[LOGIN] Session stored successfully');
         
+        // Close any open modals
+        const forgotModal = document.getElementById('forgotModal');
+        if (forgotModal) forgotModal.classList.remove('active');
+        
+        // Show confirmation message
         showAlert('✅ Berhasil masuk Admin! Mengalihkan...', 'success');
+        
+        // Redirect with minimal delay
         setTimeout(() => {
-          console.log('[LOGIN] Redirecting to dashboard...');
-          window.location.href = '/admin/dashboard.html';
-        }, 800);
+          console.log('[LOGIN] Executing redirect to /admin/dashboard.html');
+          console.log('[LOGIN] Session data before redirect:');
+          console.log('  - aika_admin_logged:', localStorage.getItem('aika_admin_logged'));
+          console.log('  - aika_admin_user exists:', !!localStorage.getItem('aika_admin_user'));
+          
+          // Direct redirect using replace
+          window.location.replace('/admin/dashboard.html');
+        }, 300); // Very minimal delay
       } else {
         console.error('[LOGIN] Login response missing success flag:', data);
         showAlert(data.message || '❌ Username atau password admin salah!');
