@@ -276,6 +276,79 @@
       .auth-card { padding: 2rem 1.5rem; border-radius: 20px; }
     }
   </style>
+
+  <!-- Debug Logging System - MUST be in HEAD before HTML elements use it -->
+  <script>
+    // Debug Logger class
+    class DebugLogger {
+      constructor(prefix) {
+        this.prefix = prefix;
+        this.logs = [];
+        this.loadFromStorage();
+      }
+      
+      log(msg, type = 'log') {
+        const timestamp = new Date().toLocaleTimeString();
+        const entry = {
+          time: timestamp,
+          prefix: this.prefix,
+          msg: msg,
+          type: type
+        };
+        
+        this.logs.push(entry);
+        
+        // Also log to console
+        const logMsg = `[${this.prefix}] ${msg}`;
+        if (type === 'error') console.error(logMsg);
+        else if (type === 'warn') console.warn(logMsg);
+        else console.log(logMsg);
+        
+        this.saveToStorage();
+      }
+      
+      saveToStorage() {
+        try {
+          localStorage.setItem('adminDebugLogs', JSON.stringify({
+            logs: this.logs,
+            lastUpdate: Date.now()
+          }));
+        } catch(e) {
+          console.error('Failed to save debug logs:', e);
+        }
+      }
+      
+      loadFromStorage() {
+        try {
+          const stored = localStorage.getItem('adminDebugLogs');
+          if (stored) {
+            const data = JSON.parse(stored);
+            this.logs = data.logs || [];
+          }
+        } catch(e) {
+          // Ignore load errors
+        }
+      }
+      
+      clear() {
+        this.logs = [];
+        localStorage.removeItem('adminDebugLogs');
+      }
+    }
+
+    const debugLog = new DebugLogger('LOGIN');
+
+    // Function stubs - prevent "not defined" error
+    function doLogin() {}
+    function togglePw() {}
+    function openForgot() {}
+    function closeForgot() {}
+    function switchRole() {}
+    function showAlert() {}
+    function clearAlert() {}
+    function sendReset() {}
+    function onLoginSuccess() {}
+  </script>
 </head>
 <body>
 
@@ -375,64 +448,8 @@
 
 
 
-/* ── Debug Logging System (persist across page redirects) ── */
-class DebugLogger {
-  constructor(prefix) {
-    this.prefix = prefix;
-    this.logs = [];
-    this.loadFromStorage();
-  }
-  
-  log(msg, type = 'log') {
-    const timestamp = new Date().toLocaleTimeString();
-    const entry = {
-      time: timestamp,
-      prefix: this.prefix,
-      msg: msg,
-      type: type
-    };
-    
-    this.logs.push(entry);
-    
-    // Also log to console
-    const logMsg = `[${this.prefix}] ${msg}`;
-    if (type === 'error') console.error(logMsg);
-    else if (type === 'warn') console.warn(logMsg);
-    else console.log(logMsg);
-    
-    this.saveToStorage();
-  }
-  
-  saveToStorage() {
-    try {
-      localStorage.setItem('adminDebugLogs', JSON.stringify({
-        logs: this.logs,
-        lastUpdate: Date.now()
-      }));
-    } catch(e) {
-      console.error('Failed to save debug logs:', e);
-    }
-  }
-  
-  loadFromStorage() {
-    try {
-      const stored = localStorage.getItem('adminDebugLogs');
-      if (stored) {
-        const data = JSON.parse(stored);
-        this.logs = data.logs || [];
-      }
-    } catch(e) {
-      // Ignore load errors
-    }
-  }
-  
-  clear() {
-    this.logs = [];
-    localStorage.removeItem('adminDebugLogs');
-  }
-}
-
-const debugLog = new DebugLogger('LOGIN');
+/* ── Alert ── */
+function showAlert(msg, type='error', target='authAlert') {
   const el = document.getElementById(target);
   el.className = 'auth-alert ' + type;
   el.innerHTML = (type==='error'?'⚠ ':'✅ ') + msg;
