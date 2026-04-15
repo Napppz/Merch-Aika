@@ -386,6 +386,22 @@ function showAlert(msg, type='error', target='authAlert') {
 }
 function clearAlert() { document.getElementById('authAlert').className = 'auth-alert'; }
 
+function clearUserSession() {
+  localStorage.removeItem('aika_session');
+  sessionStorage.removeItem('aika_session');
+}
+
+function clearAdminSession() {
+  localStorage.removeItem('aika_admin_logged');
+  localStorage.removeItem('aika_admin_user');
+  localStorage.removeItem('aika_admin_token');
+}
+
+function clearAllLoginSessions() {
+  clearUserSession();
+  clearAdminSession();
+}
+
 /* ── Toggle password ── */
 function togglePw() {
   const pw = document.getElementById('login-password');
@@ -450,6 +466,8 @@ function doLogin() {
   btn.innerHTML = '<span class="spin">✦</span> Memproses...';
 
   if (currentRole === 'admin') {
+    clearAdminSession();
+
     // Admin Login Logic with Enhanced Security
     const csrfToken = window.getCSRFToken ? window.getCSRFToken() : null;
     
@@ -468,7 +486,12 @@ function doLogin() {
       body: JSON.stringify(loginPayload),
       credentials: 'same-origin'
     })
-    .then(r => {
+    .then(async r => {
+      let data = null;
+      try {
+        data = await r.json();
+      } catch (_) {}
+
       // Check for rate limiting (429 Too Many Requests)
       if (r.status === 429) {
         throw new Error('Terlalu banyak percobaan. Tunggu 15 menit.');
@@ -477,11 +500,10 @@ function doLogin() {
       if (r.status === 403) {
         throw new Error('Token keamanan tidak valid. Muat ulang halaman dan coba lagi.');
       }
-      // Allow 401 (bad credentials) to be parsed as JSON
-      if (!r.ok && r.status !== 401) {
-        throw new Error('Server error: ' + r.status);
+      if (!r.ok) {
+        throw new Error((data && (data.message || data.error)) || ('Server error: ' + r.status));
       }
-      return r.json();
+      return data;
     })
     .then(data => {
       // Clear sensitive input immediately
@@ -500,6 +522,8 @@ function doLogin() {
           if (!adminToken) {
             throw new Error('Token admin tidak diterima dari server');
           }
+
+          clearAllLoginSessions();
           
           localStorage.setItem('aika_admin_logged', 'true');
           console.log('[LOGIN] 1/2 Set aika_admin_logged = true');
@@ -567,6 +591,7 @@ function doLogin() {
   }
 
   // User Login Logic
+  clearUserSession();
   fetch('/api/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -596,6 +621,7 @@ function doLogin() {
 }
 
 function onLoginSuccess(user, remember) {
+  clearAdminSession();
   showAlert('Berhasil masuk! Mengalihkan...', 'success');
   const sessionData = { email: user.email, username: user.username, loggedIn: true };
   if (remember) {
@@ -670,6 +696,16 @@ const existing = localStorage.getItem('aika_session') || sessionStorage.getItem(
 const isAdminLogged = localStorage.getItem('aika_admin_logged') === 'true';
 const adminUser = localStorage.getItem('aika_admin_user');
 const adminToken = localStorage.getItem('aika_admin_token');
+const userSessionInLocal = localStorage.getItem('aika_session');
+const userSessionInSession = sessionStorage.getItem('aika_session');
+
+if (userSessionInLocal && userSessionInSession) {
+  sessionStorage.removeItem('aika_session');
+}
+
+if (isAdminLogged && (!adminUser || !adminToken)) {
+  clearAdminSession();
+}
 
 // ONLY redirect to dashboard if BOTH session keys are valid
 if (isAdminLogged && adminUser && adminToken) {
