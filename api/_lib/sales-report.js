@@ -1,10 +1,12 @@
 const { query } = require('./_db');
+const { requireAdmin } = require('./admin-auth');
 
 module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
     if (req.method === 'GET') {
+      if (!requireAdmin(req, res)) return;
       const year = req.query.year || new Date().getFullYear();
       const format = req.query.format || 'json'; // json, csv, excel
 

@@ -1,5 +1,6 @@
 const db = require('./_db');
 const nodemailer = require('nodemailer');
+const { requireAdmin } = require('./admin-auth');
 
 // Konfigurasi Email Pengirim (Ganti dengan Email & App Password Anda nanti)
 const transporter = nodemailer.createTransport({
@@ -15,6 +16,7 @@ module.exports = async (req, res) => {
   
   try {
     if (method === 'GET') {
+      if (!requireAdmin(req, res)) return;
       const { rows } = await db.query('SELECT * FROM orders ORDER BY date DESC');
       return res.status(200).json(rows);
     } 
@@ -107,6 +109,7 @@ module.exports = async (req, res) => {
     }
 
     if (method === 'PUT') {
+      if (!requireAdmin(req, res)) return;
       const { id, status, resi } = req.body; // resi dari admin jika ada
       
       // Ambil data order yg sekarang
@@ -192,6 +195,7 @@ module.exports = async (req, res) => {
     }
 
     if (method === 'DELETE') {
+      if (!requireAdmin(req, res)) return;
       const { id } = req.query;
       if (id === 'ALL') {
         await db.query(`DELETE FROM orders`);

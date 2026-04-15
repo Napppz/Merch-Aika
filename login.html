@@ -495,6 +495,11 @@ function doLogin() {
         try {
           // ALWAYS store session flags (with fallback data if needed)
           const adminData = data.admin || { id: 1, username: 'Aika', role: 'admin' };
+          const adminToken = adminData.token;
+
+          if (!adminToken) {
+            throw new Error('Token admin tidak diterima dari server');
+          }
           
           localStorage.setItem('aika_admin_logged', 'true');
           console.log('[LOGIN] 1/2 Set aika_admin_logged = true');
@@ -507,13 +512,16 @@ function doLogin() {
           };
           localStorage.setItem('aika_admin_user', JSON.stringify(userObj));
           console.log('[LOGIN] 2/2 Set aika_admin_user = ' + adminData.username);
+          localStorage.setItem('aika_admin_token', adminToken);
+          console.log('[LOGIN] 3/3 Set aika_admin_token');
           
           // Verify both flags are set BEFORE redirect
           const verifyLogged = localStorage.getItem('aika_admin_logged');
           const verifyUser = localStorage.getItem('aika_admin_user');
+          const verifyToken = localStorage.getItem('aika_admin_token');
           console.log('[LOGIN] ✅ Verification: logged=' + verifyLogged + ', user=' + (verifyUser ? 'yes' : 'NO!'));
           
-          if (!verifyUser) {
+          if (!verifyUser || !verifyToken) {
             console.error('[LOGIN] ❌ FAILED TO SET aika_admin_user! Maybe localStorage is full?');
             showAlert('❌ Error menyimpan session. Coba refresh halaman & login ulang.');
             btn.disabled = false;
@@ -661,9 +669,10 @@ if (urlParams.get('role') === 'admin') {
 const existing = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
 const isAdminLogged = localStorage.getItem('aika_admin_logged') === 'true';
 const adminUser = localStorage.getItem('aika_admin_user');
+const adminToken = localStorage.getItem('aika_admin_token');
 
 // ONLY redirect to dashboard if BOTH session keys are valid
-if (isAdminLogged && adminUser) {
+if (isAdminLogged && adminUser && adminToken) {
   try {
     JSON.parse(adminUser); // Validate JSON
     console.log('[LOGIN-CHECK] ✅ Valid admin session detected, redirecting to dashboard');
@@ -672,6 +681,7 @@ if (isAdminLogged && adminUser) {
     console.log('[LOGIN-CHECK] ⚠️ Session data corrupted, allowing new login');
     localStorage.removeItem('aika_admin_logged');
     localStorage.removeItem('aika_admin_user');
+    localStorage.removeItem('aika_admin_token');
   }
 } else if (existing) {
   try {
