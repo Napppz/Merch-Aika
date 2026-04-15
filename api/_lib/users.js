@@ -35,6 +35,14 @@ module.exports = async function handler(req, res) {
       });
     }
 
+    if (String(err.message || '').includes('data transfer quota')) {
+      return res.status(503).json({
+        success: false,
+        error: 'Kuota transfer Neon habis',
+        detail: 'Project Neon kamu sedang melebihi data transfer quota. Upgrade paket atau tunggu reset quota agar data users bisa dimuat.'
+      });
+    }
+
     return res.status(500).json({ error: 'Terjadi kesalahan server', detail: err.message });
   }
 };
