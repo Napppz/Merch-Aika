@@ -17,6 +17,17 @@ function hashPassword(password) {
   return crypto.createHmac('sha256', salt).update(password).digest('hex');
 }
 
+function verifyHash(inputHash, storedHash) {
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(inputHash),
+      Buffer.from(storedHash)
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
 function getClientIp(req) {
   return req.headers['x-forwarded-for']?.split(',')[0].trim() || 
          req.headers['cf-connecting-ip'] ||
@@ -75,6 +86,70 @@ function recordSuccessfulLogin(ip, adminId) {
   ).catch(err => console.error('Failed to update last_login:', err));
 }
 
+function buildAdminToken(admin) {
+  const jwtToken = generateJWT({
+    adminId: admin.id,
+    username: admin.username,
+    role: admin.role,
+    type: 'admin'
+  });
+
+  return {
+    success: true,
+    message: 'Login admin berhasil',
+    admin: {
+      id: admin.id,
+      username: admin.username,
+      role: admin.role,
+      token: jwtToken
+    }
+  };
+}
+
+function tryEnvAdminLogin(username, password, clientIp) {
+  const envUsername = process.env.ADMIN_USERNAME || 'Aika';
+  const envPasswordHash = process.env.ADMIN_PASSWORD_HASH;
+
+  if (!envPasswordHash) {
+    return null;
+  }
+
+  if (username !== envUsername) {
+    recordFailedAttempt(clientIp);
+    return {
+      status: 401,
+      body: {
+        success: false,
+        message: 'Username atau password admin salah!'
+      }
+    };
+  }
+
+  const inputPasswordHash = hashPassword(password);
+  const passwordMatch = verifyHash(inputPasswordHash, envPasswordHash);
+
+  if (!passwordMatch) {
+    recordFailedAttempt(clientIp);
+    return {
+      status: 401,
+      body: {
+        success: false,
+        message: 'Username atau password admin salah!'
+      }
+    };
+  }
+
+  recordSuccessfulLogin(clientIp, 1);
+  return {
+    status: 200,
+    body: buildAdminToken({
+      id: 1,
+      username: envUsername,
+      role: 'superadmin'
+    })
+  };
+}
+
 module.exports = async function handler(req, res) {
   // Security headers
   const allowedOrigins = [
@@ -126,12 +201,29 @@ module.exports = async function handler(req, res) {
     }
 
     // Query admin dari Neon database
-    const result = await db.query(
-      'SELECT id, username, password_hash, role, status FROM admins WHERE username = $1 AND status = $2',
-      [username, 'active']
-    );
+    let result;
+    try {
+      result = await db.query(
+        'SELECT id, username, password_hash, role, status FROM admins WHERE username = $1 AND status = $2',
+        [username, 'active']
+      );
+    } catch (dbErr) {
+      console.error('Admin login DB error:', dbErr.message);
+
+      const envAuth = tryEnvAdminLogin(username, password, clientIp);
+      if (envAuth) {
+        return res.status(envAuth.status).json(envAuth.body);
+      }
+
+      throw dbErr;
+    }
 
     if (result.rows.length === 0) {
+      const envAuth = tryEnvAdminLogin(username, password, clientIp);
+      if (envAuth) {
+        return res.status(envAuth.status).json(envAuth.body);
+      }
+
       // Admin not found or inactive
       recordFailedAttempt(clientIp);
       return res.status(401).json({ 
@@ -145,15 +237,7 @@ module.exports = async function handler(req, res) {
     // Hash input password dan bandingkan
     const inputPasswordHash = hashPassword(password);
     
-    let passwordMatch = false;
-    try {
-      passwordMatch = crypto.timingSafeEqual(
-        Buffer.from(inputPasswordHash),
-        Buffer.from(admin.password_hash)
-      );
-    } catch (e) {
-      passwordMatch = false;
-    }
+    const passwordMatch = verifyHash(inputPasswordHash, admin.password_hash);
 
     if (!passwordMatch) {
       // Password salah
@@ -167,29 +251,13 @@ module.exports = async function handler(req, res) {
     // ✅ LOGIN SUCCESS - Generate JWT token
     recordSuccessfulLogin(clientIp, admin.id);
     
-    const jwtToken = generateJWT({
-      adminId: admin.id,
-      username: admin.username,
-      role: admin.role,
-      type: 'admin'
-    });
-    
     // Clear sensitive data from memory
     const clearData = (obj) => {
       for (let key in obj) delete obj[key];
     };
     clearData(req.body);
     
-    return res.status(200).json({
-      success: true,
-      message: 'Login admin berhasil',
-      admin: {
-        id: admin.id,
-        username: admin.username,
-        role: admin.role,
-        token: jwtToken
-      }
-    });
+    return res.status(200).json(buildAdminToken(admin));
 
   } catch (err) {
     console.error('Admin login error:', err);
