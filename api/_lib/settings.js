@@ -1,4 +1,5 @@
 const { Pool } = require('@neondatabase/serverless');
+const { requireAdmin } = require('./admin-auth');
 
 const connectionString = process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_1yVLlBYH3qCM@ep-nameless-voice-ank083j1-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
 const pool = new Pool({ connectionString });
@@ -18,6 +19,9 @@ module.exports = async function handler(req, res) {
     } 
     
     if (req.method === 'POST') {
+      if (!requireAdmin(req, res)) {
+        return;
+      }
       const { hero_image } = req.body;
       if (hero_image) {
         await pool.query(

@@ -1,6 +1,8 @@
 // api/_lib/admin-logout.js — Secure Admin Session Termination
 // Clears admin session and returns confirmation
 
+const { requireAdmin } = require('./admin-auth');
+
 module.exports = async function handler(req, res) {
   // Security headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -17,15 +19,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const { token } = req.body;
-
-    // Validate token exists
-    if (!token) {
-      return res.status(400).json({
-        success: false,
-        message: 'Token diperlukan untuk logout'
-      });
-    }
+    if (!requireAdmin(req, res)) return;
 
     // In production, you would:
     // 1. Look up token in database/Redis

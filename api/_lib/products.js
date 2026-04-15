@@ -1,5 +1,6 @@
 const db = require('./_db');
 const { getCache, setCache, invalidateCache } = require('./cache');
+const { requireAdmin } = require('./admin-auth');
 
 module.exports = async (req, res) => {
   const { method } = req;
@@ -22,6 +23,7 @@ module.exports = async (req, res) => {
     } 
     
     if (method === 'POST') {
+      if (!requireAdmin(req, res)) return;
       const { id, name, category, description, price, oldPrice, stock, badge, image } = req.body;
       const { rows } = await db.query(
         `INSERT INTO products (id, name, category, description, price, "oldPrice", stock, badge, image) 
@@ -35,6 +37,7 @@ module.exports = async (req, res) => {
     }
 
     if (method === 'PUT') {
+      if (!requireAdmin(req, res)) return;
       const { id, name, category, description, price, oldPrice, stock, badge, image } = req.body;
       const { rows } = await db.query(
         `UPDATE products SET name = $1, category = $2, description = $3, price = $4, "oldPrice" = $5, stock = $6, badge = $7, image = $8 
@@ -48,6 +51,7 @@ module.exports = async (req, res) => {
     }
 
     if (method === 'DELETE') {
+      if (!requireAdmin(req, res)) return;
       const { id } = req.query;
       await db.query(`DELETE FROM products WHERE id = $1`, [id]);
       

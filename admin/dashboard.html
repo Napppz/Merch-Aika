@@ -10,11 +10,12 @@
     (function() {
       const logged = localStorage.getItem('aika_admin_logged');
       const userStr = localStorage.getItem('aika_admin_user');
+      const token = localStorage.getItem('aika_admin_token');
       
       console.log('[DASHBOARD] Security check: logged=' + logged + ', user=' + (userStr ? 'yes' : 'no'));
       
       // Check session
-      if (logged !== 'true' || !userStr) {
+      if (logged !== 'true' || !userStr || !token) {
         console.log('[DASHBOARD] No valid session, redirecting to login');
         window.location.replace('/login.html?role=admin');
         return;
@@ -28,6 +29,7 @@
         console.log('[DASHBOARD] Session data corrupted, redirecting');
         localStorage.removeItem('aika_admin_logged');
         localStorage.removeItem('aika_admin_user');
+        localStorage.removeItem('aika_admin_token');
         window.location.replace('/login.html?role=admin');
         return;
       }
@@ -773,19 +775,24 @@ async function adminLogout(event) {
   }
   
   try {
+    const adminToken = localStorage.getItem('aika_admin_token');
+
     // Call logout endpoint (optional server-side cleanup)
-    const res = await fetch('/api/admin-logout', {
+    await fetch('/api/admin-logout', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
+        'X-Requested-With': 'XMLHttpRequest',
+        ...(adminToken ? { 'Authorization': `Bearer ${adminToken}` } : {})
       },
+      body: JSON.stringify({ token: adminToken }),
       credentials: 'same-origin'
     });
     
     // Clear session storage (session-based auth)
     localStorage.removeItem('aika_admin_logged');
     localStorage.removeItem('aika_admin_user');
+    localStorage.removeItem('aika_admin_token');
     
     // Redirect to login
     window.location.href = '/login.html?role=admin&logged_out=1';
@@ -795,6 +802,7 @@ async function adminLogout(event) {
     // Even on error, clear session and redirect
     localStorage.removeItem('aika_admin_logged');
     localStorage.removeItem('aika_admin_user');
+    localStorage.removeItem('aika_admin_token');
     window.location.href = '/login.html?role=admin';
   }
 }
@@ -806,18 +814,18 @@ const Products = {
   },
   async add(product) {
     product.id = 'p' + Date.now();
-    const res = await fetch('/api/products', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(product) });
+    const res = await adminFetch('/api/products', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(product) });
     if (!res.ok) { const err = await res.json(); throw new Error(err.details || err.error || 'Server Error'); }
     return await res.json();
   },
   async update(id, data) {
     data.id = id;
-    const res = await fetch('/api/products', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+    const res = await adminFetch('/api/products', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
     if (!res.ok) { const err = await res.json(); throw new Error(err.details || err.error || 'Server Error'); }
     return await res.json();
   },
   async delete(id) {
-    await fetch('/api/products?id=' + id, { method: 'DELETE' });
+    await adminFetch('/api/products?id=' + id, { method: 'DELETE' });
   },
   async get(id) {
     const all = await this.getAll();
@@ -827,7 +835,7 @@ const Products = {
 
 const Orders = {
   async getAll() {
-    try { const res = await fetch('/api/orders?t=' + Date.now()); return await res.json(); } catch { return []; }
+    try { const res = await adminFetch('/api/orders?t=' + Date.now()); return await res.json(); } catch { return []; }
   },
   async add(order) {
     order.id = 'ORD-' + Date.now();
@@ -837,12 +845,12 @@ const Orders = {
   },
   async update(id, data) {
     data.id = id;
-    const res = await fetch('/api/orders', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+    const res = await adminFetch('/api/orders', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
     if (!res.ok) throw new Error('Gagal update pesanan');
     return await res.json();
   },
   async delete(id) {
-    const res = await fetch('/api/orders?id=' + id, { method: 'DELETE' });
+    const res = await adminFetch('/api/orders?id=' + id, { method: 'DELETE' });
     if (!res.ok) throw new Error('Gagal menghapus pesanan');
   }
 };
@@ -854,6 +862,40 @@ function showToast(msg) {
 }
 
 // ── TABS ──
+function clearAdminSession() {
+  localStorage.removeItem('aika_admin_logged');
+  localStorage.removeItem('aika_admin_user');
+  localStorage.removeItem('aika_admin_token');
+}
+
+function getAdminToken() {
+  return localStorage.getItem('aika_admin_token') || '';
+}
+
+async function adminFetch(url, options = {}) {
+  const token = getAdminToken();
+  if (!token) {
+    clearAdminSession();
+    window.location.replace('/login.html?role=admin&expired=1');
+    throw new Error('Sesi admin tidak ditemukan');
+  }
+
+  const headers = {
+    ...(options.headers || {}),
+    Authorization: `Bearer ${token}`
+  };
+
+  const response = await fetch(url, { ...options, headers });
+
+  if (response.status === 401) {
+    clearAdminSession();
+    window.location.replace('/login.html?role=admin&expired=1');
+    throw new Error('Sesi admin tidak valid atau sudah kadaluarsa');
+  }
+
+  return response;
+}
+
 async function showTab(tab) {
   document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
@@ -910,7 +952,7 @@ async function renderDashboard() {
 // ── USERS ──
 async function renderUsers() {
   try {
-    const res = await fetch('/api/users');
+    const res = await adminFetch('/api/users');
     const data = await res.json();
     
     if (!data.success) {
@@ -1160,7 +1202,7 @@ async function viewOrder(id) {
     const st = document.getElementById('updateStatus').value;
     const resiVal = document.getElementById('updateResi').value;
     
-    await fetch('/api/orders', {
+    await adminFetch('/api/orders', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, status: st, resi: resiVal })
@@ -1184,7 +1226,7 @@ async function verifyPayment(orderId) {
   if (!confirm('Verifikasi pembayaran pesanan ini dan ubah status ke "Dikemas"?')) return;
   
   try {
-    const res = await fetch('/api/orders', {
+    const res = await adminFetch('/api/orders', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: orderId, status: 'paid' })
@@ -1205,7 +1247,7 @@ async function rejectPayment(orderId) {
   if (!confirm('Tolak pembayaran pesanan ini?')) return;
   
   try {
-    const res = await fetch('/api/orders', {
+    const res = await adminFetch('/api/orders', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: orderId, status: 'cancelled' })
@@ -1399,7 +1441,7 @@ async function saveHeroImage() {
   if (!hero_image) { showToast('Pilih foto terlebih dahulu!'); return; }
   
   try {
-    const res = await fetch('/api/settings', {
+    const res = await adminFetch('/api/settings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ hero_image })
@@ -1426,7 +1468,7 @@ async function loadSalesReport(month) {
   showToast('⏳ Loading laporan...');
   
   try {
-    const res = await fetch(`/api/sales-report?month=${month}&year=${year}`);
+    const res = await adminFetch(`/api/sales-report?month=${month}&year=${year}`);
     if (!res.ok) throw new Error('Gagal load laporan');
     
     const data = await res.json();
