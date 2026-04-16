@@ -410,22 +410,8 @@ function togglePw() {
   else { pw.type='password'; btn.textContent='👁'; }
 }
 
-/* ── localStorage login check (helper) ── */
-function tryLocalLogin(identifier, password, remember) {
-  const users = JSON.parse(localStorage.getItem('aika_users') || '[]');
-  const encodedPw = btoa(password);
-  const user = users.find(u =>
-    (u.email === identifier || u.username === identifier) && u.password === encodedPw
-  );
-  if (user) {
-    if (!user.verified) { showAlert('Akun belum diverifikasi!'); return false; }
-    onLoginSuccess(user, remember);
-    return true;
-  }
-  return false;
-}
-
 /* ── Role Management ── */
+
 let currentRole = 'user';
 
 function switchRole(role) {
@@ -602,21 +588,17 @@ function doLogin() {
     if (data.success) {
       onLoginSuccess(data.user, remember);
     } else {
-      if (!tryLocalLogin(identifier, password, remember)) {
-        showAlert(data.message || 'Email/username atau password salah!');
-        document.getElementById('login-password').value = '';
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-      }
-    }
-  })
-  .catch(() => {
-    if (!tryLocalLogin(identifier, password, remember)) {
-      showAlert('Email/username atau password salah!');
+      showAlert(data.message || 'Email/username atau password salah!');
       document.getElementById('login-password').value = '';
       btn.disabled = false;
       btn.innerHTML = originalText;
     }
+  })
+  .catch(() => {
+    showAlert('Koneksi ke server gagal. Coba lagi sebentar.');
+    document.getElementById('login-password').value = '';
+    btn.disabled = false;
+    btn.innerHTML = originalText;
   });
 }
 

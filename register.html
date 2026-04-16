@@ -843,63 +843,68 @@ async function resendCode() {
 }
 
 /* ─── Verify OTP ─── */
-function verifyOtp() {
+async function verifyOtp() {
   const entered = [0,1,2,3,4,5].map(i => document.getElementById('otp'+i).value).join('');
   if (entered.length < 6) return showAlert('Masukkan 6 digit kode verifikasi!');
 
-  if (entered !== generatedOtp) {
-    showAlert('Kode verifikasi salah! Coba lagi atau kirim ulang kode.');
+  const btn = document.getElementById('verifyBtn');
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = 'Memverifikasi...';
+
+  try {
+    await saveUser(entered);
+    showStep4();
+  } catch (err) {
+    showAlert(err.message || 'Kode verifikasi salah! Coba lagi atau kirim ulang kode.');
     [0,1,2,3,4,5].forEach(i => {
       const el = document.getElementById('otp'+i);
       el.style.borderColor = '#ef4444';
       setTimeout(() => el.style.borderColor = '', 1500);
     });
-    return;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalText;
   }
-
-  // ✅ OTP Correct → Save user & go to success
-  saveUser();
-  showStep4();
 }
 
-function saveUser() {
+async function saveUser(otpCode) {
   const plainPassword = document.getElementById('reg-password').value;
-  const confirmPassword = document.getElementById('reg-confirm').value;
+  const email = document.getElementById('reg-email').value.trim().toLowerCase();
   
-  // API registration dengan plain password (akan di-hash di backend)
-  fetch('/api/register', {
+  // Buat user di database. Backend akan tetap menyimpan verified = false
+  const registerRes = await fetch('/api/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       username: document.getElementById('reg-username').value.trim(),
-      email: document.getElementById('reg-email').value.trim(),
+      email: email,
       phone: '+62' + document.getElementById('reg-phone').value.trim().replace(/\D/g,''),
       password: plainPassword,
-      confirmPassword: confirmPassword,
-      verified: true
+      confirmPassword: document.getElementById('reg-confirm').value
     })
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (data.success) {
-      // Simpan token dan data user
-      localStorage.setItem('aika_token', data.token);
-      localStorage.setItem('aika_user_data', JSON.stringify(data.user));
-      // Tampilkan success page
-      showStep4();
-    } else {
-      console.error('Register error:', data.error, data.details);
-      alert('Registrasi gagal: ' + (data.error || 'Unknown error'));
-      // Kembali ke step 1
-      document.getElementById('step'+currentStep).classList.remove('active');
-      currentStep = 1;
-      document.getElementById('step1').classList.add('active');
-    }
-  })
-  .catch(err => {
-    console.error('Register error:', err);
-    alert('Koneksi gagal, coba lagi');
   });
+
+  const registerData = await registerRes.json().catch(() => ({}));
+  if (!registerRes.ok && registerRes.status !== 409) {
+    console.error('Register error:', registerData.error, registerData.details);
+    throw new Error(registerData.error || 'Registrasi gagal');
+  }
+
+  // Verifikasi OTP di server agar users.verified benar-benar berubah ke TRUE
+  const verifyRes = await fetch('/api/verify-otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email, code: otpCode })
+  });
+
+  const verifyData = await verifyRes.json().catch(() => ({}));
+  if (!verifyRes.ok || !verifyData.success) {
+    console.error('Verify OTP error:', verifyData);
+    throw new Error(verifyData.message || 'Kode verifikasi tidak valid atau sudah kadaluarsa');
+  }
+
+  localStorage.setItem('aika_pending_login', email);
 }
 
 function showStep4() {
