@@ -22,9 +22,9 @@ function getRequiredEnv(name) {
 function getR2Client() {
   if (cachedClient) return cachedClient;
 
-  const accountId = getRequiredEnv('R2_ACCOUNT_ID');
-  const accessKeyId = getRequiredEnv('R2_ACCESS_KEY_ID');
-  const secretAccessKey = getRequiredEnv('R2_SECRET_ACCESS_KEY');
+  const accountId = getRequiredEnv('2e58f0cc6bacf0060435d7437411cbd8');
+  const accessKeyId = getRequiredEnv('9cba9ff9bb29e821887a9e1eb9ff7676');
+  const secretAccessKey = getRequiredEnv('419452e298ecc325f2550da058e0a7e53851f94b9fc348695d802680fa10fb5a');
 
   cachedClient = new S3Client({
     region: 'auto',
