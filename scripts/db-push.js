@@ -4,22 +4,24 @@ const crypto = require('crypto');
 const dotenv = require('dotenv');
 const { Pool } = require('@neondatabase/serverless');
 
+dotenv.config({ path: path.join(process.cwd(), '.env.local') });
 dotenv.config();
 
-const fallbackConnectionString =
-'postgresql://neondb_owner:npg_7hRT9lBAXEaV@ep-rough-base-a19uwc5c-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
-const connectionString = process.env.DATABASE_URL || fallbackConnectionString;
+const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
   console.error('DATABASE_URL belum tersedia.');
   process.exit(1);
 }
 
-const passwordSalt = process.env.PASSWORD_SALT || 'aika_sesilia_salt_2024_secure';
-const adminUsername = process.env.ADMIN_USERNAME || 'Aika';
-const adminPasswordHash =
-  process.env.ADMIN_PASSWORD_HASH ||
-  crypto.createHmac('sha256', passwordSalt).update('asdsdasdasdas').digest('hex');
+const passwordSalt = process.env.PASSWORD_SALT;
+const adminUsername = process.env.ADMIN_USERNAME;
+const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
+
+if (!passwordSalt || !adminUsername || !adminPasswordHash) {
+  console.error('ADMIN_USERNAME, ADMIN_PASSWORD_HASH, dan PASSWORD_SALT wajib diisi di environment.');
+  process.exit(1);
+}
 
 const schemaSql = `
 CREATE TABLE IF NOT EXISTS products (

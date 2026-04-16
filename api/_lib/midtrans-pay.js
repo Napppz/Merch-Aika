@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const { query } = require('./_db');
+const { getRequiredEnv } = require('./env');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -13,11 +14,7 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Parameter pembayaran tidak lengkap' });
     }
 
-    // Midtrans Kredensial (Sesuaikan dengan file Anda - Ini Kunci Production)
-    // Server Key Midtrans telah disematkan melalui Environment Variables (MIDTRANS_SERVER_KEY) di Vercel agar aman dari bot Github
-    // Fallback disamarkan agar tidak terblokir oleh GitHub Secret Scanner
-    const fallbackKey = 'Mid-server-' + 'icGMroyj6O2L' + 'DgwN2VMG5wLM';
-    const serverKey = process.env.MIDTRANS_SERVER_KEY || fallbackKey;
+    const serverKey = getRequiredEnv('MIDTRANS_SERVER_KEY');
     
     // Kita arahkan paksa ke URL API Sandbox
     const isProd = false; 

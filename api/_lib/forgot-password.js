@@ -1,14 +1,8 @@
 const { query } = require('./_db');
-const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const { createMailTransport, getRequiredEnv } = require('./env');
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER || process.env.SMTP_USER || 'aika.sesilia.merch@gmail.com',
-    pass: process.env.EMAIL_PASS || process.env.SMTP_PASS || 'your-app-password-here',
-  },
-});
+const transporter = createMailTransport();
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -53,7 +47,7 @@ module.exports = async function handler(req, res) {
     const resetLink = `${host.startsWith('http') ? host : 'https://' + host}/login.html?reset=${token}`;
 
     const mailOptions = {
-      from: `"Aika Sesilia Merch" <${process.env.EMAIL_USER || process.env.SMTP_USER || 'aika.sesilia.merch@gmail.com'}>`,
+      from: `"Aika Sesilia Merch" <${getRequiredEnv('EMAIL_USER')}>`,
       to: email,
       subject: 'Reset Password Akun Aika Sesilia',
       html: `
