@@ -49,7 +49,7 @@ Buka: http://localhost:8000
 ## 🔐 Login Admin
 - URL: `admin/login.html`
 - Username: **aika**
-- Password: **admin123**
+- Password: **Aikanap2213**
 
 > ⚠️ Ganti kredensial sebelum deploy ke production!
 
