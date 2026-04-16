@@ -305,14 +305,42 @@
 <script>
 const BASE_SHIPPING = 15000; // Flat shipping rate if 'Metode Pengiriman' is removed
 
-const DISCOUNTS = {
-  'AIKA50': { type: 'percent', value: 30, label: 'Diskon 50%' },
-  'FREESHIP': { type: 'fixed', value: BASE_SHIPPING, label: 'Gratis Ongkir' },
-  'SUPER20K': { type: 'fixed', value: 20000, label: 'Potongan Rp 20.000' }
-};
-
+let availableVouchers = {};
 let appliedDiscount = null;
 let currentShippingRate = 12000; // Harga default awal
+
+function normalizeVoucherCode(code) {
+  return String(code || '').trim().toUpperCase();
+}
+
+async function loadVouchers() {
+  try {
+    const res = await fetch('/api/vouchers');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Gagal memuat voucher');
+
+    availableVouchers = {};
+    (data.vouchers || []).forEach(voucher => {
+      availableVouchers[normalizeVoucherCode(voucher.code)] = voucher;
+    });
+  } catch (err) {
+    console.error('Load vouchers error:', err);
+    availableVouchers = {};
+  }
+}
+
+function getAvailableVoucherSummary() {
+  const vouchers = Object.values(availableVouchers);
+  if (!vouchers.length) {
+    return '<div style="color:var(--text-muted);font-size:0.8rem">Belum ada voucher aktif saat ini.</div>';
+  }
+
+  return vouchers.map(voucher => {
+    const valueLabel = voucher.type === 'percent' ? `${voucher.value}%` : formatPrice(voucher.value);
+    const minPurchase = voucher.minPurchase ? ` • Min. belanja ${formatPrice(voucher.minPurchase)}` : '';
+    return `<div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.25rem"><strong style="color:var(--aqua)">${voucher.code}</strong> • ${voucher.label} (${valueLabel})${minPurchase}</div>`;
+  }).join('');
+}
 
 // Simulasi Database Kota & Ongkir Standar JNE Reguler dari Jakarta Timur
 // Ini menjadi bantalan (fallback) yang solid jika koneksi ke API BinderByte terputus/lambat.
@@ -441,6 +469,10 @@ function getDiscountAmount() {
   } else if (appliedDiscount.type === 'fixed') {
     discountAmt = appliedDiscount.value;
   }
+
+  if (appliedDiscount.maxDiscount && discountAmt > appliedDiscount.maxDiscount) {
+    discountAmt = appliedDiscount.maxDiscount;
+  }
   
   // Cap at subtotal + shipping
   const shipping = getShippingTotal();
@@ -458,17 +490,25 @@ function getGrandTotal() {
 function applyDiscount() {
   const codeEl = document.getElementById('discountCode');
   const msgEl = document.getElementById('discountMessage');
-  const code = codeEl.value.trim().toUpperCase();
+  const code = normalizeVoucherCode(codeEl.value);
 
   if (!code) {
     msgEl.innerHTML = '<span style="color: #ff5252;">Masukkan kode diskon!</span>';
     return;
   }
 
-  if (DISCOUNTS[code]) {
-    appliedDiscount = DISCOUNTS[code];
-    msgEl.innerHTML = `<span style="color: var(--gold);">🎉 Kode ${code} berhasil diterapkan! (${appliedDiscount.label})</span>`;
-    showToast('🎉 Kode diskon diterapkan!');
+  const voucher = availableVouchers[code];
+  const subtotal = Cart.total();
+
+  if (voucher) {
+    if (voucher.minPurchase && subtotal < voucher.minPurchase) {
+      appliedDiscount = null;
+      msgEl.innerHTML = `<span style="color: #ff5252;">Minimal belanja untuk voucher ini adalah ${formatPrice(voucher.minPurchase)}.</span>`;
+    } else {
+      appliedDiscount = { ...voucher, code };
+      msgEl.innerHTML = `<span style="color: var(--gold);">🎉 Kode ${code} berhasil diterapkan! (${appliedDiscount.label})</span>`;
+      showToast('🎉 Kode diskon diterapkan!');
+    }
   } else {
     appliedDiscount = null;
     msgEl.innerHTML = '<span style="color: #ff5252;">Kode diskon tidak valid atau kadaluarsa.</span>';
@@ -606,6 +646,7 @@ function renderCheckout() {
           <input type="text" id="discountCode" placeholder="Kode Promo (opsional)" style="flex:1; border-radius:8px; border:1px solid var(--card-border); background:rgba(3,9,31,0.6); padding:0.5rem 1rem; color:var(--white);" />
           <button class="btn-primary" onclick="applyDiscount()" style="padding: 0.5rem 1rem; font-size:0.85rem">Terapkan</button>
         </div>
+        <div style="margin-bottom:0.75rem">${getAvailableVoucherSummary()}</div>
         <div id="discountMessage" style="font-size: 0.8rem; margin-bottom: 1rem; text-align:left;"></div>
 
         <div class="order-total-row">
@@ -764,7 +805,7 @@ async function submitPaymentProof() {
   const subtotal = Cart.total();
   const grand = getGrandTotal();
   const discountAmt = getDiscountAmount();
-  const discountCode = appliedDiscount ? Object.keys(DISCOUNTS).find(k => DISCOUNTS[k] === appliedDiscount) : null;
+  const discountCode = appliedDiscount ? appliedDiscount.code : null;
 
   const orderData = {
     customerName, email, phone, address: fullDest, note,
@@ -874,6 +915,7 @@ function validateForm() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   await Cart.load();
+  await loadVouchers();
   renderCheckout();
 
 
