@@ -935,15 +935,19 @@ async function showTab(tab) {
 async function renderDashboard() {
   const orders = await Orders.getAll();
   const products = await Products.getAll();
-  const paid = orders.filter(o => o.status === 'paid');
-  const revenue = paid.reduce((s, o) => s + (o.total || 0), 0);
+  const revenueStatuses = new Set(['paid', 'shipped', 'completed']);
+  const revenueOrders = orders.filter(o => revenueStatuses.has(o.status));
+  const packedOrders = orders.filter(o => o.status === 'paid');
+  const completedOrders = orders.filter(o => o.status === 'completed');
+  const revenue = revenueOrders.reduce((s, o) => s + (o.total || 0), 0);
 
   document.getElementById('dashDate').innerHTML = `📅 ${new Date().toLocaleDateString('id-ID', {weekday:'long',year:'numeric',month:'long',day:'numeric'})}`;
 
   document.getElementById('statsGrid').innerHTML = `
     <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-value">${formatPrice(revenue)}</div><div class="stat-label">Total Pendapatan</div></div>
     <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-value">${orders.length}</div><div class="stat-label">Total Pesanan</div></div>
-    <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-value">${paid.length}</div><div class="stat-label">Pesanan Dikemas</div></div>
+    <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-value">${packedOrders.length}</div><div class="stat-label">Pesanan Dikemas</div></div>
+    <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-value">${completedOrders.length}</div><div class="stat-label">Pesanan Selesai</div></div>
     <div class="stat-card"><div class="stat-icon">🛍️</div><div class="stat-value">${products.length}</div><div class="stat-label">Total Produk</div></div>
   `;
 
