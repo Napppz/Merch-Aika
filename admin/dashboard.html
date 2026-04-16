@@ -650,6 +650,76 @@
           <button class="btn-primary" onclick="saveHeroImage()" style="margin-top: 1rem; width: 100%;">Set Foto & Simpan</button>
         </div>
       </div>
+      <div class="stat-card" style="grid-column:1/-1">
+        <div class="admin-toolbar" style="margin-bottom:1rem">
+          <h2>🎟️ Manajemen Voucher</h2>
+          <button class="btn-secondary" onclick="resetVoucherForm()" style="border-color:var(--card-border);color:var(--text-muted)">Reset Form</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1rem">
+          <div class="form-group">
+            <label>Kode Voucher *</label>
+            <input type="text" id="voucherCode" placeholder="AIKA10" style="text-transform:uppercase" />
+          </div>
+          <div class="form-group">
+            <label>Label *</label>
+            <input type="text" id="voucherLabel" placeholder="Diskon 10%" />
+          </div>
+          <div class="form-group">
+            <label>Tipe Diskon *</label>
+            <select id="voucherType" onchange="toggleVoucherTypeHint()">
+              <option value="percent">Persen (%)</option>
+              <option value="fixed">Nominal (Rp)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Nilai *</label>
+            <input type="number" id="voucherValue" placeholder="10" min="1" />
+          </div>
+          <div class="form-group">
+            <label>Minimal Belanja</label>
+            <input type="number" id="voucherMinPurchase" placeholder="0" min="0" />
+          </div>
+          <div class="form-group">
+            <label>Maksimal Diskon</label>
+            <input type="number" id="voucherMaxDiscount" placeholder="Kosongkan jika tidak dibatasi" min="0" />
+          </div>
+          <div class="form-group">
+            <label>Mulai Berlaku</label>
+            <input type="datetime-local" id="voucherStartsAt" />
+          </div>
+          <div class="form-group">
+            <label>Berlaku Sampai</label>
+            <input type="datetime-local" id="voucherExpiresAt" />
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>Deskripsi</label>
+          <input type="text" id="voucherDescription" placeholder="Contoh: Berlaku untuk semua produk" />
+        </div>
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;color:var(--text-muted)">
+          <input type="checkbox" id="voucherIsActive" checked style="width:18px;height:18px;accent-color:var(--aqua)" />
+          <label for="voucherIsActive" style="margin:0;cursor:pointer">Voucher aktif dan bisa dipakai di checkout</label>
+        </div>
+        <div style="display:flex;gap:0.8rem;flex-wrap:wrap;margin-bottom:1.5rem">
+          <button class="btn-primary" id="saveVoucherBtn" onclick="saveVoucher()">Simpan Voucher</button>
+          <div id="voucherTypeHint" style="display:flex;align-items:center;color:var(--text-muted);font-size:0.85rem">Tipe persen menghitung diskon dari subtotal belanja.</div>
+        </div>
+        <div class="products-table-wrap">
+          <table>
+            <thead>
+              <tr style="background:rgba(41,182,246,0.1);border-bottom:2px solid var(--card-border)">
+                <th>Kode</th>
+                <th>Diskon</th>
+                <th>Minimal Belanja</th>
+                <th>Status</th>
+                <th>Berlaku</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="voucherTableBody"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1483,6 +1553,190 @@ function triggerFilePicker(inputId) {
   input.click();
 }
 
+let adminVouchers = [];
+let editingVoucherCode = null;
+
+function formatVoucherValue(voucher) {
+  if (voucher.type === 'percent') {
+    return `${voucher.value}%`;
+  }
+  return formatPrice(voucher.value);
+}
+
+function formatVoucherDateRange(voucher) {
+  const start = voucher.startsAt ? new Date(voucher.startsAt).toLocaleString('id-ID') : 'Langsung aktif';
+  const end = voucher.expiresAt ? new Date(voucher.expiresAt).toLocaleString('id-ID') : 'Tanpa batas';
+  return `${start}<br><span style="color:var(--text-muted)">s/d ${end}</span>`;
+}
+
+function voucherIsCurrentlyActive(voucher) {
+  if (voucher.isActive === false) return false;
+  const now = Date.now();
+  const startsAt = voucher.startsAt ? new Date(voucher.startsAt).getTime() : null;
+  const expiresAt = voucher.expiresAt ? new Date(voucher.expiresAt).getTime() : null;
+  if (startsAt && startsAt > now) return false;
+  if (expiresAt && expiresAt < now) return false;
+  return true;
+}
+
+function resetVoucherForm() {
+  editingVoucherCode = null;
+  document.getElementById('voucherCode').value = '';
+  document.getElementById('voucherCode').readOnly = false;
+  document.getElementById('voucherLabel').value = '';
+  document.getElementById('voucherType').value = 'percent';
+  document.getElementById('voucherValue').value = '';
+  document.getElementById('voucherMinPurchase').value = '';
+  document.getElementById('voucherMaxDiscount').value = '';
+  document.getElementById('voucherStartsAt').value = '';
+  document.getElementById('voucherExpiresAt').value = '';
+  document.getElementById('voucherDescription').value = '';
+  document.getElementById('voucherIsActive').checked = true;
+  document.getElementById('saveVoucherBtn').textContent = 'Simpan Voucher';
+  toggleVoucherTypeHint();
+}
+
+function toggleVoucherTypeHint() {
+  const type = document.getElementById('voucherType').value;
+  const hint = document.getElementById('voucherTypeHint');
+  hint.textContent = type === 'percent'
+    ? 'Tipe persen menghitung diskon dari subtotal belanja.'
+    : 'Tipe nominal memotong total dengan jumlah rupiah tetap.';
+}
+
+function populateVoucherForm(code) {
+  const voucher = adminVouchers.find(item => item.code === code);
+  if (!voucher) return;
+
+  editingVoucherCode = voucher.code;
+  document.getElementById('voucherCode').value = voucher.code;
+  document.getElementById('voucherCode').readOnly = true;
+  document.getElementById('voucherLabel').value = voucher.label || '';
+  document.getElementById('voucherType').value = voucher.type || 'percent';
+  document.getElementById('voucherValue').value = voucher.value || '';
+  document.getElementById('voucherMinPurchase').value = voucher.minPurchase || '';
+  document.getElementById('voucherMaxDiscount').value = voucher.maxDiscount || '';
+  document.getElementById('voucherStartsAt').value = voucher.startsAt ? new Date(voucher.startsAt).toISOString().slice(0, 16) : '';
+  document.getElementById('voucherExpiresAt').value = voucher.expiresAt ? new Date(voucher.expiresAt).toISOString().slice(0, 16) : '';
+  document.getElementById('voucherDescription').value = voucher.description || '';
+  document.getElementById('voucherIsActive').checked = voucher.isActive !== false;
+  document.getElementById('saveVoucherBtn').textContent = 'Update Voucher';
+  toggleVoucherTypeHint();
+}
+
+function renderVouchers() {
+  const tbody = document.getElementById('voucherTableBody');
+  if (!tbody) return;
+
+  if (!adminVouchers.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem">Belum ada voucher. Tambahkan voucher pertamamu!</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = adminVouchers.map(voucher => `
+    <tr style="border-bottom:1px solid var(--card-border)">
+      <td style="font-family:monospace;color:var(--aqua);font-weight:700">${voucher.code}</td>
+      <td>
+        <div style="color:var(--white);font-weight:700">${voucher.label}</div>
+        <div style="font-size:0.8rem;color:var(--text-muted)">${formatVoucherValue(voucher)}${voucher.description ? ` • ${voucher.description}` : ''}</div>
+      </td>
+      <td>${voucher.minPurchase ? formatPrice(voucher.minPurchase) : 'Tidak ada'}</td>
+      <td>${voucherIsCurrentlyActive(voucher)
+        ? '<span class="status-badge status-paid">Aktif</span>'
+        : '<span class="status-badge status-pending">Nonaktif</span>'}</td>
+      <td style="font-size:0.8rem">${formatVoucherDateRange(voucher)}</td>
+      <td>
+        <div class="action-btns">
+          <button class="btn-edit" onclick="populateVoucherForm('${voucher.code}')">✏ Edit</button>
+          <button class="btn-del" onclick="deleteVoucher('${voucher.code}')">🗑</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function loadVouchers() {
+  try {
+    const res = await adminFetch('/api/vouchers');
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Gagal memuat voucher');
+    }
+    adminVouchers = (data.vouchers || []).sort((a, b) => a.code.localeCompare(b.code));
+    renderVouchers();
+  } catch (err) {
+    console.error('Gagal load vouchers:', err);
+    showToast('❌ ' + err.message);
+  }
+}
+
+async function saveVoucher() {
+  const code = document.getElementById('voucherCode').value.trim().toUpperCase();
+  const payload = {
+    code,
+    label: document.getElementById('voucherLabel').value.trim(),
+    type: document.getElementById('voucherType').value,
+    value: parseInt(document.getElementById('voucherValue').value, 10),
+    minPurchase: parseInt(document.getElementById('voucherMinPurchase').value, 10) || 0,
+    maxDiscount: document.getElementById('voucherMaxDiscount').value.trim(),
+    startsAt: document.getElementById('voucherStartsAt').value || null,
+    expiresAt: document.getElementById('voucherExpiresAt').value || null,
+    description: document.getElementById('voucherDescription').value.trim(),
+    isActive: document.getElementById('voucherIsActive').checked
+  };
+
+  if (!payload.code || !payload.label || !payload.value) {
+    showToast('⚠ Kode, label, dan nilai voucher wajib diisi');
+    return;
+  }
+
+  const btn = document.getElementById('saveVoucherBtn');
+  const initialText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = editingVoucherCode ? 'Mengupdate...' : 'Menyimpan...';
+
+  try {
+    const method = editingVoucherCode ? 'PUT' : 'POST';
+    const res = await adminFetch('/api/vouchers', {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Gagal menyimpan voucher');
+    }
+
+    showToast(`✅ Voucher ${payload.code} berhasil ${editingVoucherCode ? 'diperbarui' : 'ditambahkan'}`);
+    resetVoucherForm();
+    await loadVouchers();
+  } catch (err) {
+    showToast('❌ ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = initialText;
+  }
+}
+
+async function deleteVoucher(code) {
+  if (!confirm(`Hapus voucher ${code}?`)) return;
+
+  try {
+    const res = await adminFetch(`/api/vouchers?code=${encodeURIComponent(code)}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Gagal menghapus voucher');
+    }
+    if (editingVoucherCode === code) {
+      resetVoucherForm();
+    }
+    showToast(`🗑 Voucher ${code} dihapus`);
+    await loadVouchers();
+  } catch (err) {
+    showToast('❌ ' + err.message);
+  }
+}
+
 async function changeAdminPassword() {
   const currentPassword = document.getElementById('adminCurrentPassword').value;
   const newPassword = document.getElementById('adminNewPassword').value;
@@ -1541,6 +1795,7 @@ async function loadSettings() {
       document.getElementById('heroImagePreview').src = data.hero_image;
       document.getElementById('heroImagePreview').style.display = 'block';
     }
+    await loadVouchers();
   } catch (err) {
     console.error('Gagal load settings:', err);
   }
