@@ -7,7 +7,7 @@ const { Pool } = require('@neondatabase/serverless');
 dotenv.config();
 
 const fallbackConnectionString =
-'postgresql://neondb_owner:npg_7hRT9lBAXEaV@ep-rough-base-dddduytyutyut-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+'postgresql://neondb_owner:npg_7hRT9lBAXEaV@ep-rough-base-a19uwc5c-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
 const connectionString = process.env.DATABASE_URL || fallbackConnectionString;
 
 if (!connectionString) {
@@ -19,7 +19,7 @@ const passwordSalt = process.env.PASSWORD_SALT || 'aika_sesilia_salt_2024_secure
 const adminUsername = process.env.ADMIN_USERNAME || 'Aika';
 const adminPasswordHash =
   process.env.ADMIN_PASSWORD_HASH ||
-  crypto.createHmac('sha256', passwordSalt).update('7adcf1e2f00fc4e0bd3260bfe137d562d41d841bd7af170d7084e9e010c98670').digest('hex');
+  crypto.createHmac('sha256', passwordSalt).update('asdasdasdasdad').digest('hex');
 
 const schemaSql = `
 CREATE TABLE IF NOT EXISTS products (
