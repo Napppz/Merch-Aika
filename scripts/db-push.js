@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const dotenv = require('dotenv');
 const { Pool } = require('@neondatabase/serverless');
 
+dotenv.config({ path: path.join(process.cwd(), '.env.local') });
 dotenv.config();
 
 const fallbackConnectionString =
@@ -17,9 +18,10 @@ if (!connectionString) {
 
 const passwordSalt = process.env.PASSWORD_SALT || 'aika_sesilia_salt_2024_secure';
 const adminUsername = process.env.ADMIN_USERNAME || 'Aika';
+const defaultAdminPassword = process.env.ADMIN_PASSWORD || 'Aikanap2213';
 const adminPasswordHash =
   process.env.ADMIN_PASSWORD_HASH ||
-  crypto.createHmac('sha256', passwordSalt).update('7adcf1e2f00fc4e0bd3260bfe137d562d41d841bd7af170d7084e9e010c98670').digest('hex');
+  crypto.createHmac('sha256', passwordSalt).update(defaultAdminPassword).digest('hex');
 
 const schemaSql = `
 CREATE TABLE IF NOT EXISTS products (
