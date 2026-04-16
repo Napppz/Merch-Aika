@@ -34,29 +34,39 @@ a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e
 ### 2b. Navigate to Environment Variables
 1. Click **Settings** (top menu)
 2. Select **Environment Variables** (left sidebar)
-3. You should see existing variables:
-   - `DATABASE_URL` (Neon connection string)
-   - `ADMIN_USERNAME` (if you have it)
-   - `PASSWORD_SALT` (if you have it)
+3. Add these variables to **Production**, **Preview**, and **Development** unless you intentionally want different values:
 
-### 2c. Add JWT_SECRET
-1. Click **Add New** button
-2. Fill in:
-   - **Name:** `JWT_SECRET`
-   - **Value:** `<paste your generated secret from Step 1>`
-   - **Environment:** Select the environments you want (Production, Preview, Development)
-     - ✅ **Production** - Required
-     - ✅ **Preview** - Recommended (for testing)
-     - ✅ **Development** - Optional
-3. Click **Save**
+| Name | Required | Notes |
+| --- | --- | --- |
+| `DATABASE_URL` | Yes | Neon PostgreSQL connection string |
+| `JWT_SECRET` | Yes | Use a long random secret |
+| `PASSWORD_SALT` | Yes | Must match the salt used to generate password hashes |
+| `ADMIN_USERNAME` | Yes | Current admin username |
+| `ADMIN_PASSWORD_HASH` | Yes | Hash for admin password |
+| `EMAIL_USER` | Yes | Gmail / SMTP sender address |
+| `EMAIL_PASS` | Yes | Gmail App Password / SMTP password |
+| `ADMIN_EMAIL` | Recommended | Admin notification inbox |
+| `MIDTRANS_SERVER_KEY` | Yes if Midtrans is enabled | Server key from Midtrans dashboard |
 
-**Your environment should now have:**
+### 2c. Recommended Values Checklist
+
+```env
+DATABASE_URL=postgresql://...
+JWT_SECRET=<paste generated secret from Step 1>
+PASSWORD_SALT=<your existing password salt>
+ADMIN_USERNAME=<your admin username>
+ADMIN_PASSWORD_HASH=<your admin password hash>
+EMAIL_USER=<your sender email>
+EMAIL_PASS=<your email app password>
+ADMIN_EMAIL=<your admin inbox>
+MIDTRANS_SERVER_KEY=<your midtrans server key>
 ```
-DATABASE_URL = postgresql://...
-JWT_SECRET = a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e
-PASSWORD_SALT = (existing)
-ADMIN_USERNAME = (existing - optional)
-```
+
+### 2d. Save
+1. Click **Add New** for each variable
+2. Paste the correct value
+3. Enable the environments you need
+4. Click **Save**
 
 ---
 

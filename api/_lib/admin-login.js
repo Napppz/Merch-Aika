@@ -4,6 +4,7 @@
 const crypto = require('crypto');
 const db = require('./_db');
 const { generateJWT } = require('./jwt-manager');
+const { getPasswordSalt } = require('./env');
 
 // In-memory rate limiting (use Redis in production)
 const loginAttempts = {};
@@ -13,7 +14,7 @@ const ATTEMPT_WINDOW = 5 * 60 * 1000; // 5 minutes attempt window
 
 // Proper password hashing function (HMAC-SHA256 with salt)
 function hashPassword(password) {
-  const salt = process.env.PASSWORD_SALT || 'aika_sesilia_salt_2024_secure';
+  const salt = getPasswordSalt();
   return crypto.createHmac('sha256', salt).update(password).digest('hex');
 }
 

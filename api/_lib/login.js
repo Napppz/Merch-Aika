@@ -4,6 +4,7 @@
 
 const { query } = require('./_db');
 const crypto = require('crypto');
+const { getPasswordSalt } = require('./env');
 
 // ════════════════════════════════════════════════════════════════
 // RATE LIMITING (In-memory + use Redis in production)
@@ -65,7 +66,7 @@ function recordSuccessLoginAttempt(ip) {
 // PASSWORD HASHING & VERIFICATION
 // ════════════════════════════════════════════════════════════════
 function hashPassword(password) {
-  const salt = process.env.PASSWORD_SALT || 'aika_sesilia_salt_2024_secure';
+  const salt = getPasswordSalt();
   return crypto.createHmac('sha256', salt).update(password).digest('hex');
 }
 

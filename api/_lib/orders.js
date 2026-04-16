@@ -1,15 +1,8 @@
 const db = require('./_db');
-const nodemailer = require('nodemailer');
 const { requireAdmin } = require('./admin-auth');
+const { createMailTransport, getRequiredEnv } = require('./env');
 
-// Konfigurasi Email Pengirim (Ganti dengan Email & App Password Anda nanti)
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER || 'rizkytyan17@gmail.com', // Ganti email toko Anda
-    pass: process.env.EMAIL_PASS || 'pzvpylhvnunlfdmq'        // Bikin App Password di Google Account
-  }
-});
+const transporter = createMailTransport();
 
 module.exports = async (req, res) => {
   const { method } = req;
@@ -54,7 +47,7 @@ module.exports = async (req, res) => {
 
       // (1b) Kirim Notifikasi Email ke Admin
       try {
-        const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'rizkytyan17@gmail.com';
+        const adminEmail = process.env.ADMIN_EMAIL || getRequiredEnv('EMAIL_USER');
         const itemsHTML = (Array.isArray(items) ? items : (typeof items === 'string' ? JSON.parse(items) : []))
           .map(item => `<li>${item.name} × ${item.qty} = Rp ${(item.price * item.qty).toLocaleString('id-ID')}</li>`)
           .join('');

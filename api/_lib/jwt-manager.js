@@ -2,9 +2,10 @@
 // Utilities untuk generate, verify, dan manage session tokens
 
 const crypto = require('crypto');
+const { getRequiredEnv } = require('./env');
 
 // Config JWT (gunakan secret dari env untuk production)
-const JWT_SECRET = process.env.JWT_SECRET || 'aika_sesilia_jwt_secret_2024_secure_change_in_production';
+const JWT_SECRET = getRequiredEnv('JWT_SECRET');
 const JWT_EXPIRY = 24 * 60 * 60 * 1000; // 24 jam dalam milliseconds
 
 // Simple JWT implementation (production: gunakan jsonwebtoken library)

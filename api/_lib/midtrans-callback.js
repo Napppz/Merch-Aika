@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const { query } = require('./_db');
-const nodemailer = require('nodemailer');
+const { createMailTransport, getRequiredEnv } = require('./env');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -12,10 +12,7 @@ module.exports = async function handler(req, res) {
     
     const { order_id, status_code, gross_amount, signature_key, transaction_status } = data;
 
-    // Midtrans Kredensial (Sesuaikan dengan file Anda - Ini Kunci Production)
-    // Fallback disamarkan agar tidak terblokir oleh GitHub Secret Scanner
-    const fallbackKey = 'Mid-server-' + 'icGMroyj6O2L' + 'DgwN2VMG5wLM';
-    const serverKey = process.env.MIDTRANS_SERVER_KEY || fallbackKey;
+    const serverKey = getRequiredEnv('MIDTRANS_SERVER_KEY');
 
     // SHA512(order_id+status_code+gross_amount+ServerKey)
     const signatureStr = order_id + status_code + gross_amount + serverKey;
@@ -39,16 +36,10 @@ module.exports = async function handler(req, res) {
         const oRes = await query('SELECT * FROM orders WHERE id = $1', [order_id]);
         if (oRes.rows.length > 0) {
           const ord = oRes.rows[0];
-          const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-              user: process.env.EMAIL_USER || process.env.SMTP_USER,
-              pass: process.env.EMAIL_PASS || process.env.SMTP_PASS,
-            },
-          });
+          const transporter = createMailTransport();
           const itemsHtml = Object.values(ord.items || {}).map(i => `<li>${i.name} (x${i.qty}) - Rp ${parseInt(i.price).toLocaleString('id-ID')}</li>`).join('');
           await transporter.sendMail({
-            from: `"Aika Sesilia" <${process.env.EMAIL_USER || 'no-reply@aika.com'}>`,
+            from: `"Aika Sesilia" <${getRequiredEnv('EMAIL_USER')}>`,
             to: ord.contact.email,
             subject: 'Pembayaran Diterima - Aika Sesilia',
             html: `<h2>Terima Kasih, ${ord.contact.name}!</h2>

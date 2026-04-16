@@ -4,11 +4,12 @@
 
 const { query } = require('./_db');
 const crypto = require('crypto');
+const { getPasswordSalt } = require('./env');
 
 function hashPassword(password) {
   // Menggunakan SHA-256 + salt untuk keamanan
   // Di produksi sebaiknya gunakan bcrypt
-  const salt = process.env.PASSWORD_SALT || 'aika_sesilia_salt_2024_secure';
+  const salt = getPasswordSalt();
   return crypto.createHmac('sha256', salt).update(password).digest('hex');
 }
 

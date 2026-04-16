@@ -2,16 +2,9 @@
 // Mengirim kode OTP via email menggunakan Nodemailer / SMTP
 
 const { query } = require('./_db');
+const { createMailTransport, getRequiredEnv } = require('./env');
 
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail', // atau 'smtp.mailtrap.io' untuk testing
-  auth: {
-    user: process.env.EMAIL_USER || process.env.SMTP_USER || 'aika.sesilia.merch@gmail.com',   // Gunakan fallback agar mirip dengan orders.js
-    pass: process.env.EMAIL_PASS || process.env.SMTP_PASS || 'your-app-password-here',   // App Password
-  },
-});
+const transporter = createMailTransport();
 
 module.exports = async function handler(req, res) {
   // ─── SECURITY HEADERS ───
@@ -66,7 +59,7 @@ module.exports = async function handler(req, res) {
 
   // Kirim email
   const mailOptions = {
-    from: `"Aika Sesilia ✦" <${process.env.SMTP_USER}>`,
+    from: `"Aika Sesilia ✦" <${getRequiredEnv('EMAIL_USER')}>`,
     to: email,
     subject: `[${otp}] Kode Verifikasi Aika Sesilia`,
     html: `

@@ -1,16 +1,9 @@
 const { query } = require('./_db');
-const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
+const { createMailTransport, getRequiredEnv } = require('./env');
 
-// Konfigurasi Email
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER || 'rizkytyan17@gmail.com',
-    pass: process.env.EMAIL_PASS || 'pzvpylhvnunlfdmq'
-  }
-});
+const transporter = createMailTransport();
 
 module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -67,7 +60,7 @@ module.exports = async (req, res) => {
 
       // Email ke Admin - Bukti Pembayaran Diterima
       try {
-        const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'rizkytyan17@gmail.com';
+        const adminEmail = process.env.ADMIN_EMAIL || getRequiredEnv('EMAIL_USER');
         
         await transporter.sendMail({
           from: '"Aika Sesilia Merch" <noreply@aikamerch.com>',
