@@ -2,7 +2,9 @@ const db = require('./_db');
 const { requireAdmin } = require('./admin-auth');
 const { createMailTransport, getRequiredEnv } = require('./env');
 
-const transporter = createMailTransport();
+function getMailTransport() {
+  return createMailTransport();
+}
 
 module.exports = async (req, res) => {
   const { method } = req;
@@ -24,6 +26,7 @@ module.exports = async (req, res) => {
 
       // (1/2) Kirim Notifikasi Email - Pesanan Baru ke Customer
       try {
+        const transporter = getMailTransport();
         await transporter.sendMail({
           from: '"Aika Sesilia Merch" <noreply@aikamerch.com>',
           to: email, // Email pembeli
@@ -47,6 +50,7 @@ module.exports = async (req, res) => {
 
       // (1b) Kirim Notifikasi Email ke Admin
       try {
+        const transporter = getMailTransport();
         const adminEmail = process.env.ADMIN_EMAIL || getRequiredEnv('EMAIL_USER');
         const itemsHTML = (Array.isArray(items) ? items : (typeof items === 'string' ? JSON.parse(items) : []))
           .map(item => `<li>${item.name} × ${item.qty} = Rp ${(item.price * item.qty).toLocaleString('id-ID')}</li>`)
@@ -130,6 +134,7 @@ module.exports = async (req, res) => {
       // (2/2) Kirim Notifikasi Email - Pembayaran Dikonfirmasi
       if (status === 'paid' && order.email) {
         try {
+          const transporter = getMailTransport();
           await transporter.sendMail({
             from: '"Aika Sesilia Merch" <noreply@aikamerch.com>',
             to: order.email,
@@ -161,6 +166,7 @@ module.exports = async (req, res) => {
       // (3/3) Kirim Notifikasi Email - Pesanan Dikirim
       if (status === 'shipped') {
         try {
+          const transporter = getMailTransport();
           // (Opsional) Resi JNE jika admin memasukkannya via UI
           const trackNo = resi ? resi : (order.shipping && typeof order.shipping === 'object' && order.shipping.resi) ? order.shipping.resi : '[Menunggu Resi JNE]';
 
