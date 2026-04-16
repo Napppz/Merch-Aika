@@ -249,3 +249,21 @@ Check the comprehensive documentation at: `ADMIN_SYSTEM_MIGRATION.md`
 **Status:** ✅ Ready for deployment to Vercel
 **Last Updated:** April 14, 2026
 **Deployment Key:** 9108280 (commit hash)
+## R2 Product Image Upload Variables
+
+Tambahkan juga environment variable berikut di Vercel sebelum menguji upload foto produk admin:
+
+```env
+R2_ACCOUNT_ID=your_cloudflare_account_id
+R2_ACCESS_KEY_ID=your_r2_access_key_id
+R2_SECRET_ACCESS_KEY=your_r2_secret_access_key
+R2_BUCKET_NAME=your_bucket_name
+R2_PUBLIC_BASE_URL=https://cdn.example.com
+```
+
+Checklist singkat:
+1. Buat bucket Cloudflare R2 untuk gambar produk
+2. Aktifkan public domain atau custom domain untuk bucket
+3. Isi `R2_PUBLIC_BASE_URL` dengan domain publik tersebut
+4. Buat token R2 yang punya izin upload object
+5. Jalankan migrasi gambar lama setelah env production siap

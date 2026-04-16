@@ -209,3 +209,29 @@ fetch('/api/create-transaction', {
 ---
 
 Made with 💙 for Aika Sesilia
+## Update: Upload Foto Produk Admin ke Cloudflare R2
+
+Flow upload produk admin sekarang menggunakan file upload ke Cloudflare R2, lalu URL publik hasil upload disimpan ke field `products.image`.
+
+### Environment Variables
+
+```env
+R2_ACCOUNT_ID=your_cloudflare_account_id
+R2_ACCESS_KEY_ID=your_r2_access_key_id
+R2_SECRET_ACCESS_KEY=your_r2_secret_access_key
+R2_BUCKET_NAME=your_bucket_name
+R2_PUBLIC_BASE_URL=https://cdn.example.com
+```
+
+### Endpoint Upload
+
+- `POST /api/admin-upload-product-image`
+- Header auth: `Authorization: Bearer <adminToken>`
+- Body: `multipart/form-data`
+- File field: `image`
+
+### Migrasi Foto Produk Lama
+
+```bash
+npm run migrate:product-images:r2
+```
