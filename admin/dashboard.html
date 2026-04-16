@@ -295,11 +295,13 @@
     .img-upload-area input[type="file"] {
       position: absolute;
       inset: 0;
+      z-index: 2;
       opacity: 0;
       cursor: pointer;
       width: 100%;
       height: 100%;
     }
+    .img-upload-area > :not(input[type="file"]) { pointer-events: none; }
     .img-preview {
       width: 100%;
       max-height: 200px;
@@ -635,29 +637,10 @@
         <button class="btn-primary" id="changeAdminPasswordBtn" onclick="changeAdminPassword()">Simpan Password Baru</button>
       </div>
       <div class="stat-card">
-        <h3 style="font-family:var(--font-display);color:var(--white);font-size:1rem;margin-bottom:1.5rem">🔑 Midtrans API</h3>
-        <div class="form-group">
-          <label>Server Key (Backend)</label>
-          <input type="password" placeholder="SB-Mid-server-xxxx" id="midtransServerKey" />
-        </div>
-        <div class="form-group">
-          <label>Client Key (Frontend)</label>
-          <input type="text" placeholder="SB-Mid-client-xxxx" id="midtransClientKey" />
-        </div>
-        <div class="form-group">
-          <label>Environment</label>
-          <select id="midtransEnv">
-            <option value="sandbox">Sandbox (Testing)</option>
-            <option value="production">Production</option>
-          </select>
-        </div>
-        <button class="btn-primary" onclick="saveMidtransConfig()">Simpan Konfigurasi</button>
-      </div>
-      <div class="stat-card">
         <h3 style="font-family:var(--font-display);color:var(--white);font-size:1rem;margin-bottom:1.5rem">🏪 Info Toko</h3>
         <div class="form-group">
           <label>Foto Profil Utama (Website Depan)</label>
-          <div class="img-upload-area" style="padding: 1rem;">
+          <div class="img-upload-area" style="padding: 1rem;" onclick="triggerFilePicker('heroImageFile')">
             <input type="file" id="heroImageFile" accept="image/*" onchange="previewHeroImage(this)" />
             <div class="upload-icon" style="font-size: 1.5rem;">📷</div>
             <div class="upload-text">Ubah Foto Utama Navbar/Hero<br><small>JPG, PNG, WebP — Maks 8MB</small></div>
@@ -680,7 +663,7 @@
 
     <div class="form-group">
       <label>Foto Produk</label>
-      <div class="img-upload-area">
+      <div class="img-upload-area" onclick="triggerFilePicker('productImageFile')">
         <input type="file" id="productImageFile" accept="image/*" onchange="previewImage(this)" />
         <div class="upload-icon">📷</div>
         <div class="upload-text">Klik atau drag foto produk di sini<br><small>JPG, PNG, WebP — Maks 5MB</small></div>
@@ -1494,21 +1477,10 @@ async function deleteAllOrders() {
 }
 
 // ── SETTINGS ──
-function saveMidtransConfig() {
-  const config = {
-    serverKey: document.getElementById('midtransServerKey').value,
-    clientKey: document.getElementById('midtransClientKey').value,
-    env: document.getElementById('midtransEnv').value
-  };
-  localStorage.setItem('midtrans_config', JSON.stringify(config));
-  showToast('✓ Konfigurasi Midtrans disimpan!');
-}
-
-// Load Midtrans config
-const mtConfig = JSON.parse(localStorage.getItem('midtrans_config') || '{}');
-if (mtConfig.clientKey) {
-  document.getElementById('midtransClientKey') && (document.getElementById('midtransClientKey').value = mtConfig.clientKey);
-  document.getElementById('midtransServerKey') && (document.getElementById('midtransServerKey').value = mtConfig.serverKey);
+function triggerFilePicker(inputId) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  input.click();
 }
 
 async function changeAdminPassword() {
