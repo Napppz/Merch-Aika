@@ -1112,6 +1112,138 @@ async function saveProduct() {
   }
 }
 
+let pendingProductImageFile = null;
+let currentProductPreviewUrl = null;
+
+function resetProductImageSelection() {
+  pendingProductImageFile = null;
+  const fileInput = document.getElementById('productImageFile');
+  if (fileInput) fileInput.value = '';
+}
+
+function setProductPreview(src) {
+  const preview = document.getElementById('imagePreview');
+  if (currentProductPreviewUrl && currentProductPreviewUrl.startsWith('blob:')) {
+    URL.revokeObjectURL(currentProductPreviewUrl);
+  }
+
+  currentProductPreviewUrl = src || null;
+  if (src) {
+    preview.src = src;
+    preview.style.display = 'block';
+  } else {
+    preview.removeAttribute('src');
+    preview.style.display = 'none';
+  }
+}
+
+async function uploadProductImage(file) {
+  const formData = new FormData();
+  formData.append('image', file);
+
+  const res = await adminFetch('/api/admin-upload-product-image', {
+    method: 'POST',
+    body: formData
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Gagal upload gambar produk');
+  return data;
+}
+
+openProductModal = async function(id = null) {
+  const modal = document.getElementById('productModal');
+  const title = document.getElementById('modalTitle');
+  resetProductImageSelection();
+
+  if (id) {
+    const p = await Products.get(id);
+    title.textContent = 'Edit Produk';
+    document.getElementById('editProductId').value = id;
+    document.getElementById('productName').value = p.name;
+    document.getElementById('productCategory').value = p.category;
+    document.getElementById('productDesc').value = p.description;
+    document.getElementById('productPrice').value = p.price;
+    document.getElementById('productOldPrice').value = p.oldPrice || '';
+    document.getElementById('productStock').value = p.stock || 0;
+    document.getElementById('productBadge').value = p.badge || '';
+    document.getElementById('productImage').value = p.image || '';
+    setProductPreview(p.image || '');
+  } else {
+    title.textContent = '+ Tambah Produk Baru';
+    document.getElementById('editProductId').value = '';
+    ['productName','productDesc','productPrice','productOldPrice','productImage'].forEach(fieldId => document.getElementById(fieldId).value = '');
+    document.getElementById('productStock').value = 10;
+    document.getElementById('productBadge').value = '';
+    setProductPreview('');
+  }
+
+  modal.classList.add('show');
+};
+
+previewImage = function(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowedTypes.includes(file.type)) {
+    showToast('Format file harus JPG, PNG, atau WebP');
+    resetProductImageSelection();
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('File terlalu besar! Maks 5MB');
+    resetProductImageSelection();
+    return;
+  }
+
+  pendingProductImageFile = file;
+  setProductPreview(URL.createObjectURL(file));
+};
+
+saveProduct = async function() {
+  const name = document.getElementById('productName').value.trim();
+  const price = parseInt(document.getElementById('productPrice').value);
+  if (!name || !price) { showToast('Nama dan harga wajib diisi!'); return; }
+
+  let imageUrl = document.getElementById('productImage').value || '';
+  if (pendingProductImageFile) {
+    showToast('Mengunggah foto produk...');
+    const uploadResult = await uploadProductImage(pendingProductImageFile);
+    imageUrl = uploadResult.imageUrl;
+    document.getElementById('productImage').value = imageUrl;
+  }
+
+  const data = {
+    name,
+    category: document.getElementById('productCategory').value,
+    description: document.getElementById('productDesc').value,
+    price,
+    oldPrice: parseInt(document.getElementById('productOldPrice').value) || null,
+    stock: parseInt(document.getElementById('productStock').value) || 0,
+    badge: document.getElementById('productBadge').value || null,
+    image: imageUrl
+  };
+
+  const editId = document.getElementById('editProductId').value;
+  try {
+    if (editId) {
+      await Products.update(editId, data);
+      showToast('Produk berhasil diupdate!');
+    } else {
+      await Products.add(data);
+      showToast('Produk berhasil ditambahkan!');
+    }
+    resetProductImageSelection();
+    closeModal();
+    renderProducts();
+  } catch (e) {
+    console.error(e);
+    showToast('Gagal: ' + e.message);
+  }
+};
+
 async function deleteProduct(id) {
   const p = await Products.get(id);
   if (!confirm(`Hapus produk "${p?.name}"?`)) return;
