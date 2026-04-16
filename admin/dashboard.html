@@ -619,6 +619,22 @@
     <div class="admin-header"><div><h1>⚙️ Pengaturan</h1><p>Konfigurasi toko Anda</p></div></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;max-width:900px">
       <div class="stat-card">
+        <h3 style="font-family:var(--font-display);color:var(--white);font-size:1rem;margin-bottom:1.5rem">Ubah Password Admin</h3>
+        <div class="form-group">
+          <label>Password Lama</label>
+          <input type="password" id="adminCurrentPassword" placeholder="Masukkan password lama" autocomplete="current-password" />
+        </div>
+        <div class="form-group">
+          <label>Password Baru</label>
+          <input type="password" id="adminNewPassword" placeholder="Minimal 8 karakter" autocomplete="new-password" />
+        </div>
+        <div class="form-group">
+          <label>Konfirmasi Password Baru</label>
+          <input type="password" id="adminConfirmPassword" placeholder="Ulangi password baru" autocomplete="new-password" />
+        </div>
+        <button class="btn-primary" id="changeAdminPasswordBtn" onclick="changeAdminPassword()">Simpan Password Baru</button>
+      </div>
+      <div class="stat-card">
         <h3 style="font-family:var(--font-display);color:var(--white);font-size:1rem;margin-bottom:1.5rem">🔑 Midtrans API</h3>
         <div class="form-group">
           <label>Server Key (Backend)</label>
@@ -1357,6 +1373,55 @@ const mtConfig = JSON.parse(localStorage.getItem('midtrans_config') || '{}');
 if (mtConfig.clientKey) {
   document.getElementById('midtransClientKey') && (document.getElementById('midtransClientKey').value = mtConfig.clientKey);
   document.getElementById('midtransServerKey') && (document.getElementById('midtransServerKey').value = mtConfig.serverKey);
+}
+
+async function changeAdminPassword() {
+  const currentPassword = document.getElementById('adminCurrentPassword').value;
+  const newPassword = document.getElementById('adminNewPassword').value;
+  const confirmPassword = document.getElementById('adminConfirmPassword').value;
+  const btn = document.getElementById('changeAdminPasswordBtn');
+
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    showToast('⚠ Semua field password wajib diisi');
+    return;
+  }
+
+  if (newPassword.length < 8) {
+    showToast('⚠ Password baru minimal 8 karakter');
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    showToast('⚠ Konfirmasi password baru tidak cocok');
+    return;
+  }
+
+  const initialLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Menyimpan...';
+
+  try {
+    const res = await adminFetch('/api/admin-change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword, newPassword, confirmPassword })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || 'Gagal mengubah password admin');
+    }
+
+    document.getElementById('adminCurrentPassword').value = '';
+    document.getElementById('adminNewPassword').value = '';
+    document.getElementById('adminConfirmPassword').value = '';
+    showToast('✅ Password admin berhasil diperbarui');
+  } catch (error) {
+    showToast('❌ ' + error.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = initialLabel;
+  }
 }
 
 async function loadSettings() {
