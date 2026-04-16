@@ -292,16 +292,31 @@
       position: relative;
     }
     .img-upload-area:hover { border-color: var(--aqua); background: rgba(41,182,246,0.05); }
-    .img-upload-area input[type="file"] {
+    .img-upload-area.dragover { border-color: var(--aqua); background: rgba(41,182,246,0.12); }
+    .img-upload-area.product-upload { cursor: default; }
+    .img-upload-input {
       position: absolute;
-      inset: 0;
-      z-index: 2;
-      opacity: 0;
-      cursor: pointer;
-      width: 100%;
-      height: 100%;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
-    .img-upload-area > :not(input[type="file"]) { pointer-events: none; }
+    .img-upload-actions {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+    .img-upload-meta {
+      margin-top: 0.85rem;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
     .img-preview {
       width: 100%;
       max-height: 200px;
@@ -733,11 +748,16 @@
 
     <div class="form-group">
       <label>Foto Produk</label>
-      <div class="img-upload-area" onclick="triggerFilePicker('productImageFile')">
-        <input type="file" id="productImageFile" accept="image/*" onchange="previewImage(this)" />
+      <div class="img-upload-area product-upload" id="productImageDropzone">
+        <input class="img-upload-input" type="file" id="productImageFile" accept="image/jpeg,image/png,image/webp" onchange="previewImage(this)" />
         <div class="upload-icon">📷</div>
         <div class="upload-text">Klik atau drag foto produk di sini<br><small>JPG, PNG, WebP — Maks 5MB</small></div>
         <img id="imagePreview" class="img-preview" alt="Preview" />
+        <div class="img-upload-actions">
+          <button type="button" class="btn-primary" id="productImageBrowseBtn">Pilih Foto</button>
+          <button type="button" class="btn-ghost" id="productImageResetBtn">Hapus Pilihan</button>
+        </div>
+        <div class="img-upload-meta" id="productImageMeta">Belum ada file dipilih</div>
       </div>
       <input type="hidden" id="productImage" />
     </div>
@@ -1173,10 +1193,22 @@ let pendingProductImageFile = null;
 let currentProductPreviewUrl = null;
 let isSavingProduct = false;
 
+function getProductImageInput() {
+  return document.getElementById('productImageFile');
+}
+
+function setProductImageMeta(message, isError = false) {
+  const meta = document.getElementById('productImageMeta');
+  if (!meta) return;
+  meta.textContent = message;
+  meta.style.color = isError ? '#fca5a5' : 'var(--text-muted)';
+}
+
 function resetProductImageSelection() {
   pendingProductImageFile = null;
-  const fileInput = document.getElementById('productImageFile');
+  const fileInput = getProductImageInput();
   if (fileInput) fileInput.value = '';
+  setProductImageMeta('Belum ada file dipilih');
 }
 
 function setProductPreview(src) {
@@ -1240,24 +1272,29 @@ openProductModal = async function(id = null) {
 };
 
 previewImage = function(input) {
-  const file = input.files[0];
+  const file = input?.files?.[0];
   if (!file) return;
 
   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
   if (!allowedTypes.includes(file.type)) {
     showToast('Format file harus JPG, PNG, atau WebP');
     resetProductImageSelection();
+    setProductPreview('');
+    setProductImageMeta('Format file tidak didukung', true);
     return;
   }
 
   if (file.size > 5 * 1024 * 1024) {
     showToast('File terlalu besar! Maks 5MB');
     resetProductImageSelection();
+    setProductPreview('');
+    setProductImageMeta('Ukuran file melebihi 5MB', true);
     return;
   }
 
   pendingProductImageFile = file;
   setProductPreview(URL.createObjectURL(file));
+  setProductImageMeta(`${file.name} • ${(file.size / 1024 / 1024).toFixed(2)} MB`);
 };
 
 saveProduct = async function() {
@@ -1282,6 +1319,7 @@ saveProduct = async function() {
       const uploadResult = await uploadProductImage(pendingProductImageFile);
       imageUrl = uploadResult.imageUrl;
       document.getElementById('productImage').value = imageUrl;
+      setProductImageMeta('Upload selesai. Foto siap disimpan ke produk.');
     }
 
     const data = {
@@ -1317,6 +1355,53 @@ saveProduct = async function() {
     }
   }
 };
+
+function clearProductImageSelection() {
+  resetProductImageSelection();
+  setProductPreview('');
+}
+
+function handleProductImageDrop(event) {
+  event.preventDefault();
+  const dropzone = document.getElementById('productImageDropzone');
+  if (dropzone) dropzone.classList.remove('dragover');
+
+  const file = event.dataTransfer?.files?.[0];
+  if (!file) return;
+
+  const input = getProductImageInput();
+  if (!input) return;
+
+  const transfer = new DataTransfer();
+  transfer.items.add(file);
+  input.files = transfer.files;
+  previewImage(input);
+}
+
+function initProductImageUpload() {
+  const dropzone = document.getElementById('productImageDropzone');
+  const input = getProductImageInput();
+  const browseBtn = document.getElementById('productImageBrowseBtn');
+  const resetBtn = document.getElementById('productImageResetBtn');
+
+  if (!dropzone || !input || dropzone.dataset.ready === 'true') return;
+
+  dropzone.dataset.ready = 'true';
+
+  browseBtn?.addEventListener('click', () => input.click());
+  resetBtn?.addEventListener('click', clearProductImageSelection);
+
+  dropzone.addEventListener('dragover', event => {
+    event.preventDefault();
+    dropzone.classList.add('dragover');
+  });
+
+  dropzone.addEventListener('dragleave', () => {
+    dropzone.classList.remove('dragover');
+  });
+
+  dropzone.addEventListener('drop', handleProductImageDrop);
+}
 
 async function deleteProduct(id) {
   const p = await Products.get(id);
@@ -2045,6 +2130,7 @@ document.getElementById('productModal').addEventListener('click', e => { if (e.t
 document.getElementById('orderModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeOrderModal(); });
 
 // ── INIT ──
+initProductImageUpload();
 renderDashboard();
 loadSettings();
 </script>
