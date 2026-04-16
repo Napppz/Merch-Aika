@@ -13,10 +13,10 @@ let cachedClient = null;
 
 function getRequiredEnv(name) {
   const value = process.env[name];
-  if (!value) {
+  if (!value || !String(value).trim()) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
-  return value;
+  return String(value).trim();
 }
 
 function getR2Client() {
@@ -29,6 +29,7 @@ function getR2Client() {
   cachedClient = new S3Client({
     region: 'auto',
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    forcePathStyle: true,
     credentials: {
       accessKeyId,
       secretAccessKey
