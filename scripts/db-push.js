@@ -19,7 +19,7 @@ const passwordSalt = process.env.PASSWORD_SALT || 'aika_sesilia_salt_2024_secure
 const adminUsername = process.env.ADMIN_USERNAME || 'Aika';
 const adminPasswordHash =
   process.env.ADMIN_PASSWORD_HASH ||
-  crypto.createHmac('sha256', passwordSalt).update('asjdkhadjkahdskd').digest('hex');
+  crypto.createHmac('sha256', passwordSalt).update('000f49c6d3cfa4232f61c54c6348a4c7d4f825870ba6c53e81b92745add01db6').digest('hex');
 
 const schemaSql = `
 CREATE TABLE IF NOT EXISTS products (
