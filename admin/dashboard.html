@@ -794,7 +794,7 @@
 
     <div class="modal-footer">
       <button class="btn-ghost" onclick="closeModal()">Batal</button>
-      <button class="btn-primary" onclick="saveProduct()">💾 Simpan Produk</button>
+      <button class="btn-primary" id="saveProductBtn" onclick="saveProduct()">💾 Simpan Produk</button>
     </div>
   </div>
 </div>
@@ -1171,6 +1171,7 @@ async function saveProduct() {
 
 let pendingProductImageFile = null;
 let currentProductPreviewUrl = null;
+let isSavingProduct = false;
 
 function resetProductImageSelection() {
   pendingProductImageFile = null;
@@ -1260,31 +1261,41 @@ previewImage = function(input) {
 };
 
 saveProduct = async function() {
+  if (isSavingProduct) return;
+
   const name = document.getElementById('productName').value.trim();
   const price = parseInt(document.getElementById('productPrice').value);
   if (!name || !price) { showToast('Nama dan harga wajib diisi!'); return; }
 
-  let imageUrl = document.getElementById('productImage').value || '';
-  if (pendingProductImageFile) {
-    showToast('Mengunggah foto produk...');
-    const uploadResult = await uploadProductImage(pendingProductImageFile);
-    imageUrl = uploadResult.imageUrl;
-    document.getElementById('productImage').value = imageUrl;
+  const saveBtn = document.getElementById('saveProductBtn');
+  const initialLabel = saveBtn ? saveBtn.textContent : '';
+  isSavingProduct = true;
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Menyimpan...';
   }
 
-  const data = {
-    name,
-    category: document.getElementById('productCategory').value,
-    description: document.getElementById('productDesc').value,
-    price,
-    oldPrice: parseInt(document.getElementById('productOldPrice').value) || null,
-    stock: parseInt(document.getElementById('productStock').value) || 0,
-    badge: document.getElementById('productBadge').value || null,
-    image: imageUrl
-  };
-
-  const editId = document.getElementById('editProductId').value;
   try {
+    let imageUrl = document.getElementById('productImage').value || '';
+    if (pendingProductImageFile) {
+      showToast('Mengunggah foto produk...');
+      const uploadResult = await uploadProductImage(pendingProductImageFile);
+      imageUrl = uploadResult.imageUrl;
+      document.getElementById('productImage').value = imageUrl;
+    }
+
+    const data = {
+      name,
+      category: document.getElementById('productCategory').value,
+      description: document.getElementById('productDesc').value,
+      price,
+      oldPrice: parseInt(document.getElementById('productOldPrice').value) || null,
+      stock: parseInt(document.getElementById('productStock').value) || 0,
+      badge: document.getElementById('productBadge').value || null,
+      image: imageUrl
+    };
+
+    const editId = document.getElementById('editProductId').value;
     if (editId) {
       await Products.update(editId, data);
       showToast('Produk berhasil diupdate!');
@@ -1298,6 +1309,12 @@ saveProduct = async function() {
   } catch (e) {
     console.error(e);
     showToast('Gagal: ' + e.message);
+  } finally {
+    isSavingProduct = false;
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.textContent = initialLabel;
+    }
   }
 };
 
