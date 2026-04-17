@@ -1,5 +1,6 @@
 const { requireAdmin } = require('./admin-auth');
 const db = require('./_db');
+const { hasR2Config, parseDataUrlImage, uploadImageBuffer } = require('./r2-storage');
 
 module.exports = async function handler(req, res) {
   try {
@@ -21,11 +22,26 @@ module.exports = async function handler(req, res) {
       }
       const { hero_image } = req.body;
       if (hero_image) {
+        let heroImageValue = hero_image;
+
+        if (typeof hero_image === 'string' && hero_image.startsWith('data:image/') && hasR2Config()) {
+          const { buffer, mimeType } = parseDataUrlImage(hero_image);
+          const uploaded = await uploadImageBuffer({
+            buffer,
+            mimeType,
+            fileName: 'hero-image',
+            folder: 'settings',
+            prefix: 'hero'
+          });
+          heroImageValue = uploaded.imageUrl;
+        }
+
         await db.query(
           `INSERT INTO settings (key, value) VALUES ('hero_image', $1) 
            ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;`,
-          [hero_image]
+          [heroImageValue]
         );
+        return res.status(200).json({ message: 'Settings updated', hero_image: heroImageValue });
       }
       return res.status(200).json({ message: 'Settings updated' });
     }

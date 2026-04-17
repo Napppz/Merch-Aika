@@ -1,4 +1,5 @@
 const { query } = require('./_db');
+const { hasR2Config, parseDataUrlImage, uploadImageBuffer } = require('./r2-storage');
 
 module.exports = async (req, res) => {
   // CORS
@@ -59,10 +60,10 @@ module.exports = async (req, res) => {
       }
 
       // Validate image types
-      const allowedTypes = ['data:image/jpeg', 'data:image/png', 'data:image/webp', 'data:image/gif'];
+      const allowedTypes = ['data:image/jpeg', 'data:image/png', 'data:image/webp'];
       if (!allowedTypes.some(type => avatar.startsWith(type))) {
         return res.status(400).json({ 
-          error: 'Tipe gambar hanya boleh: JPG, PNG, WebP, atau GIF' 
+          error: 'Tipe gambar hanya boleh: JPG, PNG, atau WebP' 
         });
       }
 
@@ -78,12 +79,28 @@ module.exports = async (req, res) => {
 
       const userId = userCheck.rows[0].id;
 
+      let avatarValue = avatar;
+      let storage = 'database';
+
+      if (hasR2Config()) {
+        const { buffer, mimeType } = parseDataUrlImage(avatar);
+        const uploaded = await uploadImageBuffer({
+          buffer,
+          mimeType,
+          fileName: `avatar-${userId}`,
+          folder: 'avatars',
+          prefix: String(userId)
+        });
+        avatarValue = uploaded.imageUrl;
+        storage = 'r2';
+      }
+
       // Update avatar in database
       const { rows } = await query(
         `UPDATE users SET avatar = $1, updated_at = NOW()
          WHERE id = $2
          RETURNING avatar`,
-        [avatar, userId]
+        [avatarValue, userId]
       );
 
       if (rows.length === 0) {
@@ -93,7 +110,8 @@ module.exports = async (req, res) => {
       return res.status(200).json({ 
         success: true,
         message: 'Foto profil berhasil diperbarui!',
-        avatar: rows[0].avatar 
+        avatar: rows[0].avatar,
+        storage
       });
     }
 

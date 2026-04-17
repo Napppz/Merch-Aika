@@ -1,5 +1,6 @@
 const db = require('./_db');
 const { getCache, setCache, invalidateCache } = require('./cache');
+const { hasR2Config, parseDataUrlImage, uploadImageBuffer } = require('./r2-storage');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -43,12 +44,24 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Pesanan ini sudah diulas' });
       }
 
-      const avatarBase64 = req.body.avatar || '';
+      let avatarValue = req.body.avatar || '';
+
+      if (typeof avatarValue === 'string' && avatarValue.startsWith('data:image/') && hasR2Config()) {
+        const { buffer, mimeType } = parseDataUrlImage(avatarValue);
+        const uploaded = await uploadImageBuffer({
+          buffer,
+          mimeType,
+          fileName: `review-avatar-${order_id}`,
+          folder: 'review-avatars',
+          prefix: String(order_id)
+        });
+        avatarValue = uploaded.imageUrl;
+      }
 
       const { rows } = await db.query(
         `INSERT INTO reviews (order_id, customer_name, rating, comment, avatar) 
          VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-        [order_id, customer_name || 'Anonymous', parseInt(rating), comment || '', avatarBase64]
+        [order_id, customer_name || 'Anonymous', parseInt(rating), comment || '', avatarValue]
       );
       
       // ✅ Invalidate cache when new review added
