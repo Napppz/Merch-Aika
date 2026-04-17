@@ -57,8 +57,8 @@ module.exports = async (req, res) => {
       const buffer = Buffer.from(base64Data, 'base64');
       const fileSizeMB = buffer.length / (1024 * 1024);
 
-      if (fileSizeMB > 10) {
-        return res.status(400).json({ error: 'File size exceeds 10MB limit' });
+      if (fileSizeMB > 5) {
+        return res.status(400).json({ error: 'File size exceeds 5MB limit' });
       }
 
       let paymentProofValue = base64Image;
