@@ -3,7 +3,14 @@ const fs = require('fs');
 const path = require('path');
 const { createMailTransport, getRequiredEnv } = require('./env');
 
-const transporter = createMailTransport();
+function getMailTransportSafe() {
+  try {
+    return createMailTransport();
+  } catch (err) {
+    console.warn('Mail transport disabled for payment-proof:', err.message);
+    return null;
+  }
+}
 
 module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -57,9 +64,11 @@ module.exports = async (req, res) => {
       }
 
       const order = rows[0];
+      const transporter = getMailTransportSafe();
 
       // Email ke Admin - Bukti Pembayaran Diterima
       try {
+        if (!transporter) throw new Error('Email transport not configured');
         const adminEmail = process.env.ADMIN_EMAIL || getRequiredEnv('EMAIL_USER');
         
         await transporter.sendMail({
@@ -98,6 +107,7 @@ module.exports = async (req, res) => {
 
       // Konfirmasi ke Customer
       try {
+        if (!transporter) throw new Error('Email transport not configured');
         await transporter.sendMail({
           from: '"Aika Sesilia Merch" <noreply@aikamerch.com>',
           to: email,
