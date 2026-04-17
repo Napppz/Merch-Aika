@@ -2,6 +2,7 @@ const { query } = require('./_db');
 const fs = require('fs');
 const path = require('path');
 const { createMailTransport, getRequiredEnv } = require('./env');
+const { parseDataUrlImage, uploadImageBuffer } = require('./r2-storage');
 
 function getMailTransportSafe() {
   try {
@@ -10,6 +11,16 @@ function getMailTransportSafe() {
     console.warn('Mail transport disabled for payment-proof:', err.message);
     return null;
   }
+}
+
+function hasR2Config() {
+  return [
+    'R2_ACCOUNT_ID',
+    'R2_ACCESS_KEY_ID',
+    'R2_SECRET_ACCESS_KEY',
+    'R2_BUCKET_NAME',
+    'R2_PUBLIC_BASE_URL'
+  ].every((key) => typeof process.env[key] === 'string' && process.env[key].trim() !== '');
 }
 
 module.exports = async (req, res) => {
@@ -36,10 +47,10 @@ module.exports = async (req, res) => {
 
       const mimeType = String(matches[1] || '').toLowerCase();
       const base64Data = matches[2];
-      const allowedTypes = ['jpeg', 'jpg', 'png', 'gif', 'webp'];
+      const allowedTypes = ['jpeg', 'jpg', 'png', 'webp'];
 
       if (!allowedTypes.includes(mimeType)) {
-        return res.status(400).json({ error: `File type ${mimeType} not allowed. Use JPG, PNG, GIF, or WebP.` });
+        return res.status(400).json({ error: `File type ${mimeType} not allowed. Use JPG, PNG, or WebP.` });
       }
 
       // Konversi base64 ke buffer dan hitung ukuran
@@ -50,13 +61,31 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'File size exceeds 10MB limit' });
       }
 
+      let paymentProofValue = base64Image;
+      let paymentProofStorage = 'database';
+
+      if (hasR2Config()) {
+        const { buffer: imageBuffer, mimeType: parsedMimeType } = parseDataUrlImage(base64Image);
+        const uploaded = await uploadImageBuffer({
+          buffer: imageBuffer,
+          mimeType: parsedMimeType,
+          fileName: `payment-proof-${orderId}.${mimeType}`,
+          folder: 'payment-proofs',
+          prefix: String(orderId)
+        });
+        paymentProofValue = uploaded.imageUrl;
+        paymentProofStorage = 'r2';
+      } else {
+        console.warn('R2 config missing for payment-proof upload. Falling back to database storage.');
+      }
+
       // Update order status to "payment_pending" dan simpan bukti
       const { rows } = await query(
         `UPDATE orders 
          SET status = $1, payment_proof = $2, updated_at = NOW() 
          WHERE id = $3 
          RETURNING *`,
-        ['payment_pending', base64Image, orderId]
+        ['payment_pending', paymentProofValue, orderId]
       );
 
       if (rows.length === 0) {
@@ -136,6 +165,7 @@ module.exports = async (req, res) => {
 
       return res.status(200).json({
         message: 'Payment proof uploaded successfully',
+        storage: paymentProofStorage,
         order: {
           id: order.id,
           status: order.status,

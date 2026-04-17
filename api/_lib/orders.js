@@ -6,13 +6,40 @@ function getMailTransport() {
   return createMailTransport();
 }
 
+const ORDER_LIST_COLUMNS = `
+  id,
+  "customerName",
+  email,
+  address,
+  status,
+  total,
+  items,
+  shipping,
+  date,
+  updated_at
+`;
+
+const ORDER_DETAIL_COLUMNS = `
+  ${ORDER_LIST_COLUMNS},
+  payment_proof
+`;
+
 module.exports = async (req, res) => {
   const { method } = req;
   
   try {
     if (method === 'GET') {
       if (!requireAdmin(req, res)) return;
-      const { rows } = await db.query('SELECT * FROM orders ORDER BY date DESC');
+      const { id } = req.query;
+      const sql = id
+        ? `SELECT ${ORDER_DETAIL_COLUMNS} FROM orders WHERE id = $1`
+        : `SELECT ${ORDER_LIST_COLUMNS} FROM orders ORDER BY date DESC`;
+      const params = id ? [id] : [];
+      const { rows } = await db.query(sql, params);
+      if (id) {
+        if (!rows.length) return res.status(404).json({ error: 'Order not found' });
+        return res.status(200).json(rows[0]);
+      }
       return res.status(200).json(rows);
     } 
     
@@ -20,7 +47,8 @@ module.exports = async (req, res) => {
       const { id, customerName, email, address, status, total, items, shipping } = req.body;
       const { rows } = await db.query(
         `INSERT INTO orders (id, "customerName", email, address, status, total, items, shipping) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         RETURNING ${ORDER_LIST_COLUMNS}`,
         [id, customerName, email, address, status, total, typeof items === 'string' ? items : JSON.stringify(items), typeof shipping === 'string' ? shipping : JSON.stringify(shipping)]
       );
 
@@ -110,7 +138,7 @@ module.exports = async (req, res) => {
       const { id, status, resi } = req.body; // resi dari admin jika ada
       
       // Ambil data order yg sekarang
-      const d = await db.query('SELECT * FROM orders WHERE id = $1', [id]);
+      const d = await db.query(`SELECT ${ORDER_DETAIL_COLUMNS} FROM orders WHERE id = $1`, [id]);
       if(d.rows.length === 0) return res.status(404).json({error: 'Order not found'});
       let order = d.rows[0];
 
@@ -125,7 +153,7 @@ module.exports = async (req, res) => {
       }
 
       const { rows } = await db.query(
-        `UPDATE orders SET status = $1, shipping = $2 WHERE id = $3 RETURNING *`,
+        `UPDATE orders SET status = $1, shipping = $2 WHERE id = $3 RETURNING ${ORDER_DETAIL_COLUMNS}`,
         [status, JSON.stringify(order.shipping), id]
       );
       

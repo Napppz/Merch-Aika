@@ -11,7 +11,23 @@ module.exports = async (req, res) => {
 
   try {
     if (req.method === 'GET') {
-      const { rows } = await query('SELECT * FROM user_addresses WHERE user_email = $1 ORDER BY is_primary DESC, created_at DESC', [email]);
+      const { rows } = await query(`
+        SELECT
+          id,
+          user_email,
+          label,
+          recipient_name,
+          phone,
+          full_address,
+          city,
+          postal_code,
+          is_primary,
+          created_at,
+          updated_at
+        FROM user_addresses
+        WHERE user_email = $1
+        ORDER BY is_primary DESC, created_at DESC
+      `, [email]);
       return res.status(200).json(rows);
     } 
     
