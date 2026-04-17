@@ -15,7 +15,21 @@ module.exports = async (req, res) => {
       }
 
       res.setHeader('X-Cache', 'MISS');
-      const { rows } = await db.query('SELECT * FROM products ORDER BY created_at DESC');
+      const { rows } = await db.query(`
+        SELECT
+          id,
+          name,
+          category,
+          description,
+          price,
+          "oldPrice",
+          stock,
+          badge,
+          image,
+          created_at
+        FROM products
+        ORDER BY created_at DESC
+      `);
       
       // ✅ Cache for 1 hour (products don't change often)
       setCache('products_all', rows, 3600);

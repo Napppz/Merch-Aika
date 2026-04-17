@@ -7,7 +7,7 @@ module.exports = async function handler(req, res) {
     await db.query(`CREATE TABLE IF NOT EXISTS settings (key VARCHAR(50) PRIMARY KEY, value TEXT);`);
 
     if (req.method === 'GET') {
-      const result = await db.query('SELECT * FROM settings');
+      const result = await db.query('SELECT key, value FROM settings');
       const settings = {};
       result.rows.forEach(row => {
         settings[row.key] = row.value;

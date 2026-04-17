@@ -1453,8 +1453,8 @@ function statusBadge(status) {
 }
 
 async function viewOrder(id) {
-  const allOrders = await Orders.getAll();
-  const order = allOrders.find(o => o.id === id);
+  const res = await adminFetch('/api/orders?id=' + encodeURIComponent(id));
+  const order = await res.json();
   if (!order) return;
   const content = document.getElementById('orderDetailContent');
   

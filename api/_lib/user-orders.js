@@ -19,7 +19,18 @@ module.exports = async function handler(req, res) {
 
   try {
     const result = await query(
-      `SELECT o.*, r.id as review_id 
+      `SELECT
+         o.id,
+         o."customerName",
+         o.email,
+         o.address,
+         o.status,
+         o.total,
+         o.items,
+         o.shipping,
+         o.date,
+         o.updated_at,
+         r.id as review_id
        FROM orders o 
        LEFT JOIN reviews r ON r.order_id = o.id 
        WHERE o.email = $1 
