@@ -344,6 +344,10 @@
         const result = await res.json();
         console.log('✅ Avatar saved to database:', result.message);
         
+        if (result.avatar) {
+          localStorage.setItem('aika_avatar_' + currentUser.email, result.avatar);
+        }
+
         // Clear cache to force fresh load on iOS
         if (isIos) {
           localStorage.removeItem('aika_avatar_' + currentUser.email);

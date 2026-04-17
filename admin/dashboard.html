@@ -1981,6 +1981,11 @@ async function saveHeroImage() {
       body: JSON.stringify({ hero_image })
     });
     if (!res.ok) throw new Error('Gagal simpan foto');
+    const data = await res.json();
+    if (data.hero_image) {
+      document.getElementById('heroImageUrl').value = data.hero_image;
+      document.getElementById('heroImagePreview').src = data.hero_image;
+    }
     showToast('✓ Foto profil utama berhasil diperbarui!');
   } catch (err) {
     showToast('❌ Gagal: ' + err.message);

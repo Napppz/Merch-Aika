@@ -48,6 +48,19 @@ function getPublicBaseUrl() {
   return baseUrl.replace(/\/+$/, '');
 }
 
+function hasR2Config() {
+  return [
+    'R2_ACCOUNT_ID',
+    'R2_ACCESS_KEY_ID',
+    'R2_SECRET_ACCESS_KEY',
+    'R2_BUCKET_NAME',
+    'R2_PUBLIC_BASE_URL'
+  ].every((name) => {
+    const value = process.env[name];
+    return typeof value === 'string' && value.trim() !== '';
+  });
+}
+
 function validateImageUpload({ mimeType, size }) {
   if (!ALLOWED_IMAGE_TYPES[mimeType]) {
     throw new Error('Tipe gambar hanya boleh JPG, PNG, atau WebP');
@@ -120,6 +133,7 @@ module.exports = {
   ALLOWED_IMAGE_TYPES,
   MAX_IMAGE_SIZE_BYTES,
   buildPublicUrl,
+  hasR2Config,
   parseDataUrlImage,
   uploadImageBuffer,
   validateImageUpload
