@@ -27,12 +27,12 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Invalid base64 format' });
       }
 
-      const mimeType = matches[1];
+      const mimeType = String(matches[1] || '').toLowerCase();
       const base64Data = matches[2];
-      const allowedTypes = ['jpeg', 'jpg', 'png', 'gif'];
+      const allowedTypes = ['jpeg', 'jpg', 'png', 'gif', 'webp'];
 
       if (!allowedTypes.includes(mimeType)) {
-        return res.status(400).json({ error: `File type ${mimeType} not allowed` });
+        return res.status(400).json({ error: `File type ${mimeType} not allowed. Use JPG, PNG, GIF, or WebP.` });
       }
 
       // Konversi base64 ke buffer dan hitung ukuran
