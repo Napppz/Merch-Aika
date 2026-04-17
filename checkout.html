@@ -749,7 +749,7 @@ function closePaymentModal() {
 }
 
 const SUPPORTED_PROOF_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_PROOF_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_PROOF_SIZE_BYTES = 5 * 1024 * 1024;
 const MAX_PROOF_DIMENSION = 1600;
 
 function setProofUploadState({ dataUrl = '', message = '', isReady = false } = {}) {
@@ -839,8 +839,8 @@ async function handleProofUpload(event) {
 
   setProofUploadState();
 
-  if (file.size > 15 * 1024 * 1024) {
-    showToast('File terlalu besar. Maksimal 15MB sebelum diproses.');
+  if (file.size > 10 * 1024 * 1024) {
+    showToast('File terlalu besar. Maksimal 10MB sebelum diproses.');
     event.target.value = '';
     return;
   }

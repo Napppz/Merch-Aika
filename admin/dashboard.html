@@ -1455,6 +1455,10 @@ function statusBadge(status) {
 async function viewOrder(id) {
   const res = await adminFetch('/api/orders?id=' + encodeURIComponent(id));
   const order = await res.json();
+  if (!res.ok) {
+    showToast(order.error || 'Gagal memuat detail pesanan');
+    return;
+  }
   if (!order) return;
   const content = document.getElementById('orderDetailContent');
   
