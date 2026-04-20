@@ -27,7 +27,7 @@ module.exports = async (req, res) => {
 
     if (req.method === 'GET') {
       const { rows } = await query(`
-        SELECT c.id as cart_id, p.id, p.name, p.price, p.image, c.quantity as qty, c.size
+        SELECT c.id as cart_id, p.id, p.name, p.price, p.image, p.sizes, c.quantity as qty, c.size
         FROM carts c
         JOIN products p ON c.product_id = p.id
         WHERE c.user_email = $1

@@ -535,6 +535,21 @@ function updateOrderSummary() {
   document.getElementById('grandTotal').innerHTML = `<span>Total</span><span>${formatPrice(grand)}</span>`;
 }
 
+async function updateCheckoutItemSize(index, newSize) {
+  const item = Cart.items[index];
+  if (!item) return;
+
+  const normalizedSize = (newSize || '').trim();
+  if (!normalizedSize) {
+    showToast('Pilih size yang tersedia');
+    renderCheckout();
+    return;
+  }
+
+  await Cart.changeSize(item.id, item.size || '', normalizedSize);
+  renderCheckout();
+}
+
 function renderCheckout() {
   const items = Cart.items;
   const content = document.getElementById('checkoutContent');
@@ -631,11 +646,20 @@ function renderCheckout() {
     <div>
       <div class="checkout-section" style="position:sticky;top:100px">
         <h2>🛍️ Ringkasan Pesanan</h2>
-        ${items.map(item => `
+        ${items.map((item, index) => `
           <div class="order-summary-item">
             <div>
               <div class="item-name">${item.name}</div>
-              <div class="item-qty">× ${item.qty}</div>
+              <div class="item-qty">× ${item.qty}${item.size ? ` • Size ${item.size}` : ''}</div>
+              ${item.availableSizes && item.availableSizes.length ? `
+                <div style="margin-top:0.45rem">
+                  <label for="checkoutSize${index}" style="display:block;color:var(--white);font-size:0.78rem;font-weight:700;margin-bottom:0.25rem;">Pilih Size</label>
+                  <select id="checkoutSize${index}" onchange="updateCheckoutItemSize(${index}, this.value)" style="width:100%;border-radius:8px;background:rgba(3,9,31,0.8);border:1px solid var(--card-border);color:var(--white);padding:0.55rem;font-family:var(--font-body);font-size:0.82rem;">
+                    <option value="">-- Pilih Size --</option>
+                    ${item.availableSizes.map(size => `<option value="${size}" ${item.size === size ? 'selected' : ''}>${size}</option>`).join('')}
+                  </select>
+                </div>
+              ` : ''}
             </div>
             <div class="item-price">${formatPrice(item.price * item.qty)}</div>
           </div>
@@ -995,6 +1019,11 @@ function validateForm() {
       el && el.focus();
       return false;
     }
+  }
+  const itemWithoutSize = Cart.items.find(item => item.availableSizes && item.availableSizes.length && !String(item.size || '').trim());
+  if (itemWithoutSize) {
+    showToast(`Pilih size untuk ${itemWithoutSize.name} terlebih dahulu`);
+    return false;
   }
   return true;
 }
