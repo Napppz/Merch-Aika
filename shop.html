@@ -92,7 +92,7 @@
       <button class="filter-tab" onclick="setFilter('Pakaian', this)">👕 Pakaian</button>
       <button class="filter-tab" onclick="setFilter('Aksesoris', this)">💎 Aksesoris</button>
       <button class="filter-tab" onclick="setFilter('Foto & Print', this)">🖼️ Foto & Print</button>
-      <button class="filter-tab" onclick="setFilter('Stiker', this)">✨ Stiker</button>
+      <button class="filter-tab" onclick="setFilter('Acrylic', this)">🧿 Acrylic</button>
     </div>
     <span class="product-count" id="productCount"></span>
   </div>
@@ -140,11 +140,12 @@
   function applyFilter() {
     const search = document.getElementById('searchInput').value;
     loadShopProducts(currentFilter, search);
-    const all = Products.getAll();
-    let filtered = all;
-    if (currentFilter !== 'Semua') filtered = filtered.filter(p => p.category === currentFilter);
-    if (search) filtered = filtered.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
-    document.getElementById('productCount').textContent = `${filtered.length} produk`;
+    Products.getAll().then(all => {
+      let filtered = all.map(p => ({ ...p, category: normalizeProductCategory(p.category) }));
+      if (currentFilter !== 'Semua') filtered = filtered.filter(p => p.category === currentFilter);
+      if (search) filtered = filtered.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+      document.getElementById('productCount').textContent = `${filtered.length} produk`;
+    });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
