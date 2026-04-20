@@ -415,7 +415,7 @@
           <div class="order-items">
             ${itemsArr.map(i => `
               <div class="order-item">
-                <span>${i.qty}x ${i.name}</span>
+                <span>${i.qty}x ${i.name}${i.size ? ` • Size ${i.size}` : ''}</span>
                 <span>Rp ${(i.price * i.qty).toLocaleString('id-ID')}</span>
               </div>
             `).join('')}
