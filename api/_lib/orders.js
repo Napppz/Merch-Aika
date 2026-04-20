@@ -81,7 +81,7 @@ module.exports = async (req, res) => {
         const transporter = getMailTransport();
         const adminEmail = process.env.ADMIN_EMAIL || getRequiredEnv('EMAIL_USER');
         const itemsHTML = (Array.isArray(items) ? items : (typeof items === 'string' ? JSON.parse(items) : []))
-          .map(item => `<li>${item.name} × ${item.qty} = Rp ${(item.price * item.qty).toLocaleString('id-ID')}</li>`)
+          .map(item => `<li>${item.name}${item.size ? ` (Size ${item.size})` : ''} × ${item.qty} = Rp ${(item.price * item.qty).toLocaleString('id-ID')}</li>`)
           .join('');
         
         await transporter.sendMail({

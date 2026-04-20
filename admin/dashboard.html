@@ -1452,7 +1452,7 @@ async function renderOrders(filter = 'all') {
     <tr>
       <td style="font-family:monospace;color:var(--aqua);font-size:0.8rem">${o.id}</td>
       <td class="td-name">${o.customerName}<br><span style="font-size:0.75rem;color:var(--text-muted)">${o.email}</span></td>
-      <td style="font-size:0.8rem">${(o.items||[]).map(i=>`${i.name} ×${i.qty}`).join('<br>')}</td>
+      <td style="font-size:0.8rem">${(o.items||[]).map(i=>`${i.name}${i.size ? ` (Size ${i.size})` : ''} ×${i.qty}`).join('<br>')}</td>
       <td class="td-price">${formatPrice(o.total)}</td>
       <td style="font-size:0.8rem">${o.shipping?.name || '-'}</td>
       <td>${statusBadge(o.status)}</td>
@@ -1513,7 +1513,7 @@ async function viewOrder(id) {
     </div>
     <div style="background:rgba(3,9,31,0.5);border:1px solid var(--card-border);border-radius:8px;padding:1rem;margin-bottom:1rem">
       <h4 style="color:var(--aqua);margin-bottom:0.8rem;font-size:0.85rem">ITEM PESANAN</h4>
-      ${(order.items||[]).map(i=>`<div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:0.3rem 0;color:var(--text-muted)"><span>${i.name} ×${i.qty}</span><span style="color:var(--aqua)">${formatPrice(i.price*i.qty)}</span></div>`).join('')}
+      ${(order.items||[]).map(i=>`<div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:0.3rem 0;color:var(--text-muted)"><span>${i.name}${i.size ? ` (Size ${i.size})` : ''} ×${i.qty}</span><span style="color:var(--aqua)">${formatPrice(i.price*i.qty)}</span></div>`).join('')}
       <hr style="border-color:rgba(41,182,246,0.1);margin:0.8rem 0">
       <div style="display:flex;justify-content:space-between;font-size:0.9rem;font-weight:700"><span style="color:var(--white)">Total</span><span style="color:var(--aqua)">${formatPrice(order.total)}</span></div>
     </div>

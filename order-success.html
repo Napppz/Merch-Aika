@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const itemsHtml = (order.items || []).map(i => `
     <div class="item-row">
-      <span>${i.name} × ${i.qty}</span>
+      <span>${i.name} × ${i.qty}${i.size ? ` • Size ${i.size}` : ''}</span>
       <span>${formatPrice(i.price * i.qty)}</span>
     </div>
   `).join('');
