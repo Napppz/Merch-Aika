@@ -309,6 +309,10 @@ const BASE_SHIPPING = 15000; // Flat shipping rate if 'Metode Pengiriman' is rem
 let availableVouchers = {};
 let appliedDiscount = null;
 let currentShippingRate = 12000; // Harga default awal
+const SIZE_SURCHARGE_MAP = {
+  XXL: 15000,
+  XXXL: 15000
+};
 
 function normalizeVoucherCode(code) {
   return String(code || '').trim().toUpperCase();
@@ -481,11 +485,20 @@ function getDiscountAmount() {
   return discountAmt;
 }
 
+function getSizeSurchargeTotal() {
+  return Cart.items.reduce((sum, item) => {
+    const normalizedSize = String(item.size || '').trim().toUpperCase();
+    const surcharge = SIZE_SURCHARGE_MAP[normalizedSize] || 0;
+    return sum + (surcharge * (parseInt(item.qty, 10) || 0));
+  }, 0);
+}
+
 function getGrandTotal() {
   const subtotal = Cart.total();
   const shipping = getShippingTotal();
+  const sizeSurcharge = getSizeSurchargeTotal();
   const discountAmt = getDiscountAmount();
-  return subtotal + shipping - discountAmt;
+  return subtotal + sizeSurcharge + shipping - discountAmt;
 }
 
 function applyDiscount() {
@@ -520,6 +533,7 @@ function applyDiscount() {
 function updateOrderSummary() {
   const subtotal = Cart.total();
   const shipping = getShippingTotal();
+  const sizeSurcharge = getSizeSurchargeTotal();
   const grand = getGrandTotal();
   const discountAmt = getDiscountAmount();
 
@@ -529,6 +543,14 @@ function updateOrderSummary() {
     discountRow.style.display = 'flex';
   } else {
     discountRow.style.display = 'none';
+  }
+
+  const sizeSurchargeRow = document.getElementById('sizeSurchargeRow');
+  if (sizeSurcharge > 0) {
+    sizeSurchargeRow.innerHTML = `<span>Biaya Varian Size</span><span>+ ${formatPrice(sizeSurcharge)}</span>`;
+    sizeSurchargeRow.style.display = 'flex';
+  } else {
+    sizeSurchargeRow.style.display = 'none';
   }
 
   document.getElementById('shippingRow').innerHTML = `<span>Ongkos Kirim</span><span>${formatPrice(shipping)}</span>`;
@@ -565,6 +587,7 @@ function renderCheckout() {
   }
 
   const subtotal = Cart.total();
+  const sizeSurcharge = getSizeSurchargeTotal();
   const shipping = getShippingTotal();
   const grand = getGrandTotal();
 
@@ -676,6 +699,9 @@ function renderCheckout() {
 
         <div class="order-total-row">
           <span>Subtotal</span><span>${formatPrice(subtotal)}</span>
+        </div>
+        <div class="order-total-row" id="sizeSurchargeRow" style="${sizeSurcharge > 0 ? '' : 'display:none;'}">
+          <span>Biaya Varian Size</span><span>+ ${formatPrice(sizeSurcharge)}</span>
         </div>
         <div class="order-total-row" id="shippingRow">
           <span>Ongkos Kirim</span><span>${formatPrice(shipping)}</span>
@@ -915,6 +941,7 @@ async function submitPaymentProof() {
   }
 
   const subtotal = Cart.total();
+  const sizeSurcharge = getSizeSurchargeTotal();
   const grand = getGrandTotal();
   const discountAmt = getDiscountAmount();
   const discountCode = appliedDiscount ? appliedDiscount.code : null;
@@ -927,6 +954,7 @@ async function submitPaymentProof() {
       id: currentShippingMethod === 'jne' ? 'jne_reg' : 'cod_event',
       name: currentShippingMethod === 'jne' ? 'JNE Reguler' : 'COD di Event',
       price: getShippingTotal(),
+      sizeSurcharge: sizeSurcharge,
       discount: discountAmt > 0 ? { code: discountCode, amount: discountAmt } : null
     },
     subtotal, total: grand
