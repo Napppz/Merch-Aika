@@ -45,6 +45,7 @@ const Cart = {
             name: i.name,
             price: i.price,
             image: i.image,
+            availableSizes: String(i.sizes || '').split(',').map(size => size.trim()).filter(Boolean),
             size: i.size || '',
             qty: i.qty
           }));
@@ -180,6 +181,51 @@ const Cart = {
         });
       } catch (err) {
         console.error('Error updating cart API', err);
+      } finally {
+        this.isSaving = false;
+      }
+    } else {
+      this.save();
+    }
+  },
+
+  async changeSize(id, oldSize, newSize) {
+    if (this.isSaving) return;
+    const email = this.getUserEmail();
+    const normalizedOldSize = oldSize || '';
+    const normalizedNewSize = (newSize || '').trim();
+    const item = this.items.find(i => i.id == id && (i.size || '') === normalizedOldSize);
+
+    if (!item || normalizedOldSize === normalizedNewSize) return;
+
+    const existingTarget = this.items.find(i => i.id == id && (i.size || '') === normalizedNewSize);
+    if (existingTarget) {
+      existingTarget.qty += item.qty;
+      this.items = this.items.filter(i => !(i.id == id && (i.size || '') === normalizedOldSize));
+    } else {
+      item.size = normalizedNewSize;
+    }
+
+    this.updateUI();
+
+    if (email) {
+      this.isSaving = true;
+      try {
+        await fetch('/api/cart', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-email': email
+          },
+          body: JSON.stringify({ product_id: id, quantity: item.qty, size: normalizedNewSize || null })
+        });
+
+        await fetch(`/api/cart?product_id=${encodeURIComponent(id)}&size=${encodeURIComponent(normalizedOldSize)}`, {
+          method: 'DELETE',
+          headers: { 'x-user-email': email }
+        });
+      } catch (err) {
+        console.error('Error changing cart size', err);
       } finally {
         this.isSaving = false;
       }
