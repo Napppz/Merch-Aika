@@ -21,6 +21,14 @@ const Products = {
   }
 };
 
+function normalizeProductCategory(category) {
+  const normalized = String(category || '').trim();
+  if (!normalized || normalized.toLowerCase() === 'undefined' || normalized.toLowerCase() === 'null') {
+    return '';
+  }
+  return normalized === 'Stiker' ? 'Acrylic' : normalized;
+}
+
 // ── UTILS ──
 function formatPrice(n) {
   return 'Rp ' + (n || 0).toLocaleString('id-ID');
@@ -81,7 +89,8 @@ function checkWishlistStatus(id) {
 
 // ── RENDER PRODUCT CARD ──
 function renderProductCard(p, compact = false) {
-  const emoji = { 'Pakaian': '👕', 'Aksesoris': '💎', 'Foto & Print': '🖼️', 'Stiker': '✨' };
+  const category = normalizeProductCategory(p.category);
+  const emoji = { 'Pakaian': '👕', 'Aksesoris': '💎', 'Foto & Print': '🖼️', 'Acrylic': '🧿' };
   const isWishlisted = checkWishlistStatus(p.id);
   const heartFill = isWishlisted ? '#ef4444' : 'none';
   const heartColor = isWishlisted ? '#ef4444' : 'var(--text-muted)';
@@ -101,12 +110,12 @@ function renderProductCard(p, compact = false) {
           <svg width="20" height="20" fill="${heartFill}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
         </button>
         ${p.image
-          ? `<img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="product-placeholder" style="display:none">${emoji[p.category] || '🛍️'}</div>`
-          : `<div class="product-placeholder">${emoji[p.category] || '🛍️'}</div>`}
+          ? `<img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="product-placeholder" style="display:none">${emoji[category] || '🛍️'}</div>`
+          : `<div class="product-placeholder">${emoji[category] || '🛍️'}</div>`}
         ${p.badge ? `<span class="product-badge">${p.badge}</span>` : ''}
       </div>
       <div class="product-body">
-        <div class="product-category">${p.category}</div>
+        ${category ? `<div class="product-category">${category}</div>` : ''}
         <div class="product-name">${p.name}</div>
         <div class="product-desc">${p.description}</div>
         ${sizes.length ? `<div style="margin-top:0.75rem;color:var(--text-muted);font-size:0.78rem;">Ukuran: <span style="color:var(--aqua);font-weight:700">${sizes.join(', ')}</span></div>` : ''}
@@ -145,7 +154,7 @@ async function loadFeaturedProducts() {
 async function loadShopProducts(filter = 'Semua', search = '') {
   const grid = document.getElementById('shopGrid');
   if (!grid) return;
-  let products = await Products.getAll();
+  let products = (await Products.getAll()).map(p => ({ ...p, category: normalizeProductCategory(p.category) }));
   if (filter !== 'Semua') products = products.filter(p => p.category === filter);
   if (search) products = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
   if (products.length === 0) {
