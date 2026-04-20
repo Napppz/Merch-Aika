@@ -7,9 +7,9 @@
     "start": "node server.js",
     "dev": "node server.js",
     "db:push": "node scripts/db-push.js",
-    "migrate:base64-assets:r2": "node scripts/migrate-base64-assets-to-r2.js",
-    "migrate:product-images:r2": "node scripts/migrate-product-images-to-r2.js",
-    "migrate:payment-proofs:r2": "node scripts/migrate-payment-proofs-to-r2.js",
+    "migrate:base64-assets:r2": "node scripts/migrations/migrate-base64-assets-to-r2.js",
+    "migrate:product-images:r2": "node scripts/migrations/migrate-product-images-to-r2.js",
+    "migrate:payment-proofs:r2": "node scripts/migrations/migrate-payment-proofs-to-r2.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

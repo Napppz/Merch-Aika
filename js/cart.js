@@ -8,6 +8,10 @@ const Cart = {
     return userStr ? JSON.parse(userStr).email : null;
   },
 
+  makeItemKey(product) {
+    return `${product.id}::${product.size || ''}`;
+  },
+
   async load() {
     const email = this.getUserEmail();
     
@@ -20,7 +24,7 @@ const Cart = {
             await fetch('/api/cart', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'x-user-email': email },
-              body: JSON.stringify({ product_id: item.id, quantity: item.qty })
+              body: JSON.stringify({ product_id: item.id, quantity: item.qty, size: item.size || null })
             });
           } catch(e) {}
         }
@@ -41,6 +45,7 @@ const Cart = {
             name: i.name,
             price: i.price,
             image: i.image,
+            size: i.size || '',
             qty: i.qty
           }));
         } else {
@@ -69,7 +74,8 @@ const Cart = {
     if (this.isSaving) return;
     const email = this.getUserEmail();
     
-    const existing = this.items.find(i => i.id == product.id);
+    const itemKey = this.makeItemKey(product);
+    const existing = this.items.find(i => this.makeItemKey(i) === itemKey);
     
     // Optimistic UI update
     if (existing) {
@@ -89,7 +95,7 @@ const Cart = {
             'Content-Type': 'application/json',
             'x-user-email': email
           },
-          body: JSON.stringify({ product_id: product.id, quantity: 1 })
+          body: JSON.stringify({ product_id: product.id, quantity: 1, size: product.size || null })
         });
       } catch (err) {
         console.error('Error adding to cart API', err);
@@ -102,26 +108,37 @@ const Cart = {
   },
 
   addFromBtn(btn) {
+    const sizeSelectId = btn.getAttribute('data-size-select');
+    const sizeSelect = sizeSelectId ? document.getElementById(sizeSelectId) : null;
+    const selectedSize = sizeSelect ? sizeSelect.value.trim() : '';
+
+    if (sizeSelect && !selectedSize) {
+      showToast('Pilih ukuran terlebih dahulu');
+      sizeSelect.focus();
+      return;
+    }
+
     this.add({
       id: btn.getAttribute('data-id'),
       name: btn.getAttribute('data-name'),
       price: parseInt(btn.getAttribute('data-price') || '0', 10),
-      image: btn.getAttribute('data-img') || ''
+      image: btn.getAttribute('data-img') || '',
+      size: selectedSize
     });
   },
 
-  async remove(id) {
+  async remove(id, size = '') {
     if (this.isSaving) return;
     const email = this.getUserEmail();
     
     // Optimistic UI update
-    this.items = this.items.filter(i => i.id != id);
+    this.items = this.items.filter(i => !(i.id == id && (i.size || '') === (size || '')));
     this.updateUI();
 
     if (email) {
       this.isSaving = true;
       try {
-        await fetch(`/api/cart?product_id=${id}`, {
+        await fetch(`/api/cart?product_id=${encodeURIComponent(id)}&size=${encodeURIComponent(size || '')}`, {
           method: 'DELETE',
           headers: { 'x-user-email': email }
         });
@@ -135,17 +152,17 @@ const Cart = {
     }
   },
 
-  async updateQty(id, delta) {
+  async updateQty(id, size, delta) {
     if (this.isSaving) return;
     const email = this.getUserEmail();
     
-    const item = this.items.find(i => i.id == id);
+    const item = this.items.find(i => i.id == id && (i.size || '') === (size || ''));
     if (!item) return;
 
     // Optimistic UI update
     item.qty += delta;
     if (item.qty <= 0) {
-      return this.remove(id);
+      return this.remove(id, size);
     }
     
     this.updateUI();
@@ -159,7 +176,7 @@ const Cart = {
             'Content-Type': 'application/json',
             'x-user-email': email
           },
-          body: JSON.stringify({ product_id: item.id, quantity: item.qty })
+          body: JSON.stringify({ product_id: item.id, quantity: item.qty, size: item.size || null })
         });
       } catch (err) {
         console.error('Error updating cart API', err);
@@ -194,12 +211,13 @@ const Cart = {
           <div class="cart-item-img">${item.image ? `<img src="${item.image}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;" onerror="this.parentElement.textContent='???'">` : '???'}</div>
           <div class="cart-item-info">
             <div class="cart-item-name">${item.name}</div>
+            ${item.size ? `<div class="cart-item-size" style="color:var(--text-muted);font-size:0.78rem;margin-top:0.15rem">Ukuran: ${item.size}</div>` : ''}
             <div class="cart-item-price">${formatPrice(item.price)}</div>
           </div>
           <div class="cart-item-qty">
-            <button class="qty-btn" onclick="Cart.updateQty('${item.id}', -1)">-</button>
+            <button class="qty-btn" onclick="Cart.updateQty('${item.id}', '${(item.size || '').replace(/'/g, "\\'")}', -1)">-</button>
             <span>${item.qty}</span>
-            <button class="qty-btn" onclick="Cart.updateQty('${item.id}', 1)">+</button>
+            <button class="qty-btn" onclick="Cart.updateQty('${item.id}', '${(item.size || '').replace(/'/g, "\\'")}', 1)">+</button>
           </div>
         </div>
       `).join('');
