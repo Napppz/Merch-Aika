@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS products (
   stock INTEGER NOT NULL DEFAULT 0,
   badge TEXT,
   image TEXT,
+  sizes TEXT,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -109,10 +110,10 @@ CREATE TABLE IF NOT EXISTS carts (
   id BIGSERIAL PRIMARY KEY,
   user_email VARCHAR(255) NOT NULL,
   product_id TEXT NOT NULL,
+  size TEXT,
   quantity INTEGER NOT NULL DEFAULT 1,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  CONSTRAINT carts_user_product_unique UNIQUE (user_email, product_id)
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS wishlists (
@@ -145,6 +146,7 @@ CREATE INDEX IF NOT EXISTS idx_products_created_at ON products (created_at DESC)
 CREATE INDEX IF NOT EXISTS idx_users_created_at ON users (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_user_addresses_email ON user_addresses (user_email);
 CREATE INDEX IF NOT EXISTS idx_carts_user_email ON carts (user_email);
+CREATE UNIQUE INDEX IF NOT EXISTS carts_user_product_size_unique ON carts (user_email, product_id, COALESCE(size, ''));
 CREATE INDEX IF NOT EXISTS idx_wishlists_user_email ON wishlists (user_email);
 `;
 

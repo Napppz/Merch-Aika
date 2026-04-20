@@ -85,6 +85,8 @@ function renderProductCard(p, compact = false) {
   const isWishlisted = checkWishlistStatus(p.id);
   const heartFill = isWishlisted ? '#ef4444' : 'none';
   const heartColor = isWishlisted ? '#ef4444' : 'var(--text-muted)';
+  const sizes = String(p.sizes || '').split(',').map(size => size.trim()).filter(Boolean);
+  const sizeSelectId = `size-${String(p.id || '').replace(/[^a-zA-Z0-9_-]/g, '-')}`;
 
   return `
     <div class="product-card fade-in">
@@ -107,6 +109,8 @@ function renderProductCard(p, compact = false) {
         <div class="product-category">${p.category}</div>
         <div class="product-name">${p.name}</div>
         <div class="product-desc">${p.description}</div>
+        ${sizes.length ? `<div style="margin-top:0.75rem;color:var(--text-muted);font-size:0.78rem;">Ukuran: <span style="color:var(--aqua);font-weight:700">${sizes.join(', ')}</span></div>` : ''}
+        ${sizes.length ? `<div style="margin-top:0.8rem;"><label for="${sizeSelectId}" style="display:block;color:var(--white);font-size:0.78rem;font-weight:700;margin-bottom:0.35rem;">Pilih Size</label><select id="${sizeSelectId}" style="width:100%;border-radius:8px;background:rgba(3,9,31,0.8);border:1px solid var(--card-border);color:var(--white);padding:0.65rem;font-family:var(--font-body);font-size:0.85rem;"><option value="">-- Pilih Size --</option>${sizes.map(size => `<option value="${size}">${size}</option>`).join('')}</select></div>` : ''}
         <div class="product-footer">
           <div>
             <div class="product-price">${formatPrice(p.price)}</div>
@@ -117,6 +121,7 @@ function renderProductCard(p, compact = false) {
             data-name='${(p.name || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;")}' 
             data-price="${p.price}" 
             data-img="${p.image || ''}" 
+            data-size-select="${sizes.length ? sizeSelectId : ''}"
             onclick="Cart.addFromBtn(this)">
             + Keranjang
           </button>

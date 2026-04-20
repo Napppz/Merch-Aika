@@ -1,3 +1,4 @@
+<!-- Presentasi: Dashboard admin untuk mengelola produk, pesanan, laporan, voucher, dan pengaturan website. -->
  <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -783,6 +784,12 @@
       <input type="text" id="productDesc" placeholder="Deskripsi singkat produk..." />
     </div>
 
+    <div class="form-group" id="productSizesGroup">
+      <label>Ukuran Pakaian</label>
+      <input type="text" id="productSizes" placeholder="Contoh: S, M, L, XL, XXL, XXXL" />
+      <div style="color:var(--text-muted);font-size:0.78rem;margin-top:0.45rem">Pisahkan dengan koma. Ukuran ini hanya dipakai untuk kategori pakaian.</div>
+    </div>
+
     <div class="form-row">
       <div class="form-group">
         <label>Harga (Rp) *</label>
@@ -1211,6 +1218,17 @@ function resetProductImageSelection() {
   setProductImageMeta('Belum ada file dipilih');
 }
 
+function toggleProductSizesField() {
+  const category = document.getElementById('productCategory')?.value || '';
+  const sizesGroup = document.getElementById('productSizesGroup');
+  const sizesInput = document.getElementById('productSizes');
+  if (!sizesGroup || !sizesInput) return;
+
+  const isClothing = category === 'Pakaian';
+  sizesGroup.style.display = isClothing ? 'block' : 'none';
+  if (!isClothing) sizesInput.value = '';
+}
+
 function setProductPreview(src) {
   const preview = document.getElementById('imagePreview');
   if (currentProductPreviewUrl && currentProductPreviewUrl.startsWith('blob:')) {
@@ -1258,16 +1276,20 @@ openProductModal = async function(id = null) {
     document.getElementById('productStock').value = p.stock || 0;
     document.getElementById('productBadge').value = p.badge || '';
     document.getElementById('productImage').value = p.image || '';
+    document.getElementById('productSizes').value = p.sizes || 'S, M, L, XL, XXL, XXXL';
     setProductPreview(p.image || '');
   } else {
     title.textContent = '+ Tambah Produk Baru';
     document.getElementById('editProductId').value = '';
     ['productName','productDesc','productPrice','productOldPrice','productImage'].forEach(fieldId => document.getElementById(fieldId).value = '');
+    document.getElementById('productSizes').value = 'S, M, L, XL, XXL, XXXL';
+    document.getElementById('productCategory').value = 'Pakaian';
     document.getElementById('productStock').value = 10;
     document.getElementById('productBadge').value = '';
     setProductPreview('');
   }
 
+  toggleProductSizesField();
   modal.classList.add('show');
 };
 
@@ -1330,7 +1352,10 @@ saveProduct = async function() {
       oldPrice: parseInt(document.getElementById('productOldPrice').value) || null,
       stock: parseInt(document.getElementById('productStock').value) || 0,
       badge: document.getElementById('productBadge').value || null,
-      image: imageUrl
+      image: imageUrl,
+      sizes: document.getElementById('productCategory').value === 'Pakaian'
+        ? (document.getElementById('productSizes').value || 'S, M, L, XL, XXL, XXXL').split(',').map(size => size.trim()).filter(Boolean).join(', ')
+        : null
     };
 
     const editId = document.getElementById('editProductId').value;
@@ -2139,6 +2164,8 @@ document.getElementById('productModal').addEventListener('click', e => { if (e.t
 document.getElementById('orderModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeOrderModal(); });
 
 // ── INIT ──
+document.getElementById('productCategory').addEventListener('change', toggleProductSizesField);
+toggleProductSizesField();
 initProductImageUpload();
 renderDashboard();
 loadSettings();

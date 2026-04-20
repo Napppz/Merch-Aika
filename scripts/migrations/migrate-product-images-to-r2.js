@@ -1,7 +1,7 @@
 require('dotenv').config();
 
-const db = require('../api/_lib/_db');
-const { parseDataUrlImage, uploadImageBuffer } = require('../api/_lib/r2-storage');
+const db = require('../../api/_lib/_db');
+const { parseDataUrlImage, uploadImageBuffer } = require('../../api/_lib/r2-storage');
 
 async function migrate() {
   const { rows } = await db.query(

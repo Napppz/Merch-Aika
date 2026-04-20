@@ -2,10 +2,20 @@ const db = require('./_db');
 const { getCache, setCache, invalidateCache } = require('./cache');
 const { requireAdmin } = require('./admin-auth');
 
+let ensuredSizesColumn = false;
+
+async function ensureProductSizesColumn() {
+  if (ensuredSizesColumn) return;
+  await db.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS sizes TEXT');
+  ensuredSizesColumn = true;
+}
+
 module.exports = async (req, res) => {
   const { method } = req;
   
   try {
+    await ensureProductSizesColumn();
+
     if (method === 'GET') {
       // ✅ Try cache first (reduces database transfer by ~50%)
       const cached = getCache('products_all');
@@ -26,6 +36,7 @@ module.exports = async (req, res) => {
           stock,
           badge,
           image,
+          sizes,
           created_at
         FROM products
         ORDER BY created_at DESC
@@ -38,11 +49,11 @@ module.exports = async (req, res) => {
     
     if (method === 'POST') {
       if (!requireAdmin(req, res)) return;
-      const { id, name, category, description, price, oldPrice, stock, badge, image } = req.body;
+      const { id, name, category, description, price, oldPrice, stock, badge, image, sizes } = req.body;
       const { rows } = await db.query(
-        `INSERT INTO products (id, name, category, description, price, "oldPrice", stock, badge, image) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-        [id, name, category, description, price, oldPrice, stock, badge, image]
+        `INSERT INTO products (id, name, category, description, price, "oldPrice", stock, badge, image, sizes) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+        [id, name, category, description, price, oldPrice, stock, badge, image, sizes || null]
       );
       
       // ✅ Invalidate cache when product added
@@ -52,11 +63,11 @@ module.exports = async (req, res) => {
 
     if (method === 'PUT') {
       if (!requireAdmin(req, res)) return;
-      const { id, name, category, description, price, oldPrice, stock, badge, image } = req.body;
+      const { id, name, category, description, price, oldPrice, stock, badge, image, sizes } = req.body;
       const { rows } = await db.query(
-        `UPDATE products SET name = $1, category = $2, description = $3, price = $4, "oldPrice" = $5, stock = $6, badge = $7, image = $8 
-         WHERE id = $9 RETURNING *`,
-        [name, category, description, price, oldPrice, stock, badge, image, id]
+        `UPDATE products SET name = $1, category = $2, description = $3, price = $4, "oldPrice" = $5, stock = $6, badge = $7, image = $8, sizes = $9 
+         WHERE id = $10 RETURNING *`,
+        [name, category, description, price, oldPrice, stock, badge, image, sizes || null, id]
       );
       
       // ✅ Invalidate cache when product updated
