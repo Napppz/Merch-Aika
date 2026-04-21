@@ -797,6 +797,8 @@
     <h2>📦 Detail Pesanan</h2>
     <div id="orderDetailContent"></div>
     <div class="modal-footer">
+      <button class="btn-edit" id="downloadOrderCsvBtn" style="display:none">CSV Invoice</button>
+      <button class="btn-edit" id="downloadOrderExcelBtn" style="display:none">Excel Invoice</button>
       <button class="btn-ghost" onclick="closeOrderModal()">Tutup</button>
       <button class="btn-primary" id="markPaidBtn">💾 Update Status</button>
     </div>
@@ -1442,6 +1444,31 @@ function statusBadge(status) {
   return `<span class="status-badge ${map[status]||'status-pending'}">${label[status]||status}</span>`;
 }
 
+async function downloadOrderInvoice(orderId, format) {
+  try {
+    const query = new URLSearchParams({ id: orderId, format });
+    const res = await adminFetch(`/api/order-export?${query.toString()}`);
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Gagal mengunduh invoice');
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const downloadName = format === 'excel' ? `invoice-${orderId}.xls` : `invoice-${orderId}.csv`;
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = downloadName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast(`✅ Invoice ${format === 'excel' ? 'Excel' : 'CSV'} berhasil diunduh`);
+  } catch (err) {
+    showToast('❌ ' + err.message);
+  }
+}
+
 async function viewOrder(id) {
   const res = await adminFetch('/api/orders?id=' + encodeURIComponent(id));
   const order = await res.json();
@@ -1497,6 +1524,12 @@ async function viewOrder(id) {
       <input type="text" id="updateResi" value="${(order.shipping&&order.shipping.resi)?order.shipping.resi:''}" placeholder="Contoh: JNE..." style="background:rgba(3,9,31,0.6)">
     </div>
   `;
+  const csvBtn = document.getElementById('downloadOrderCsvBtn');
+  const excelBtn = document.getElementById('downloadOrderExcelBtn');
+  csvBtn.style.display = 'inline-flex';
+  excelBtn.style.display = 'inline-flex';
+  csvBtn.onclick = () => downloadOrderInvoice(order.id, 'csv');
+  excelBtn.onclick = () => downloadOrderInvoice(order.id, 'excel');
   const btn = document.getElementById('markPaidBtn');
   btn.textContent = '💾 Update Status & Kirim Notif';
   btn.onclick = async () => {
@@ -1565,7 +1598,15 @@ async function rejectPayment(orderId) {
   }
 }
 
-function closeOrderModal() { document.getElementById('orderModal').classList.remove('show'); }
+function closeOrderModal() {
+  document.getElementById('orderModal').classList.remove('show');
+  const csvBtn = document.getElementById('downloadOrderCsvBtn');
+  const excelBtn = document.getElementById('downloadOrderExcelBtn');
+  csvBtn.style.display = 'none';
+  excelBtn.style.display = 'none';
+  csvBtn.onclick = null;
+  excelBtn.onclick = null;
+}
 
 async function deleteOrder(id) {
   if (!confirm('Apakah Anda yakin ingin menghapus pesanan ' + id + ' secara permanen?')) return;
