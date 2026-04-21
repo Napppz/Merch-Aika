@@ -1428,6 +1428,8 @@ async function renderOrders(filter = 'all') {
       </td>
       <td>
         <div class="action-btns">
+          <button class="btn-edit" onclick='downloadOrderInvoice("${o.id}", "csv")'>CSV</button>
+          <button class="btn-edit" onclick='downloadOrderInvoice("${o.id}", "excel")'>Excel</button>
           <button class="btn-edit" onclick='viewOrder("${o.id}")'>👁 Detail</button>
           <button class="btn-del" onclick='deleteOrder("${o.id}")'>🗑 Hapus</button>
         </div>
