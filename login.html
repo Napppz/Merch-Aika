@@ -364,16 +364,25 @@
 })();
 
 /* ── Alert ── */
-function showAlert(msg, type='error', target='authAlert') {
+function showAlert(msg, type='error', target='authAlert', autoHide=(target !== 'forgotAlert')) {
   const el = document.getElementById(target);
   if (!el) return;
+  if (el._timer) {
+    clearTimeout(el._timer);
+    el._timer = null;
+  }
   el.className = 'auth-alert ' + type;
   el.innerHTML = (type==='error'?'⚠ ':'✅ ') + msg;
-  setTimeout(() => { el.className = 'auth-alert'; }, 5000);
+  if (autoHide) {
+    el._timer = setTimeout(() => { el.className = 'auth-alert'; }, 5000);
+  }
 }
-function clearAlert() { 
-  const el = document.getElementById('authAlert');
-  if (el) el.className = 'auth-alert'; 
+function clearAlert(target='authAlert') { 
+  const el = document.getElementById(target);
+  if (el) {
+    if (el._timer) clearTimeout(el._timer);
+    el.className = 'auth-alert'; 
+  }
 }
 
 function clearUserSession() {
@@ -597,12 +606,22 @@ document.getElementById('forgotModal').addEventListener('click', function(e) {
 });
 
 async function sendReset() {
-  const email = document.getElementById('forgot-email').value.trim();
+  const emailInput = document.getElementById('forgot-email');
+  const email = emailInput ? emailInput.value.trim() : '';
+  const resetBtn = document.querySelector('#forgotModal .btn-primary');
+  
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return showAlert('Masukkan email yang valid!', 'error', 'forgotAlert');
+    return showAlert('Masukkan alamat email yang valid!', 'error', 'forgotAlert', false);
   }
 
-  showAlert('Memproses...', 'success', 'forgotAlert');
+  const originalText = resetBtn ? resetBtn.innerHTML : 'Kirim Link Reset →';
+  if (resetBtn) {
+    resetBtn.disabled = true;
+    resetBtn.innerHTML = '<span class="spin">✦</span> Mengirim...';
+  }
+
+  showAlert('Sedang memproses permintaan reset password...', 'success', 'forgotAlert', false);
+  
   try {
     const res = await fetch('/api/forgot-password', {
       method: 'POST',
@@ -610,11 +629,21 @@ async function sendReset() {
       body: JSON.stringify({ email })
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Server error');
+    if (!res.ok) throw new Error(data.error || 'Gagal mengirim instruksi reset password');
     
-    showAlert('Instruksi reset password telah dikirim. Periksa inbox/spam kamu!', 'success', 'forgotAlert');
+    // Notifikasi tetap menetap (tidak hilang otomatis)
+    showAlert('Instruksi reset password telah dikirim ke <strong>' + email + '</strong>. Silakan cek kotak masuk (Inbox atau Spam) email kamu.', 'success', 'forgotAlert', false);
+    
+    if (resetBtn) {
+      resetBtn.disabled = false;
+      resetBtn.innerHTML = 'Kirim Ulang Link Reset';
+    }
   } catch (err) {
-    showAlert(err.message, 'error', 'forgotAlert');
+    showAlert(err.message, 'error', 'forgotAlert', false);
+    if (resetBtn) {
+      resetBtn.disabled = false;
+      resetBtn.innerHTML = originalText;
+    }
   }
 }
 
