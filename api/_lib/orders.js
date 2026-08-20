@@ -26,7 +26,7 @@ const ORDER_DETAIL_COLUMNS = `
 
 module.exports = async (req, res) => {
   const { method } = req;
-  
+
   try {
     if (method === 'GET') {
       if (!requireAdmin(req, res)) return;
@@ -41,8 +41,8 @@ module.exports = async (req, res) => {
         return res.status(200).json(rows[0]);
       }
       return res.status(200).json(rows);
-    } 
-    
+    }
+
     if (method === 'POST') {
       const { id, customerName, email, address, status, total, items, shipping } = req.body;
       const { rows } = await db.query(
@@ -83,8 +83,19 @@ module.exports = async (req, res) => {
         const transporter = getMailTransport();
         const emailUser = getRequiredEnv('EMAIL_USER');
         const adminEmail = process.env.ADMIN_EMAIL || emailUser;
-        const itemsHTML = (Array.isArray(items) ? items : (typeof items === 'string' ? JSON.parse(items) : []))
-          .map(item => `<li>${item.name}${item.size ? ` (Size ${item.size})` : ''} × ${item.qty} = Rp ${(item.price * item.qty).toLocaleString('id-ID')}</li>`)
+        const itemsArray = Array.isArray(items) ? items : (typeof items === 'string' ? JSON.parse(items) : []);
+        const itemsHTML = itemsArray
+          .map(item => `<li>${item.name}${item.size ? ` (Size ${item.size})` : ''} &times; ${item.qty} = Rp ${(item.price * item.qty).toLocaleString('id-ID')}</li>`)
+          .join('');
+        await transporter.sendMail({
+          from: `"Aika Sesilia" <${emailUser}>`,
+          to: adminEmail,
+          replyTo: emailUser,
+          subject: `[ADMIN] Pesanan Baru #${id} dari ${customerName}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+              <h2 style="color: #ff6b6b;">📦 Pesanan Baru Masuk!</h2>
+              <p>Ada pesanan baru yang perlu diproses.</p>
               <table style="width:100%;border-collapse:collapse;margin-bottom:1rem;">
                 <tr style="background:#e8e8e8;">
                   <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">No. Pesanan</td>
@@ -107,13 +118,11 @@ module.exports = async (req, res) => {
                   <td style="padding:0.8rem;border:1px solid #ddd;color:#ff6b6b;font-weight:bold;">Rp ${total.toLocaleString('id-ID')}</td>
                 </tr>
               </table>
-              
               <h3 style="color:#333;">Item Pesanan:</h3>
               <ul style="background:#fff; padding:1.5rem; border-left: 4px solid #ff6b6b; border-radius:4px;">
                 ${itemsHTML}
               </ul>
-              
-              <p style="color:#666;margin-top:1.5rem;">Status: <strong style="color:#ff9800;">⏳ MENUNGGU PEMBAYARAN</strong></p>
+              <p style="color:#666;margin-top:1.5rem;">Status: <strong style="color:#ff9800;">&#9203; MENUNGGU PEMBAYARAN</strong></p>
               <p style="font-size:0.9rem;color:#999;margin-top:2rem;">Email ini dikirim otomatis oleh sistem. Mohon segera verifikasi pembayaran pesanan ini.</p>
             </div>
           `
@@ -130,7 +139,7 @@ module.exports = async (req, res) => {
       const { id, status, resi } = req.body; // resi dari admin jika ada
       
       // Ambil data order yg sekarang
-      const d = await db.query(`SELECT ${ORDER_DETAIL_COLUMNS} FROM orders WHERE id = $1`, [id]);
+      const d = await db.query(`SELECT ${ ORDER_DETAIL_COLUMNS } FROM orders WHERE id = $1`, [id]);
       if(d.rows.length === 0) return res.status(404).json({error: 'Order not found'});
       let order = d.rows[0];
 
@@ -145,7 +154,7 @@ module.exports = async (req, res) => {
       }
 
       const { rows } = await db.query(
-        `UPDATE orders SET status = $1, shipping = $2 WHERE id = $3 RETURNING ${ORDER_DETAIL_COLUMNS}`,
+        `UPDATE orders SET status = $1, shipping = $2 WHERE id = $3 RETURNING ${ ORDER_DETAIL_COLUMNS } `,
         [status, JSON.stringify(order.shipping), id]
       );
       
@@ -158,9 +167,9 @@ module.exports = async (req, res) => {
           await transporter.sendMail({
             from: '"Aika Sesilia Merch" <noreply@aikamerch.com>',
             to: order.email,
-            subject: `✅ Pembayaran Dikonfirmasi - Pesanan #${order.id} Sedang Dikemas 📦`,
+            subject: `✅ Pembayaran Dikonfirmasi - Pesanan #${ order.id } Sedang Dikemas 📦`,
             html: `
-              <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          < div style = "font-family: Arial, sans-serif; line-height: 1.6; color: #333;" >
                 <h2 style="color: #4caf50;">✅ Pembayaran Dikonfirmasi!</h2>
                 <p>Halo ${order.customerName},</p>
                 <p>Pembayaran Anda untuk pesanan <strong>#${order.id}</strong> telah berhasil kami verifikasi.</p>
@@ -175,8 +184,8 @@ module.exports = async (req, res) => {
                 
                 <p style="margin-top:1.5rem;">Terima kasih telah berbelanja di Aika Sesilia! Jika ada pertanyaan, hubungi kami.</p>
                 <p>Salam hangat,<br/><strong>Aika Sesilia</strong></p>
-              </div>
-            `
+              </div >
+          `
           });
         } catch (mailErr) {
           console.error('Email konfirmasi pembayaran gagal:', mailErr.message);
@@ -193,17 +202,17 @@ module.exports = async (req, res) => {
           await transporter.sendMail({
             from: '"Aika Sesilia Merch" <noreply@aikamerch.com>',
             to: order.email,
-            subject: `Hore! Pesanan #${order.id} Telah Dikirim 🚚`,
+            subject: `Hore! Pesanan #${ order.id } Telah Dikirim 🚚`,
             html: `
-              <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          < div style = "font-family: Arial, sans-serif; line-height: 1.6; color: #333;" >
                 <h2 style="color: #29b6f6;">Pesanan Meluncur, ${order.customerName}!</h2>
                 <p>Paket *merchandise* Anda telah diserahkan ke jasa kirim.</p>
                 <p>Status: <strong>DIKIRIM</strong></p>
                 <p>No. Resi Pengiriman: <strong style="color:#111;">${trackNo}</strong></p>
                 <p>Anda bisa melacak resi tersebut melalui website resmi JNE.</p>
                 <p>Terima kasih atas dukungannya ke Aika Sesilia!</p>
-              </div>
-            `
+              </div >
+          `
           });
         } catch (mailErr) {
           console.error('Gagal mengirim email (PUT):', mailErr.message);
@@ -225,7 +234,7 @@ module.exports = async (req, res) => {
     }
 
     res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
-    res.status(405).end(`Method ${method} Not Allowed`);
+    res.status(405).end(`Method ${ method } Not Allowed`);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal Server Error', details: err.message });
