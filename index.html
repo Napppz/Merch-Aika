@@ -435,7 +435,6 @@
       
       // Render stats
       const totalOrders = data.reduce((sum, u) => sum + (parseInt(u.total_orders) || 0), 0);
-      const totalSpent = data.reduce((sum, u) => sum + (parseInt(u.total_spent) || 0), 0);
       
       document.getElementById('leaderboardStats').innerHTML = `
         <div class="stat-card-lb">
@@ -445,10 +444,6 @@
         <div class="stat-card-lb">
           <div class="stat-value">${totalOrders}</div>
           <div class="stat-label">Pembelian Total</div>
-        </div>
-        <div class="stat-card-lb">
-          <div class="stat-value" style="font-size:1.3rem">${formatRupiah(totalSpent)}</div>
-          <div class="stat-label">Total Spend</div>
         </div>
       `;
       
