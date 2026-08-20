@@ -676,9 +676,9 @@ if (isAdminLogged && (!adminUser || !adminToken)) {
   clearAdminSession();
 }
 
-const currentRole = urlParams.get('role'); // 'admin' | null
+const urlRole = urlParams.get('role'); // 'admin' | null
 
-if (currentRole === 'admin') {
+if (urlRole === 'admin') {
   // Halaman ini dibuka untuk login admin
   // Kalau admin sudah login → redirect ke dashboard admin
   if (isAdminLogged && adminUser && adminToken) {
