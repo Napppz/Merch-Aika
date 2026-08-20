@@ -375,14 +375,21 @@ body {
 .stat-card-lb .stat-value { font-size: 2rem; color: var(--aqua); font-weight: 900; margin-bottom: 0.5rem; }
 .stat-card-lb .stat-label { color: var(--text-muted); font-size: 0.9rem; }
 
+.leaderboard-table-wrap {
+  width: 100%;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .leaderboard-table {
   width: 100%;
   border-collapse: collapse;
   background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  overflow: hidden;
 }
 
 .leaderboard-table thead {
@@ -508,31 +515,28 @@ body {
 
 .leaderboard-spending {
   text-align: right;
-  min-width: 140px;
+  min-width: 130px;
+  white-space: nowrap;
   font-weight: 700;
   color: var(--gold);
   font-size: 1.1rem;
 }
 
 @media (max-width: 768px) {
-  .leaderboard {
-    padding: 4rem 1.5rem;
-  }
-  
-  .leaderboard-table th, .leaderboard-table td {
-    padding: 0.8rem 0.6rem;
-    font-size: 0.85rem;
-  }
-  
-  .leaderboard-user {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .leaderboard-orders,
-  .leaderboard-spending {
-    text-align: center !important;
-  }
+  .leaderboard { padding: 4rem 1rem; }
+  .leaderboard-table th, .leaderboard-table td { padding: 0.75rem 0.5rem; font-size: 0.82rem; }
+  .leaderboard-user { gap: 0.5rem; }
+  .leaderboard-avatar { width: 36px; height: 36px; font-size: 1rem; }
+  .leaderboard-orders, .leaderboard-spending { text-align: center !important; min-width: unset; }
+  .leaderboard-spending { font-size: 0.88rem; white-space: nowrap; }
+}
+
+/* iPhone SE: sembunyikan kolom Pembelian agar Total Spending terlihat */
+@media (max-width: 480px) {
+  .leaderboard-table th:nth-child(3),
+  .leaderboard-table td:nth-child(3) { display: none; }
+  .leaderboard-table th:nth-child(4),
+  .leaderboard-table td:nth-child(4) { text-align: right; }
 }
 
 /* ── FEATURED / PRODUCT GRID ── */
@@ -617,6 +621,7 @@ body {
   margin-bottom: 1rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
