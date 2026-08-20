@@ -256,23 +256,26 @@
   
   <div class="leaderboard-container">
     <div class="leaderboard-stats" id="leaderboardStats"></div>
-    <table class="leaderboard-table">
-      <thead>
-        <tr>
-          <th style="width: 60px;">Rank</th>
-          <th style="text-align: left;">Fans</th>
-          <th style="text-align: center;">Pembelian</th>
-          <th style="text-align: right;">Total Spending</th>
-        </tr>
-      </thead>
-      <tbody id="leaderboardBody">
-        <tr>
-          <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
-            ⏳ Memuat data...
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <!-- Wrapper div diperlukan agar border-radius bekerja di iOS Safari -->
+    <div class="leaderboard-table-wrap">
+      <table class="leaderboard-table">
+        <thead>
+          <tr>
+            <th style="width: 60px;">Rank</th>
+            <th style="text-align: left;">Fans</th>
+            <th style="text-align: center;">Pembelian</th>
+            <th style="text-align: right;">Total Spending</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboardBody">
+          <tr>
+            <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+              ⏳ Memuat data...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </section>
 
@@ -403,13 +406,21 @@
       }
     }).catch(err => console.log('Gagal memuat settings', err));
 
+  // Format rupiah - iOS Safari tidak support toLocaleString('id-ID')
+  function formatRupiah(angka) {
+    const num = parseInt(angka) || 0;
+    // Gunakan metode manual agar kompatibel dengan semua browser termasuk iOS Safari
+    return 'Rp ' + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+
   // Load Leaderboard
   async function loadLeaderboard() {
     try {
       const res = await fetch('/api/leaderboard?limit=10');
       if (!res.ok) throw new Error('Failed to load leaderboard');
       
-      const { data } = await res.json();
+      const json = await res.json();
+      const data = json.data || [];
       
       if (!data || data.length === 0) {
         document.getElementById('leaderboardBody').innerHTML = `
@@ -423,52 +434,61 @@
       }
       
       // Render stats
-      if (data.length > 0) {
-        const topBuyer = data[0];
-        const totalOrders = data.reduce((sum, u) => sum + u.total_orders, 0);
-        
-        document.getElementById('leaderboardStats').innerHTML = `
-          <div class="stat-card-lb">
-            <div class="stat-value">${data.length}</div>
-            <div class="stat-label">Top Supporters</div>
-          </div>
-          <div class="stat-card-lb">
-            <div class="stat-value">${totalOrders}</div>
-            <div class="stat-label">Pembelian Total</div>
-          </div>
-        `;
-      }
+      const totalOrders = data.reduce((sum, u) => sum + (parseInt(u.total_orders) || 0), 0);
+      const totalSpent = data.reduce((sum, u) => sum + (parseInt(u.total_spent) || 0), 0);
+      
+      document.getElementById('leaderboardStats').innerHTML = `
+        <div class="stat-card-lb">
+          <div class="stat-value">${data.length}</div>
+          <div class="stat-label">Top Supporters</div>
+        </div>
+        <div class="stat-card-lb">
+          <div class="stat-value">${totalOrders}</div>
+          <div class="stat-label">Pembelian Total</div>
+        </div>
+        <div class="stat-card-lb">
+          <div class="stat-value" style="font-size:1.3rem">${formatRupiah(totalSpent)}</div>
+          <div class="stat-label">Total Spend</div>
+        </div>
+      `;
       
       // Render table
       const tbody = document.getElementById('leaderboardBody');
       tbody.innerHTML = data.map(user => {
-        const rankClass = user.rank === 1 ? 'rank-1' : user.rank === 2 ? 'rank-2' : user.rank === 3 ? 'rank-3' : 'rank-other';
+        const rank = parseInt(user.rank) || 0;
+        const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
+        const safeUsername = (user.username || 'Anonymous').replace(/</g, '&lt;');
+        const firstChar = safeUsername.charAt(0).toUpperCase();
         const avatarHtml = user.avatar 
-          ? `<img src="${user.avatar}" alt="${user.username}" class="leaderboard-avatar" onerror="this.style.display='none'">`
-          : `<div class="leaderboard-avatar">${user.username.charAt(0).toUpperCase()}</div>`;
+          ? `<img src="${user.avatar}" alt="${safeUsername}" class="leaderboard-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="leaderboard-avatar" style="display:none">${firstChar}</div>`
+          : `<div class="leaderboard-avatar">${firstChar}</div>`;
         
+        const totalSpent = parseInt(user.total_spent) || 0;
+        const totalOrders = parseInt(user.total_orders) || 0;
+        const totalItems = parseInt(user.total_items) || 0;
+
         return `
           <tr>
             <td style="text-align: center;">
-              <div class="rank-badge ${rankClass}">${user.rank}</div>
+              <div class="rank-badge ${rankClass}">${rank}</div>
             </td>
             <td>
               <div class="leaderboard-user">
                 ${avatarHtml}
                 <div class="leaderboard-name">
-                  <span class="leaderboard-username">${user.username}</span>
+                  <span class="leaderboard-username">${safeUsername}</span>
                 </div>
               </div>
             </td>
             <td>
               <div class="leaderboard-orders">
-                <span class="leaderboard-orders-count">${user.total_orders}</span>
-                <span class="leaderboard-items">${user.total_items} items</span>
+                <span class="leaderboard-orders-count">${totalOrders}</span>
+                <span class="leaderboard-items">${totalItems} items</span>
               </div>
             </td>
             <td>
               <div class="leaderboard-spending">
-                Rp ${user.total_spent.toLocaleString('id-ID')}
+                ${formatRupiah(totalSpent)}
               </div>
             </td>
           </tr>
@@ -480,7 +500,7 @@
       document.getElementById('leaderboardBody').innerHTML = `
         <tr>
           <td colspan="4" style="text-align: center; padding: 2rem; color: #ff6b6b;">
-            ⚠️ Gagal memuat leaderboard
+            &#9888; Gagal memuat leaderboard
           </td>
         </tr>
       `;
