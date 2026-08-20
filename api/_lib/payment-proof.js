@@ -98,12 +98,14 @@ module.exports = async (req, res) => {
       // Email ke Admin - Bukti Pembayaran Diterima
       try {
         if (!transporter) throw new Error('Email transport not configured');
-        const adminEmail = process.env.ADMIN_EMAIL || getRequiredEnv('EMAIL_USER');
+        const emailUser = getRequiredEnv('EMAIL_USER');
+        const adminEmail = process.env.ADMIN_EMAIL || emailUser;
         
         await transporter.sendMail({
-          from: '"Aika Sesilia Merch" <noreply@aikamerch.com>',
+          from: `"Aika Sesilia" <${emailUser}>`,
           to: adminEmail,
-          subject: `✅ Bukti Pembayaran Diterima - Pesanan #${orderId}`,
+          replyTo: emailUser,
+          subject: `[Aika Sesilia] Bukti Pembayaran Masuk - Pesanan #${orderId}`,
           html: `
             <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background:#f5f5f5; padding:2rem; border-radius:8px;">
               <h2 style="color: #4caf50; border-bottom: 2px solid #4caf50; padding-bottom:1rem;">✅ BUKTI PEMBAYARAN MASUK</h2>
@@ -123,12 +125,7 @@ module.exports = async (req, res) => {
               <p style="margin-top:1.5rem; font-size:0.9rem;"><strong>Status:</strong> <span style="color:#ff9800; font-weight:bold;">⏳ MENUNGGU VERIFIKASI</span></p>
               <p style="font-size:0.85rem;color:#999;margin-top:2rem;">Email ini dikirim otomatis. Mohon segera verifikasi pembayaran.</p>
             </div>
-          `,
-          // Jika ingin attach image, bisa tambah attachments:
-          // attachments: [{
-          //   filename: `bukti-${orderId}.${mimeType}`,
-          //   content: Buffer.from(base64Data, 'base64')
-          // }]
+          `
         });
       } catch (mailErr) {
         console.error('Email to admin failed:', mailErr.message);
@@ -137,10 +134,12 @@ module.exports = async (req, res) => {
       // Konfirmasi ke Customer
       try {
         if (!transporter) throw new Error('Email transport not configured');
+        const emailUser = getRequiredEnv('EMAIL_USER');
         await transporter.sendMail({
-          from: '"Aika Sesilia Merch" <noreply@aikamerch.com>',
+          from: `"Aika Sesilia" <${emailUser}>`,
           to: email,
-          subject: `✅ Bukti Pembayaran Diterima - Pesanan #${orderId}`,
+          replyTo: emailUser,
+          subject: `[Aika Sesilia] Bukti Pembayaran Diterima - Pesanan #${orderId}`,
           html: `
             <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
               <h2 style="color: #4caf50;">Bukti Pembayaran Kami Terima!</h2>

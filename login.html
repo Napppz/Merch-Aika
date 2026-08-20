@@ -86,8 +86,6 @@
     }
     .auth-logo p { color: var(--text-muted); font-size: 0.85rem; }
 
-
-
     /* Input with icon */
     .input-icon-wrap { position: relative; }
     .input-icon {
@@ -138,36 +136,43 @@
       display: block;
     }
 
-    /* Divider */
-    .divider {
+    /* Remember me & Forgot Password Row */
+    .remember-forgot-wrap {
       display: flex;
       align-items: center;
-      gap: 1rem;
-      margin: 1.5rem 0;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-top: 0.8rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .remember-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .remember-wrap input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: var(--aqua);
+      cursor: pointer;
+    }
+    .remember-wrap label {
+      font-size: 0.82rem;
       color: var(--text-muted);
-      font-size: 0.8rem;
+      cursor: pointer;
+      user-select: none;
     }
-    .divider::before, .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--card-border);
-    }
-
-    /* Forgot password */
     .forgot-link {
-      display: block;
-      text-align: right;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       color: var(--text-muted);
       text-decoration: none;
-      margin-top: -1rem;
-      margin-bottom: 1.5rem;
       transition: var(--transition);
+      white-space: nowrap;
     }
-    .forgot-link:hover { color: var(--aqua); }
-
-
+    .forgot-link:hover {
+      color: var(--aqua);
+      text-decoration: underline;
+    }
 
     /* Forgot modal overlay */
     .modal-overlay {
@@ -216,24 +221,6 @@
     }
     .modal-sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; }
 
-    /* Remember me */
-    .remember-wrap {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      margin-bottom: 1.5rem;
-    }
-    .remember-wrap input[type="checkbox"] {
-      width: 16px; height: 16px;
-      accent-color: var(--aqua);
-      cursor: pointer;
-    }
-    .remember-wrap label {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      cursor: pointer;
-    }
-
     /* Nav link */
     .auth-nav-link {
       display: block;
@@ -275,6 +262,7 @@
 
     @media (max-width: 560px) {
       .auth-card { padding: 2rem 1.5rem; border-radius: 20px; }
+      .remember-forgot-wrap { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
     }
   </style>
 </head>
@@ -289,8 +277,6 @@
       <h1>Masuk ke Akun</h1>
       <p>Aika Sesilia Merch Store</p>
     </div>
-
-
 
     <div class="auth-tabs">
       <div class="auth-tab active" id="tab-user" onclick="switchRole('user')">👤 User</div>
@@ -310,7 +296,7 @@
         </div>
       </div>
 
-      <div class="form-group" style="margin-bottom:0.5rem">
+      <div class="form-group">
         <label for="login-password">Password</label>
         <div class="password-wrap input-icon-wrap">
           <span class="input-icon">🔒</span>
@@ -320,11 +306,13 @@
         </div>
       </div>
 
-      <a href="#" class="forgot-link" onclick="openForgot();return false">Lupa password?</a>
-
-      <div class="remember-wrap">
-        <input type="checkbox" id="rememberMe" checked />
-        <label for="rememberMe">Ingat saya di perangkat ini</label>
+      <!-- Remember Me & Forgot Password in one line -->
+      <div class="remember-forgot-wrap">
+        <div class="remember-wrap">
+          <input type="checkbox" id="rememberMe" checked />
+          <label for="rememberMe">Ingat saya di perangkat ini</label>
+        </div>
+        <a href="#" class="forgot-link" onclick="openForgot();return false">Lupa password?</a>
       </div>
 
       <button type="button" class="btn-primary w100" onclick="doLogin()" style="padding:1rem;font-size:1rem" id="loginBtn">
@@ -333,8 +321,6 @@
     </form>
 
     <p class="auth-nav-link" id="registerLink">Belum punya akun? <a href="register.html">Daftar Sekarang</a></p>
-
-
 
   </div><!-- /auth-card -->
 
@@ -368,6 +354,7 @@
 /* ── Stars ── */
 (function() {
   const c = document.getElementById('stars');
+  if (!c) return;
   for (let i = 0; i < 50; i++) {
     const s = document.createElement('div');
     s.className = 'star';
@@ -376,16 +363,18 @@
   }
 })();
 
-
-
 /* ── Alert ── */
 function showAlert(msg, type='error', target='authAlert') {
   const el = document.getElementById(target);
+  if (!el) return;
   el.className = 'auth-alert ' + type;
   el.innerHTML = (type==='error'?'⚠ ':'✅ ') + msg;
   setTimeout(() => { el.className = 'auth-alert'; }, 5000);
 }
-function clearAlert() { document.getElementById('authAlert').className = 'auth-alert'; }
+function clearAlert() { 
+  const el = document.getElementById('authAlert');
+  if (el) el.className = 'auth-alert'; 
+}
 
 function clearUserSession() {
   localStorage.removeItem('aika_session');
@@ -412,7 +401,6 @@ function togglePw() {
 }
 
 /* ── Role Management ── */
-
 let currentRole = 'user';
 
 function switchRole(role) {
@@ -425,14 +413,14 @@ function switchRole(role) {
   const rememberWrap = document.querySelector('.remember-wrap');
   
   if (role === 'admin') {
-    regLink.style.display = 'none';
-    forgotLink.style.display = 'none';
-    rememberWrap.style.display = 'none';
+    if (regLink) regLink.style.display = 'none';
+    if (forgotLink) forgotLink.style.display = 'none';
+    if (rememberWrap) rememberWrap.style.display = 'none';
     document.getElementById('login-email').placeholder = 'Username Admin';
   } else {
-    regLink.style.display = 'block';
-    forgotLink.style.display = 'block';
-    rememberWrap.style.display = 'flex';
+    if (regLink) regLink.style.display = 'block';
+    if (forgotLink) forgotLink.style.display = 'inline-block';
+    if (rememberWrap) rememberWrap.style.display = 'flex';
     document.getElementById('login-email').placeholder = 'email@contoh.com';
   }
   clearAlert();
@@ -495,14 +483,12 @@ function doLogin() {
     .then(data => {
       // Clear sensitive input immediately
       document.getElementById('login-password').value = '';
-      // Clear payload from memory
       loginPayload.password = '';
       
       if (data.success) {
         console.log('[LOGIN] ✅ Login berhasil, admin data:', data.admin);
         
         try {
-          // ALWAYS store session flags (with fallback data if needed)
           const adminData = data.admin || { id: 1, username: 'Aika', role: 'admin' };
           const adminToken = adminData.token;
 
@@ -513,7 +499,6 @@ function doLogin() {
           clearAllLoginSessions();
           
           localStorage.setItem('aika_admin_logged', 'true');
-          console.log('[LOGIN] 1/2 Set aika_admin_logged = true');
           
           const userObj = {
             id: adminData.id,
@@ -522,30 +507,11 @@ function doLogin() {
             loginTime: Date.now()
           };
           localStorage.setItem('aika_admin_user', JSON.stringify(userObj));
-          console.log('[LOGIN] 2/2 Set aika_admin_user = ' + adminData.username);
           localStorage.setItem('aika_admin_token', adminToken);
-          console.log('[LOGIN] 3/3 Set aika_admin_token');
           
-          // Verify both flags are set BEFORE redirect
-          const verifyLogged = localStorage.getItem('aika_admin_logged');
-          const verifyUser = localStorage.getItem('aika_admin_user');
-          const verifyToken = localStorage.getItem('aika_admin_token');
-          console.log('[LOGIN] ✅ Verification: logged=' + verifyLogged + ', user=' + (verifyUser ? 'yes' : 'NO!'));
-          
-          if (!verifyUser || !verifyToken) {
-            console.error('[LOGIN] ❌ FAILED TO SET aika_admin_user! Maybe localStorage is full?');
-            showAlert('❌ Error menyimpan session. Coba refresh halaman & login ulang.');
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-            return;
-          }
-          
-          console.log('[LOGIN] Both flags OK. Redirecting in 500ms...');
           showAlert('✅ Login berhasil! Mengalihkan...', 'success');
           
-          // Wait longer to ensure localStorage flush
           setTimeout(() => {
-            console.log('[LOGIN] Redirecting to /admin/dashboard.html');
             window.location.href = '/admin/dashboard.html';
           }, 500);
           
@@ -557,18 +523,12 @@ function doLogin() {
         }
         
       } else {
-        console.error('[LOGIN] Login failed:', data);
         showAlert(data.message || '❌ Username atau password admin salah!');
         btn.disabled = false;
         btn.innerHTML = originalText;
       }
     })
     .catch(err => {
-      console.error('Admin login error:', err);
-      console.error('Error details:', {
-        message: err.message,
-        stack: err.stack
-      });
       showAlert('❌ ' + (err.message || 'Koneksi server gagal. Coba lagi.'));
       document.getElementById('login-password').value = '';
       btn.disabled = false;
@@ -613,7 +573,6 @@ function onLoginSuccess(user, remember) {
     sessionStorage.setItem('aika_session', JSON.stringify(sessionData));
   }
   
-  // Load avatar from database if exists
   if (user.avatar) {
     localStorage.setItem('aika_avatar_' + user.email, user.avatar);
   }
@@ -623,8 +582,6 @@ function onLoginSuccess(user, remember) {
     window.location.href = redir;
   }, 1200);
 }
-
-
 
 /* ── Forgot Password Modal ── */
 function openForgot() {
@@ -690,17 +647,12 @@ if (isAdminLogged && (!adminUser || !adminToken)) {
   clearAdminSession();
 }
 
-// ONLY redirect to dashboard if BOTH session keys are valid
 if (isAdminLogged && adminUser && adminToken) {
   try {
-    JSON.parse(adminUser); // Validate JSON
-    console.log('[LOGIN-CHECK] ✅ Valid admin session detected, redirecting to dashboard');
+    JSON.parse(adminUser);
     window.location.href = '/admin/dashboard.html';
   } catch (e) {
-    console.log('[LOGIN-CHECK] ⚠️ Session data corrupted, allowing new login');
-    localStorage.removeItem('aika_admin_logged');
-    localStorage.removeItem('aika_admin_user');
-    localStorage.removeItem('aika_admin_token');
+    clearAdminSession();
   }
 } else if (existing) {
   try {
@@ -759,128 +711,6 @@ async function submitNewPassword(token) {
     showAlert(err.message, 'error', 'resetAlert');
   }
 }
-</script>
-
-<!-- Security: Prevent console attacks and unauthorized access -->
-<script>
-  // ⚠️ SECURITY & CSRF PROTECTION LAYER
-  (function() {
-    // Clear console and display warning
-    console.clear();
-    const securityBanner = `%c╔═══════════════════════════════════════════════╗
-║     ⚠️  PERHATIAN KEAMANAN AIKA-SESILIA ⚠️    ║
-╠═══════════════════════════════════════════════╣
-║ JANGAN paste code dari orang yang tidak       ║
-║ dipercaya di sini! Ini bisa MENGURAS akun     ║
-║ admin Anda!                                   ║
-║                                               ║
-║ Jika ada yang meminta code di sini:           ║
-║ ➜ ITU ADALAH SCAM! 🚨                         ║
-║                                               ║
-║ Aika Sesilia tidak akan pernah meminta        ║
-║ Anda membuka Console Developer.               ║
-╚═══════════════════════════════════════════════╝`;
-    console.log(securityBanner, 'color:#ff4444;font-weight:bold;font-size:11px;font-family:monospace');
-
-    // Disable console on production
-    if (location.hostname !== 'localhost' && !location.hostname.startsWith('127.')) {
-      const noop = () => {};
-      const disabledConsole = {
-        log: noop, warn: noop, error: noop, info: noop, debug: noop,
-        assert: noop, clear: noop, count: noop, group: noop, groupEnd: noop,
-        table: noop, time: noop, timeEnd: noop, trace: noop, dir: noop
-      };
-      try {
-        Object.defineProperty(window, 'console', {
-          value: disabledConsole,
-          writable: false,
-          configurable: false
-        });
-      } catch (e) { /* Browser doesn't allow this */ }
-    }
-
-    // Enhanced DevTools Detection
-    let devToolsOpen = false;
-    let lastCheck = 0;
-    
-    const checkDevTools = () => {
-      const now = Date.now();
-      if (now - lastCheck < 200) return;
-      lastCheck = now;
-      
-      const threshold = 160;
-      const isOpen = window.outerHeight - window.innerHeight > threshold || 
-                     window.outerWidth - window.innerWidth > threshold;
-      
-      if (isOpen && !devToolsOpen) {
-        devToolsOpen = true;
-        const banner = document.createElement('div');
-        banner.id = 'devtools-warning-banner';
-        banner.style.cssText = `
-          position: fixed; top: 0; left: 0; right: 0;
-          background: linear-gradient(90deg, #c62828, #d32f2f);
-          color: white; padding: 12px 20px; text-align: center;
-          font-weight: bold; z-index: 999999;
-          font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        `;
-        banner.innerHTML = '🔒 <strong>DevTools Terdeteksi!</strong> Admin login portal dilindungi. Jangan edit apa pun.';
-        document.body.appendChild(banner);
-      } else if (!isOpen && devToolsOpen) {
-        devToolsOpen = false;
-        const banner = document.getElementById('devtools-warning-banner');
-        if (banner) banner.remove();
-      }
-    };
-    
-    window.addEventListener('resize', checkDevTools);
-    window.addEventListener('orientationchange', checkDevTools);
-    setInterval(checkDevTools, 500);
-
-    // Monitor storage access
-    const originalSetItem = Storage.prototype.setItem;
-    Storage.prototype.setItem = function(key, value) {
-      // Log suspicious admin/token operations
-      if ((key.includes('admin') || key.includes('token')) && value.length > 1000) {
-        // Could be logged to server for security audit
-      }
-      return originalSetItem.call(this, key, value);
-    };
-
-    // CSRF Token Generation
-    window.getCSRFToken = function() {
-      let token = sessionStorage.getItem('_aika_csrf_token');
-      if (!token) {
-        const arr = new Uint8Array(32);
-        crypto.getRandomValues(arr);
-        token = Array.from(arr).map(x => x.toString(16).padStart(2, '0')).join('');
-        sessionStorage.setItem('_aika_csrf_token', token);
-      }
-      return token;
-    };
-
-    // Prevent XSS through eval
-    window.eval = function() {
-      throw new Error('Eval is disabled for security');
-    };
-
-    // Protect window object
-    const protectedKeys = ['aika_admin', 'aika_admin_token', 'aika_admin_user'];
-    protectedKeys.forEach(key => {
-      Object.defineProperty(window, key, {
-        get: function() { return undefined; },
-        set: function() { /* Silently ignore */ },
-        configurable: false
-      });
-    });
-
-    // Monitor for suspicious patterns
-    window.addEventListener('keypress', function(e) {
-      // Example: If user tries to paste credential-like strings
-      if (e.key === 'v' && (e.ctrlKey || e.metaKey)) {
-        // Could implement paste content validation here
-      }
-    });
-  })();
 </script>
 </body>
 </html>

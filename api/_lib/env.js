@@ -13,11 +13,18 @@ function getPasswordSalt() {
 }
 
 function createMailTransport() {
+  const user = getRequiredEnv('EMAIL_USER');
+  const pass = getRequiredEnv('EMAIL_PASS');
   return nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: {
-      user: getRequiredEnv('EMAIL_USER'),
-      pass: getRequiredEnv('EMAIL_PASS')
+      user,
+      pass
+    },
+    tls: {
+      rejectUnauthorized: true
     }
   });
 }
