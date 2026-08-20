@@ -16,7 +16,6 @@ module.exports = async function handler(req, res) {
     // Cek apakah user ada
     const userRes = await query('SELECT * FROM users WHERE email = $1', [email]);
     if (userRes.rows.length === 0) {
-      // Kita ubah menjadi error eksplisit agar tau kalau emailnya memang tidak ada di database
       return res.status(404).json({ error: 'Email tidak terdaftar di sistem kami.' });
     }
 
@@ -24,9 +23,6 @@ module.exports = async function handler(req, res) {
     const token = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 Menit
 
-    // Simpan ke DB. Karena nggak punya tabel 'password_reset_tokens' yg dijamin ada, 
-    // Kita pinjam tabel 'otp_codes' aja (code = token) agar tidak error SQL "table not found" 
-    // atau kita run tabelnya kalau belum ada:
     await query(`
       CREATE TABLE IF NOT EXISTS password_reset_tokens (
         email VARCHAR(255) PRIMARY KEY,
@@ -41,25 +37,92 @@ module.exports = async function handler(req, res) {
       VALUES ($1, $2, $3)
     `, [email, token, expiresAt]);
 
-    // Kirim Email
-    // Untuk deteksi URL: Host header dr vercel/localhost
     const host = req.headers.origin || req.headers.host || 'merch-aika.vercel.app';
     const resetLink = `${host.startsWith('http') ? host : 'https://' + host}/login.html?reset=${token}`;
+    const emailUser = getRequiredEnv('EMAIL_USER');
 
     const mailOptions = {
-      from: `"Aika Sesilia Merch" <${getRequiredEnv('EMAIL_USER')}>`,
+      from: `"Aika Sesilia" <${emailUser}>`,
       to: email,
-      subject: 'Reset Password Akun Aika Sesilia',
+      replyTo: emailUser,
+      subject: '[Aika Sesilia] Instruksi Reset Password Akun Anda',
+      headers: {
+        'X-Entity-Ref-ID': `aika-reset-${Date.now()}`,
+        'Auto-Submitted': 'auto-generated',
+        'X-Auto-Response-Suppress': 'All',
+        'X-Priority': '1',
+        'Importance': 'high',
+      },
+      text: `Halo,\n\nKami menerima permintaan untuk mereset password akun Aika Sesilia Anda.\n\nKlik tautan berikut untuk membuat password baru (berlaku 15 menit):\n${resetLink}\n\nJika Anda tidak meminta reset password, abaikan email ini.\n\nSalam,\nAika Sesilia Merch`,
       html: `
-        <div style="font-family: Arial, sans-serif; background: #03091f; padding: 40px; color: #e0f0ff;">
-          <div style="max-width: 500px; margin: 0 auto; background: #0a3872; padding: 30px; border-radius: 12px; text-align: center;">
-            <h2 style="color: #29b6f6;">Permintaan Reset Password</h2>
-            <p>Halo, kami menerima permintaan untuk mereset password akun Aika Sesilia milikmu.</p>
-            <p>Silakan klik tombol di bawah ini untuk membuat password baru. Tautan ini hanya berlaku selama 15 menit.</p>
-            <a href="${resetLink}" style="display: inline-block; margin: 20px 0; padding: 12px 24px; background: #29b6f6; color: #fff; text-decoration: none; border-radius: 50px; font-weight: bold;">Ubah Password</a>
-            <p style="font-size: 0.85rem; color: #90b8d8;">Jika kamu tidak merasa meminta reset password, abaikan email ini.</p>
-          </div>
-        </div>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reset Password Aika Sesilia</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f7fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed; background-color: #f4f7fa; padding: 30px 15px;">
+    <tr>
+      <td align="center">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 520px; background-color: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04);">
+          
+          <tr>
+            <td align="center" style="background: #0f172a; padding: 28px 20px; border-bottom: 3px solid #0284c7;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700; letter-spacing: 0.5px;">✦ AIKA SESILIA</h1>
+              <p style="margin: 4px 0 0 0; color: #38bdf8; font-size: 13px; font-weight: 500;">Official Merchandise Store</p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 32px 28px 24px 28px;">
+              <p style="margin: 0 0 16px 0; color: #1e293b; font-size: 16px; line-height: 1.5;">Halo,</p>
+              <p style="margin: 0 0 24px 0; color: #475569; font-size: 15px; line-height: 1.6;">
+                Kami menerima permintaan untuk mereset password akun <strong>Aika Sesilia</strong> Anda. Klik tombol di bawah ini untuk membuat password baru:
+              </p>
+
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 24px;">
+                <tr>
+                  <td align="center">
+                    <a href="${resetLink}" target="_blank" style="display: inline-block; background-color: #0284c7; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 600; padding: 14px 28px; border-radius: 8px;">
+                      Reset Password Saya →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #fffbeb; border-radius: 8px; border-left: 4px solid #f59e0b; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 12px 16px;">
+                    <p style="margin: 0; color: #92400e; font-size: 13px; line-height: 1.5;">
+                      ⏱ Tautan ini hanya berlaku selama <strong>15 menit</strong>. Jangan bagikan link ini kepada siapapun.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin: 0; color: #64748b; font-size: 13px; line-height: 1.5;">
+                Jika Anda tidak meminta perubahan password, Anda dapat mengabaikan email ini dengan aman.
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td align="center" style="background-color: #f8fafc; padding: 20px; border-top: 1px solid #e2e8f0;">
+              <p style="margin: 0; color: #94a3b8; font-size: 12px; line-height: 1.5;">
+                Email ini dikirim secara otomatis oleh sistem keamanan Aika Sesilia.<br />
+                &copy; ${new Date().getFullYear()} Aika Sesilia Merch Store.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
       `,
     };
 

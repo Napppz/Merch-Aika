@@ -55,10 +55,12 @@ module.exports = async (req, res) => {
       // (1/2) Kirim Notifikasi Email - Pesanan Baru ke Customer
       try {
         const transporter = getMailTransport();
+        const emailUser = getRequiredEnv('EMAIL_USER');
         await transporter.sendMail({
-          from: '"Aika Sesilia Merch" <noreply@aikamerch.com>',
+          from: `"Aika Sesilia" <${emailUser}>`,
           to: email, // Email pembeli
-          subject: `Terima Kasih, ${customerName}! Pesanan #${id} Diterima 📦`,
+          replyTo: emailUser,
+          subject: `[Aika Sesilia] Pesanan #${id} Diterima 📦`,
           html: `
             <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
               <h2 style="color: #29b6f6;">Halo, ${customerName}!</h2>
@@ -79,20 +81,10 @@ module.exports = async (req, res) => {
       // (1b) Kirim Notifikasi Email ke Admin
       try {
         const transporter = getMailTransport();
-        const adminEmail = process.env.ADMIN_EMAIL || getRequiredEnv('EMAIL_USER');
+        const emailUser = getRequiredEnv('EMAIL_USER');
+        const adminEmail = process.env.ADMIN_EMAIL || emailUser;
         const itemsHTML = (Array.isArray(items) ? items : (typeof items === 'string' ? JSON.parse(items) : []))
           .map(item => `<li>${item.name}${item.size ? ` (Size ${item.size})` : ''} × ${item.qty} = Rp ${(item.price * item.qty).toLocaleString('id-ID')}</li>`)
-          .join('');
-        
-        await transporter.sendMail({
-          from: '"Aika Sesilia Merch" <noreply@aikamerch.com>',
-          to: adminEmail,
-          subject: `🚨 Pesanan Baru #${id} - Menunggu Pembayaran`,
-          html: `
-            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background:#f5f5f5; padding:2rem; border-radius:8px;">
-              <h2 style="color: #ff6b6b; border-bottom: 2px solid #ff6b6b; padding-bottom:1rem;">⚠️ PESANAN BARU MASUK</h2>
-              
-              <h3 style="color:#333;margin-top:1.5rem;">Informasi Pesanan:</h3>
               <table style="width:100%;border-collapse:collapse;margin-bottom:1rem;">
                 <tr style="background:#e8e8e8;">
                   <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">No. Pesanan</td>
