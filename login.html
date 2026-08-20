@@ -505,7 +505,7 @@ function doLogin() {
             throw new Error('Token admin tidak diterima dari server');
           }
 
-          clearAllLoginSessions();
+          // ⚠ Jangan clearAllLoginSessions() — biarkan user session tetap hidup berdampingan
           
           localStorage.setItem('aika_admin_logged', 'true');
           
@@ -573,7 +573,7 @@ function doLogin() {
 }
 
 function onLoginSuccess(user, remember) {
-  clearAdminSession();
+  // ⚠ Jangan hapus admin session — biarkan keduanya hidup berdampingan
   showAlert('Berhasil masuk! Mengalihkan...', 'success');
   const sessionData = { email: user.email, username: user.username, loggedIn: true };
   if (remember) {
@@ -660,37 +660,49 @@ if (urlParams.get('role') === 'admin') {
   switchRole('admin');
 }
 
-/* ── Already logged in? ── */
+/* ── Already logged in? ──
+   Dua session bisa hidup berdampingan di browser yang sama:
+   - Admin: localStorage (aika_admin_token)
+   - User:  localStorage (remember me) atau sessionStorage (session only)
+   Auto-redirect hanya terjadi jika role-nya cocok dengan halaman ini.
+── */
 const existing = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
 const isAdminLogged = localStorage.getItem('aika_admin_logged') === 'true';
 const adminUser = localStorage.getItem('aika_admin_user');
 const adminToken = localStorage.getItem('aika_admin_token');
-const userSessionInLocal = localStorage.getItem('aika_session');
-const userSessionInSession = sessionStorage.getItem('aika_session');
 
-if (userSessionInLocal && userSessionInSession) {
-  sessionStorage.removeItem('aika_session');
-}
-
+// Validasi admin session
 if (isAdminLogged && (!adminUser || !adminToken)) {
   clearAdminSession();
 }
 
-if (isAdminLogged && adminUser && adminToken) {
-  try {
-    JSON.parse(adminUser);
-    window.location.href = '/admin/dashboard.html';
-  } catch (e) {
-    clearAdminSession();
-  }
-} else if (existing) {
-  try {
-    const sess = JSON.parse(existing);
-    if (sess.loggedIn) {
-      const redir = urlParams.get('redirect') || 'index.html';
-      window.location.href = redir;
+const currentRole = urlParams.get('role'); // 'admin' | null
+
+if (currentRole === 'admin') {
+  // Halaman ini dibuka untuk login admin
+  // Kalau admin sudah login → redirect ke dashboard admin
+  if (isAdminLogged && adminUser && adminToken) {
+    try {
+      JSON.parse(adminUser);
+      window.location.href = '/admin/dashboard.html';
+    } catch (e) {
+      clearAdminSession();
     }
-  } catch {}
+  }
+  // Jika user biasa sudah login tapi membuka ?role=admin → JANGAN redirect, biarkan mereka login sebagai admin juga
+} else {
+  // Halaman ini dibuka untuk login user biasa
+  // Kalau user sudah login → redirect ke halaman tujuan
+  if (existing) {
+    try {
+      const sess = JSON.parse(existing);
+      if (sess.loggedIn) {
+        const redir = urlParams.get('redirect') || 'index.html';
+        window.location.href = redir;
+      }
+    } catch {}
+  }
+  // Jika admin sudah login tapi membuka login.html tanpa ?role=admin → JANGAN redirect ke admin dashboard
 }
 
 /* ── Reset Password Link Flow ── */
