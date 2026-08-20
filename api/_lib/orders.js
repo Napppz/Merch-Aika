@@ -164,12 +164,13 @@ module.exports = async (req, res) => {
       if (status === 'paid' && order.email) {
         try {
           const transporter = getMailTransport();
+          const emailUser = getRequiredEnv('EMAIL_USER');
           await transporter.sendMail({
-            from: '"Aika Sesilia Merch" <noreply@aikamerch.com>',
+            from: `"Aika Sesilia" <${emailUser}>`,
             to: order.email,
-            subject: `✅ Pembayaran Dikonfirmasi - Pesanan #${ order.id } Sedang Dikemas 📦`,
+            subject: `✅ Pembayaran Dikonfirmasi - Pesanan #${order.id} Sedang Dikemas 📦`,
             html: `
-          < div style = "font-family: Arial, sans-serif; line-height: 1.6; color: #333;" >
+              <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                 <h2 style="color: #4caf50;">✅ Pembayaran Dikonfirmasi!</h2>
                 <p>Halo ${order.customerName},</p>
                 <p>Pembayaran Anda untuk pesanan <strong>#${order.id}</strong> telah berhasil kami verifikasi.</p>
@@ -180,12 +181,12 @@ module.exports = async (req, res) => {
                 </div>
                 
                 <p><strong>Detail Pesanan:</strong></p>
-                <p>Total Pembayaran: <strong>Rp ${order.total.toLocaleString('id-ID')}</strong></p>
+                <p>Total Pembayaran: <strong>Rp ${(order.total || 0).toLocaleString('id-ID')}</strong></p>
                 
                 <p style="margin-top:1.5rem;">Terima kasih telah berbelanja di Aika Sesilia! Jika ada pertanyaan, hubungi kami.</p>
                 <p>Salam hangat,<br/><strong>Aika Sesilia</strong></p>
-              </div >
-          `
+              </div>
+            `
           });
         } catch (mailErr) {
           console.error('Email konfirmasi pembayaran gagal:', mailErr.message);
@@ -196,23 +197,23 @@ module.exports = async (req, res) => {
       if (status === 'shipped') {
         try {
           const transporter = getMailTransport();
-          // (Opsional) Resi JNE jika admin memasukkannya via UI
+          const emailUser = getRequiredEnv('EMAIL_USER');
           const trackNo = resi ? resi : (order.shipping && typeof order.shipping === 'object' && order.shipping.resi) ? order.shipping.resi : '[Menunggu Resi JNE]';
 
           await transporter.sendMail({
-            from: '"Aika Sesilia Merch" <noreply@aikamerch.com>',
+            from: `"Aika Sesilia" <${emailUser}>`,
             to: order.email,
-            subject: `Hore! Pesanan #${ order.id } Telah Dikirim 🚚`,
+            subject: `Hore! Pesanan #${order.id} Telah Dikirim 🚚`,
             html: `
-          < div style = "font-family: Arial, sans-serif; line-height: 1.6; color: #333;" >
+              <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                 <h2 style="color: #29b6f6;">Pesanan Meluncur, ${order.customerName}!</h2>
-                <p>Paket *merchandise* Anda telah diserahkan ke jasa kirim.</p>
+                <p>Paket Merchandise Anda telah diserahkan ke jasa kirim.</p>
                 <p>Status: <strong>DIKIRIM</strong></p>
                 <p>No. Resi Pengiriman: <strong style="color:#111;">${trackNo}</strong></p>
                 <p>Anda bisa melacak resi tersebut melalui website resmi JNE.</p>
                 <p>Terima kasih atas dukungannya ke Aika Sesilia!</p>
-              </div >
-          `
+              </div>
+            `
           });
         } catch (mailErr) {
           console.error('Gagal mengirim email (PUT):', mailErr.message);
