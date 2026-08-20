@@ -7,17 +7,12 @@ const { createMailTransport, getRequiredEnv } = require('./env');
 const transporter = createMailTransport();
 
 module.exports = async function handler(req, res) {
-  // ─── SECURITY HEADERS ───
-  const allowedOrigins = [
-    'https://merch-aika.vercel.app',
-    'https://aika-sesilia.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:5000'
-  ];
-  
+  // ─── SECURITY & CORS HEADERS ───
   const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
+  if (origin) {
     res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
   }
   
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
@@ -28,8 +23,6 @@ module.exports = async function handler(req, res) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'");
   
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -57,11 +50,12 @@ module.exports = async function handler(req, res) {
     // Lanjutkan meski DB gagal (OTP masih di sisi client untuk demo)
   }
 
-  // Kirim email
+  // Kirim email (Diobstraksikan agar aman dari filter Spam Gmail)
   const mailOptions = {
-    from: `"Aika Sesilia ✦" <${getRequiredEnv('EMAIL_USER')}>`,
+    from: `"Aika Sesilia Merch" <${getRequiredEnv('EMAIL_USER')}>`,
     to: email,
-    subject: `[${otp}] Kode Verifikasi Aika Sesilia`,
+    subject: 'Kode Verifikasi Pendaftaran Akun Aika Sesilia',
+    text: `Halo,\n\nBerikut adalah kode verifikasi (OTP) untuk pendaftaran akun Aika Sesilia Anda:\n\n${otp}\n\nKode ini berlaku selama 10 menit. Jangan bagikan kode ini kepada siapapun.\n\nSalam,\nAika Sesilia Merch`,
     html: `
 <!DOCTYPE html>
 <html>
@@ -69,13 +63,12 @@ module.exports = async function handler(req, res) {
   <meta charset="UTF-8">
   <style>
     body { margin:0; padding:0; font-family: 'Nunito', Arial, sans-serif; background:#03091f; color:#e0f0ff; }
-    .container { max-width:520px; margin:40px auto; background:rgba(10,56,114,0.4); border:1px solid rgba(41,182,246,0.25); border-radius:24px; overflow:hidden; }
+    .container { max-width:520px; margin:40px auto; background:#0a3872; border:1px solid rgba(41,182,246,0.25); border-radius:24px; overflow:hidden; }
     .header { background:linear-gradient(135deg,#1565c0,#0a3872); padding:2rem; text-align:center; }
     .header h1 { margin:0; font-size:1.5rem; color:#fff; letter-spacing:0.05em; }
-    .header .logo { font-size:2.5rem; display:block; margin-bottom:0.5rem; }
     .body { padding:2.5rem 2rem; text-align:center; }
-    .otp-box { display:inline-block; background:rgba(3,9,31,0.6); border:2px solid #29b6f6; border-radius:16px; padding:1rem 2.5rem; margin:1.5rem 0; }
-    .otp-code { font-size:2.8rem; font-weight:900; letter-spacing:0.3em; color:#29b6f6; font-family: monospace; }
+    .otp-box { display:inline-block; background:#03091f; border:2px solid #29b6f6; border-radius:16px; padding:1rem 2.5rem; margin:1.5rem 0; }
+    .otp-code { font-size:2.5rem; font-weight:bold; letter-spacing:0.25em; color:#29b6f6; font-family: monospace; }
     .expire-note { font-size:0.85rem; color:#90b8d8; margin-top:0.5rem; }
     .warning { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:8px; padding:0.8rem 1rem; font-size:0.82rem; color:#fca5a5; margin-top:1.5rem; }
     .footer { background:rgba(3,9,31,0.4); padding:1rem 2rem; text-align:center; font-size:0.78rem; color:#90b8d8; border-top:1px solid rgba(41,182,246,0.15); }
@@ -84,8 +77,7 @@ module.exports = async function handler(req, res) {
 <body>
   <div class="container">
     <div class="header">
-      <span class="logo">✦</span>
-      <h1>Aika Sesilia</h1>
+      <h1>Aika Sesilia Merch</h1>
     </div>
     <div class="body">
       <p style="font-size:1rem;color:#e0f0ff">Halo! Berikut kode verifikasi akun kamu:</p>
@@ -95,7 +87,7 @@ module.exports = async function handler(req, res) {
       <p class="expire-note">⏱ Kode ini berlaku selama <strong>10 menit</strong>.</p>
       <p style="color:#90b8d8;font-size:0.9rem;line-height:1.6">Masukkan kode ini di halaman pendaftaran Aika Sesilia. Jangan bagikan kode ini kepada siapapun.</p>
       <div class="warning">
-        🔒 Jika kamu tidak mendaftar di Aika Sesilia, abaikan email ini.
+        🔒 Jika kamu tidak merasa mendaftar di Aika Sesilia, abaikan email ini.
       </div>
     </div>
     <div class="footer">
@@ -109,7 +101,6 @@ module.exports = async function handler(req, res) {
   };
 
   try {
-    // Hilangkan if (process.env.SMTP_USER...) blocker agar fallback ke default email tetap dieksekusi 
     await transporter.sendMail(mailOptions);
     return res.status(200).json({ success: true, message: 'OTP dikirim via email' });
   } catch (err) {
