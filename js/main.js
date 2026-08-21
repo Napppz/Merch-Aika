@@ -78,56 +78,6 @@ window.toggleWishlist = function(btn) {
     svg.style.fill = '#ef4444';
     svg.style.color = '#ef4444';
     showToast('Ditambahkan ke Favorit ❤️');
-
-// ── UTILS ──
-function formatPrice(n) {
-  return 'Rp ' + (n || 0).toLocaleString('id-ID');
-}
-
-// ── ORDERS ──
-const Orders = {
-  async getAll() {
-    try { const res = await fetch('/api/orders?t=' + Date.now()); return await res.json(); } catch { return []; }
-  },
-  async add(order) {
-    order.id = 'ORD-' + Date.now();
-    order.status = 'pending';
-    order.date = new Date().toISOString(); // Attach client-side real-time date explicitly as fallback
-    const response = await fetch('/api/orders', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(order) });
-    if (response.ok) {
-       const dbOrder = await response.json();
-       return dbOrder; // Return the full DB order including auto-generated date
-    }
-    return order;
-  },
-  async update(id, data) {
-    data.id = id;
-    await fetch('/api/orders', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
-  }
-};
-
-// ── WISHLIST TOGGLE ──
-window.toggleWishlist = function(btn) {
-  const product = {
-    id: btn.getAttribute('data-id'),
-    name: btn.getAttribute('data-name'),
-    price: parseInt(btn.getAttribute('data-price') || '0', 10),
-    image: btn.getAttribute('data-img') || ''
-  };
-  let wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
-  const existsIndex = wishlist.findIndex(w => w.id === product.id);
-  
-  const svg = btn.querySelector('svg');
-  if (existsIndex >= 0) {
-    wishlist.splice(existsIndex, 1);
-    svg.style.fill = 'none';
-    svg.style.color = 'var(--text-muted)';
-    showToast('Dihapus dari Favorit 💔');
-  } else {
-    wishlist.push(product);
-    svg.style.fill = '#ef4444';
-    svg.style.color = '#ef4444';
-    showToast('Ditambahkan ke Favorit ❤️');
   }
   localStorage.setItem('aika_wishlist', JSON.stringify(wishlist));
 };
@@ -186,6 +136,12 @@ function renderProductCard(p, compact = false) {
             data-is-photopack="${isPhotopack ? 'true' : 'false'}"
             data-size-select="${sizes.length ? sizeSelectId : ''}"
             onclick="Cart.addFromBtn(this)">
+            + Keranjang
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 // ── LOAD FEATURED (index.html) ──
