@@ -5,11 +5,11 @@
 const { query } = require('./_db');
 
 // ════════════════════════════════════════════════════════════════
-// RATE LIMITING
+// RATE LIMITING (Per IP + Email kombinasi)
 // ════════════════════════════════════════════════════════════════
 const verifyAttempts = {};
-const MAX_VERIFY_ATTEMPTS = 5;
-const VERIFY_LOCK_TIME = 15 * 60 * 1000; // 15 minutes
+const MAX_VERIFY_ATTEMPTS = 10;
+const VERIFY_LOCK_TIME = 10 * 60 * 1000; // 10 minutes
 const ATTEMPT_WINDOW = 5 * 60 * 1000;
 
 function getClientIp(req) {
@@ -19,10 +19,16 @@ function getClientIp(req) {
          'unknown';
 }
 
-function isVerifyLockedOut(ip) {
-  if (!verifyAttempts[ip]) return false;
+function getRateLimitKey(req, email) {
+  const ip = getClientIp(req);
+  const cleanEmail = (email || '').toLowerCase().trim();
+  return cleanEmail ? `${ip}:${cleanEmail}` : ip;
+}
+
+function isVerifyLockedOut(key) {
+  if (!verifyAttempts[key]) return false;
   
-  const attempt = verifyAttempts[ip];
+  const attempt = verifyAttempts[key];
   const now = Date.now();
   
   if (attempt.locked && now - attempt.lockedAt < VERIFY_LOCK_TIME) {
@@ -31,33 +37,33 @@ function isVerifyLockedOut(ip) {
   }
   
   if (now - attempt.firstAttempt > ATTEMPT_WINDOW) {
-    delete verifyAttempts[ip];
+    delete verifyAttempts[key];
     return false;
   }
   
   return false;
 }
 
-function recordFailedVerifyAttempt(ip) {
-  if (!verifyAttempts[ip]) {
-    verifyAttempts[ip] = {
+function recordFailedVerifyAttempt(key) {
+  if (!verifyAttempts[key]) {
+    verifyAttempts[key] = {
       count: 1,
       firstAttempt: Date.now(),
       locked: false
     };
   } else {
-    verifyAttempts[ip].count++;
+    verifyAttempts[key].count++;
     
-    if (verifyAttempts[ip].count >= MAX_VERIFY_ATTEMPTS) {
-      verifyAttempts[ip].locked = true;
-      verifyAttempts[ip].lockedAt = Date.now();
-      console.log(`[SECURITY] IP ${ip} locked out after ${MAX_VERIFY_ATTEMPTS} failed OTP verification attempts`);
+    if (verifyAttempts[key].count >= MAX_VERIFY_ATTEMPTS) {
+      verifyAttempts[key].locked = true;
+      verifyAttempts[key].lockedAt = Date.now();
+      console.log(`[SECURITY] Key ${key} locked out after ${MAX_VERIFY_ATTEMPTS} failed OTP verification attempts`);
     }
   }
 }
 
-function recordSuccessVerify(ip) {
-  delete verifyAttempts[ip];
+function recordSuccessVerify(key) {
+  delete verifyAttempts[key];
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -75,6 +81,8 @@ module.exports = async function handler(req, res) {
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
   }
   
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
@@ -94,19 +102,23 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { email, code } = req.body;
-  const clientIp = getClientIp(req);
+  const rawEmail = req.body.email;
+  const rawCode = req.body.code;
 
-  if (!email || !code) {
+  if (!rawEmail || !rawCode) {
     return res.status(400).json({ 
       success: false, 
       message: 'Email dan kode OTP diperlukan' 
     });
   }
 
+  const cleanEmail = String(rawEmail).trim().toLowerCase();
+  const cleanCode = String(rawCode).trim();
+  const rateLimitKey = getRateLimitKey(req, cleanEmail);
+
   try {
     // ─── RATE LIMITING CHECK ───
-    const lockoutStatus = isVerifyLockedOut(clientIp);
+    const lockoutStatus = isVerifyLockedOut(rateLimitKey);
     if (lockoutStatus && lockoutStatus !== false) {
       return res.status(429).json({ 
         success: false, 
@@ -116,12 +128,12 @@ module.exports = async function handler(req, res) {
 
     // ─── CHECK IF USER EXISTS AND NOT YET VERIFIED ───
     const userRes = await query(
-      'SELECT id, verified FROM users WHERE email = $1',
-      [email.toLowerCase()]
+      'SELECT id, verified FROM users WHERE LOWER(email) = LOWER($1)',
+      [cleanEmail]
     );
 
     if (userRes.rows.length === 0) {
-      recordFailedVerifyAttempt(clientIp);
+      recordFailedVerifyAttempt(rateLimitKey);
       return res.status(404).json({ 
         success: false, 
         message: 'Email tidak terdaftar' 
@@ -132,21 +144,22 @@ module.exports = async function handler(req, res) {
 
     if (user.verified) {
       // Already verified - no need to verify again
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Akun sudah diverifikasi sebelumnya' 
+      recordSuccessVerify(rateLimitKey);
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Akun sudah diverifikasi sebelumnya. Silakan login.' 
       });
     }
 
     // ─── VERIFY OTP CODE ───
     const otpRes = await query(
       `SELECT expires_at FROM otp_codes 
-       WHERE email = $1 AND code = $2 AND expires_at > NOW()`,
-      [email.toLowerCase(), code]
+       WHERE LOWER(email) = LOWER($1) AND code = $2 AND expires_at > NOW()`,
+      [cleanEmail, cleanCode]
     );
 
     if (otpRes.rows.length === 0) {
-      recordFailedVerifyAttempt(clientIp);
+      recordFailedVerifyAttempt(rateLimitKey);
       return res.status(401).json({ 
         success: false, 
         message: 'Kode OTP tidak valid atau sudah kadaluarsa' 
@@ -161,12 +174,12 @@ module.exports = async function handler(req, res) {
 
     // ─── DELETE USED OTP CODE ───
     await query(
-      'DELETE FROM otp_codes WHERE email = $1',
-      [email.toLowerCase()]
+      'DELETE FROM otp_codes WHERE LOWER(email) = LOWER($1)',
+      [cleanEmail]
     ).catch(() => {});
 
     // ─── SUCCESS ───
-    recordSuccessVerify(clientIp);
+    recordSuccessVerify(rateLimitKey);
 
     return res.status(200).json({
       success: true,

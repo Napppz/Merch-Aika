@@ -30,11 +30,15 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { email, otp } = req.body;
+  const rawEmail = req.body.email;
+  const rawOtp = req.body.otp;
 
-  if (!email || !otp) {
+  if (!rawEmail || !rawOtp) {
     return res.status(400).json({ error: 'email dan otp diperlukan' });
   }
+
+  const cleanEmail = String(rawEmail).trim().toLowerCase();
+  const cleanOtp = String(rawOtp).trim();
 
   // Simpan OTP sementara di DB dengan expiry 10 menit
   try {
@@ -43,19 +47,18 @@ module.exports = async function handler(req, res) {
        VALUES ($1, $2, NOW() + INTERVAL '10 minutes')
        ON CONFLICT (email)
        DO UPDATE SET code = $2, expires_at = NOW() + INTERVAL '10 minutes', created_at = NOW()`,
-      [email, otp]
+      [cleanEmail, cleanOtp]
     );
   } catch (err) {
     console.error('DB OTP insert error:', err.message);
   }
 
   const emailUser = getRequiredEnv('EMAIL_USER');
-  const cleanOtp = String(otp).trim();
 
   // Konfigurasi Email Standar Transaksional (Mengurangi risiko masuk spam)
   const mailOptions = {
     from: `"Aika Sesilia" <${emailUser}>`,
-    to: email,
+    to: cleanEmail,
     replyTo: emailUser,
     subject: `[Aika Sesilia] ${cleanOtp} adalah Kode Verifikasi Anda`,
     headers: {
