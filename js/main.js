@@ -128,16 +128,22 @@ function renderProductCard(p, compact = false) {
             <div class="product-price">${formatPrice(p.price)}</div>
             ${p.oldPrice ? `<div class="product-old-price">${formatPrice(p.oldPrice)}</div>` : ''}
           </div>
-          <button class="add-cart-btn" 
-            data-id="${p.id}" 
-            data-name='${(p.name || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;")}' 
-            data-price="${p.price}" 
-            data-img="${p.image || ''}" 
-            data-is-photopack="${isPhotopack ? 'true' : 'false'}"
-            data-size-select="${sizes.length ? sizeSelectId : ''}"
-            onclick="Cart.addFromBtn(this)">
-            + Keranjang
-          </button>
+          ${isPhotopack ? `
+            <button class="btn-primary" style="padding:0.55rem 0.95rem; font-size:0.85rem; border-radius:8px; display:inline-flex; align-items:center; gap:5px; font-weight:700; background:linear-gradient(135deg, #0284c7, #2563eb); border:none; box-shadow:0 4px 14px rgba(2,132,199,0.35); cursor:pointer;" onclick="window.location.href='checkout-photopack.html?id=${p.id}'">
+              ⚡ Beli Photopack
+            </button>
+          ` : `
+            <button class="add-cart-btn" 
+              data-id="${p.id}" 
+              data-name='${(p.name || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;")}' 
+              data-price="${p.price}" 
+              data-img="${p.image || ''}" 
+              data-is-photopack="false"
+              data-size-select="${sizes.length ? sizeSelectId : ''}"
+              onclick="Cart.addFromBtn(this)">
+              + Keranjang
+            </button>
+          `}
         </div>
       </div>
     </div>

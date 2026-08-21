@@ -307,17 +307,25 @@ function goToCheckout() {
   const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
   if (!userStr) {
     showToast('⚠️ Anda harus login untuk checkout!');
-    setTimeout(() => { window.location.href = 'login.html?redirect=checkout.html'; }, 1500);
+    setTimeout(() => { window.location.href = 'login.html?redirect=checkout-photopack.html'; }, 1500);
     return;
   }
   if (Cart.items.length === 0) {
     showToast('⚠️ Keranjang masih kosong!');
     return;
   }
+
+  const hasPhotopackOnly = Cart.items.every(i => i.is_photopack || i.category === 'Photopack');
+  if (hasPhotopackOnly && Cart.items.length === 1) {
+    localStorage.setItem('aika_checkout_photopack', JSON.stringify(Cart.items[0]));
+    window.location.href = `checkout-photopack.html?id=${Cart.items[0].id}`;
+    return;
+  }
+
   window.location.href = 'checkout.html';
 }
 
-function formatPrice(num) { return 'Rp ' + num.toLocaleString('id-ID'); }
+function formatPrice(num) { return 'Rp ' + (num || 0).toLocaleString('id-ID'); }
 
 function showToast(msg) {
   const existing = document.querySelector('.toast');
