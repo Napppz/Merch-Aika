@@ -652,10 +652,20 @@
       try {
         const res = await fetch('/api/orders', {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: orderId, status: 'completed' })
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-user-email': currentUser ? currentUser.email : ''
+          },
+          body: JSON.stringify({ 
+            id: orderId, 
+            status: 'completed',
+            userEmail: currentUser ? currentUser.email : ''
+          })
         });
-        if (!res.ok) throw new Error("Gagal konfirmasi pesanan.");
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || "Gagal konfirmasi pesanan.");
+        }
         alert("Terima kasih! Pesanan Selesai. Silakan berikan ulasan Anda.");
         loadOrders(); // Muat ulang list
       } catch (err) {
