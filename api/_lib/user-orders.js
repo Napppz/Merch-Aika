@@ -38,11 +38,12 @@ module.exports = async function handler(req, res) {
       [email.toLowerCase()]
     );
 
-    // Fetch all products to match gdrive_link securely
-    const productsRes = await query(`SELECT id, gdrive_link, is_photopack, category FROM products`);
+    // Fetch all products to match image & gdrive_link securely
+    const productsRes = await query(`SELECT id, name, image, gdrive_link, is_photopack, category FROM products`);
     const productMap = {};
     productsRes.rows.forEach(p => {
       productMap[p.id] = p;
+      if (p.name) productMap[p.name.toLowerCase().trim()] = p;
     });
 
     const enrichedOrders = result.rows.map(order => {
@@ -50,13 +51,15 @@ module.exports = async function handler(req, res) {
       const isVerified = ['paid', 'completed', 'shipped'].includes(String(order.status).toLowerCase());
 
       items = items.map(item => {
-        const prod = productMap[item.id] || {};
+        const prod = productMap[item.id] || productMap[(item.name || '').toLowerCase().trim()] || {};
         const isPhotopack = prod.is_photopack || prod.category === 'Photopack' || item.is_photopack || item.category === 'Photopack';
+        const itemImage = prod.image || item.image || item.img || '';
 
         if (isPhotopack) {
           if (isVerified) {
             return {
               ...item,
+              image: itemImage,
               is_photopack: true,
               gdrive_link: prod.gdrive_link || item.gdrive_link || null,
               gdrive_status: 'verified'
@@ -64,13 +67,17 @@ module.exports = async function handler(req, res) {
           } else {
             return {
               ...item,
+              image: itemImage,
               is_photopack: true,
               gdrive_link: null, // Hidden until admin verification!
               gdrive_status: 'pending_verification'
             };
           }
         }
-        return item;
+        return {
+          ...item,
+          image: itemImage
+        };
       });
 
       return {

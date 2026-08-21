@@ -561,9 +561,10 @@
           id: photopackProduct.id,
           name: photopackProduct.name,
           price: photopackProduct.price,
+          image: photopackProduct.image || '',
           qty: 1,
           is_photopack: true,
-          cosplayer_name: photopackProduct.cosplayer_name || null
+          category: 'Photopack'
         }
       ],
       shipping: { name: 'Digital Delivery', cost: 0 }
