@@ -184,6 +184,182 @@
       font-weight: 700;
     }
 
+    /* ── 2-COLUMN PHOTOPACK FEED GRID ── */
+    .photopack-feed-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 640px) {
+      .photopack-feed-grid {
+        gap: 0.75rem;
+      }
+    }
+
+    .photopack-card-box {
+      background: rgba(3, 9, 31, 0.85);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .photopack-card-box:hover {
+      transform: translateY(-4px);
+      border-color: var(--aqua);
+      box-shadow: 0 8px 30px rgba(41, 182, 246, 0.2);
+    }
+
+    .photopack-cover-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1.15;
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.2), rgba(37, 99, 235, 0.2));
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .photopack-cover-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .photopack-card-box:hover .photopack-cover-frame img {
+      transform: scale(1.04);
+    }
+
+    .photopack-watermark {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(3, 9, 31, 0.65);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.2px;
+    }
+
+    .photopack-status-tag {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      backdrop-filter: blur(4px);
+    }
+
+    .photopack-body-content {
+      padding: 1rem 1rem 1.1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex: 1;
+    }
+
+    .photopack-creator-name {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .photopack-item-title {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      line-height: 1.35;
+      margin-bottom: 0.6rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 2.3em;
+    }
+
+    .photopack-item-time {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      border-top: 1px dashed rgba(255, 255, 255, 0.08);
+      padding-top: 0.6rem;
+      margin-top: 0.2rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .photopack-tab-nav {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.2rem;
+    }
+
+    .photopack-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 0.5rem 0.5rem 0.7rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      transition: color 0.2s ease;
+      font-family: var(--font-body);
+    }
+
+    .photopack-tab-btn.active {
+      color: var(--aqua);
+    }
+
+    .photopack-tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -0.3rem;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--aqua);
+      border-radius: 3px 3px 0 0;
+      box-shadow: 0 0 10px var(--aqua);
+    }
+
+    .photopack-pill-count {
+      background: #ea580c;
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 12px;
+      line-height: 1;
+    }
+
+    .photopack-pill-count.verified {
+      background: #16a34a;
+    }
+
     @media (max-width: 768px) {
       .profile-container {
         grid-template-columns: 1fr;
@@ -215,14 +391,15 @@
           <span style="font-size:0.8rem; color:#fff;">Ubah</span>
         </div>
       </div>
-      <button type="button" onclick="document.getElementById('avatarUpload').click()" 
+      <button type="button" onclick="document.getElementById('avatarUpload').click()"
         style="background:transparent; border:none; color:var(--aqua); font-size:0.82rem; font-weight:700; cursor:pointer; margin-bottom:1rem; display:inline-flex; align-items:center; justify-content:center; gap:4px; text-decoration:underline;">
         📷 (Ganti Foto Profil)
       </button>
       <input type="file" id="avatarUpload" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
       <div class="profile-name" id="profName">Loading...</div>
       <div class="profile-email" id="profEmail" style="margin-bottom:0.5rem;">loading@...</div>
-      <div class="profile-phone" id="profPhoneBadge" style="background:rgba(41,182,246,0.1); border:1px solid rgba(41,182,246,0.25); border-radius:20px; padding:4px 12px; font-size:0.8rem; font-weight:700; color:var(--aqua); display:inline-flex; align-items:center; gap:6px; margin-bottom:1.5rem;">
+      <div class="profile-phone" id="profPhoneBadge"
+        style="background:rgba(41,182,246,0.1); border:1px solid rgba(41,182,246,0.25); border-radius:20px; padding:4px 12px; font-size:0.8rem; font-weight:700; color:var(--aqua); display:inline-flex; align-items:center; gap:6px; margin-bottom:1.5rem;">
         <span>📱</span> <span id="profPhoneText">Memuat No. HP...</span>
       </div>
       <div class="profile-nav">
@@ -237,19 +414,31 @@
 
     <main class="profile-content">
       <!-- ── STATS OVERVIEW CARDS ── -->
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-bottom:2rem;">
-        <div style="background:rgba(3,9,31,0.6); border:1px solid var(--card-border); border-radius:var(--radius-sm); padding:1.2rem; display:flex; align-items:center; gap:1rem;">
-          <div style="width:45px; height:45px; border-radius:10px; background:rgba(41,182,246,0.15); color:var(--aqua); display:flex; align-items:center; justify-content:center; font-size:1.4rem;">🛍️</div>
+      <div
+        style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-bottom:2rem;">
+        <div
+          style="background:rgba(3,9,31,0.6); border:1px solid var(--card-border); border-radius:var(--radius-sm); padding:1.2rem; display:flex; align-items:center; gap:1rem;">
+          <div
+            style="width:45px; height:45px; border-radius:10px; background:rgba(41,182,246,0.15); color:var(--aqua); display:flex; align-items:center; justify-content:center; font-size:1.4rem;">
+            🛍️</div>
           <div>
-            <div style="font-size:0.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Total Transaksi</div>
+            <div
+              style="font-size:0.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">
+              Total Transaksi</div>
             <div style="font-size:1.3rem; font-weight:800; color:var(--white);" id="statTotalOrders">0</div>
           </div>
         </div>
 
-        <div style="background:rgba(3,9,31,0.6); border:1px solid var(--card-border); border-radius:var(--radius-sm); padding:1.2rem; display:flex; align-items:center; gap:1rem; cursor:pointer;" onclick="switchTab('photopack')">
-          <div style="width:45px; height:45px; border-radius:10px; background:rgba(34,197,94,0.15); color:#86efac; display:flex; align-items:center; justify-content:center; font-size:1.4rem;">📸</div>
+        <div
+          style="background:rgba(3,9,31,0.6); border:1px solid var(--card-border); border-radius:var(--radius-sm); padding:1.2rem; display:flex; align-items:center; gap:1rem; cursor:pointer;"
+          onclick="switchTab('photopack')">
+          <div
+            style="width:45px; height:45px; border-radius:10px; background:rgba(34,197,94,0.15); color:#86efac; display:flex; align-items:center; justify-content:center; font-size:1.4rem;">
+            📸</div>
           <div>
-            <div style="font-size:0.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Koleksi Photopack</div>
+            <div
+              style="font-size:0.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">
+              Koleksi Photopack</div>
             <div style="font-size:1.3rem; font-weight:800; color:#86efac;" id="statTotalPhotopacks">0</div>
           </div>
         </div>
@@ -257,11 +446,14 @@
 
       <!-- ── SECTION: ORDERS ── -->
       <section id="tab-orders" class="content-section active">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem; border-bottom:1px solid var(--card-border); padding-bottom:0.8rem;">
+        <div
+          style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem; border-bottom:1px solid var(--card-border); padding-bottom:0.8rem;">
           <h2 style="margin:0; border:none; padding:0;">Riwayat Pesanan</h2>
           <div style="display:flex; align-items:center; gap:0.6rem;">
-            <label for="userCategoryFilter" style="color:var(--text-muted); font-size:0.85rem; font-weight:600;">Filter Kategori:</label>
-            <select id="userCategoryFilter" onchange="filterUserOrdersCategory(this.value)" style="background:rgba(3,9,31,0.9); border:1px solid var(--aqua); color:var(--white); border-radius:8px; padding:0.4rem 0.8rem; font-family:var(--font-body); font-size:0.85rem; font-weight:700; cursor:pointer; outline:none; box-shadow:0 0 12px rgba(41,182,246,0.25);">
+            <label for="userCategoryFilter" style="color:var(--text-muted); font-size:0.85rem; font-weight:600;">Filter
+              Kategori:</label>
+            <select id="userCategoryFilter" onchange="filterUserOrdersCategory(this.value)"
+              style="background:rgba(3,9,31,0.9); border:1px solid var(--aqua); color:var(--white); border-radius:8px; padding:0.4rem 0.8rem; font-family:var(--font-body); font-size:0.85rem; font-weight:700; cursor:pointer; outline:none; box-shadow:0 0 12px rgba(41,182,246,0.25);">
               <option value="Semua" style="background:#03091f; color:#fff;">Semua Kategori</option>
               <option value="Photopack" style="background:#03091f; color:#fff;">📸 Photopack Digital</option>
               <option value="Pakaian" style="background:#03091f; color:#fff;">👕 Pakaian</option>
@@ -280,8 +472,8 @@
           <h2 style="margin:0; border:none; padding:0;">📸 Koleksi Photopack Saya</h2>
           <span style="font-size:0.85rem; color:var(--aqua);" id="photopackCountLabel">0 Koleksi</span>
         </div>
-        <div id="photopackVaultList" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:1.2rem;">
-          <!-- Photopack items will be rendered here -->
+        <div id="photopackVaultList" class="photopack-feed-grid">
+          <!-- Photopack items will be rendered here in 2 columns -->
         </div>
       </section>
 
@@ -301,16 +493,20 @@
           <div class="form-group" style="margin:0;">
             <label style="display:flex; justify-content:space-between; align-items:center;">
               <span>Nomor WhatsApp / HP Terdaftar</span>
-              <span style="font-size:0.75rem; color:var(--aqua); font-weight:700;" id="phoneStatusBadge">Bisa Diubah</span>
+              <span style="font-size:0.75rem; color:var(--aqua); font-weight:700;" id="phoneStatusBadge">Bisa
+                Diubah</span>
             </label>
             <input type="tel" id="settingPhone" placeholder="Contoh: 08123456789" />
-            <small style="color:var(--text-muted); font-size:0.78rem; margin-top:4px; display:block;">Nomor ini digunakan untuk notifikasi pesanan dan koordinasi pengiriman kurir.</small>
+            <small style="color:var(--text-muted); font-size:0.78rem; margin-top:4px; display:block;">Nomor ini
+              digunakan untuk notifikasi pesanan dan koordinasi pengiriman kurir.</small>
           </div>
           <div class="form-group" style="margin:0;">
-            <label>Password Baru <small style="color:var(--text-muted)">(Kosongkan jika tidak ingin diubah)</small></label>
+            <label>Password Baru <small style="color:var(--text-muted)">(Kosongkan jika tidak ingin
+                diubah)</small></label>
             <input type="password" id="settingPassword" placeholder="••••••••" />
           </div>
-          <button type="submit" class="btn-primary" style="margin-top:1rem;" id="btnSaveSettings">Simpan Perubahan Profil</button>
+          <button type="submit" class="btn-primary" style="margin-top:1rem;" id="btnSaveSettings">Simpan Perubahan
+            Profil</button>
         </form>
       </section>
 
@@ -402,7 +598,7 @@
         window.location.href = 'login.html';
         return;
       }
-      
+
       try {
         currentUser = JSON.parse(userStr);
       } catch (e) {
@@ -616,7 +812,7 @@
             renderUserOrders();
             renderPhotopackVault();
           })
-          .catch(() => {});
+          .catch(() => { });
 
         const res = await fetch('/api/user-orders?email=' + encodeURIComponent(currentUser.email) + '&_t=' + Date.now());
         if (!res.ok) throw new Error('Failed fetch');
@@ -647,7 +843,7 @@
 
       if (statOrdersEl) statOrdersEl.textContent = userOrdersList.length;
       if (statPhotopacksEl) statPhotopacksEl.textContent = totalPhotopacks;
-      
+
       const photopackCountLabel = document.getElementById('photopackCountLabel');
       if (photopackCountLabel) photopackCountLabel.textContent = `${totalPhotopacks} Koleksi`;
     }
@@ -673,11 +869,11 @@
 
       if (photopacks.length === 0) {
         container.innerHTML = `
-          <div style="grid-column:1/-1; text-align:center; padding:3.5rem 1.5rem; background:rgba(3,9,31,0.5); border:1px dashed var(--card-border); border-radius:var(--radius-sm);">
+          <div style="grid-column:1/-1; text-align:center; padding:3rem 1rem; background:rgba(3,9,31,0.5); border:1px dashed var(--card-border); border-radius:16px;">
             <div style="font-size:3rem; margin-bottom:0.8rem;">📸</div>
-            <h3 style="color:var(--white); font-family:var(--font-display); margin-bottom:0.5rem;">Belum Ada Koleksi Photopack</h3>
-            <p style="color:var(--text-muted); font-size:0.9rem; max-width:400px; margin:0 auto 1.5rem;">Dapatkan set foto eksklusif beresolusi tinggi dengan link Google Drive otomatis di sini.</p>
-            <a href="shop.html?category=Photopack" class="btn-primary" style="display:inline-block; padding:0.7rem 1.5rem; text-decoration:none; border-radius:8px; font-weight:700;">Jelajahi Photopack →</a>
+            <h3 style="color:var(--white); font-family:var(--font-display); font-size:1.1rem; margin-bottom:0.4rem;">Belum Ada Koleksi Photopack</h3>
+            <p style="color:var(--text-muted); font-size:0.85rem; max-width:360px; margin:0 auto 1.2rem;">Koleksi photopack digital eksklusif akan langsung muncul di sini setelah pembelian.</p>
+            <a href="shop.html?category=Photopack" class="btn-primary" style="display:inline-block; padding:0.6rem 1.3rem; font-size:0.85rem; text-decoration:none; border-radius:8px; font-weight:700;">Jelajahi Photopack →</a>
           </div>
         `;
         return;
@@ -687,45 +883,65 @@
         const prod = catalogProductsMap[p.item.id] || catalogProductsMap[(p.item.name || '').toLowerCase().trim()] || {};
         const coverImg = p.item.image || prod.image || '';
         const isVerified = ['paid', 'shipped', 'completed'].includes(p.orderStatus) && (p.item.gdrive_link || prod.gdrive_link);
-        const gdriveUrl = p.item.gdrive_link || prod.gdrive_link;
-        const dateFormatted = new Date(p.date || Date.now()).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+        const gdriveUrl = p.item.gdrive_link || prod.gdrive_link || '#';
         
+        const d = new Date(p.date || Date.now());
+        const dateStr = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+        const timeStr = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
+
         return `
-          <div style="background:rgba(3,9,31,0.7); border:1px solid var(--card-border); border-radius:var(--radius-sm); overflow:hidden; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 4px 15px rgba(0,0,0,0.3);">
-            <div style="position:relative; width:100%; height:190px; background:linear-gradient(135deg, rgba(2,132,199,0.2), rgba(37,99,235,0.2)); display:flex; align-items:center; justify-content:center; overflow:hidden;">
+          <div class="photopack-card-box" ${isVerified ? `onclick="window.open('${gdriveUrl}', '_blank')"` : ''}>
+            <div class="photopack-cover-frame">
               ${coverImg 
-                ? `<img src="${coverImg}" alt="${p.item.name}" style="width:100%; height:100%; object-fit:cover; transition:transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" />` 
-                : `<div style="font-size:3.5rem;">📸</div>`}
-              <span style="position:absolute; top:10px; right:10px; background:rgba(3,9,31,0.85); backdrop-filter:blur(4px); border:1px solid var(--card-border); color:var(--aqua); font-size:0.75rem; font-weight:700; padding:4px 10px; border-radius:6px;">
-                #${p.orderId}
-              </span>
-            </div>
-            <div style="padding:1.2rem; flex:1; display:flex; flex-direction:column; justify-content:space-between;">
-              <div>
-                <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.35rem;">Dibeli: ${dateFormatted}</div>
-                <h4 style="color:var(--white); font-family:var(--font-display); font-size:1.05rem; margin-bottom:0.8rem; line-height:1.4;">${p.item.name}</h4>
+                ? `<img src="${coverImg}" alt="${p.item.name}" loading="lazy" />` 
+                : `<div style="font-size:3rem;">📸</div>`}
+              <div class="photopack-watermark">@aika_sesilia</div>
+              <div class="photopack-status-tag" style="${isVerified ? 'background:rgba(34,197,94,0.9); color:#fff;' : 'background:rgba(234,179,8,0.9); color:#000;'}">
+                ${isVerified ? '✓ Ready' : '⏳ Pending'}
               </div>
-              <div style="margin-top:1rem;">
+            </div>
+            <div class="photopack-body-content">
+              <div>
+                <div class="photopack-creator-name">Aika Sesilia</div>
+                <div class="photopack-item-title" title="${p.item.name}">${p.item.name}</div>
+                <div class="photopack-item-time">
+                  <span>📅 ${dateStr}</span>
+                  <span class="divider">|</span>
+                  <span>⏱️ ${timeStr}</span>
+                </div>
+              </div>
+              <div>
                 ${isVerified ? `
-                  <div style="margin-bottom:0.8rem; display:flex; align-items:center; gap:6px; font-size:0.8rem; color:#86efac; font-weight:700;">
-                    <span>✅ Pembayaran Terverifikasi</span>
-                  </div>
-                  <a href="${gdriveUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="width:100%; padding:0.7rem 1rem; font-size:0.85rem; font-weight:700; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; gap:6px; text-decoration:none; background:linear-gradient(135deg, #10b981, #059669); color:#fff; box-shadow:0 4px 12px rgba(16,185,129,0.3);">
+                  <a href="${gdriveUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" onclick="event.stopPropagation()" style="width:100%; padding:0.6rem 0.6rem; font-size:0.82rem; font-weight:700; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; gap:5px; text-decoration:none; background:linear-gradient(135deg, #10b981, #059669); color:#fff; box-shadow:0 3px 10px rgba(16,185,129,0.35);">
                     📂 Buka Google Drive ↗
                   </a>
                 ` : `
-                  <div style="margin-bottom:0.8rem; display:flex; align-items:center; gap:6px; font-size:0.8rem; color:#fde047; font-weight:700;">
-                    <span>⏳ Menunggu Verifikasi Admin</span>
+                  <div style="width:100%; padding:0.55rem 0.5rem; font-size:0.75rem; font-weight:700; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fde047; text-align:center; display:flex; align-items:center; justify-content:center; gap:4px;">
+                    🔒 Verifikasi Admin
                   </div>
-                  <button disabled style="width:100%; padding:0.7rem 1rem; font-size:0.82rem; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:var(--text-muted); cursor:not-allowed;">
-                    🔒 Akses Terkunci (Pending)
-                  </button>
                 `}
               </div>
             </div>
           </div>
         `;
       }).join('');
+    }
+
+    function getItemCategory(item) {
+      if (item.is_photopack || item.category === 'Photopack') return 'Photopack';
+      const prod = catalogProductsMap[item.id] || catalogProductsMap[(item.name || '').toLowerCase().trim()] || {};
+      if (prod.is_photopack || prod.category === 'Photopack') return 'Photopack';
+      if (prod.category) return prod.category;
+      if (item.category) return item.category;
+
+      const name = (item.name || '').toLowerCase();
+      if (name.includes('photopack')) return 'Photopack';
+      if (name.includes('haori') || name.includes('kaos') || name.includes('t-shirt') || name.includes('baju') || name.includes('hoodie') || name.includes('pakaian') || name.includes('jersey')) return 'Pakaian';
+      if (name.includes('acrylic') || name.includes('puzzle') || name.includes('standee') || name.includes('stiker')) return 'Acrylic';
+      if (name.includes('lanyard') || name.includes('totebag') || name.includes('tas') || name.includes('gantungan') || name.includes('aksesoris')) return 'Aksesoris';
+      if (name.includes('poster') || name.includes('polaroid') || name.includes('print') || name.includes('foto')) return 'Foto & Print';
+
+      return 'Pakaian';
     }
 
     function renderUserOrders() {
@@ -743,10 +959,8 @@
         filtered = filtered.filter(o => {
           let itemsArr = Array.isArray(o.items) ? o.items : (typeof o.items === 'string' ? JSON.parse(o.items) : []);
           return itemsArr.some(i => {
-            if (selectedUserCategory === 'Photopack') {
-              return i.is_photopack || i.category === 'Photopack';
-            }
-            return i.category === selectedUserCategory;
+            const cat = getItemCategory(i);
+            return cat.toLowerCase() === selectedUserCategory.toLowerCase();
           });
         });
       }
@@ -781,18 +995,37 @@
         </div>
         <div class="order-items">
           ${itemsArr.map(i => {
-            const isPhotopack = i.is_photopack;
-            const gdriveLink = i.gdrive_link;
+          const prod = catalogProductsMap[i.id] || catalogProductsMap[(i.name || '').toLowerCase().trim()] || {};
+          const itemImg = i.image || i.img || prod.image || '';
+          const isPhotopack = i.is_photopack || i.category === 'Photopack' || prod.is_photopack || prod.category === 'Photopack';
+          const gdriveLink = i.gdrive_link || prod.gdrive_link;
 
-            return `
-            <div style="border-bottom:1px solid rgba(255,255,255,0.05); padding:0.5rem 0;">
-              <div class="order-item">
-                <span>${i.qty}x ${i.name}${i.size ? ` • Size ${i.size}` : ''} ${isPhotopack ? '<span style="background:rgba(41,182,246,0.2);color:var(--aqua);padding:2px 8px;border-radius:12px;font-size:0.75rem;font-weight:bold;margin-left:6px;">📸 Photopack</span>' : ''}</span>
-                <span>Rp ${(i.price * i.qty).toLocaleString('id-ID')}</span>
+          return `
+            <div style="border-bottom:1px solid rgba(255,255,255,0.06); padding:0.75rem 0;">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+                <div style="display:flex; align-items:center; gap:0.9rem;">
+                  <div style="width:52px; height:52px; border-radius:8px; overflow:hidden; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+                    ${itemImg 
+                      ? `<img src="${itemImg}" alt="${i.name}" style="width:100%; height:100%; object-fit:cover;" />` 
+                      : `<span style="font-size:1.5rem;">${isPhotopack ? '📸' : '🛍️'}</span>`}
+                  </div>
+                  <div>
+                    <div style="font-weight:700; color:var(--white); font-size:0.95rem; line-height:1.3;">
+                      ${i.name}
+                      ${isPhotopack ? '<span style="background:rgba(41,182,246,0.18); color:var(--aqua); border:1px solid rgba(41,182,246,0.3); padding:2px 7px; border-radius:10px; font-size:0.72rem; font-weight:700; margin-left:6px;">📸 Photopack</span>' : ''}
+                    </div>
+                    <div style="color:var(--text-muted); font-size:0.8rem; margin-top:3px;">
+                      ${i.qty} pcs ${i.size ? `• Size ${i.size}` : ''} • @ Rp ${(parseInt(i.price, 10) || 0).toLocaleString('id-ID')}
+                    </div>
+                  </div>
+                </div>
+                <div style="font-weight:800; color:var(--aqua); font-size:0.95rem; text-align:right;">
+                  Rp ${((parseInt(i.price, 10) || 0) * (parseInt(i.qty, 10) || 1)).toLocaleString('id-ID')}
+                </div>
               </div>
               ${isPhotopack ? (
-                gdriveLink ? `
-                  <div style="margin-top:0.5rem; padding:0.75rem 1rem; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+              gdriveLink ? `
+                  <div style="margin-top:0.75rem; padding:0.75rem 1rem; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
                     <div>
                       <div style="font-weight:700; color:#86efac; font-size:0.85rem;">✅ Pembayaran Diverifikasi Admin</div>
                       <div style="font-size:0.75rem; color:var(--text-muted);">Link Google Drive Photopack siap diakses!</div>
@@ -802,7 +1035,7 @@
                     </a>
                   </div>
                 ` : `
-                  <div style="margin-top:0.5rem; padding:0.75rem 1rem; background:rgba(234,179,8,0.1); border:1px solid rgba(234,179,8,0.3); border-radius:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+                  <div style="margin-top:0.75rem; padding:0.75rem 1rem; background:rgba(234,179,8,0.1); border:1px solid rgba(234,179,8,0.3); border-radius:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
                     <div>
                       <div style="font-weight:700; color:#fde047; font-size:0.85rem;">⏳ Menunggu Verifikasi Admin</div>
                       <div style="font-size:0.75rem; color:var(--text-muted);">Link Google Drive akan terbuka setelah pembayaran diverifikasi oleh Admin.</div>
@@ -812,10 +1045,10 @@
                     </button>
                   </div>
                 `
-              ) : ''}
+            ) : ''}
             </div>
           `;
-          }).join('')}
+        }).join('')}
         </div>
         <div class="order-footer">
           <span>Total Bayar <strong style="color:var(--aqua);font-size:1.1rem;margin-left:5px">Rp ${(o.total).toLocaleString('id-ID')}</strong></span>
@@ -846,7 +1079,7 @@
 
       let itemsArr = Array.isArray(order.items) ? order.items : (typeof order.items === 'string' ? JSON.parse(order.items) : []);
       let shippingInfo = typeof order.shipping === 'string' ? JSON.parse(order.shipping || '{}') : (order.shipping || {});
-      
+
       const formattedDate = new Date(order.date || order.created_at || Date.now()).toLocaleString('id-ID', {
         day: '2-digit', month: 'long', year: 'numeric',
         hour: '2-digit', minute: '2-digit'
@@ -962,12 +1195,12 @@
       try {
         const res = await fetch('/api/orders', {
           method: 'PUT',
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
             'x-user-email': currentUser ? currentUser.email : ''
           },
-          body: JSON.stringify({ 
-            id: orderId, 
+          body: JSON.stringify({
+            id: orderId,
             status: 'completed',
             userEmail: currentUser ? currentUser.email : ''
           })

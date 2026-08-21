@@ -54,11 +54,13 @@ module.exports = async function handler(req, res) {
         const prod = productMap[item.id] || productMap[(item.name || '').toLowerCase().trim()] || {};
         const isPhotopack = prod.is_photopack || prod.category === 'Photopack' || item.is_photopack || item.category === 'Photopack';
         const itemImage = prod.image || item.image || item.img || '';
+        const itemCategory = prod.category || item.category || (isPhotopack ? 'Photopack' : '');
 
         if (isPhotopack) {
           if (isVerified) {
             return {
               ...item,
+              category: 'Photopack',
               image: itemImage,
               is_photopack: true,
               gdrive_link: prod.gdrive_link || item.gdrive_link || null,
@@ -67,6 +69,7 @@ module.exports = async function handler(req, res) {
           } else {
             return {
               ...item,
+              category: 'Photopack',
               image: itemImage,
               is_photopack: true,
               gdrive_link: null, // Hidden until admin verification!
@@ -76,6 +79,7 @@ module.exports = async function handler(req, res) {
         }
         return {
           ...item,
+          category: itemCategory,
           image: itemImage
         };
       });
