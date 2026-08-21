@@ -229,11 +229,14 @@
 
     <main class="profile-content">
       <section id="tab-orders" class="content-section active">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem; border-bottom:1px solid var(--card-border); padding-bottom:0.8rem;">
+        <div
+          style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem; border-bottom:1px solid var(--card-border); padding-bottom:0.8rem;">
           <h2 style="margin:0; border:none; padding:0;">Riwayat Pesanan</h2>
           <div style="display:flex; align-items:center; gap:0.6rem;">
-            <label for="userCategoryFilter" style="color:var(--text-muted); font-size:0.85rem; font-weight:600;">Filter Kategori:</label>
-            <select id="userCategoryFilter" onchange="filterUserOrdersCategory(this.value)" style="background:rgba(3,9,31,0.9); border:1px solid var(--aqua); color:var(--white); border-radius:8px; padding:0.4rem 0.8rem; font-family:var(--font-body); font-size:0.85rem; font-weight:700; cursor:pointer; outline:none; box-shadow:0 0 12px rgba(41,182,246,0.25);">
+            <label for="userCategoryFilter" style="color:var(--text-muted); font-size:0.85rem; font-weight:600;">Filter
+              Kategori:</label>
+            <select id="userCategoryFilter" onchange="filterUserOrdersCategory(this.value)"
+              style="background:rgba(3,9,31,0.9); border:1px solid var(--aqua); color:var(--white); border-radius:8px; padding:0.4rem 0.8rem; font-family:var(--font-body); font-size:0.85rem; font-weight:700; cursor:pointer; outline:none; box-shadow:0 0 12px rgba(41,182,246,0.25);">
               <option value="Semua" style="background:#03091f; color:#fff;">Semua Kategori</option>
               <option value="Photopack" style="background:#03091f; color:#fff;">📸 Photopack Digital</option>
               <option value="Pakaian" style="background:#03091f; color:#fff;">👕 Pakaian</option>
@@ -349,39 +352,27 @@
     let currentReviewOrderId = null;
     let allOrders = {};
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
       if (!userStr) {
         window.location.href = 'login.html';
         return;
       }
-      
-      try {
-        currentUser = JSON.parse(userStr);
-      } catch (e) {
-        console.error('Invalid user session:', e);
-        window.location.href = 'login.html';
-        return;
-      }
+      currentUser = JSON.parse(userStr);
 
-      // Populate user info IMMEDIATELY (sync) so UI never gets stuck on LOADING...
-      if (currentUser) {
-        const nameEl = document.getElementById('profName');
-        const emailEl = document.getElementById('profEmail');
-        const setNavName = document.getElementById('settingName');
-        const setNavEmail = document.getElementById('settingEmail');
+      // Set up Avatar - wait for it to load completely
+      await loadAvatar();
 
-        if (nameEl) nameEl.textContent = currentUser.username || 'User';
-        if (emailEl) emailEl.textContent = currentUser.email || '';
-        if (setNavName) setNavName.value = currentUser.username || '';
-        if (setNavEmail) setNavEmail.value = currentUser.email || '';
-      }
+      document.getElementById('profName').textContent = currentUser.username;
+      document.getElementById('profEmail').textContent = currentUser.email;
 
-      // Load avatar & tabs asynchronously in parallel
-      loadAvatar().catch(err => console.error('Error loading avatar:', err));
-      loadOrders().catch(err => console.error('Error loading orders:', err));
-      loadAddress().catch(err => console.error('Error loading address:', err));
-      loadWishlist().catch(err => console.error('Error loading wishlist:', err));
+      // Init forms
+      document.getElementById('settingName').value = currentUser.username;
+      document.getElementById('settingEmail').value = currentUser.email;
+
+      loadOrders();
+      loadAddress();
+      loadWishlist();
     });
 
     function switchTab(tabId) {
@@ -592,17 +583,17 @@
         </div>
         <div class="order-items">
           ${itemsArr.map(i => {
-            const isPhotopack = i.is_photopack;
-            const gdriveLink = i.gdrive_link;
+          const isPhotopack = i.is_photopack;
+          const gdriveLink = i.gdrive_link;
 
-            return `
+          return `
             <div style="border-bottom:1px solid rgba(255,255,255,0.05); padding:0.5rem 0;">
               <div class="order-item">
                 <span>${i.qty}x ${i.name}${i.size ? ` • Size ${i.size}` : ''} ${isPhotopack ? '<span style="background:rgba(41,182,246,0.2);color:var(--aqua);padding:2px 8px;border-radius:12px;font-size:0.75rem;font-weight:bold;margin-left:6px;">📸 Photopack</span>' : ''}</span>
                 <span>Rp ${(i.price * i.qty).toLocaleString('id-ID')}</span>
               </div>
               ${isPhotopack ? (
-                gdriveLink ? `
+              gdriveLink ? `
                   <div style="margin-top:0.5rem; padding:0.75rem 1rem; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
                     <div>
                       <div style="font-weight:700; color:#86efac; font-size:0.85rem;">✅ Pembayaran Diverifikasi Admin</div>
@@ -623,10 +614,10 @@
                     </button>
                   </div>
                 `
-              ) : ''}
+            ) : ''}
             </div>
           `;
-          }).join('')}
+        }).join('')}
         </div>
         <div class="order-footer">
           <span>Total Bayar <strong style="color:var(--aqua);font-size:1.1rem;margin-left:5px">Rp ${(o.total).toLocaleString('id-ID')}</strong></span>

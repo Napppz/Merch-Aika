@@ -3,376 +3,579 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Checkout Photopack Digital — Aika Sesilia</title>
+  <title>Checkout Photopack Digital — Aika Sesilia Store</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
   <style>
-    .photopack-checkout-container {
-      max-width: 1000px;
-      margin: 6rem auto 4rem;
-      padding: 0 1.5rem;
+    /* ═══════════════════════════════════════════════
+       PREMIUM PHOTOPACK CHECKOUT — GLASSMORPHIC UI
+    ═══════════════════════════════════════════════ */
+
+    body { background: radial-gradient(ellipse at 50% -10%, #0c2856 0%, #03091f 65%); }
+
+    /* ── STEPPER HEADER ── */
+    .pp-header {
+      max-width: 1100px;
+      margin: 5.5rem auto 0;
+      padding: 0 2rem;
+      text-align: center;
+    }
+    .pp-header .eyebrow {
+      color: var(--aqua);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+    .pp-header h1 {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      color: var(--white);
+      margin-bottom: 1.8rem;
+      text-shadow: 0 0 30px rgba(41,182,246,0.3);
+    }
+
+    .stepper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2.2rem;
+    }
+    .stepper-step {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.35);
+      transition: all 0.3s ease;
+    }
+    .stepper-step.done  { color: #10b981; }
+    .stepper-step.active { color: var(--aqua); }
+    .stepper-dot {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      background: rgba(3,9,31,0.9);
+      border: 1.5px solid rgba(255,255,255,0.15);
+      flex-shrink: 0;
+    }
+    .stepper-step.done .stepper-dot {
+      background: #10b981;
+      border-color: #10b981;
+      color: #fff;
+    }
+    .stepper-step.active .stepper-dot {
+      background: linear-gradient(135deg,#0284c7,#2563eb);
+      border-color: var(--aqua);
+      color: #fff;
+      box-shadow: 0 0 18px rgba(2,132,199,0.55);
+    }
+    .stepper-line {
+      width: 50px; height: 2px;
+      background: rgba(255,255,255,0.12);
+      flex-shrink: 0;
+    }
+
+    /* ── MAIN GRID ── */
+    .pp-grid {
+      max-width: 1100px;
+      margin: 0 auto 5rem;
+      padding: 0 2rem;
       display: grid;
-      grid-template-columns: 1.2fr 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 2rem;
     }
 
-    .checkout-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      padding: 2rem;
-      backdrop-filter: blur(12px);
-      box-shadow: var(--shadow-blue);
+    /* ── GLASS CARD ── */
+    .pp-card {
+      background: rgba(6,16,45,0.72);
+      border: 1px solid rgba(41,182,246,0.2);
+      border-radius: 22px;
+      padding: 2rem 2.2rem;
+      backdrop-filter: blur(18px);
+      box-shadow: 0 14px 44px rgba(0,0,0,0.55),
+                  inset 0 1px 0 rgba(255,255,255,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    .pp-card::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent 0%, var(--aqua) 50%, transparent 100%);
+      opacity: 0.6;
     }
 
-    .checkout-card h2 {
+    .pp-card-title {
       font-family: var(--font-display);
       color: var(--white);
-      font-size: 1.3rem;
-      margin-bottom: 1.2rem;
+      font-size: 1.15rem;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      margin-bottom: 1.5rem;
       padding-bottom: 0.8rem;
-      border-bottom: 1px solid var(--card-border);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
     }
 
-    .digital-badge {
-      background: linear-gradient(135deg, rgba(2, 132, 199, 0.2), rgba(37, 99, 235, 0.2));
-      border: 1px solid var(--aqua);
-      color: var(--aqua);
-      padding: 0.8rem 1rem;
-      border-radius: 10px;
-      margin-bottom: 1.5rem;
-      font-size: 0.88rem;
+    /* ── DIGITAL DELIVERY BANNER ── */
+    .delivery-banner {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
-    }
-
-    .item-preview {
-      display: flex;
       gap: 1rem;
-      align-items: center;
-      padding: 1rem;
-      background: rgba(3, 9, 31, 0.6);
-      border: 1px solid var(--card-border);
+      background: linear-gradient(135deg, rgba(2,132,199,0.12), rgba(37,99,235,0.1));
+      border: 1px solid rgba(2,132,199,0.35);
+      border-radius: 14px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 1.8rem;
+    }
+    .delivery-banner-icon {
+      width: 42px; height: 42px;
       border-radius: 12px;
-      margin-bottom: 1.5rem;
-    }
-
-    .item-preview img {
-      width: 70px;
-      height: 70px;
-      object-fit: cover;
-      border-radius: 8px;
-      border: 1px solid var(--card-border);
-    }
-
-    .item-preview-info {
-      flex: 1;
-    }
-
-    .item-preview-title {
-      color: var(--white);
-      font-weight: 700;
-      font-size: 1rem;
-    }
-
-    .item-preview-cosplayer {
-      color: var(--aqua);
-      font-size: 0.82rem;
-      font-weight: 600;
-      margin-top: 0.2rem;
-    }
-
-    .item-preview-price {
-      color: var(--aqua);
-      font-weight: 700;
-      font-size: 1.1rem;
-      margin-top: 0.4rem;
-    }
-
-    .voucher-box {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-    }
-
-    .voucher-box input {
-      flex: 1;
-      background: rgba(3, 9, 31, 0.8);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      color: var(--white);
-      padding: 0.75rem 1rem;
-      text-transform: uppercase;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-    }
-
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      color: var(--text-muted);
-      font-size: 0.95rem;
-      margin-bottom: 0.6rem;
-    }
-
-    .summary-row.discount {
-      color: #4caf50;
-      font-weight: 600;
-    }
-
-    .summary-row.total {
-      color: var(--white);
-      font-size: 1.25rem;
-      font-weight: 700;
-      border-top: 1px solid var(--card-border);
-      padding-top: 0.8rem;
-      margin-top: 0.8rem;
-    }
-
-    .summary-row.total span:last-child {
-      color: var(--aqua);
-    }
-
-    /* ── EXACT MERCH QRIS CARD DESIGN ── */
-    .qris-card-container {
-      background: rgba(3, 9, 31, 0.8);
-      border: 2px solid var(--aqua);
-      border-radius: 16px;
-      padding: 1.5rem;
-      text-align: center;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 0 25px rgba(41, 182, 246, 0.2);
-    }
-
-    .qris-card-title {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--aqua);
+      background: linear-gradient(135deg,#0284c7,#2563eb);
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+      box-shadow: 0 4px 16px rgba(2,132,199,0.4);
     }
+    .delivery-banner strong { color: var(--white); font-size: 0.92rem; display: block; margin-bottom: 0.15rem; }
+    .delivery-banner p { color: var(--text-muted); font-size: 0.78rem; margin: 0; line-height: 1.45; }
 
-    .qris-image-wrapper {
-      background: #ffffff;
-      padding: 0.8rem;
-      border-radius: 14px;
-      display: inline-block;
-      max-width: 330px;
-      width: 100%;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    /* ── PRODUCT ITEM CARD ── */
+    .pp-item {
+      display: flex;
+      gap: 1.1rem;
+      align-items: center;
+      background: rgba(3,9,31,0.6);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      padding: 1.1rem 1.2rem;
+      margin-bottom: 1.8rem;
+      transition: border-color 0.3s, box-shadow 0.3s;
     }
-
-    .qris-image-wrapper img {
-      width: 100%;
-      height: auto;
-      border-radius: 10px;
-      display: block;
+    .pp-item:hover {
+      border-color: rgba(41,182,246,0.35);
+      box-shadow: 0 6px 22px rgba(0,0,0,0.3);
     }
-
-    .qris-total-bar {
-      background: rgba(3, 9, 31, 0.95);
-      border: 1px solid rgba(41, 182, 246, 0.3);
+    .pp-item-thumb {
+      width: 76px; height: 76px;
       border-radius: 12px;
-      padding: 1rem;
-      margin-top: 1.2rem;
-      text-align: center;
+      overflow: hidden;
+      background: rgba(41,182,246,0.08);
+      border: 1px solid rgba(41,182,246,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      flex-shrink: 0;
     }
-
-    .qris-total-label {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-
-    .qris-total-amount {
-      color: var(--aqua);
-      font-size: 1.7rem;
-      font-weight: 800;
-      margin-top: 0.2rem;
-    }
-
-    .btn-file-upload {
-      background: linear-gradient(135deg, #0284c7, #2563eb);
-      color: #ffffff;
-      border: none;
-      border-radius: 50px;
-      padding: 0.9rem 1.5rem;
-      font-size: 0.98rem;
-      font-weight: 700;
-      width: 100%;
-      cursor: pointer;
+    .pp-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .pp-item-body { flex: 1; }
+    .pp-item-name { color: var(--white); font-weight: 700; font-size: 1.02rem; margin-bottom: 0.25rem; }
+    .pp-item-cosplayer {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
+      gap: 4px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--aqua);
+      background: rgba(41,182,246,0.1);
+      border: 1px solid rgba(41,182,246,0.25);
+      padding: 2px 10px;
+      border-radius: 50px;
+      margin-bottom: 0.35rem;
+    }
+    .pp-item-price { color: var(--aqua); font-weight: 800; font-size: 1.12rem; }
+
+    /* ── VOUCHER BOX ── */
+    .voucher-wrap {
+      background: rgba(3,9,31,0.55);
+      border: 1px dashed rgba(41,182,246,0.3);
+      border-radius: 14px;
+      padding: 1.1rem 1.2rem;
+      margin-bottom: 1.8rem;
+    }
+    .voucher-wrap label {
+      color: var(--white);
+      font-size: 0.88rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 0.5rem;
+    }
+    .voucher-row {
+      display: flex;
       gap: 0.5rem;
-      box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
-      transition: var(--transition);
+    }
+    .voucher-input {
+      flex: 1;
+      background: rgba(3,9,31,0.8);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      color: var(--white);
+      padding: 0.8rem 1rem;
+      font-family: var(--font-body);
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .voucher-input:focus { border-color: var(--aqua); box-shadow: 0 0 14px rgba(41,182,246,0.2); }
+    .btn-voucher {
+      background: linear-gradient(135deg,#0284c7,#2563eb);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0 1.3rem;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: transform 0.2s, opacity 0.2s;
+      white-space: nowrap;
+    }
+    .btn-voucher:hover { opacity: 0.9; transform: translateY(-1px); }
+    .voucher-status { font-size: 0.8rem; margin-top: 0.4rem; font-weight: 600; }
+
+    /* ── PRICE SUMMARY ── */
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      margin-bottom: 0.55rem;
+    }
+    .price-row.discount { color: #4caf50; font-weight: 600; }
+    .price-row.grand {
+      color: var(--white);
+      font-size: 1.25rem;
+      font-weight: 800;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 1rem;
+      margin-top: 0.8rem;
+    }
+    .price-row.grand span:last-child {
+      color: var(--aqua);
+      text-shadow: 0 0 10px rgba(41,182,246,0.3);
     }
 
-    .btn-file-upload:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(2, 132, 199, 0.6);
+    /* ── FORM INPUTS ── */
+    .pp-field { margin-bottom: 1.1rem; }
+    .pp-field label {
+      display: block;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
     }
+    .pp-input {
+      width: 100%;
+      background: rgba(3,9,31,0.7);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: var(--white);
+      padding: 0.8rem 1rem;
+      font-family: var(--font-body);
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .pp-input:focus { border-color: var(--aqua); box-shadow: 0 0 12px rgba(41,182,246,0.2); }
+    .pp-input[readonly] { opacity: 0.6; cursor: not-allowed; }
 
-    .proof-preview-box {
-      margin-top: 1rem;
+    /* ── QRIS CARD ── */
+    .qris-wrap {
+      background: linear-gradient(150deg, rgba(3,9,31,0.92), rgba(10,28,60,0.85));
+      border: 2px solid var(--aqua);
+      border-radius: 20px;
+      padding: 1.8rem 1.5rem;
       text-align: center;
-      display: none;
-      background: rgba(3, 9, 31, 0.6);
-      border: 1px solid var(--card-border);
+      margin-bottom: 1.8rem;
+      box-shadow: 0 0 30px rgba(41,182,246,0.15);
+      animation: qrisPulse 4s infinite alternate;
+    }
+    @keyframes qrisPulse {
+      0%   { box-shadow: 0 0 18px rgba(41,182,246,0.15); }
+      100% { box-shadow: 0 0 35px rgba(41,182,246,0.35); }
+    }
+    .qris-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(41,182,246,0.12);
+      border: 1px solid rgba(41,182,246,0.5);
+      color: var(--aqua);
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 5px 14px;
+      border-radius: 50px;
+      margin-bottom: 1.2rem;
+    }
+    .qris-frame {
+      background: #ffffff;
+      padding: 0.7rem;
+      border-radius: 14px;
+      display: inline-block;
+      max-width: 300px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+      transition: transform 0.3s;
+    }
+    .qris-frame:hover { transform: scale(1.02); }
+    .qris-frame img { width: 100%; height: auto; border-radius: 10px; display: block; }
+    .qris-total-box {
+      background: rgba(3,9,31,0.95);
+      border: 1px solid rgba(41,182,246,0.25);
+      border-radius: 14px;
       padding: 1rem;
-      border-radius: 12px;
+      margin-top: 1.3rem;
+    }
+    .qris-total-box .lbl { color: var(--text-muted); font-size: 0.85rem; font-weight: 600; }
+    .qris-total-box .val {
+      color: var(--aqua);
+      font-size: 1.8rem;
+      font-weight: 900;
+      margin-top: 0.15rem;
+      text-shadow: 0 0 12px rgba(41,182,246,0.25);
     }
 
-    .proof-preview-box img {
+    /* ── UPLOAD DROPZONE ── */
+    .dropzone {
+      border: 2px dashed rgba(41,182,246,0.35);
+      background: rgba(3,9,31,0.4);
+      border-radius: 16px;
+      padding: 1.6rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 1rem;
+    }
+    .dropzone:hover {
+      border-color: var(--aqua);
+      background: rgba(41,182,246,0.06);
+      transform: translateY(-2px);
+    }
+    .dropzone .dz-icon { font-size: 2.2rem; margin-bottom: 0.3rem; }
+    .dropzone .dz-text { color: var(--white); font-weight: 700; font-size: 0.92rem; }
+    .dropzone .dz-hint { color: var(--text-muted); font-size: 0.78rem; margin-top: 0.15rem; }
+
+    .proof-preview {
+      display: none;
+      background: rgba(3,9,31,0.7);
+      border: 1px solid var(--aqua);
+      border-radius: 14px;
+      padding: 1rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      animation: fadeSlide 0.35s ease;
+    }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .proof-preview .fname { color: #10b981; font-size: 0.88rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .proof-preview img {
       max-height: 180px;
-      border-radius: 8px;
-      border: 1px solid var(--card-border);
-      margin-top: 0.5rem;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
     }
 
-    @media (max-width: 768px) {
-      .photopack-checkout-container {
-        grid-template-columns: 1fr;
-        margin-top: 5rem;
-      }
+    /* ── CTA BUTTON ── */
+    .btn-checkout-submit {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 1.05rem;
+      font-size: 1rem;
+      font-weight: 800;
+      width: 100%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      box-shadow: 0 6px 22px rgba(16,185,129,0.35);
+      transition: all 0.25s;
+    }
+    .btn-checkout-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(16,185,129,0.55);
+    }
+    .btn-checkout-submit:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 860px) {
+      .pp-grid { grid-template-columns: 1fr; }
+      .stepper { gap: 0.6rem; flex-wrap: wrap; justify-content: center; }
+      .stepper-line { width: 28px; }
+      .pp-header h1 { font-size: 1.5rem; }
     }
   </style>
 </head>
 <body>
 
+<!-- ═══ NAVBAR ═══ -->
 <nav class="navbar">
   <a href="shop.html" class="nav-brand">✦ Aika Sesilia Store</a>
   <div class="nav-actions">
-    <a href="shop.html" class="btn-ghost" style="padding:0.5rem 1rem;">← Kembali ke Shop</a>
+    <a href="shop.html" class="btn-ghost" style="padding:0.5rem 1.2rem; border-radius:50px; font-size:0.88rem;">← Kembali ke Shop</a>
   </div>
 </nav>
 
-<div class="photopack-checkout-container">
-  <!-- LEFT COLUMN: Account & Payment Info -->
-  <main class="checkout-card">
-    <h2>💳 PEMBAYARAN</h2>
+<!-- ═══ PAGE HEADER & STEPPER ═══ -->
+<div class="pp-header">
+  <div class="eyebrow">✦ EXCLUSIVE DIGITAL CHECKOUT ✦</div>
+  <h1>Checkout Photopack Digital</h1>
 
-    <div class="digital-badge">
-      <span style="font-size:1.3rem;">⚡</span>
+  <div class="stepper">
+    <div class="stepper-step done">
+      <div class="stepper-dot">✓</div>
+      <span>Pilih Produk</span>
+    </div>
+    <div class="stepper-line"></div>
+    <div class="stepper-step active">
+      <div class="stepper-dot">2</div>
+      <span>Pembayaran</span>
+    </div>
+    <div class="stepper-line"></div>
+    <div class="stepper-step">
+      <div class="stepper-dot">3</div>
+      <span>Akses GDrive</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MAIN TWO-COLUMN GRID ═══ -->
+<div class="pp-grid">
+
+  <!-- ── LEFT COLUMN: Product + Voucher + Summary ── -->
+  <div class="pp-card">
+    <div class="pp-card-title">🛒 Ringkasan Pesanan</div>
+
+    <!-- Digital delivery banner -->
+    <div class="delivery-banner">
+      <div class="delivery-banner-icon">⚡</div>
       <div>
-        <strong>Pengiriman Digital Instan (Google Drive)</strong>
-        <div style="font-size:0.78rem; opacity:0.85;">Akses Google Drive diberikan langsung di Profil Anda setelah verifikasi Admin (Tanpa Ongkir).</div>
+        <strong>Pengiriman Digital Instan</strong>
+        <p>Akses Google Drive diberikan di Profil Anda setelah verifikasi Admin (Bebas Ongkir).</p>
       </div>
     </div>
 
-    <!-- User Account Info -->
-    <div style="margin-bottom:1.8rem;">
-      <h3 style="color:var(--white); font-size:0.95rem; margin-bottom:0.8rem; font-family:var(--font-display);">1. Informasi Akun Pembeli</h3>
-      <div class="form-group" style="margin-bottom:0.8rem;">
-        <label style="color:var(--text-muted); font-size:0.82rem;">Nama Pembeli</label>
-        <input type="text" id="custName" readonly style="background:rgba(3,9,31,0.6); opacity:0.8; cursor:not-allowed;" />
-      </div>
-      <div class="form-group">
-        <label style="color:var(--text-muted); font-size:0.82rem;">Email Akun (Akses Google Drive ditautkan ke email ini)</label>
-        <input type="email" id="custEmail" readonly style="background:rgba(3,9,31,0.6); opacity:0.8; cursor:not-allowed;" />
+    <!-- Item preview -->
+    <div class="pp-item">
+      <div class="pp-item-thumb" id="itemPlaceholder">📸</div>
+      <img id="itemImg" style="display:none; width:76px; height:76px; object-fit:cover; border-radius:12px;" />
+      <div class="pp-item-body">
+        <div class="pp-item-name" id="itemTitle">Memuat Photopack…</div>
+        <div class="pp-item-cosplayer" id="itemCosplayer">👤 Cosplayer</div>
+        <div class="pp-item-price" id="itemPrice">Rp 0</div>
       </div>
     </div>
 
-    <!-- Payment & QRIS Section -->
-    <div>
-      <h3 style="color:var(--white); font-size:0.95rem; margin-bottom:1rem; font-family:var(--font-display);">2. Pembayaran & Upload Bukti Transfer</h3>
-      
-      <!-- EXACT MERCH QRIS CARD -->
-      <div class="qris-card-container">
-        <div class="qris-card-title">
-          <span>📱</span> Scan QRIS untuk Pembayaran
-        </div>
-        <div class="qris-image-wrapper">
-          <img src="images/Qris/Qris.jpeg" alt="QRIS Aika Sesilia" onerror="this.src='images/qris-sample.jpg'" />
-        </div>
-        <div class="qris-total-bar">
-          <div class="qris-total-label">Total Pembayaran:</div>
-          <div class="qris-total-amount" id="qrisTotalDisplay">Rp 0</div>
-        </div>
+    <!-- Voucher -->
+    <div class="voucher-wrap">
+      <label><span>🎟️</span> Punya Kode Voucher?</label>
+      <div class="voucher-row">
+        <input type="text" class="voucher-input" id="voucherCode" placeholder="Masukkan kode voucher" />
+        <button type="button" class="btn-voucher" onclick="applyVoucher()" id="btnApplyVoucher">Gunakan</button>
       </div>
-
-      <!-- Upload Bukti Transfer Section -->
-      <div style="margin-top:1.5rem;">
-        <label style="display:block; color:var(--white); font-size:0.95rem; font-weight:700; margin-bottom:0.8rem;">
-          📸 Upload Bukti Transfer
-        </label>
-
-        <input type="file" id="proofInput" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="previewProof(event)" />
-        
-        <button type="button" class="btn-file-upload" onclick="document.getElementById('proofInput').click()">
-          📥 Pilih File Bukti Transfer
-        </button>
-
-        <div id="proofPreviewBox" class="proof-preview-box">
-          <div style="color:var(--aqua); font-size:0.85rem; font-weight:700;" id="fileNameLabel">✅ File Terpilih</div>
-          <img id="proofPreviewImg" alt="Preview Bukti Transfer" />
-        </div>
-      </div>
-
-      <button id="btnPay" class="btn-primary w100" style="padding:1rem; font-size:1.05rem; border-radius:50px; margin-top:1.5rem; background:linear-gradient(135deg, #0284c7, #2563eb);" onclick="processPhotopackCheckout()">
-        🚀 Selesaikan Pembayaran & Minta Verifikasi Admin
-      </button>
-    </div>
-  </main>
-
-  <!-- RIGHT COLUMN: Order Summary & Voucher -->
-  <aside class="checkout-card" style="height:fit-content;">
-    <h2>🛒 Rincian Pesanan</h2>
-
-    <!-- Photopack Item Details -->
-    <div id="photopackItemContainer">
-      <div class="item-preview">
-        <div style="width:70px; height:70px; background:rgba(41,182,246,0.1); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:2rem;" id="itemPlaceholder">📸</div>
-        <img id="itemImg" style="display:none;" />
-        <div class="item-preview-info">
-          <div class="item-preview-title" id="itemTitle">Loading Photopack...</div>
-          <div class="item-preview-cosplayer" id="itemCosplayer"></div>
-          <div class="item-preview-price" id="itemPrice">Rp 0</div>
-        </div>
-      </div>
+      <div id="voucherStatus" class="voucher-status"></div>
     </div>
 
-    <!-- Voucher Form -->
-    <div style="margin-bottom:1.5rem;">
-      <label style="display:block; color:var(--white); font-size:0.85rem; font-weight:700; margin-bottom:0.4rem;">🎟️ Voucher Diskon</label>
-      <div class="voucher-box">
-        <input type="text" id="voucherCode" placeholder="Masukkan kode voucher" />
-        <button class="btn-primary" onclick="applyVoucher()" style="padding:0.75rem 1.2rem; font-size:0.85rem; border-radius:8px;" id="btnApplyVoucher">Gunakan</button>
-      </div>
-      <div id="voucherStatus" style="font-size:0.8rem; margin-top:0.3rem;"></div>
-    </div>
-
-    <!-- Price Calculation Breakdown -->
-    <div style="border-top:1px solid var(--card-border); padding-top:1rem;">
-      <div class="summary-row">
+    <!-- Price breakdown -->
+    <div style="border-top:1px solid rgba(255,255,255,0.07); padding-top:1.1rem;">
+      <div class="price-row">
         <span>Harga Photopack</span>
-        <span id="subtotalPrice">Rp 0</span>
+        <span id="subtotalPrice" style="color:var(--white); font-weight:700;">Rp 0</span>
       </div>
-      <div class="summary-row">
+      <div class="price-row">
         <span>Pengiriman Digital</span>
-        <span style="color:#86efac; font-weight:600;">GRATIS (Rp 0)</span>
+        <span style="color:#10b981; font-weight:700;">GRATIS</span>
       </div>
-      <div class="summary-row discount" id="discountRow" style="display:none;">
+      <div class="price-row discount" id="discountRow" style="display:none;">
         <span id="discountLabel">Diskon Voucher</span>
         <span id="discountPrice">- Rp 0</span>
       </div>
-      <div class="summary-row total">
+      <div class="price-row grand">
         <span>Total Pembayaran</span>
         <span id="grandTotal">Rp 0</span>
       </div>
     </div>
-  </aside>
+  </div>
+
+  <!-- ── RIGHT COLUMN: Account + QRIS + Upload ── -->
+  <div class="pp-card">
+    <div class="pp-card-title">💳 Pembayaran</div>
+
+    <!-- Account info -->
+    <div style="margin-bottom:1.6rem;">
+      <h3 style="color:var(--white); font-size:0.92rem; margin-bottom:0.8rem; font-family:var(--font-display);">1. Data Akun Pembeli</h3>
+      <div class="pp-field">
+        <label>Nama Akun</label>
+        <input type="text" class="pp-input" id="custName" readonly />
+      </div>
+      <div class="pp-field">
+        <label>Email (akses GDrive dikirim ke email ini)</label>
+        <input type="email" class="pp-input" id="custEmail" readonly />
+      </div>
+    </div>
+
+    <!-- QRIS -->
+    <div>
+      <h3 style="color:var(--white); font-size:0.92rem; margin-bottom:0.9rem; font-family:var(--font-display);">2. Scan QRIS & Unggah Bukti</h3>
+
+      <div class="qris-wrap">
+        <div class="qris-badge">📱 Scan QRIS — semua e-wallet & bank</div>
+        <div class="qris-frame">
+          <img src="images/Qris/Qris.jpeg" alt="QRIS Aika Sesilia" onerror="this.src='images/qris-sample.jpg'" />
+        </div>
+        <div class="qris-total-box">
+          <div class="lbl">Total yang harus ditransfer:</div>
+          <div class="val" id="qrisTotalDisplay">Rp 0</div>
+        </div>
+      </div>
+
+      <!-- Upload dropzone -->
+      <label style="display:block; color:var(--white); font-size:0.92rem; font-weight:700; margin-bottom:0.5rem;">📸 Unggah Bukti Transfer</label>
+      <input type="file" id="proofInput" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="previewProof(event)" />
+
+      <div class="dropzone" onclick="document.getElementById('proofInput').click()">
+        <div class="dz-icon">📄</div>
+        <div class="dz-text">Klik untuk memilih file bukti transfer</div>
+        <div class="dz-hint">Format: JPG, PNG, WebP · Maks 5 MB</div>
+      </div>
+
+      <div id="proofPreviewBox" class="proof-preview">
+        <div class="fname" id="fileNameLabel">✅ Bukti Transfer Terpilih</div>
+        <img id="proofPreviewImg" alt="Preview Bukti Transfer" />
+      </div>
+
+      <button id="btnPay" class="btn-checkout-submit" onclick="processPhotopackCheckout()">
+        🚀 Selesaikan Pembayaran & Minta Verifikasi Admin
+      </button>
+    </div>
+  </div>
 </div>
 
+<!-- ═══ SCRIPTS ═══ -->
 <script src="js/main.js"></script>
 <script>
   let currentUser = null;
@@ -383,7 +586,6 @@
   let paymentProofBase64 = null;
 
   document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Session Check
     const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
     if (!userStr) {
       alert('Anda harus login terlebih dahulu untuk membeli Photopack.');
@@ -394,7 +596,6 @@
     document.getElementById('custName').value = currentUser.username || 'User';
     document.getElementById('custEmail').value = currentUser.email || '';
 
-    // 2. Load Photopack Item from URL or Cart
     const urlParams = new URLSearchParams(window.location.search);
     const productId = urlParams.get('id');
 
@@ -421,12 +622,14 @@
 
   function renderPhotopackItem() {
     document.getElementById('itemTitle').textContent = photopackProduct.name;
-    document.getElementById('itemCosplayer').textContent = photopackProduct.cosplayer_name ? 'Cosplayer: ' + photopackProduct.cosplayer_name : 'Eksklusif Digital';
-    
+    document.getElementById('itemCosplayer').textContent = photopackProduct.cosplayer_name
+      ? '👤 Cosplayer: ' + photopackProduct.cosplayer_name
+      : '👤 Eksklusif Digital';
+
     subtotal = parseInt(photopackProduct.price || 0, 10);
     document.getElementById('itemPrice').textContent = formatPrice(subtotal);
     document.getElementById('subtotalPrice').textContent = formatPrice(subtotal);
-    
+
     if (photopackProduct.image) {
       const img = document.getElementById('itemImg');
       img.src = photopackProduct.image;
@@ -447,9 +650,9 @@
   async function applyVoucher() {
     const codeInput = document.getElementById('voucherCode').value.trim();
     const statusEl = document.getElementById('voucherStatus');
-    
+
     if (!codeInput) {
-      statusEl.textContent = 'Masukkan kode voucher terlebih dahulu.';
+      statusEl.textContent = '⚠️ Masukkan kode voucher terlebih dahulu.';
       statusEl.style.color = '#fca5a5';
       return;
     }
@@ -458,9 +661,7 @@
       const res = await fetch('/api/vouchers');
       const data = await res.json();
 
-      if (!data.success || !data.vouchers) {
-        throw new Error('Gagal mengambil data voucher');
-      }
+      if (!data.success || !data.vouchers) throw new Error('Gagal mengambil data voucher');
 
       const found = data.vouchers.find(v => v.code.toUpperCase() === codeInput.toUpperCase());
 
@@ -480,16 +681,14 @@
 
       if (found.type === 'percent') {
         discountAmount = Math.round((subtotal * found.value) / 100);
-        if (found.maxDiscount && discountAmount > found.maxDiscount) {
-          discountAmount = found.maxDiscount;
-        }
+        if (found.maxDiscount && discountAmount > found.maxDiscount) discountAmount = found.maxDiscount;
       } else {
         discountAmount = found.value;
       }
 
       appliedVoucher = found;
-      statusEl.textContent = `✅ Voucher ${found.label} berhasil digunakan!`;
-      statusEl.style.color = '#86efac';
+      statusEl.textContent = `✅ Voucher "${found.label}" berhasil digunakan!`;
+      statusEl.style.color = '#10b981';
 
       document.getElementById('discountRow').style.display = 'flex';
       document.getElementById('discountLabel').textContent = `Diskon (${found.label})`;
@@ -514,35 +713,24 @@
   function previewProof(event) {
     const file = event.target.files[0];
     if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Ukuran file bukti transfer maksimal 5MB.');
-      return;
-    }
+    if (file.size > 5 * 1024 * 1024) { alert('Ukuran file maksimal 5 MB.'); return; }
 
     const reader = new FileReader();
     reader.onload = function(e) {
       paymentProofBase64 = e.target.result;
-      const box = document.getElementById('proofPreviewBox');
-      const img = document.getElementById('proofPreviewImg');
-      const label = document.getElementById('fileNameLabel');
-      
-      label.textContent = `✅ Bukti Transfer Terpilih: ${file.name}`;
-      img.src = paymentProofBase64;
-      box.style.display = 'block';
+      document.getElementById('fileNameLabel').textContent = `✅ Bukti terpilih: ${file.name}`;
+      document.getElementById('proofPreviewImg').src = paymentProofBase64;
+      document.getElementById('proofPreviewBox').style.display = 'block';
     };
     reader.readAsDataURL(file);
   }
 
   async function processPhotopackCheckout() {
-    if (!paymentProofBase64) {
-      alert('Harap unggah screenshot bukti transfer terlebih dahulu.');
-      return;
-    }
+    if (!paymentProofBase64) { alert('Harap unggah screenshot bukti transfer.'); return; }
 
     const payBtn = document.getElementById('btnPay');
     payBtn.disabled = true;
-    payBtn.textContent = 'Mengirim Pesanan...';
+    payBtn.textContent = '⏳ Mengirim Pesanan…';
 
     const orderId = 'ORD-DIGITAL-' + Date.now();
     const finalTotal = Math.max(0, subtotal - discountAmount);
@@ -554,16 +742,14 @@
       address: 'Pengiriman Digital via Link Google Drive (Tanpa Kurir)',
       status: 'pending',
       total: finalTotal,
-      items: [
-        {
-          id: photopackProduct.id,
-          name: photopackProduct.name,
-          price: photopackProduct.price,
-          qty: 1,
-          is_photopack: true,
-          cosplayer_name: photopackProduct.cosplayer_name || null
-        }
-      ],
+      items: [{
+        id: photopackProduct.id,
+        name: photopackProduct.name,
+        price: photopackProduct.price,
+        qty: 1,
+        is_photopack: true,
+        cosplayer_name: photopackProduct.cosplayer_name || null
+      }],
       shipping: { name: 'Digital Delivery', cost: 0 }
     };
 
@@ -573,21 +759,18 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderPayload)
       });
-
       if (!resOrder.ok) throw new Error('Gagal membuat pesanan');
 
-      const resProof = await fetch('/api/payment-proof', {
+      await fetch('/api/payment-proof', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          orderId: orderId,
-          base64Image: paymentProofBase64,
-          email: currentUser.email,
-          customerName: currentUser.username
+          orderId, base64Image: paymentProofBase64,
+          email: currentUser.email, customerName: currentUser.username
         })
       });
 
-      // 3. Save Invoice Order Data for Invoice Page
+      // Save invoice data for the success page
       const invoiceData = {
         id: orderId,
         date: new Date().toISOString(),
@@ -596,18 +779,12 @@
         address: 'Pengiriman Digital via Link Google Drive (Tanpa Kurir)',
         status: 'pending',
         total: finalTotal,
-        items: [
-          {
-            name: photopackProduct.name,
-            qty: 1,
-            price: photopackProduct.price,
-            is_photopack: true,
-            cosplayer_name: photopackProduct.cosplayer_name || null
-          }
-        ],
+        items: [{
+          name: photopackProduct.name, qty: 1, price: photopackProduct.price,
+          is_photopack: true, cosplayer_name: photopackProduct.cosplayer_name || null
+        }],
         shipping: {
-          name: 'Digital Delivery (Google Drive)',
-          price: 0,
+          name: 'Digital Delivery (Google Drive)', price: 0,
           discount: appliedVoucher ? { code: appliedVoucher.code, amount: discountAmount } : null
         }
       };
@@ -615,7 +792,7 @@
       try {
         sessionStorage.setItem('last_order', JSON.stringify(invoiceData));
         localStorage.setItem('last_order', JSON.stringify(invoiceData));
-      } catch (e) {}
+      } catch(e) {}
 
       localStorage.removeItem('aika_checkout_photopack');
       window.location.href = 'order-success.html';
