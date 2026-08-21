@@ -78,6 +78,56 @@ window.toggleWishlist = function(btn) {
     svg.style.fill = '#ef4444';
     svg.style.color = '#ef4444';
     showToast('Ditambahkan ke Favorit ❤️');
+
+// ── UTILS ──
+function formatPrice(n) {
+  return 'Rp ' + (n || 0).toLocaleString('id-ID');
+}
+
+// ── ORDERS ──
+const Orders = {
+  async getAll() {
+    try { const res = await fetch('/api/orders?t=' + Date.now()); return await res.json(); } catch { return []; }
+  },
+  async add(order) {
+    order.id = 'ORD-' + Date.now();
+    order.status = 'pending';
+    order.date = new Date().toISOString(); // Attach client-side real-time date explicitly as fallback
+    const response = await fetch('/api/orders', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(order) });
+    if (response.ok) {
+       const dbOrder = await response.json();
+       return dbOrder; // Return the full DB order including auto-generated date
+    }
+    return order;
+  },
+  async update(id, data) {
+    data.id = id;
+    await fetch('/api/orders', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+  }
+};
+
+// ── WISHLIST TOGGLE ──
+window.toggleWishlist = function(btn) {
+  const product = {
+    id: btn.getAttribute('data-id'),
+    name: btn.getAttribute('data-name'),
+    price: parseInt(btn.getAttribute('data-price') || '0', 10),
+    image: btn.getAttribute('data-img') || ''
+  };
+  let wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
+  const existsIndex = wishlist.findIndex(w => w.id === product.id);
+  
+  const svg = btn.querySelector('svg');
+  if (existsIndex >= 0) {
+    wishlist.splice(existsIndex, 1);
+    svg.style.fill = 'none';
+    svg.style.color = 'var(--text-muted)';
+    showToast('Dihapus dari Favorit 💔');
+  } else {
+    wishlist.push(product);
+    svg.style.fill = '#ef4444';
+    svg.style.color = '#ef4444';
+    showToast('Ditambahkan ke Favorit ❤️');
   }
   localStorage.setItem('aika_wishlist', JSON.stringify(wishlist));
 };
@@ -90,12 +140,14 @@ function checkWishlistStatus(id) {
 // ── RENDER PRODUCT CARD ──
 function renderProductCard(p, compact = false) {
   const category = normalizeProductCategory(p.category);
-  const emoji = { 'Pakaian': '👕', 'Aksesoris': '💎', 'Foto & Print': '🖼️', 'Acrylic': '🧿' };
+  const isPhotopack = p.is_photopack || category === 'Photopack';
+  const emoji = { 'Pakaian': '👕', 'Aksesoris': '💎', 'Foto & Print': '🖼️', 'Acrylic': '🧿', 'Photopack': '📸' };
   const isWishlisted = checkWishlistStatus(p.id);
   const heartFill = isWishlisted ? '#ef4444' : 'none';
   const heartColor = isWishlisted ? '#ef4444' : 'var(--text-muted)';
   const sizes = String(p.sizes || '').split(',').map(size => size.trim()).filter(Boolean);
   const sizeSelectId = `size-${String(p.id || '').replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+  const badgeText = p.badge || (isPhotopack ? '📸 Photopack Digital' : '');
 
   return `
     <div class="product-card fade-in">
@@ -111,12 +163,13 @@ function renderProductCard(p, compact = false) {
         </button>
         ${p.image
           ? `<img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="product-placeholder" style="display:none">${emoji[category] || '🛍️'}</div>`
-          : `<div class="product-placeholder">${emoji[category] || '🛍️'}</div>`}
-        ${p.badge ? `<span class="product-badge">${p.badge}</span>` : ''}
+          : `<div class="product-placeholder">${emoji[category] || (isPhotopack ? '📸' : '🛍️')}</div>`}
+        ${badgeText ? `<span class="product-badge" style="${isPhotopack ? 'background:linear-gradient(135deg, #0284c7, #2563eb);color:#fff;' : ''}">${badgeText}</span>` : ''}
       </div>
       <div class="product-body">
-        ${category ? `<div class="product-category">${category}</div>` : ''}
+        ${category ? `<div class="product-category">${isPhotopack ? '📸 Photopack Digital' : category}</div>` : ''}
         <div class="product-name">${p.name}</div>
+        ${p.cosplayer_name ? `<div style="font-size:0.78rem;color:var(--aqua);font-weight:700;margin-top:0.25rem;">Cosplayer: ${p.cosplayer_name}</div>` : ''}
         <div class="product-desc">${p.description}</div>
         ${sizes.length ? `<div style="margin-top:0.75rem;color:var(--text-muted);font-size:0.78rem;">Ukuran: <span style="color:var(--aqua);font-weight:700">${sizes.join(', ')}</span></div>` : ''}
         ${sizes.length ? `<div style="margin-top:0.8rem;"><label for="${sizeSelectId}" style="display:block;color:var(--white);font-size:0.78rem;font-weight:700;margin-bottom:0.35rem;">Pilih Size</label><select id="${sizeSelectId}" style="width:100%;border-radius:8px;background:rgba(3,9,31,0.8);border:1px solid var(--card-border);color:var(--white);padding:0.65rem;font-family:var(--font-body);font-size:0.85rem;"><option value="">-- Pilih Size --</option>${sizes.map(size => `<option value="${size}">${size}</option>`).join('')}</select></div>` : ''}
@@ -130,14 +183,9 @@ function renderProductCard(p, compact = false) {
             data-name='${(p.name || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;")}' 
             data-price="${p.price}" 
             data-img="${p.image || ''}" 
+            data-is-photopack="${isPhotopack ? 'true' : 'false'}"
             data-size-select="${sizes.length ? sizeSelectId : ''}"
             onclick="Cart.addFromBtn(this)">
-            + Keranjang
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
 }
 
 // ── LOAD FEATURED (index.html) ──

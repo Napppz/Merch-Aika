@@ -124,6 +124,7 @@ const Cart = {
       name: btn.getAttribute('data-name'),
       price: parseInt(btn.getAttribute('data-price') || '0', 10),
       image: btn.getAttribute('data-img') || '',
+      is_photopack: btn.getAttribute('data-is-photopack') === 'true',
       size: selectedSize
     });
   },

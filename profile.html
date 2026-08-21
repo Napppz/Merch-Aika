@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <!-- Presentasi: Halaman profil pengguna untuk melihat riwayat pesanan, avatar, ulasan, alamat, dan wishlist. -->
 <html lang="id">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Profil Saya — Aika Sesilia</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Nunito:wght@300;400;600;700&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
   <style>
     .profile-container {
@@ -16,6 +19,7 @@
       grid-template-columns: 300px 1fr;
       gap: 2rem;
     }
+
     .profile-sidebar {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -24,8 +28,10 @@
       text-align: center;
       height: fit-content;
     }
+
     .profile-avatar {
-      width: 100px; height: 100px;
+      width: 100px;
+      height: 100px;
       border-radius: 50%;
       background: linear-gradient(135deg, var(--sea-blue), var(--aqua));
       color: var(--white);
@@ -36,8 +42,20 @@
       font-weight: 700;
       margin: 0 auto 1rem;
     }
-    .profile-name { font-family: var(--font-display); color: var(--white); font-size: 1.2rem; margin-bottom: 0.5rem; }
-    .profile-email { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; }
+
+    .profile-name {
+      font-family: var(--font-display);
+      color: var(--white);
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .profile-email {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+
     .profile-nav button {
       width: 100%;
       background: transparent;
@@ -51,8 +69,10 @@
       text-align: left;
       font-family: var(--font-body);
     }
-    .profile-nav button.active, .profile-nav button:hover {
-      background: rgba(41,182,246,0.1);
+
+    .profile-nav button.active,
+    .profile-nav button:hover {
+      background: rgba(41, 182, 246, 0.1);
       color: var(--aqua);
       border-color: var(--aqua);
     }
@@ -63,9 +83,22 @@
       border-radius: var(--radius);
       padding: 2rem;
     }
-    .content-section { display: none; }
-    .content-section.active { display: block; }
-    .content-section h2 { font-family: var(--font-display); color: var(--white); margin-bottom: 1.5rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.5rem; }
+
+    .content-section {
+      display: none;
+    }
+
+    .content-section.active {
+      display: block;
+    }
+
+    .content-section h2 {
+      font-family: var(--font-display);
+      color: var(--white);
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.5rem;
+    }
 
     /* Orders List */
     .order-card {
@@ -73,335 +106,419 @@
       border-radius: var(--radius-sm);
       padding: 1.5rem;
       margin-bottom: 1rem;
-      background: rgba(3,9,31,0.5);
+      background: rgba(3, 9, 31, 0.5);
     }
-    .order-header { display: flex; justify-content: space-between; border-bottom: 1px solid var(--card-border); padding-bottom: 1rem; margin-bottom: 1rem; }
-    .order-id { color: var(--aqua); font-weight: 700; }
-    .order-date { color: var(--text-muted); font-size: 0.85rem; }
-    .order-status {
-      padding: 4px 12px; border-radius: 50px; font-size: 0.8rem; font-weight: 700;
-    }
-    .order-status.paid { background: rgba(34,197,94,0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
-    .order-status.pending { background: rgba(234,179,8,0.15); color: #fde047; border: 1px solid rgba(234,179,8,0.3); }
-    .order-status.processing { background: rgba(41,182,246,0.15); color: var(--aqua); border: 1px solid rgba(41,182,246,0.3); }
 
-    .order-items { margin-bottom: 1rem; }
-    .order-item { display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; padding: 0.5rem 0; color: var(--text-main); }
-    .order-footer { display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
-    
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .order-id {
+      color: var(--aqua);
+      font-weight: 700;
+    }
+
+    .order-date {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .order-status {
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .order-status.paid {
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .order-status.pending {
+      background: rgba(234, 179, 8, 0.15);
+      color: #fde047;
+      border: 1px solid rgba(234, 179, 8, 0.3);
+    }
+
+    .order-status.processing {
+      background: rgba(41, 182, 246, 0.15);
+      color: var(--aqua);
+      border: 1px solid rgba(41, 182, 246, 0.3);
+    }
+
+    .order-items {
+      margin-bottom: 1rem;
+    }
+
+    .order-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      padding: 0.5rem 0;
+      color: var(--text-main);
+    }
+
+    .order-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+    }
+
     /* Review Form */
-    .review-btn { background: var(--aqua); color: var(--deep-ocean); border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; cursor: pointer; font-weight: 700; }
+    .review-btn {
+      background: var(--aqua);
+      color: var(--deep-ocean);
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-weight: 700;
+    }
 
     @media (max-width: 768px) {
-      .profile-container { grid-template-columns: 1fr; margin-top: 6rem; }
+      .profile-container {
+        grid-template-columns: 1fr;
+        margin-top: 6rem;
+      }
     }
   </style>
 </head>
+
 <body>
 
-<!-- NAV (Diisi oleh main.js jika ada, kita buat simple sementara) -->
-<nav class="navbar">
-  <a href="index.html" class="nav-brand">✦ Aika Sesilia</a>
-  <div class="nav-actions">
-    <a href="index.html" class="btn-ghost" style="padding: 0.5rem 1rem">Kembali ke Toko</a>
-  </div>
-</nav>
-
-<div class="profile-container">
-  <aside class="profile-sidebar">
-    <div class="profile-avatar" id="profAvatarContainer" style="position:relative; cursor:pointer;" onclick="document.getElementById('avatarUpload').click()" title="Klik untuk ubah foto">
-      <div id="profAvatarText" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">?</div>
-      <div style="position:absolute; inset:0; background:rgba(0,0,0,0.5); border-radius:50%; display:flex; align-items:center; justify-content:center; opacity:0; transition:0.3s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
-        <span style="font-size:0.8rem; color:#fff;">Ubah</span>
-      </div>
+  <!-- NAV (Diisi oleh main.js jika ada, kita buat simple sementara) -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand">✦ Aika Sesilia</a>
+    <div class="nav-actions">
+      <a href="index.html" class="btn-ghost" style="padding: 0.5rem 1rem">Kembali ke Toko</a>
     </div>
-    <input type="file" id="avatarUpload" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
-    <div class="profile-name" id="profName">Loading...</div>
-    <div class="profile-email" id="profEmail">loading@...</div>
-    <div class="profile-nav">
-      <button class="active" onclick="switchTab('orders')">Riwayat Pesanan</button>
-      <button onclick="switchTab('wishlist')">Favorit Saya</button>
-      <button onclick="switchTab('address')">Buku Alamat</button>
-      <button onclick="switchTab('settings')">Pengaturan Akun</button>
-      <button onclick="logout()" style="color:#ef4444; border-color:rgba(239,68,68,0.3);">Keluar</button>
-    </div>
-  </aside>
+  </nav>
 
-  <main class="profile-content">
-    <section id="tab-orders" class="content-section active">
-      <h2>Riwayat Pesanan</h2>
-      <div id="ordersList">Loading pesanan...</div>
-    </section>
-
-    <section id="tab-settings" class="content-section">
-      <h2>Pengaturan Akun</h2>
-      <form id="settingsForm" onsubmit="saveSettings(event)" style="display:flex; flex-direction:column; gap:1.5rem; max-width:500px;">
-        <div class="form-group" style="margin:0;">
-          <label>Nama Lengkap</label>
-          <input type="text" id="settingName" required />
+  <div class="profile-container">
+    <aside class="profile-sidebar">
+      <div class="profile-avatar" id="profAvatarContainer" style="position:relative; cursor:pointer;"
+        onclick="document.getElementById('avatarUpload').click()" title="Klik untuk ubah foto">
+        <div id="profAvatarText"
+          style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">?</div>
+        <div
+          style="position:absolute; inset:0; background:rgba(0,0,0,0.5); border-radius:50%; display:flex; align-items:center; justify-content:center; opacity:0; transition:0.3s;"
+          onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
+          <span style="font-size:0.8rem; color:#fff;">Ubah</span>
         </div>
-        <div class="form-group" style="margin:0;">
-          <label>Email <small style="color:var(--text-muted)">(Tidak dapat diubah)</small></label>
-          <input type="email" id="settingEmail" readonly style="opacity:0.6; cursor:not-allowed;" />
-        </div>
-        <div class="form-group" style="margin:0;">
-          <label>Password Baru <small style="color:var(--text-muted)">(Kosongkan jika tidak diubah)</small></label>
-          <input type="password" id="settingPassword" placeholder="••••••••" />
-        </div>
-        <button type="submit" class="btn-primary" style="margin-top:1rem;" id="btnSaveSettings">Simpan Perubahan</button>
-      </form>
-    </section>
-
-    <section id="tab-address" class="content-section">
-      <h2>Buku Alamat</h2>
-      <div id="addressList" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:2rem;">
-        <!-- Alamat akan dimuat di sini -->
       </div>
-      <div style="background:rgba(3,9,31,0.5); padding:1.5rem; border:1px dashed var(--card-border); border-radius:var(--radius-sm);">
-        <h3 style="margin-bottom:1rem;color:var(--white);font-family:var(--font-display);">Tambah Alamat Baru</h3>
-        <form id="addressForm" onsubmit="saveAddress(event)" style="display:flex; flex-direction:column; gap:1rem;">
+      <input type="file" id="avatarUpload" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
+      <div class="profile-name" id="profName">Loading...</div>
+      <div class="profile-email" id="profEmail">loading@...</div>
+      <div class="profile-nav">
+        <button class="active" onclick="switchTab('orders')">Riwayat Pesanan</button>
+        <button onclick="switchTab('wishlist')">Favorit Saya</button>
+        <button onclick="switchTab('address')">Buku Alamat</button>
+        <button onclick="switchTab('settings')">Pengaturan Akun</button>
+        <button onclick="logout()" style="color:#ef4444; border-color:rgba(239,68,68,0.3);">Keluar</button>
+      </div>
+    </aside>
+
+    <main class="profile-content">
+      <section id="tab-orders" class="content-section active">
+        <h2>Riwayat Pesanan</h2>
+        <div id="ordersList">Loading pesanan...</div>
+      </section>
+
+      <section id="tab-settings" class="content-section">
+        <h2>Pengaturan Akun</h2>
+        <form id="settingsForm" onsubmit="saveSettings(event)"
+          style="display:flex; flex-direction:column; gap:1.5rem; max-width:500px;">
           <div class="form-group" style="margin:0;">
-            <input type="text" id="addrLabel" placeholder="Label (cth: Rumah, Kantor)" required />
+            <label>Nama Lengkap</label>
+            <input type="text" id="settingName" required />
           </div>
           <div class="form-group" style="margin:0;">
-            <textarea id="addrText" rows="3" placeholder="Alamat Lengkap" style="resize:none;" required></textarea>
+            <label>Email <small style="color:var(--text-muted)">(Tidak dapat diubah)</small></label>
+            <input type="email" id="settingEmail" readonly style="opacity:0.6; cursor:not-allowed;" />
           </div>
-          <button type="submit" class="btn-secondary" style="align-self:flex-start;">Simpan Alamat</button>
+          <div class="form-group" style="margin:0;">
+            <label>Password Baru <small style="color:var(--text-muted)">(Kosongkan jika tidak diubah)</small></label>
+            <input type="password" id="settingPassword" placeholder="••••••••" />
+          </div>
+          <button type="submit" class="btn-primary" style="margin-top:1rem;" id="btnSaveSettings">Simpan
+            Perubahan</button>
         </form>
-      </div>
-    </section>
+      </section>
 
-    <section id="tab-wishlist" class="content-section">
-      <h2>Favorit Saya (Wishlist)</h2>
-      <div id="wishlistContainer" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1.5rem;">
-        <!-- Wishlist items -->
-      </div>
-    </section>
-  </main>
-</div>
+      <section id="tab-address" class="content-section">
+        <h2>Buku Alamat</h2>
+        <div id="addressList" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:2rem;">
+          <!-- Alamat akan dimuat di sini -->
+        </div>
+        <div
+          style="background:rgba(3,9,31,0.5); padding:1.5rem; border:1px dashed var(--card-border); border-radius:var(--radius-sm);">
+          <h3 style="margin-bottom:1rem;color:var(--white);font-family:var(--font-display);">Tambah Alamat Baru</h3>
+          <form id="addressForm" onsubmit="saveAddress(event)" style="display:flex; flex-direction:column; gap:1rem;">
+            <div class="form-group" style="margin:0;">
+              <input type="text" id="addrLabel" placeholder="Label (cth: Rumah, Kantor)" required />
+            </div>
+            <div class="form-group" style="margin:0;">
+              <textarea id="addrText" rows="3" placeholder="Alamat Lengkap" style="resize:none;" required></textarea>
+            </div>
+            <button type="submit" class="btn-secondary" style="align-self:flex-start;">Simpan Alamat</button>
+          </form>
+        </div>
+      </section>
 
-<!-- Review Modal -->
-<div id="reviewModal" class="cart-overlay" onclick="closeReviewModal(event)" style="display:flex; align-items:center; justify-content:center;">
-  <div class="profile-sidebar" style="position:relative; width:90%; max-width:450px; background:linear-gradient(145deg, var(--midnight-blue), var(--deep-ocean)); border:1px solid var(--aqua); box-shadow: 0 10px 40px rgba(41,182,246,0.2);" onclick="event.stopPropagation()">
-    <!-- Decorative Icon -->
-    <div style="width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, var(--sky-blue), var(--sea-blue)); display:flex; align-items:center; justify-content:center; font-size:1.8rem; margin:-3rem auto 1.5rem; border:4px solid var(--deep-ocean); box-shadow: 0 0 20px rgba(41,182,246,0.3);">
-      ⭐
-    </div>
-    
-    <h3 style="color:var(--white); margin-bottom:0.5rem; font-family:var(--font-display); font-size:1.5rem;">Beri Ulasan</h3>
-    <div id="reviewOrderId" style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1.5rem;"></div>
-    
-    <div class="form-group" style="text-align:left;">
-      <label style="color:var(--aqua); font-size:0.9rem; margin-bottom:0.5rem; display:block;">Peringkat Kepuasan</label>
-      <select id="reviewRating" style="width:100%; border-radius:8px; background:rgba(3,9,31,0.8); color:var(--gold); font-size:1.1rem; padding:0.8rem; border:1px solid var(--card-border);">
-        <option value="5">⭐⭐⭐⭐⭐ Sangat Bagus</option>
-        <option value="4">⭐⭐⭐⭐ Bagus</option>
-        <option value="3">⭐⭐⭐ Cukup</option>
-        <option value="2">⭐⭐ Kurang</option>
-        <option value="1">⭐ Sangat Kurang</option>
-      </select>
-    </div>
-    
-    <div class="form-group" style="text-align:left;">
-      <label style="color:var(--aqua); font-size:0.9rem; margin-bottom:0.5rem; display:block;">Pesan & Kesan</label>
-      <textarea id="reviewComment" rows="4" placeholder="Ceritakan pengalaman Anda dengan produk kami..." style="width:100%; resize:none; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.8rem; font-family:var(--font-body); transition:var(--transition); outline:none;" onfocus="this.style.borderColor='var(--aqua)'" onblur="this.style.borderColor='var(--card-border)'"></textarea>
-    </div>
-    
-    <div style="display:flex; gap:1rem; margin-top:2rem">
-      <button class="btn-ghost w100" onclick="closeReviewModal()" style="border-radius:12px; font-size:0.95rem;">Batal</button>
-      <button class="btn-primary w100" onclick="submitReview()" style="border-radius:12px; font-size:0.95rem; box-shadow: 0 4px 15px rgba(21,101,192,0.4);" id="btnSubmitReview">Kirim Ulasan</button>
+      <section id="tab-wishlist" class="content-section">
+        <h2>Favorit Saya (Wishlist)</h2>
+        <div id="wishlistContainer"
+          style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1.5rem;">
+          <!-- Wishlist items -->
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Review Modal -->
+  <div id="reviewModal" class="cart-overlay" onclick="closeReviewModal(event)"
+    style="display:flex; align-items:center; justify-content:center;">
+    <div class="profile-sidebar"
+      style="position:relative; width:90%; max-width:450px; background:linear-gradient(145deg, var(--midnight-blue), var(--deep-ocean)); border:1px solid var(--aqua); box-shadow: 0 10px 40px rgba(41,182,246,0.2);"
+      onclick="event.stopPropagation()">
+      <!-- Decorative Icon -->
+      <div
+        style="width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, var(--sky-blue), var(--sea-blue)); display:flex; align-items:center; justify-content:center; font-size:1.8rem; margin:-3rem auto 1.5rem; border:4px solid var(--deep-ocean); box-shadow: 0 0 20px rgba(41,182,246,0.3);">
+        ⭐
+      </div>
+
+      <h3 style="color:var(--white); margin-bottom:0.5rem; font-family:var(--font-display); font-size:1.5rem;">Beri
+        Ulasan</h3>
+      <div id="reviewOrderId" style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1.5rem;"></div>
+
+      <div class="form-group" style="text-align:left;">
+        <label style="color:var(--aqua); font-size:0.9rem; margin-bottom:0.5rem; display:block;">Peringkat
+          Kepuasan</label>
+        <select id="reviewRating"
+          style="width:100%; border-radius:8px; background:rgba(3,9,31,0.8); color:var(--gold); font-size:1.1rem; padding:0.8rem; border:1px solid var(--card-border);">
+          <option value="5">⭐⭐⭐⭐⭐ Sangat Bagus</option>
+          <option value="4">⭐⭐⭐⭐ Bagus</option>
+          <option value="3">⭐⭐⭐ Cukup</option>
+          <option value="2">⭐⭐ Kurang</option>
+          <option value="1">⭐ Sangat Kurang</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="text-align:left;">
+        <label style="color:var(--aqua); font-size:0.9rem; margin-bottom:0.5rem; display:block;">Pesan & Kesan</label>
+        <textarea id="reviewComment" rows="4" placeholder="Ceritakan pengalaman Anda dengan produk kami..."
+          style="width:100%; resize:none; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.8rem; font-family:var(--font-body); transition:var(--transition); outline:none;"
+          onfocus="this.style.borderColor='var(--aqua)'"
+          onblur="this.style.borderColor='var(--card-border)'"></textarea>
+      </div>
+
+      <div style="display:flex; gap:1rem; margin-top:2rem">
+        <button class="btn-ghost w100" onclick="closeReviewModal()"
+          style="border-radius:12px; font-size:0.95rem;">Batal</button>
+        <button class="btn-primary w100" onclick="submitReview()"
+          style="border-radius:12px; font-size:0.95rem; box-shadow: 0 4px 15px rgba(21,101,192,0.4);"
+          id="btnSubmitReview">Kirim Ulasan</button>
+      </div>
     </div>
   </div>
-</div>
 
-<script>
-  let currentUser = null;
-  let currentReviewOrderId = null;
-  let allOrders = {};
+  <script>
+    let currentUser = null;
+    let currentReviewOrderId = null;
+    let allOrders = {};
 
-  document.addEventListener('DOMContentLoaded', async () => {
-    const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
-    if (!userStr) {
-      window.location.href = 'login.html';
-      return;
+    document.addEventListener('DOMContentLoaded', async () => {
+      const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+      if (!userStr) {
+        window.location.href = 'login.html';
+        return;
+      }
+      currentUser = JSON.parse(userStr);
+
+      // Set up Avatar - wait for it to load completely
+      await loadAvatar();
+
+      document.getElementById('profName').textContent = currentUser.username;
+      document.getElementById('profEmail').textContent = currentUser.email;
+
+      // Init forms
+      document.getElementById('settingName').value = currentUser.username;
+      document.getElementById('settingEmail').value = currentUser.email;
+
+      loadOrders();
+      loadAddress();
+      loadWishlist();
+    });
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.profile-nav button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
     }
-    currentUser = JSON.parse(userStr);
-    
-    // Set up Avatar - wait for it to load completely
-    await loadAvatar();
 
-    document.getElementById('profName').textContent = currentUser.username;
-    document.getElementById('profEmail').textContent = currentUser.email;
+    // Deteksi iOS
+    function isIOS() {
+      return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    }
 
-    // Init forms
-    document.getElementById('settingName').value = currentUser.username;
-    document.getElementById('settingEmail').value = currentUser.email;
+    async function loadAvatar() {
+      const container = document.getElementById('profAvatarText');
+      let saved = null;
+      const cacheKey = 'aika_avatar_' + currentUser.email;
+      const isIos = isIOS();
 
-    loadOrders();
-    loadAddress();
-    loadWishlist();
-  });
-
-  function switchTab(tabId) {
-    document.querySelectorAll('.profile-nav button').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
-    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-    document.getElementById('tab-' + tabId).classList.add('active');
-  }
-
-  // Deteksi iOS
-  function isIOS() {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  }
-
-  async function loadAvatar() {
-    const container = document.getElementById('profAvatarText');
-    let saved = null;
-    const cacheKey = 'aika_avatar_' + currentUser.email;
-    const isIos = isIOS();
-
-    try {
-      // iOS: Always fetch from API dengan cache bust
-      // Desktop: Try localStorage first, fallback to API
-      if (isIos) {
-        console.log('📱 iOS detected - fetching avatar from API with cache bust');
-        const res = await fetch(`/api/avatar?email=${encodeURIComponent(currentUser.email)}&t=${Date.now()}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.avatar) {
-            saved = data.avatar;
-            console.log('✅ Avatar loaded from API (iOS)');
-          }
-        }
-      } else {
-        // Desktop: Try localStorage cache first
-        saved = localStorage.getItem(cacheKey);
-        if (!saved) {
-          console.log('💻 Desktop - Avatar not in cache, fetching from API');
-          const res = await fetch(`/api/avatar?email=${encodeURIComponent(currentUser.email)}`);
+      try {
+        // iOS: Always fetch from API dengan cache bust
+        // Desktop: Try localStorage first, fallback to API
+        if (isIos) {
+          console.log('📱 iOS detected - fetching avatar from API with cache bust');
+          const res = await fetch(`/api/avatar?email=${encodeURIComponent(currentUser.email)}&t=${Date.now()}`);
           if (res.ok) {
             const data = await res.json();
             if (data.avatar) {
               saved = data.avatar;
-              // Cache for desktop
-              localStorage.setItem(cacheKey, saved);
-              console.log('✅ Avatar loaded from API (Desktop) and cached');
+              console.log('✅ Avatar loaded from API (iOS)');
+            }
+          }
+        } else {
+          // Desktop: Try localStorage cache first
+          saved = localStorage.getItem(cacheKey);
+          if (!saved) {
+            console.log('💻 Desktop - Avatar not in cache, fetching from API');
+            const res = await fetch(`/api/avatar?email=${encodeURIComponent(currentUser.email)}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data.avatar) {
+                saved = data.avatar;
+                // Cache for desktop
+                localStorage.setItem(cacheKey, saved);
+                console.log('✅ Avatar loaded from API (Desktop) and cached');
+              }
             }
           }
         }
+      } catch (err) {
+        console.error('Error loading avatar:', err);
       }
-    } catch(err) {
-      console.error('Error loading avatar:', err);
+
+      // Render avatar
+      if (saved) {
+        container.innerHTML = `<img src="${saved}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+      } else {
+        container.innerHTML = currentUser.username.charAt(0).toUpperCase();
+      }
     }
 
-    // Render avatar
-    if (saved) {
-      container.innerHTML = `<img src="${saved}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
-    } else {
-      container.innerHTML = currentUser.username.charAt(0).toUpperCase();
-    }
-  }
-
-  function handleAvatarUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Uh oh! Ukuran foto maksimal 5MB ya.");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-      const dataUrl = e.target.result;
-      const isIos = isIOS();
-      
-      // Save to localStorage untuk desktop immediately untuk instant feedback
-      if (!isIos) {
-        localStorage.setItem('aika_avatar_' + currentUser.email, dataUrl);
-      }
-      
-      loadAvatar();
-      updateNavAvatar();
-      
-      // Update session to trigger updates in navbar if navigating back
-      currentUser.avatarUpdated = Date.now();
-      localStorage.setItem('aika_session', JSON.stringify(currentUser));
-      
-      // Save to database so it syncs across devices
-      try {
-        console.log('⏳ Saving avatar to database...');
-        const res = await fetch('/api/avatar', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-user-email': currentUser.email },
-          body: JSON.stringify({ avatar: dataUrl })
-        });
-        
-        if (!res.ok) {
-          const errData = await res.json();
-          console.error('❌ Error saving avatar:', errData);
-          alert('Gagal menyimpan foto: ' + (errData.error || 'Unknown error'));
-          return;
-        }
-        
-        const result = await res.json();
-        console.log('✅ Avatar saved to database:', result.message);
-        
-        if (result.avatar) {
-          localStorage.setItem('aika_avatar_' + currentUser.email, result.avatar);
-        }
-
-        // Clear cache to force fresh load on iOS
-        if (isIos) {
-          localStorage.removeItem('aika_avatar_' + currentUser.email);
-          console.log('🔄 iOS cache cleared - will refetch on next load');
-        }
-        
-        alert('Foto profil berhasil diperbarui!');
-        // For iOS, reload avatar to get fresh data from API
-        if (isIos) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          await loadAvatar();
-          updateNavAvatar();
-        }
-      } catch(err) {
-        console.error('❌ Error saving avatar to API:', err);
-        alert('Gagal mengunggah foto ke server: ' + err.message);
-      }
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function logout() {
-    localStorage.removeItem('aika_session');
-    sessionStorage.removeItem('aika_session');
-    window.location.href = 'login.html';
-  }
-
-  async function loadOrders() {
-    const list = document.getElementById('ordersList');
-    try {
-      // Memanggil API orders yang dimodifikasi untuk mencari by email (bebas cache)
-      const res = await fetch('/api/user-orders?email=' + encodeURIComponent(currentUser.email) + '&_t=' + Date.now());
-      if (!res.ok) throw new Error('Failed fetch');
-      const orders = await res.json();
-
-      if (orders.length === 0) {
-        list.innerHTML = '<p style="color:var(--text-muted)">Anda belum memiliki pesanan.</p>';
+    function handleAvatarUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Uh oh! Ukuran foto maksimal 5MB ya.");
         return;
       }
+      const reader = new FileReader();
+      reader.onload = async function (e) {
+        const dataUrl = e.target.result;
+        const isIos = isIOS();
 
-      list.innerHTML = orders.map(o => {
-        let itemsArr = Array.isArray(o.items) ? o.items : (typeof o.items === 'string' ? JSON.parse(o.items) : []);
-        let shippingInfo = null;
-        try { shippingInfo = typeof o.shipping === 'string' ? JSON.parse(o.shipping) : o.shipping; } catch(e) {}
-        
-        allOrders[o.id] = itemsArr;
+        // Save to localStorage untuk desktop immediately untuk instant feedback
+        if (!isIos) {
+          localStorage.setItem('aika_avatar_' + currentUser.email, dataUrl);
+        }
 
-        const formattedDate = new Date(o.date || o.created_at || Date.now()).toLocaleString('id-ID', {
-          day: '2-digit', month: 'short', year: 'numeric',
-          hour: '2-digit', minute: '2-digit'
-        }) + ' WIB';
-        
-        return `
+        loadAvatar();
+        updateNavAvatar();
+
+        // Update session to trigger updates in navbar if navigating back
+        currentUser.avatarUpdated = Date.now();
+        localStorage.setItem('aika_session', JSON.stringify(currentUser));
+
+        // Save to database so it syncs across devices
+        try {
+          console.log('⏳ Saving avatar to database...');
+          const res = await fetch('/api/avatar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-user-email': currentUser.email },
+            body: JSON.stringify({ avatar: dataUrl })
+          });
+
+          if (!res.ok) {
+            const errData = await res.json();
+            console.error('❌ Error saving avatar:', errData);
+            alert('Gagal menyimpan foto: ' + (errData.error || 'Unknown error'));
+            return;
+          }
+
+          const result = await res.json();
+          console.log('✅ Avatar saved to database:', result.message);
+
+          if (result.avatar) {
+            localStorage.setItem('aika_avatar_' + currentUser.email, result.avatar);
+          }
+
+          // Clear cache to force fresh load on iOS
+          if (isIos) {
+            localStorage.removeItem('aika_avatar_' + currentUser.email);
+            console.log('🔄 iOS cache cleared - will refetch on next load');
+          }
+
+          alert('Foto profil berhasil diperbarui!');
+          // For iOS, reload avatar to get fresh data from API
+          if (isIos) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await loadAvatar();
+            updateNavAvatar();
+          }
+        } catch (err) {
+          console.error('❌ Error saving avatar to API:', err);
+          alert('Gagal mengunggah foto ke server: ' + err.message);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function logout() {
+      localStorage.removeItem('aika_session');
+      sessionStorage.removeItem('aika_session');
+      window.location.href = 'login.html';
+    }
+
+    async function loadOrders() {
+      const list = document.getElementById('ordersList');
+      try {
+        // Memanggil API orders yang dimodifikasi untuk mencari by email (bebas cache)
+        const res = await fetch('/api/user-orders?email=' + encodeURIComponent(currentUser.email) + '&_t=' + Date.now());
+        if (!res.ok) throw new Error('Failed fetch');
+        const orders = await res.json();
+
+        if (orders.length === 0) {
+          list.innerHTML = '<p style="color:var(--text-muted)">Anda belum memiliki pesanan.</p>';
+          return;
+        }
+
+        list.innerHTML = orders.map(o => {
+          let itemsArr = Array.isArray(o.items) ? o.items : (typeof o.items === 'string' ? JSON.parse(o.items) : []);
+          let shippingInfo = null;
+          try { shippingInfo = typeof o.shipping === 'string' ? JSON.parse(o.shipping) : o.shipping; } catch (e) { }
+
+          allOrders[o.id] = itemsArr;
+
+          const formattedDate = new Date(o.date || o.created_at || Date.now()).toLocaleString('id-ID', {
+            day: '2-digit', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+          }) + ' WIB';
+
+          return `
         <div class="order-card">
           <div class="order-header">
             <div>
@@ -413,12 +530,42 @@
             </div>
           </div>
           <div class="order-items">
-            ${itemsArr.map(i => `
-              <div class="order-item">
-                <span>${i.qty}x ${i.name}${i.size ? ` • Size ${i.size}` : ''}</span>
-                <span>Rp ${(i.price * i.qty).toLocaleString('id-ID')}</span>
+            ${itemsArr.map(i => {
+              const isPhotopack = i.is_photopack;
+              const gdriveLink = i.gdrive_link;
+
+              return `
+              <div style="border-bottom:1px solid rgba(255,255,255,0.05); padding:0.5rem 0;">
+                <div class="order-item">
+                  <span>${i.qty}x ${i.name}${i.size ? ` • Size ${i.size}` : ''} ${isPhotopack ? '<span style="background:rgba(41,182,246,0.2);color:var(--aqua);padding:2px 8px;border-radius:12px;font-size:0.75rem;font-weight:bold;margin-left:6px;">📸 Photopack</span>' : ''}</span>
+                  <span>Rp ${(i.price * i.qty).toLocaleString('id-ID')}</span>
+                </div>
+                ${isPhotopack ? (
+                  gdriveLink ? `
+                    <div style="margin-top:0.5rem; padding:0.75rem 1rem; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+                      <div>
+                        <div style="font-weight:700; color:#86efac; font-size:0.85rem;">✅ Pembayaran Diverifikasi Admin</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Link Google Drive Photopack siap diakses!</div>
+                      </div>
+                      <a href="${gdriveLink}" target="_blank" rel="noopener noreferrer" style="padding:0.45rem 1rem; font-size:0.82rem; border-radius:6px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; background:linear-gradient(135deg, #10b981, #059669); color:#fff; font-weight:700; box-shadow:0 4px 12px rgba(16,185,129,0.3);">
+                        📂 Buka Google Drive ↗
+                      </a>
+                    </div>
+                  ` : `
+                    <div style="margin-top:0.5rem; padding:0.75rem 1rem; background:rgba(234,179,8,0.1); border:1px solid rgba(234,179,8,0.3); border-radius:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+                      <div>
+                        <div style="font-weight:700; color:#fde047; font-size:0.85rem;">⏳ Menunggu Verifikasi Admin</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Link Google Drive akan terbuka setelah pembayaran diverifikasi oleh Admin.</div>
+                      </div>
+                      <button disabled style="padding:0.4rem 0.8rem; font-size:0.78rem; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:var(--text-muted); cursor:not-allowed;">
+                        🔒 Link Terkunci (Pending Admin)
+                      </button>
+                    </div>
+                  `
+                ) : ''}
               </div>
-            `).join('')}
+            `;
+            }).join('')}
           </div>
           <div class="order-footer">
             <span>Total Bayar <strong style="color:var(--aqua);font-size:1.1rem;margin-left:5px">Rp ${(o.total).toLocaleString('id-ID')}</strong></span>
@@ -429,224 +576,224 @@
           </div>
           ${o.status === 'completed' ? `
             <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--card-border)">
-              ${o.review_id 
-                ? '<span style="color:var(--aqua)">⭐ Ulasan Terkirim</span>' 
+              ${o.review_id
+                ? '<span style="color:var(--aqua)">⭐ Ulasan Terkirim</span>'
                 : `<button class="review-btn" onclick="giveReview('${o.id}')">Beri Ulasan ⭐</button>`}
             </div>
           ` : ''}
         </div>
       `;
-      }).join('');
+        }).join('');
 
-    } catch (err) {
-      console.error(err);
-      list.innerHTML = '<p style="color:#ef4444">Gagal memuat pesanan.</p>';
-    }
-  }
-
-  async function confirmDelivery(orderId) {
-    if(!confirm("Apakah Anda yakin paket telah diterima dengan baik?")) return;
-    try {
-      const res = await fetch('/api/orders', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: orderId, status: 'completed' })
-      });
-      if(!res.ok) throw new Error("Gagal konfirmasi pesanan.");
-      alert("Terima kasih! Pesanan Selesai. Silakan berikan ulasan Anda.");
-      loadOrders(); // Muat ulang list
-    } catch(err) {
-      alert(err.message);
-    }
-  }
-
-  function giveReview(orderId) {
-    currentReviewOrderId = orderId;
-    document.getElementById('reviewOrderId').textContent = 'Pesanan: #' + orderId;
-    document.getElementById('reviewRating').value = '5';
-    document.getElementById('reviewComment').value = '';
-    document.getElementById('reviewModal').classList.add('active');
-  }
-
-  function openInvoice(orderId) {
-    // Show loading indicator
-    const btn = event.target.closest('div');
-    if (btn) {
-      const originalText = btn.textContent;
-      btn.textContent = '⏳ Membuka invoice...';
-      btn.style.opacity = '0.6';
-      btn.style.pointerEvents = 'none';
-    }
-
-    fetch('/api/user-orders?email=' + encodeURIComponent(currentUser.email) + '&_t=' + Date.now())
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        return res.json();
-      })
-      .then(orders => {
-        const order = orders.find(o => o.id === orderId);
-        if (!order) {
-          throw new Error('Pesanan tidak ditemukan');
-        }
-
-        // Parse items and shipping info safely
-        try {
-          if (typeof order.items === 'string') order.items = JSON.parse(order.items);
-          if (typeof order.shipping === 'string') order.shipping = JSON.parse(order.shipping);
-        } catch(parseErr) {
-          console.error('Error parsing order data:', parseErr);
-        }
-
-        // Prepare order data for storage - remove large base64 images
-        const orderForStorage = { ...order };
-        delete orderForStorage.payment_proof; // Remove large base64 image
-        delete orderForStorage.avatar; // Remove avatar if exists
-        
-        try {
-          // Try sessionStorage first (temporary, better for large data)
-          sessionStorage.setItem('last_order', JSON.stringify(orderForStorage));
-        } catch (storageErr) {
-          // Fallback: store only order ID if sessionStorage also fails
-          console.warn('SessionStorage full, using minimal data:', storageErr);
-          sessionStorage.setItem('last_order_id', orderId);
-        }
-
-        window.location.href = 'order-success.html';
-      })
-      .catch(err => {
-        console.error('Error opening invoice:', err);
-        alert('⚠️ Gagal membuka invoice: ' + err.message);
-        if (btn) {
-          btn.textContent = originalText;
-          btn.style.opacity = '1';
-          btn.style.pointerEvents = 'auto';
-        }
-      });
-  }
-
-  function closeReviewModal(e) {
-    if (e && e.target.id !== 'reviewModal') return;
-    document.getElementById('reviewModal').classList.remove('active');
-  }
-
-  async function submitReview() {
-    const rating = document.getElementById('reviewRating').value;
-    const comment = document.getElementById('reviewComment').value;
-    const btn = document.getElementById('btnSubmitReview');
-
-    btn.disabled = true;
-    btn.textContent = 'Mengirim...';
-
-    const avatarStr = localStorage.getItem('aika_avatar_' + currentUser.email) || '';
-
-    try {
-      const res = await fetch('/api/reviews', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          order_id: currentReviewOrderId,
-          customer_name: currentUser.username,
-          rating: parseInt(rating),
-          comment: comment,
-          avatar: avatarStr
-        })
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Gagal mengirim ulasan');
-
-      alert('Terima kasih! Ulasan Anda berhasil dikirim.');
-      closeReviewModal();
-      
-      const btnToHide = document.querySelector(`button[onclick="giveReview('${currentReviewOrderId}')"]`);
-      if (btnToHide) {
-        btnToHide.parentElement.innerHTML = '<span style="color:var(--aqua)">⭐ Ulasan Terkirim</span>';
+      } catch (err) {
+        console.error(err);
+        list.innerHTML = '<p style="color:#ef4444">Gagal memuat pesanan.</p>';
       }
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Kirim';
     }
-  }
 
-  /* --- REORDER (Beli Lagi) --- */
-  function reorderItems(orderId) {
-    const items = allOrders[orderId] || [];
-    if (!items || items.length === 0) return;
-    
-    const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
-    const key = userStr ? `aika_cart_${JSON.parse(userStr).email}` : 'aika_cart_guest';
-    
-    let cart = JSON.parse(localStorage.getItem(key) || '[]');
-    items.forEach(orderItem => {
-      let existing = cart.find(i => i.id === orderItem.id || i.name === orderItem.name);
-      if (existing) {
-        existing.qty += (orderItem.qty || 1);
-      } else {
-        cart.push({
-          id: orderItem.id || Date.now() + Math.random(),
-          name: orderItem.name,
-          price: orderItem.price,
-          qty: orderItem.qty || 1,
-          image: orderItem.image || ''
+    async function confirmDelivery(orderId) {
+      if (!confirm("Apakah Anda yakin paket telah diterima dengan baik?")) return;
+      try {
+        const res = await fetch('/api/orders', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: orderId, status: 'completed' })
         });
+        if (!res.ok) throw new Error("Gagal konfirmasi pesanan.");
+        alert("Terima kasih! Pesanan Selesai. Silakan berikan ulasan Anda.");
+        loadOrders(); // Muat ulang list
+      } catch (err) {
+        alert(err.message);
       }
-    });
-    localStorage.setItem(key, JSON.stringify(cart));
-    alert('Barang berhasil ditambahkan ke keranjang!');
-    window.location.href = 'index.html'; // Go back to shop instead of non-existent cart.html
-  }
-
-  /* --- PENGATURAN AKUN --- */
-  function saveSettings(e) {
-    e.preventDefault();
-    const newName = document.getElementById('settingName').value;
-    const newPass = document.getElementById('settingPassword').value;
-    const btn = document.getElementById('btnSaveSettings');
-    
-    btn.disabled = true; btn.textContent = 'Menyimpan...';
-
-    // Simulasi save ke localStorage (karena di backend butuh /api/update-user yg belum ada)
-    setTimeout(() => {
-      currentUser.username = newName;
-      if (newPass) currentUser.password = newPass; // Hanya simulasi
-      
-      localStorage.setItem('aika_session', JSON.stringify(currentUser));
-      document.getElementById('profName').textContent = newName;
-      loadAvatar();
-      
-      // Update the main user document object name too if needed
-      let userEls = document.querySelectorAll('.user-dropdown-name, #userMenuBtn span:not([style])');
-      userEls.forEach(el => el.textContent = newName);
-
-      alert('Pengaturan akun berhasil disimpan!');
-      document.getElementById('settingPassword').value = '';
-      btn.disabled = false; btn.textContent = 'Simpan Perubahan';
-    }, 800);
-  }
-
-  /* --- BUKU ALAMAT --- */
-  function updateNavAvatar() {
-    const saved = localStorage.getItem('aika_avatar_' + currentUser.email);
-    if (!saved) return;
-    
-    // Perbarui foto di navigasi jika script index.html juga dijalankan
-    const userAvatars = document.querySelectorAll('.user-avatar');
-    userAvatars.forEach(el => {
-      el.innerHTML = `<img src="${saved}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
-    });
-  }
-  function loadAddress() {
-    const list = document.getElementById('addressList');
-    const addresses = JSON.parse(localStorage.getItem('aika_address_' + currentUser.email) || '[]');
-    
-    if (addresses.length === 0) {
-      list.innerHTML = '<p style="color:var(--text-muted)">Belum ada alamat yang tersimpan.</p>';
-      return;
     }
-    
-    list.innerHTML = addresses.map((addr, idx) => `
+
+    function giveReview(orderId) {
+      currentReviewOrderId = orderId;
+      document.getElementById('reviewOrderId').textContent = 'Pesanan: #' + orderId;
+      document.getElementById('reviewRating').value = '5';
+      document.getElementById('reviewComment').value = '';
+      document.getElementById('reviewModal').classList.add('active');
+    }
+
+    function openInvoice(orderId) {
+      // Show loading indicator
+      const btn = event.target.closest('div');
+      if (btn) {
+        const originalText = btn.textContent;
+        btn.textContent = '⏳ Membuka invoice...';
+        btn.style.opacity = '0.6';
+        btn.style.pointerEvents = 'none';
+      }
+
+      fetch('/api/user-orders?email=' + encodeURIComponent(currentUser.email) + '&_t=' + Date.now())
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+          return res.json();
+        })
+        .then(orders => {
+          const order = orders.find(o => o.id === orderId);
+          if (!order) {
+            throw new Error('Pesanan tidak ditemukan');
+          }
+
+          // Parse items and shipping info safely
+          try {
+            if (typeof order.items === 'string') order.items = JSON.parse(order.items);
+            if (typeof order.shipping === 'string') order.shipping = JSON.parse(order.shipping);
+          } catch (parseErr) {
+            console.error('Error parsing order data:', parseErr);
+          }
+
+          // Prepare order data for storage - remove large base64 images
+          const orderForStorage = { ...order };
+          delete orderForStorage.payment_proof; // Remove large base64 image
+          delete orderForStorage.avatar; // Remove avatar if exists
+
+          try {
+            // Try sessionStorage first (temporary, better for large data)
+            sessionStorage.setItem('last_order', JSON.stringify(orderForStorage));
+          } catch (storageErr) {
+            // Fallback: store only order ID if sessionStorage also fails
+            console.warn('SessionStorage full, using minimal data:', storageErr);
+            sessionStorage.setItem('last_order_id', orderId);
+          }
+
+          window.location.href = 'order-success.html';
+        })
+        .catch(err => {
+          console.error('Error opening invoice:', err);
+          alert('⚠️ Gagal membuka invoice: ' + err.message);
+          if (btn) {
+            btn.textContent = originalText;
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = 'auto';
+          }
+        });
+    }
+
+    function closeReviewModal(e) {
+      if (e && e.target.id !== 'reviewModal') return;
+      document.getElementById('reviewModal').classList.remove('active');
+    }
+
+    async function submitReview() {
+      const rating = document.getElementById('reviewRating').value;
+      const comment = document.getElementById('reviewComment').value;
+      const btn = document.getElementById('btnSubmitReview');
+
+      btn.disabled = true;
+      btn.textContent = 'Mengirim...';
+
+      const avatarStr = localStorage.getItem('aika_avatar_' + currentUser.email) || '';
+
+      try {
+        const res = await fetch('/api/reviews', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            order_id: currentReviewOrderId,
+            customer_name: currentUser.username,
+            rating: parseInt(rating),
+            comment: comment,
+            avatar: avatarStr
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal mengirim ulasan');
+
+        alert('Terima kasih! Ulasan Anda berhasil dikirim.');
+        closeReviewModal();
+
+        const btnToHide = document.querySelector(`button[onclick="giveReview('${currentReviewOrderId}')"]`);
+        if (btnToHide) {
+          btnToHide.parentElement.innerHTML = '<span style="color:var(--aqua)">⭐ Ulasan Terkirim</span>';
+        }
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Kirim';
+      }
+    }
+
+    /* --- REORDER (Beli Lagi) --- */
+    function reorderItems(orderId) {
+      const items = allOrders[orderId] || [];
+      if (!items || items.length === 0) return;
+
+      const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+      const key = userStr ? `aika_cart_${JSON.parse(userStr).email}` : 'aika_cart_guest';
+
+      let cart = JSON.parse(localStorage.getItem(key) || '[]');
+      items.forEach(orderItem => {
+        let existing = cart.find(i => i.id === orderItem.id || i.name === orderItem.name);
+        if (existing) {
+          existing.qty += (orderItem.qty || 1);
+        } else {
+          cart.push({
+            id: orderItem.id || Date.now() + Math.random(),
+            name: orderItem.name,
+            price: orderItem.price,
+            qty: orderItem.qty || 1,
+            image: orderItem.image || ''
+          });
+        }
+      });
+      localStorage.setItem(key, JSON.stringify(cart));
+      alert('Barang berhasil ditambahkan ke keranjang!');
+      window.location.href = 'index.html'; // Go back to shop instead of non-existent cart.html
+    }
+
+    /* --- PENGATURAN AKUN --- */
+    function saveSettings(e) {
+      e.preventDefault();
+      const newName = document.getElementById('settingName').value;
+      const newPass = document.getElementById('settingPassword').value;
+      const btn = document.getElementById('btnSaveSettings');
+
+      btn.disabled = true; btn.textContent = 'Menyimpan...';
+
+      // Simulasi save ke localStorage (karena di backend butuh /api/update-user yg belum ada)
+      setTimeout(() => {
+        currentUser.username = newName;
+        if (newPass) currentUser.password = newPass; // Hanya simulasi
+
+        localStorage.setItem('aika_session', JSON.stringify(currentUser));
+        document.getElementById('profName').textContent = newName;
+        loadAvatar();
+
+        // Update the main user document object name too if needed
+        let userEls = document.querySelectorAll('.user-dropdown-name, #userMenuBtn span:not([style])');
+        userEls.forEach(el => el.textContent = newName);
+
+        alert('Pengaturan akun berhasil disimpan!');
+        document.getElementById('settingPassword').value = '';
+        btn.disabled = false; btn.textContent = 'Simpan Perubahan';
+      }, 800);
+    }
+
+    /* --- BUKU ALAMAT --- */
+    function updateNavAvatar() {
+      const saved = localStorage.getItem('aika_avatar_' + currentUser.email);
+      if (!saved) return;
+
+      // Perbarui foto di navigasi jika script index.html juga dijalankan
+      const userAvatars = document.querySelectorAll('.user-avatar');
+      userAvatars.forEach(el => {
+        el.innerHTML = `<img src="${saved}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+      });
+    }
+    function loadAddress() {
+      const list = document.getElementById('addressList');
+      const addresses = JSON.parse(localStorage.getItem('aika_address_' + currentUser.email) || '[]');
+
+      if (addresses.length === 0) {
+        list.innerHTML = '<p style="color:var(--text-muted)">Belum ada alamat yang tersimpan .</p>';
+        return;
+      }
+
+      list.innerHTML = addresses.map((addr, idx) => `
       <div style="background:var(--card-bg); border:1px solid var(--card-border); padding:1rem; border-radius:var(--radius-sm); display:flex; justify-content:space-between; align-items:flex-start;">
         <div>
           <h4 style="color:var(--white); margin-bottom:5px; font-family:var(--font-display);">${addr.label}</h4>
@@ -655,40 +802,40 @@
         <button class="btn-ghost" style="border:none; color:#ef4444; padding:0.5rem;" onclick="deleteAddress(${idx})">🗑️ Hapus</button>
       </div>
     `).join('');
-  }
-
-  function saveAddress(e) {
-    e.preventDefault();
-    const label = document.getElementById('addrLabel').value;
-    const text = document.getElementById('addrText').value;
-    
-    let addresses = JSON.parse(localStorage.getItem('aika_address_' + currentUser.email) || '[]');
-    addresses.push({ label, address: text });
-    localStorage.setItem('aika_address_' + currentUser.email, JSON.stringify(addresses));
-    
-    document.getElementById('addressForm').reset();
-    loadAddress();
-  }
-
-  function deleteAddress(idx) {
-    if(!confirm('Hapus alamat ini?')) return;
-    let addresses = JSON.parse(localStorage.getItem('aika_address_' + currentUser.email) || '[]');
-    addresses.splice(idx, 1);
-    localStorage.setItem('aika_address_' + currentUser.email, JSON.stringify(addresses));
-    loadAddress();
-  }
-
-  /* --- WISHLIST --- */
-  function loadWishlist() {
-    const container = document.getElementById('wishlistContainer');
-    const wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
-    
-    if (wishlist.length === 0) {
-      container.innerHTML = '<p style="color:var(--text-muted); grid-column:1 / -1;">Wishlist Anda kosong.</p>';
-      return;
     }
-    
-    container.innerHTML = wishlist.map((item, idx) => `
+
+    function saveAddress(e) {
+      e.preventDefault();
+      const label = document.getElementById('addrLabel').value;
+      const text = document.getElementById('addrText').value;
+
+      let addresses = JSON.parse(localStorage.getItem('aika_address_' + currentUser.email) || '[]');
+      addresses.push({ label, address: text });
+      localStorage.setItem('aika_address_' + currentUser.email, JSON.stringify(addresses));
+
+      document.getElementById('addressForm').reset();
+      loadAddress();
+    }
+
+    function deleteAddress(idx) {
+      if (!confirm('Hapus alamat ini?')) return;
+      let addresses = JSON.parse(localStorage.getItem('aika_address_' + currentUser.email) || '[]');
+      addresses.splice(idx, 1);
+      localStorage.setItem('aika_address_' + currentUser.email, JSON.stringify(addresses));
+      loadAddress();
+    }
+
+    /* --- WISHLIST --- */
+    function loadWishlist() {
+      const container = document.getElementById('wishlistContainer');
+      const wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
+
+      if (wishlist.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-muted); grid-column:1 / -1;">Wishlist Anda kosong.</p>';
+        return;
+      }
+
+      container.innerHTML = wishlist.map((item, idx) => `
       <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:var(--radius); overflow:hidden; position:relative;">
         <button style="position:absolute; top:8px; right:8px; background:rgba(3,9,31,0.7); border:none; border-radius:50%; width:30px; height:30px; color:#ef4444; cursor:pointer;" onclick="removeWishlist(${idx})">✕</button>
         <div style="height:120px; background:var(--midnight-blue); display:flex; align-items:center; justify-content:center;">
@@ -701,36 +848,37 @@
         </div>
       </div>
     `).join('');
-  }
-
-  function removeWishlist(idx) {
-    let wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
-    wishlist.splice(idx, 1);
-    localStorage.setItem('aika_wishlist', JSON.stringify(wishlist));
-    loadWishlist();
-  }
-
-  function addWishlistToCart(idx) {
-    let wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
-    
-    const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
-    const key = userStr ? `aika_cart_${JSON.parse(userStr).email}` : 'aika_cart_guest';
-    let cart = JSON.parse(localStorage.getItem(key) || '[]');
-    
-    let item = wishlist[idx];
-    if(!item) return;
-    
-    let exist = cart.find(c => c.name === item.name);
-    if(exist) {
-      exist.qty = (exist.qty || 1) + 1;
-    } else {
-      item.qty = 1;
-      cart.push(item);
     }
-    
-    localStorage.setItem(key, JSON.stringify(cart));
-    alert(item.name + ' ditambahkan ke keranjang!');
-  }
-</script>
+
+    function removeWishlist(idx) {
+      let wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
+      wishlist.splice(idx, 1);
+      localStorage.setItem('aika_wishlist', JSON.stringify(wishlist));
+      loadWishlist();
+    }
+
+    function addWishlistToCart(idx) {
+      let wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
+
+      const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+      const key = userStr ? `aika_cart_${JSON.parse(userStr).email}` : 'aika_cart_guest';
+      let cart = JSON.parse(localStorage.getItem(key) || '[]');
+
+      let item = wishlist[idx];
+      if (!item) return;
+
+      let exist = cart.find(c => c.name === item.name);
+      if (exist) {
+        exist.qty = (exist.qty || 1) + 1;
+      } else {
+        item.qty = 1;
+        cart.push(item);
+      }
+
+      localStorage.setItem(key, JSON.stringify(cart));
+      alert(item.name + ' ditambahkan ke keranjang!');
+    }
+  </script>
 </body>
+
 </html>

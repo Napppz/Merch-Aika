@@ -1045,11 +1045,12 @@
         </div>
         <div class="form-group">
           <label>Kategori *</label>
-          <select id="productCategory">
+          <select id="productCategory" onchange="toggleProductSizesField()">
             <option>Pakaian</option>
             <option>Aksesoris</option>
             <option>Foto & Print</option>
             <option>Acrylic</option>
+            <option>Photopack</option>
           </select>
         </div>
       </div>
@@ -1064,6 +1065,25 @@
         <input type="text" id="productSizes" placeholder="Contoh: S, M, L, XL, XXL, XXXL" />
         <div style="color:var(--text-muted);font-size:0.78rem;margin-top:0.45rem">Pisahkan dengan koma. Ukuran ini hanya
           dipakai untuk kategori pakaian.</div>
+      </div>
+
+      <!-- ── PHOTOPACK DIGITAL GROUP ── -->
+      <div class="form-group" id="productPhotopackGroup" style="margin-top: 1rem; padding: 1rem; background: rgba(41,182,246,0.06); border: 1px dashed var(--aqua); border-radius: 10px;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <input type="checkbox" id="productIsPhotopack" style="width:18px; height:18px; accent-color:var(--aqua)" onchange="togglePhotopackFields()" />
+          <label for="productIsPhotopack" style="margin:0; font-weight:700; color:var(--aqua); cursor:pointer;">📸 Produk Photopack Digital (Google Drive)</label>
+        </div>
+        <div id="photopackDetails" style="display:none; flex-direction:column; gap:0.8rem; margin-top:0.8rem;">
+          <div>
+            <label style="display:block; color:var(--white); font-size:0.85rem; margin-bottom:0.3rem;">Nama Cosplayer</label>
+            <input type="text" id="productCosplayer" placeholder="Contoh: Aika Sesilia" />
+          </div>
+          <div>
+            <label style="display:block; color:var(--white); font-size:0.85rem; margin-bottom:0.3rem;">Link Google Drive Photopack 🔒</label>
+            <input type="url" id="productGDriveLink" placeholder="https://drive.google.com/drive/folders/..." />
+            <small style="color:var(--text-muted); display:block; margin-top:0.3rem;">Link ini HANYA akan dibuka untuk pembeli setelah status pembayaran DIVERIFIKASI oleh Admin.</small>
+          </div>
+        </div>
       </div>
 
       <div class="form-row">
@@ -1185,7 +1205,7 @@
     // ── DATA HELPERS (Neon DB API) ──
     const Products = {
       async getAll() {
-        try { const res = await fetch('/api/products'); return await res.json(); } catch { return []; }
+        try { const res = await adminFetch('/api/products?admin=true'); return await res.json(); } catch { return []; }
       },
       async add(product) {
         product.id = 'p' + Date.now();
@@ -1374,11 +1394,20 @@
       const el = document.getElementById('productTableBody');
       document.getElementById('productCountLabel').textContent = `${products.length} produk terdaftar`;
 
-      el.innerHTML = products.map(p => `
+      el.innerHTML = products.map(p => {
+        const isPhotopack = p.is_photopack || p.category === 'Photopack';
+        const cosplayerInfo = p.cosplayer_name ? `<div style="font-size:0.75rem;color:var(--aqua);margin-top:2px;">👤 ${p.cosplayer_name}</div>` : '';
+        const driveLinkBtn = p.gdrive_link ? `<a href="${p.gdrive_link}" target="_blank" class="btn-edit" style="text-decoration:none;display:inline-block;margin-top:3px;font-size:0.72rem;padding:2px 6px;">📂 GDrive</a>` : '';
+
+        return `
     <tr>
-      <td><div class="td-thumb">${p.image ? `<img src="${p.image}" style="width:48px;height:48px;object-fit:cover;border-radius:8px" onerror="this.parentElement.textContent='🛍️'">` : '🛍️'}</div></td>
-      <td class="td-name">${p.name}</td>
-      <td><span class="badge-cat">${p.category}</span></td>
+      <td><div class="td-thumb">${p.image ? `<img src="${p.image}" style="width:48px;height:48px;object-fit:cover;border-radius:8px" onerror="this.parentElement.textContent='🛍️'">` : (isPhotopack ? '📸' : '🛍️')}</div></td>
+      <td class="td-name">
+        ${p.name}
+        ${cosplayerInfo}
+        ${driveLinkBtn}
+      </td>
+      <td><span class="badge-cat">${isPhotopack ? '📸 Photopack' : p.category}</span></td>
       <td class="td-price">${formatPrice(p.price)}</td>
       <td>${p.stock ?? '-'}</td>
       <td>${p.badge ? `<span class="badge-cat">${p.badge}</span>` : '—'}</td>
@@ -1389,7 +1418,8 @@
         </div>
       </td>
     </tr>
-  `).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:2rem">Belum ada produk. Tambahkan produk pertamamu!</td></tr>';
+  `;
+      }).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:2rem">Belum ada produk. Tambahkan produk pertamamu!</td></tr>';
     }
 
     // ── PRODUCT MODAL ──
@@ -1501,11 +1531,26 @@
       const category = document.getElementById('productCategory')?.value || '';
       const sizesGroup = document.getElementById('productSizesGroup');
       const sizesInput = document.getElementById('productSizes');
-      if (!sizesGroup || !sizesInput) return;
+      if (sizesGroup && sizesInput) {
+        const isClothing = category === 'Pakaian';
+        sizesGroup.style.display = isClothing ? 'block' : 'none';
+        if (!isClothing) sizesInput.value = '';
+      }
+      togglePhotopackFields();
+    }
 
-      const isClothing = category === 'Pakaian';
-      sizesGroup.style.display = isClothing ? 'block' : 'none';
-      if (!isClothing) sizesInput.value = '';
+    function togglePhotopackFields() {
+      const category = document.getElementById('productCategory')?.value || '';
+      const isPhotopackCheckbox = document.getElementById('productIsPhotopack');
+      const details = document.getElementById('photopackDetails');
+
+      if (!isPhotopackCheckbox || !details) return;
+
+      if (category === 'Photopack' && !isPhotopackCheckbox.checked) {
+        isPhotopackCheckbox.checked = true;
+      }
+
+      details.style.display = isPhotopackCheckbox.checked ? 'flex' : 'none';
     }
 
     function setProductPreview(src) {
@@ -1556,15 +1601,25 @@
         document.getElementById('productBadge').value = p.badge || '';
         document.getElementById('productImage').value = p.image || '';
         document.getElementById('productSizes').value = p.sizes || 'S, M, L, XL, XXL, XXXL';
+        
+        const isPhotopack = p.is_photopack || p.category === 'Photopack';
+        document.getElementById('productIsPhotopack').checked = !!isPhotopack;
+        document.getElementById('productCosplayer').value = p.cosplayer_name || '';
+        document.getElementById('productGDriveLink').value = p.gdrive_link || '';
+
         setProductPreview(p.image || '');
       } else {
         title.textContent = '+ Tambah Produk Baru';
         document.getElementById('editProductId').value = '';
-        ['productName', 'productDesc', 'productPrice', 'productOldPrice', 'productImage'].forEach(fieldId => document.getElementById(fieldId).value = '');
+        ['productName', 'productDesc', 'productPrice', 'productOldPrice', 'productImage', 'productCosplayer', 'productGDriveLink'].forEach(fieldId => {
+          const el = document.getElementById(fieldId);
+          if (el) el.value = '';
+        });
         document.getElementById('productSizes').value = 'S, M, L, XL, XXL, XXXL';
         document.getElementById('productCategory').value = 'Pakaian';
         document.getElementById('productStock').value = 10;
         document.getElementById('productBadge').value = '';
+        document.getElementById('productIsPhotopack').checked = false;
         setProductPreview('');
       }
 
@@ -1623,18 +1678,24 @@
           setProductImageMeta('Upload selesai. Foto siap disimpan ke produk.');
         }
 
+        const categoryVal = document.getElementById('productCategory').value;
+        const isPhotopackBool = document.getElementById('productIsPhotopack').checked || categoryVal === 'Photopack';
+
         const data = {
           name,
-          category: document.getElementById('productCategory').value,
+          category: categoryVal,
           description: document.getElementById('productDesc').value,
           price,
           oldPrice: parseInt(document.getElementById('productOldPrice').value) || null,
           stock: parseInt(document.getElementById('productStock').value) || 0,
           badge: document.getElementById('productBadge').value || null,
           image: imageUrl,
-          sizes: document.getElementById('productCategory').value === 'Pakaian'
+          sizes: categoryVal === 'Pakaian'
             ? (document.getElementById('productSizes').value || 'S, M, L, XL, XXL, XXXL').split(',').map(size => size.trim()).filter(Boolean).join(', ')
-            : null
+            : null,
+          is_photopack: isPhotopackBool,
+          cosplayer_name: document.getElementById('productCosplayer').value.trim() || null,
+          gdrive_link: document.getElementById('productGDriveLink').value.trim() || null
         };
 
         const editId = document.getElementById('editProductId').value;

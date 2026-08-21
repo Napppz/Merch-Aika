@@ -160,24 +160,55 @@ module.exports = async (req, res) => {
       
       order = rows[0];
 
-      // (2/2) Kirim Notifikasi Email - Pembayaran Dikonfirmasi
+      // Fetch photopack details for email if order status is paid
+      let gdriveLinksHTML = '';
       if (status === 'paid' && order.email) {
         try {
+          const itemsArr = Array.isArray(order.items) ? order.items : (typeof order.items === 'string' ? JSON.parse(order.items) : []);
+          const productsRes = await db.query(`SELECT id, name, gdrive_link, is_photopack, category FROM products`);
+          const prodMap = {};
+          productsRes.rows.forEach(p => { prodMap[p.id] = p; });
+
+          const photopackLinks = [];
+          itemsArr.forEach(item => {
+            const prod = prodMap[item.id] || {};
+            if (prod.is_photopack || prod.category === 'Photopack' || item.is_photopack) {
+              const link = prod.gdrive_link || item.gdrive_link;
+              if (link) {
+                photopackLinks.push({ name: item.name || prod.name, link });
+              }
+            }
+          });
+
+          if (photopackLinks.length > 0) {
+            gdriveLinksHTML = `
+              <div style="background:#e0f2fe; padding:1.5rem; border-left: 4px solid #0284c7; border-radius:6px; margin:1.5rem 0;">
+                <h3 style="margin:0 0 0.5rem 0; color:#0369a1;">📸 Link Akses Google Drive Photopack Anda</h3>
+                <p style="margin:0 0 1rem 0; font-size:0.9rem; color:#0c4a6e;">Selamat! Admin telah memverifikasi pembayaran Anda. Klik link di bawah ini untuk mengunduh/melihat photopack Anda:</p>
+                <ul style="margin:0; padding-left:1.2rem; color:#0369a1;">
+                  ${photopackLinks.map(p => `<li style="margin-bottom:0.5rem;"><strong>${p.name}:</strong> <a href="${p.link}" target="_blank" style="color:#0284c7; font-weight:bold; text-decoration:underline;">${p.link}</a></li>`).join('')}
+                </ul>
+              </div>
+            `;
+          }
+
           const transporter = getMailTransport();
           const emailUser = getRequiredEnv('EMAIL_USER');
           await transporter.sendMail({
             from: `"Aika Sesilia" <${emailUser}>`,
             to: order.email,
-            subject: `✅ Pembayaran Dikonfirmasi - Pesanan #${order.id} Sedang Dikemas 📦`,
+            subject: `✅ Pembayaran Dikonfirmasi - Pesanan #${order.id} ${photopackLinks.length > 0 ? '📸 Photopack Siap Diunduh' : 'Sedang Dikemas'} 📦`,
             html: `
               <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                 <h2 style="color: #4caf50;">✅ Pembayaran Dikonfirmasi!</h2>
                 <p>Halo ${order.customerName},</p>
                 <p>Pembayaran Anda untuk pesanan <strong>#${order.id}</strong> telah berhasil kami verifikasi.</p>
                 
+                ${gdriveLinksHTML}
+
                 <div style="background:#f0f8f0; padding:1.5rem; border-left: 4px solid #4caf50; border-radius:4px; margin:1.5rem 0;">
-                  <p style="margin:0;font-weight:bold;color:#333;">Status: Sedang Dikemas</p>
-                  <p style="margin:0.5rem 0; font-size:0.9rem; color:#666;">Tim kami sedang menyiapkan paket Anda. Kami akan mengirimkan nomor resi dalam waktu 1-2 hari kerja.</p>
+                  <p style="margin:0;font-weight:bold;color:#333;">Status: Pembayaran Diverifikasi Admin</p>
+                  <p style="margin:0.5rem 0; font-size:0.9rem; color:#666;">Terima kasih telah melakukan pembelian di Aika Sesilia Official Store.</p>
                 </div>
                 
                 <p><strong>Detail Pesanan:</strong></p>
