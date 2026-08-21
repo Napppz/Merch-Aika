@@ -587,13 +587,38 @@
         })
       });
 
-      if (!resProof.ok) {
-        console.warn('Gagal upload bukti transfer ke payment-proof API, tapi pesanan tersimpan');
-      }
+      // 3. Save Invoice Order Data for Invoice Page
+      const invoiceData = {
+        id: orderId,
+        date: new Date().toISOString(),
+        customerName: currentUser.username,
+        email: currentUser.email,
+        address: 'Pengiriman Digital via Link Google Drive (Tanpa Kurir)',
+        status: 'pending',
+        total: finalTotal,
+        items: [
+          {
+            name: photopackProduct.name,
+            qty: 1,
+            price: photopackProduct.price,
+            is_photopack: true,
+            cosplayer_name: photopackProduct.cosplayer_name || null
+          }
+        ],
+        shipping: {
+          name: 'Digital Delivery (Google Drive)',
+          price: 0,
+          discount: appliedVoucher ? { code: appliedVoucher.code, amount: discountAmount } : null
+        }
+      };
+
+      try {
+        sessionStorage.setItem('last_order', JSON.stringify(invoiceData));
+        localStorage.setItem('last_order', JSON.stringify(invoiceData));
+      } catch (e) {}
 
       localStorage.removeItem('aika_checkout_photopack');
-      alert('🎉 Pesanan Photopack berhasil dibuat!\n\nStatus pesanan: Menunggu Verifikasi Admin.\nLink Google Drive akan langsung terbuka di halaman Profil Anda setelah Admin memverifikasi pembayaran.');
-      window.location.href = 'profile.html?tab=orders';
+      window.location.href = 'order-success.html';
 
     } catch(err) {
       console.error(err);
