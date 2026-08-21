@@ -193,18 +193,6 @@ async function openProductDetail(id) {
     ? `<span class="product-modal-badge">📸 Digital Photopack Eksklusif</span>`
     : `<span class="product-modal-badge" style="background:var(--sea-blue);">${category}</span>`;
 
-  const photopackFeaturesHtml = isPhotopack ? `
-    <div class="product-modal-features">
-      <div style="font-weight:700; color:var(--aqua); margin-bottom:0.4rem;">✨ Detail &amp; Keunggulan Photopack:</div>
-      <ul>
-        <li><strong>Kualitas Gambar:</strong> High-Resolution / 4K Digital Photos</li>
-        <li><strong>Akses Pengiriman:</strong> Link Google Drive langsung di halaman Profil</li>
-        <li><strong>Proses Cepat:</strong> Link otomatis terbuka setelah pembayaran terverifikasi</li>
-        <li><strong>Penyimpanan Aman:</strong> Akses tersimpan permanen di akun member Anda</li>
-      </ul>
-    </div>
-  ` : '';
-
   const sizeOptionsHtml = sizes.length ? `
     <div style="margin-bottom:1.2rem;">
       <label style="display:block; color:var(--white); font-size:0.82rem; font-weight:700; margin-bottom:0.4rem;">Pilih Ukuran:</label>
@@ -231,7 +219,6 @@ async function openProductDetail(id) {
             ${formatPrice(p.price)}
             ${p.oldPrice ? `<span class="product-modal-old-price">${formatPrice(p.oldPrice)}</span>` : ''}
           </div>
-          ${photopackFeaturesHtml}
           <div class="product-modal-desc">
             <div style="font-weight:700; color:var(--white); margin-bottom:0.3rem;">Deskripsi:</div>
             ${p.description || 'Koleksi eksklusif dari Aika Sesilia Store.'}
@@ -303,10 +290,28 @@ document.addEventListener('keydown', (e) => {
 // ── LOAD FEATURED (index.html) ──
 async function loadFeaturedProducts() {
   const grid = document.getElementById('featuredGrid');
-  if (!grid) return;
+  const photopackGrid = document.getElementById('featuredPhotopackGrid');
+  if (!grid && !photopackGrid) return;
+  
   const all = await Products.getAll();
-  const products = all.slice(0, 3);
-  grid.innerHTML = products.map(p => renderProductCard(p)).join('');
+
+  // Featured Merch (Khusus produk fisik / non-photopack)
+  if (grid) {
+    const merch = all.filter(p => !p.is_photopack && normalizeProductCategory(p.category) !== 'Photopack');
+    const displayMerch = (merch.length ? merch : all).slice(0, 3);
+    grid.innerHTML = displayMerch.map(p => renderProductCard(p)).join('');
+  }
+
+  // Featured Photopack (Khusus photopack digital)
+  if (photopackGrid) {
+    const photopacks = all.filter(p => p.is_photopack || normalizeProductCategory(p.category) === 'Photopack');
+    if (photopacks.length === 0) {
+      photopackGrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:2rem;">Belum ada photopack tersedia saat ini.</div>';
+    } else {
+      photopackGrid.innerHTML = photopacks.slice(0, 3).map(p => renderProductCard(p)).join('');
+    }
+  }
+
   initFadeIn();
 }
 

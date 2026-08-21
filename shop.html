@@ -150,6 +150,16 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const cat = urlParams.get('category') || urlParams.get('cat');
+    if (cat) {
+      const tabs = Array.from(document.querySelectorAll('.filter-tab'));
+      const foundTab = tabs.find(t => t.textContent.toLowerCase().includes(cat.toLowerCase()));
+      if (foundTab) {
+        setFilter(cat, foundTab);
+        return;
+      }
+    }
     loadShopProducts();
     applyFilter();
   });
