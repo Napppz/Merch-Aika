@@ -9,6 +9,9 @@ CREATE TABLE IF NOT EXISTS products (
   badge TEXT,
   image TEXT,
   sizes TEXT,
+  gdrive_link TEXT,
+  cosplayer_name VARCHAR(100),
+  is_photopack BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
