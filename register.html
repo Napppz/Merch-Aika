@@ -299,6 +299,39 @@
     .resend-btn:disabled { opacity: 0.4; cursor: not-allowed; text-decoration: none; }
     #resend-countdown { font-weight: 700; color: var(--aqua); }
 
+    /* Permanent Spam / Inbox Notice */
+    .otp-spam-box {
+      background: rgba(41, 182, 246, 0.08);
+      border: 1px solid rgba(41, 182, 246, 0.25);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      margin: 0.8rem 0 1.2rem 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      text-align: left;
+      animation: fadeUp 0.3s ease;
+    }
+    .otp-spam-box .spam-icon {
+      font-size: 1.25rem;
+      line-height: 1.2;
+      flex-shrink: 0;
+    }
+    .otp-spam-box .spam-title {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--aqua);
+      margin-bottom: 2px;
+    }
+    .otp-spam-box .spam-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+    .otp-spam-box .spam-desc strong {
+      color: #fde047;
+    }
+
     /* Alert */
     .auth-alert {
       border-radius: 10px;
@@ -533,6 +566,15 @@
     <div class="form-step" id="step3">
       <p class="step-title">Verifikasi Email</p>
       <p class="email-hint">Kode 6 digit telah dikirim ke<br><strong id="emailDisplay">—</strong></p>
+
+      <!-- Kotak Notifikasi Cek Email & Folder Spam (Permanen / Tidak Hilang) -->
+      <div class="otp-spam-box" id="otpSpamNotice">
+        <span class="spam-icon">✉️</span>
+        <div>
+          <div class="spam-title">Cek Kotak Masuk &amp; Folder Spam</div>
+          <div class="spam-desc">Kode OTP telah dikirim. Jika tidak ada di Kotak Masuk (Inbox), silakan <strong>periksa folder Spam / Promosi / Junk</strong> di email Anda.</div>
+        </div>
+      </div>
 
       <div class="otp-container">
         <input class="otp-input" type="text" maxlength="1" id="otp0" oninput="otpInput(0)" onkeydown="otpKey(event,0)" inputmode="numeric" />
