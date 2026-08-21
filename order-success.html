@@ -147,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
       <div>
         <span>${i.qty}x ${i.name}${i.size ? ` • Size ${i.size}` : ''}</span>
         ${i.is_photopack ? '<span style="background:rgba(41,182,246,0.2);color:var(--aqua);padding:2px 8px;border-radius:12px;font-size:0.75rem;font-weight:bold;margin-left:6px;">📸 Photopack Digital</span>' : ''}
-        ${i.cosplayer_name ? `<div style="font-size:0.78rem;color:var(--aqua);margin-top:2px;">👤 Cosplayer: ${i.cosplayer_name}</div>` : ''}
       </div>
       <span>${formatPrice(i.price * i.qty)}</span>
     </div>

@@ -423,7 +423,7 @@
 
   function renderPhotopackItem() {
     document.getElementById('itemTitle').textContent = photopackProduct.name;
-    document.getElementById('itemCosplayer').textContent = photopackProduct.cosplayer_name ? 'Cosplayer: ' + photopackProduct.cosplayer_name : 'Eksklusif Digital';
+    document.getElementById('itemCosplayer').textContent = '📸 Digital Photopack Eksklusif';
     
     subtotal = parseInt(photopackProduct.price || 0, 10);
     document.getElementById('itemPrice').textContent = formatPrice(subtotal);

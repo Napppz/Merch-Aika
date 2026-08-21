@@ -87,8 +87,11 @@ function checkWishlistStatus(id) {
   return wishlist.some(w => w.id === id);
 }
 
+let cachedProductsMap = {};
+
 // ── RENDER PRODUCT CARD ──
 function renderProductCard(p, compact = false) {
+  cachedProductsMap[p.id] = p;
   const category = normalizeProductCategory(p.category);
   const isPhotopack = p.is_photopack || category === 'Photopack';
   const emoji = { 'Pakaian': '👕', 'Aksesoris': '💎', 'Foto & Print': '🖼️', 'Acrylic': '🧿', 'Photopack': '📸' };
@@ -100,14 +103,14 @@ function renderProductCard(p, compact = false) {
   const badgeText = p.badge || (isPhotopack ? '📸 Photopack Digital' : '');
 
   return `
-    <div class="product-card fade-in">
+    <div class="product-card fade-in" style="cursor:pointer;" onclick="if(!event.target.closest('button') && !event.target.closest('select') && !event.target.closest('a')) openProductDetail('${p.id}')">
       <div class="product-img-wrap" style="position:relative;">
         <button style="position:absolute; top:12px; left:12px; z-index:10; background:rgba(3,9,31,0.6); backdrop-filter:blur(4px); border:1px solid var(--card-border); border-radius:50%; width:36px; height:36px; color:${heartColor}; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:var(--transition);" 
           data-id="${p.id}" 
           data-name='${(p.name || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;")}' 
           data-price="${p.price}" 
           data-img="${p.image || ''}" 
-          onclick='toggleWishlist(this)' 
+          onclick='event.stopPropagation(); toggleWishlist(this)' 
           aria-label="Favorit">
           <svg width="20" height="20" fill="${heartFill}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
         </button>
@@ -118,37 +121,172 @@ function renderProductCard(p, compact = false) {
       </div>
       <div class="product-body">
         ${category ? `<div class="product-category">${isPhotopack ? '📸 Photopack Digital' : category}</div>` : ''}
-        <div class="product-name">${p.name}</div>
-        ${p.cosplayer_name ? `<div style="font-size:0.78rem;color:var(--aqua);font-weight:700;margin-top:0.25rem;">Cosplayer: ${p.cosplayer_name}</div>` : ''}
+        <div class="product-name" style="transition:color 0.2s ease;">${p.name}</div>
         <div class="product-desc">${p.description}</div>
         ${sizes.length ? `<div style="margin-top:0.75rem;color:var(--text-muted);font-size:0.78rem;">Ukuran: <span style="color:var(--aqua);font-weight:700">${sizes.join(', ')}</span></div>` : ''}
-        ${sizes.length ? `<div style="margin-top:0.8rem;"><label for="${sizeSelectId}" style="display:block;color:var(--white);font-size:0.78rem;font-weight:700;margin-bottom:0.35rem;">Pilih Size</label><select id="${sizeSelectId}" style="width:100%;border-radius:8px;background:rgba(3,9,31,0.8);border:1px solid var(--card-border);color:var(--white);padding:0.65rem;font-family:var(--font-body);font-size:0.85rem;"><option value="">-- Pilih Size --</option>${sizes.map(size => `<option value="${size}">${size}</option>`).join('')}</select></div>` : ''}
+        ${sizes.length ? `<div style="margin-top:0.8rem;" onclick="event.stopPropagation()"><label for="${sizeSelectId}" style="display:block;color:var(--white);font-size:0.78rem;font-weight:700;margin-bottom:0.35rem;">Pilih Size</label><select id="${sizeSelectId}" style="width:100%;border-radius:8px;background:rgba(3,9,31,0.8);border:1px solid var(--card-border);color:var(--white);padding:0.65rem;font-family:var(--font-body);font-size:0.85rem;"><option value="">-- Pilih Size --</option>${sizes.map(size => `<option value="${size}">${size}</option>`).join('')}</select></div>` : ''}
         <div class="product-footer">
           <div>
             <div class="product-price">${formatPrice(p.price)}</div>
             ${p.oldPrice ? `<div class="product-old-price">${formatPrice(p.oldPrice)}</div>` : ''}
           </div>
-          ${isPhotopack ? `
-            <button class="btn-primary" style="padding:0.55rem 0.95rem; font-size:0.85rem; border-radius:8px; display:inline-flex; align-items:center; gap:5px; font-weight:700; background:linear-gradient(135deg, #0284c7, #2563eb); border:none; box-shadow:0 4px 14px rgba(2,132,199,0.35); cursor:pointer;" onclick="window.location.href='checkout-photopack.html?id=${p.id}'">
-              ⚡ Beli Photopack
+          <div style="display:flex; gap:0.4rem; align-items:center;">
+            <button class="btn-ghost" style="padding:0.5rem 0.75rem; font-size:0.8rem; border-radius:8px;" onclick="event.stopPropagation(); openProductDetail('${p.id}')">
+              👁️ Detail
             </button>
-          ` : `
-            <button class="add-cart-btn" 
-              data-id="${p.id}" 
-              data-name='${(p.name || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;")}' 
-              data-price="${p.price}" 
-              data-img="${p.image || ''}" 
-              data-is-photopack="false"
-              data-size-select="${sizes.length ? sizeSelectId : ''}"
-              onclick="Cart.addFromBtn(this)">
-              + Keranjang
-            </button>
-          `}
+            ${isPhotopack ? `
+              <button class="btn-primary" style="padding:0.5rem 0.85rem; font-size:0.82rem; border-radius:8px; display:inline-flex; align-items:center; gap:4px; font-weight:700; background:linear-gradient(135deg, #0284c7, #2563eb); border:none; box-shadow:0 4px 14px rgba(2,132,199,0.35); cursor:pointer;" onclick="event.stopPropagation(); window.location.href='checkout-photopack.html?id=${p.id}'">
+                ⚡ Beli
+              </button>
+            ` : `
+              <button class="add-cart-btn" 
+                data-id="${p.id}" 
+                data-name='${(p.name || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;")}' 
+                data-price="${p.price}" 
+                data-img="${p.image || ''}" 
+                data-is-photopack="false"
+                data-size-select="${sizes.length ? sizeSelectId : ''}"
+                onclick="event.stopPropagation(); Cart.addFromBtn(this)">
+                + Keranjang
+              </button>
+            `}
+          </div>
         </div>
       </div>
     </div>
   `;
 }
+
+// ── OPEN PRODUCT / PHOTOPACK DETAIL MODAL ──
+async function openProductDetail(id) {
+  let p = cachedProductsMap[id];
+  if (!p) {
+    const all = await Products.getAll();
+    all.forEach(item => { cachedProductsMap[item.id] = item; });
+    p = cachedProductsMap[id];
+  }
+  if (!p) return;
+
+  const isPhotopack = p.is_photopack || normalizeProductCategory(p.category) === 'Photopack';
+  const category = normalizeProductCategory(p.category);
+  const sizes = getProductSizes(p);
+
+  let modalEl = document.getElementById('productDetailModal');
+  if (!modalEl) {
+    modalEl = document.createElement('div');
+    modalEl.id = 'productDetailModal';
+    modalEl.className = 'product-modal-overlay';
+    modalEl.onclick = function(e) {
+      if (e.target === modalEl) closeProductDetail();
+    };
+    document.body.appendChild(modalEl);
+  }
+
+  const badgeHtml = isPhotopack
+    ? `<span class="product-modal-badge">📸 Digital Photopack Eksklusif</span>`
+    : `<span class="product-modal-badge" style="background:var(--sea-blue);">${category}</span>`;
+
+  const photopackFeaturesHtml = isPhotopack ? `
+    <div class="product-modal-features">
+      <div style="font-weight:700; color:var(--aqua); margin-bottom:0.4rem;">✨ Detail &amp; Keunggulan Photopack:</div>
+      <ul>
+        <li><strong>Kualitas Gambar:</strong> High-Resolution / 4K Digital Photos</li>
+        <li><strong>Akses Pengiriman:</strong> Link Google Drive langsung di halaman Profil</li>
+        <li><strong>Proses Cepat:</strong> Link otomatis terbuka setelah pembayaran terverifikasi</li>
+        <li><strong>Penyimpanan Aman:</strong> Akses tersimpan permanen di akun member Anda</li>
+      </ul>
+    </div>
+  ` : '';
+
+  const sizeOptionsHtml = sizes.length ? `
+    <div style="margin-bottom:1.2rem;">
+      <label style="display:block; color:var(--white); font-size:0.82rem; font-weight:700; margin-bottom:0.4rem;">Pilih Ukuran:</label>
+      <select id="modalProductSize" style="width:100%; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.75rem; font-family:var(--font-body); font-size:0.9rem;">
+        <option value="">-- Pilih Ukuran --</option>
+        ${sizes.map(s => `<option value="${s}">${s}</option>`).join('')}
+      </select>
+    </div>
+  ` : '';
+
+  modalEl.innerHTML = `
+    <div class="product-modal-card">
+      <button class="product-modal-close" onclick="closeProductDetail()" aria-label="Tutup">✕</button>
+      <div class="product-modal-img-wrap">
+        ${p.image 
+          ? `<img src="${p.image}" alt="${p.name}" />`
+          : `<div style="font-size:4rem;">${isPhotopack ? '📸' : '🛍️'}</div>`}
+      </div>
+      <div class="product-modal-info" style="display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+          ${badgeHtml}
+          <h2 class="product-modal-title">${p.name}</h2>
+          <div class="product-modal-price">
+            ${formatPrice(p.price)}
+            ${p.oldPrice ? `<span class="product-modal-old-price">${formatPrice(p.oldPrice)}</span>` : ''}
+          </div>
+          ${photopackFeaturesHtml}
+          <div class="product-modal-desc">
+            <div style="font-weight:700; color:var(--white); margin-bottom:0.3rem;">Deskripsi:</div>
+            ${p.description || 'Koleksi eksklusif dari Aika Sesilia Store.'}
+          </div>
+          ${sizeOptionsHtml}
+        </div>
+        <div style="display:flex; gap:0.8rem; flex-wrap:wrap; margin-top:1.5rem;">
+          ${isPhotopack ? `
+            <a href="checkout-photopack.html?id=${p.id}" class="btn-primary" style="flex:1; padding:0.9rem 1.2rem; font-size:0.95rem; font-weight:700; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; gap:8px; background:linear-gradient(135deg, #0284c7, #2563eb); text-decoration:none; box-shadow:0 4px 15px rgba(2,132,199,0.4);">
+              ⚡ Beli Photopack Sekarang
+            </a>
+          ` : `
+            <button class="btn-primary" style="flex:1; padding:0.9rem 1.2rem; font-size:0.95rem; font-weight:700; border-radius:8px;" onclick="addModalItemToCart('${p.id}')">
+              🛒 + Masukkan Keranjang
+            </button>
+          `}
+          <button class="btn-ghost" style="padding:0.9rem 1.2rem; font-size:0.95rem; border-radius:8px;" onclick="closeProductDetail()">
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  modalEl.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeProductDetail() {
+  const modalEl = document.getElementById('productDetailModal');
+  if (modalEl) {
+    modalEl.classList.remove('active');
+  }
+  document.body.style.overflow = '';
+}
+
+function addModalItemToCart(productId) {
+  const p = cachedProductsMap[productId];
+  if (!p) return;
+  const sizeSelect = document.getElementById('modalProductSize');
+  const size = sizeSelect ? sizeSelect.value : null;
+
+  if (sizeSelect && sizeSelect.options.length > 1 && !size) {
+    showToast('⚠️ Silakan pilih ukuran terlebih dahulu!');
+    return;
+  }
+
+  Cart.add({
+    id: p.id,
+    name: p.name,
+    price: p.price,
+    img: p.image || '',
+    size: size,
+    is_photopack: false
+  });
+
+  closeProductDetail();
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeProductDetail();
+});
 
 // ── LOAD FEATURED (index.html) ──
 async function loadFeaturedProducts() {
