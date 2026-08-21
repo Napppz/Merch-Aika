@@ -734,26 +734,14 @@
 
     <!-- ── PRODUCTS ── -->
     <section class="admin-section" id="tab-products">
-      <div class="admin-toolbar" style="margin-bottom: 1.5rem;">
+      <div class="admin-toolbar" style="margin-bottom: 1.2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
         <div>
           <h2>🛍️ Manajemen Produk</h2>
           <p style="color:var(--text-muted);font-size:0.85rem;margin-top:0.2rem" id="productCountLabel"></p>
         </div>
-        <button class="btn-primary" onclick="openProductModal()">+ Tambah Produk</button>
-      </div>
-
-      <!-- ── INTERACTIVE FILTER & SEARCH BAR ── -->
-      <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:var(--radius); padding:1rem 1.2rem; margin-bottom:1.5rem; display:flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content:space-between; backdrop-filter:blur(10px);">
-        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;" id="adminCategoryFilters">
-          <button class="filter-tab active" onclick="setAdminProductCategory('Semua', this)">Semua</button>
-          <button class="filter-tab" onclick="setAdminProductCategory('Photopack', this)">📸 Photopack</button>
-          <button class="filter-tab" onclick="setAdminProductCategory('Pakaian', this)">👕 Pakaian</button>
-          <button class="filter-tab" onclick="setAdminProductCategory('Aksesoris', this)">💎 Aksesoris</button>
-          <button class="filter-tab" onclick="setAdminProductCategory('Foto & Print', this)">🖼️ Foto & Print</button>
-          <button class="filter-tab" onclick="setAdminProductCategory('Acrylic', this)">🧿 Acrylic</button>
-        </div>
-        <div style="min-width:240px; flex:1; max-width:360px;">
-          <input type="text" id="adminProductSearch" oninput="filterAdminProducts()" placeholder="🔍 Cari nama produk / cosplayer..." style="width:100%; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); border-radius:50px; padding:0.6rem 1.2rem; color:var(--white); font-family:var(--font-body); font-size:0.85rem; outline:none;" />
+        <div style="display:flex; gap:0.8rem; align-items:center;">
+          <input type="text" id="adminProductSearch" oninput="filterAdminProducts()" placeholder="🔍 Cari..." style="background:rgba(3,9,31,0.8); border:1px solid var(--card-border); border-radius:50px; padding:0.5rem 1rem; color:var(--white); font-family:var(--font-body); font-size:0.82rem; width:180px; outline:none;" />
+          <button class="btn-primary" onclick="openProductModal()">+ Tambah Produk</button>
         </div>
       </div>
 
@@ -761,13 +749,21 @@
         <table>
           <thead>
             <tr>
-              <th>Foto</th>
-              <th>Nama Produk</th>
-              <th>Kategori</th>
-              <th>Harga</th>
-              <th>Stok</th>
-              <th>Badge</th>
-              <th>Aksi</th>
+              <th style="width:65px;">FOTO</th>
+              <th onclick="toggleProductSort('name')" style="cursor:pointer; user-select:none;" title="Klik untuk mengurutkan Nama Produk">
+                NAMA PRODUK <span id="sortIconName" style="font-size:0.75rem; opacity:0.6;">↕</span>
+              </th>
+              <th onclick="cycleCategoryFilter()" style="cursor:pointer; user-select:none; background:rgba(41,182,246,0.12); border:1px solid var(--aqua); border-radius:8px;" title="Klik untuk berganti filter kategori">
+                KATEGORI <span id="catFilterBadge" style="font-size:0.78rem; color:var(--aqua); font-weight:700; margin-left:4px;">[ Semua ▾ ]</span>
+              </th>
+              <th onclick="toggleProductSort('price')" style="cursor:pointer; user-select:none;" title="Klik untuk mengurutkan Harga">
+                HARGA <span id="sortIconPrice" style="font-size:0.75rem; opacity:0.6;">↕</span>
+              </th>
+              <th onclick="toggleProductSort('stock')" style="cursor:pointer; user-select:none;" title="Klik untuk mengurutkan Stok">
+                STOK <span id="sortIconStock" style="font-size:0.75rem; opacity:0.6;">↕</span>
+              </th>
+              <th>BADGE</th>
+              <th>AKSI</th>
             </tr>
           </thead>
           <tbody id="productTableBody"></tbody>
@@ -1404,15 +1400,52 @@
       showToast(`👤 ${username} (${email})`);
     }
 
-    // ── PRODUCTS & ADMIN FILTERING ──
+    // ── PRODUCTS & CLICKABLE TABLE HEADER FILTERING / SORTING ──
     let allAdminProducts = [];
+    const categoryOrderList = ['Semua', 'Photopack', 'Pakaian', 'Aksesoris', 'Foto & Print', 'Acrylic'];
     let currentAdminCategoryFilter = 'Semua';
+    let currentSortField = null; // 'name' | 'price' | 'stock'
+    let currentSortDirection = 'none'; // 'asc' | 'desc' | 'none'
 
-    function setAdminProductCategory(cat, el) {
-      currentAdminCategoryFilter = cat;
-      const buttons = document.querySelectorAll('#adminCategoryFilters .filter-tab');
-      buttons.forEach(btn => btn.classList.remove('active'));
-      if (el) el.classList.add('active');
+    function cycleCategoryFilter() {
+      const idx = categoryOrderList.indexOf(currentAdminCategoryFilter);
+      const nextIdx = (idx + 1) % categoryOrderList.length;
+      currentAdminCategoryFilter = categoryOrderList[nextIdx];
+      
+      const badge = document.getElementById('catFilterBadge');
+      if (badge) {
+        const emojiMap = { 'Photopack': '📸 ', 'Pakaian': '👕 ', 'Aksesoris': '💎 ', 'Foto & Print': '🖼️ ', 'Acrylic': '🧿 ' };
+        const icon = emojiMap[currentAdminCategoryFilter] || '';
+        badge.textContent = `[ ${icon}${currentAdminCategoryFilter} ▾ ]`;
+      }
+      
+      filterAdminProducts();
+    }
+
+    function toggleProductSort(field) {
+      if (currentSortField !== field) {
+        currentSortField = field;
+        currentSortDirection = 'asc';
+      } else {
+        if (currentSortDirection === 'asc') currentSortDirection = 'desc';
+        else if (currentSortDirection === 'desc') currentSortDirection = 'none';
+        else currentSortDirection = 'asc';
+      }
+
+      ['name', 'price', 'stock'].forEach(f => {
+        const icon = document.getElementById(`sortIcon${f.charAt(0).toUpperCase() + f.slice(1)}`);
+        if (!icon) return;
+        if (f === currentSortField && currentSortDirection !== 'none') {
+          icon.textContent = currentSortDirection === 'asc' ? '▲' : '▼';
+          icon.style.opacity = '1';
+          icon.style.color = 'var(--aqua)';
+        } else {
+          icon.textContent = '↕';
+          icon.style.opacity = '0.6';
+          icon.style.color = 'inherit';
+        }
+      });
+
       filterAdminProducts();
     }
 
@@ -1444,8 +1477,29 @@
         });
       }
 
+      // 3. Sorting
+      if (currentSortField && currentSortDirection !== 'none') {
+        filtered.sort((a, b) => {
+          let valA = a[currentSortField];
+          let valB = b[currentSortField];
+
+          if (currentSortField === 'name') {
+            valA = String(valA || '').toLowerCase();
+            valB = String(valB || '').toLowerCase();
+          } else {
+            valA = Number(valA || 0);
+            valB = Number(valB || 0);
+          }
+
+          if (valA < valB) return currentSortDirection === 'asc' ? -1 : 1;
+          if (valA > valB) return currentSortDirection === 'asc' ? 1 : -1;
+          return 0;
+        });
+      }
+
       if (label) {
-        label.textContent = `${filtered.length} dari ${allAdminProducts.length} produk terdaftar`;
+        const catInfo = currentAdminCategoryFilter !== 'Semua' ? ` (Filter: ${currentAdminCategoryFilter})` : '';
+        label.textContent = `${filtered.length} dari ${allAdminProducts.length} produk terdaftar${catInfo}`;
       }
 
       if (!el) return;
