@@ -157,15 +157,22 @@ function renderProductCard(p, compact = false) {
   `;
 }
 
+function getProductSizes(p) {
+  return String(p?.sizes || '').split(',').map(size => size.trim()).filter(Boolean);
+}
+
 // ── OPEN PRODUCT / PHOTOPACK DETAIL MODAL ──
 async function openProductDetail(id) {
-  let p = cachedProductsMap[id];
+  let p = cachedProductsMap[id] || cachedProductsMap[String(id)];
   if (!p) {
     const all = await Products.getAll();
-    all.forEach(item => { cachedProductsMap[item.id] = item; });
-    p = cachedProductsMap[id];
+    all.forEach(item => { cachedProductsMap[String(item.id)] = item; });
+    p = cachedProductsMap[String(id)] || all.find(item => String(item.id) === String(id));
   }
-  if (!p) return;
+  if (!p) {
+    console.warn('Product not found for id:', id);
+    return;
+  }
 
   const isPhotopack = p.is_photopack || normalizeProductCategory(p.category) === 'Photopack';
   const category = normalizeProductCategory(p.category);
@@ -262,7 +269,7 @@ function closeProductDetail() {
 }
 
 function addModalItemToCart(productId) {
-  const p = cachedProductsMap[productId];
+  const p = cachedProductsMap[productId] || cachedProductsMap[String(productId)];
   if (!p) return;
   const sizeSelect = document.getElementById('modalProductSize');
   const size = sizeSelect ? sizeSelect.value : null;
@@ -283,6 +290,11 @@ function addModalItemToCart(productId) {
 
   closeProductDetail();
 }
+
+window.openProductDetail = openProductDetail;
+window.closeProductDetail = closeProductDetail;
+window.addModalItemToCart = addModalItemToCart;
+window.getProductSizes = getProductSizes;
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeProductDetail();
