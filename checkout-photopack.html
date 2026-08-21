@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout Photopack Digital — Aika Sesilia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .photopack-checkout-container {
+      max-width: 1000px;
+      margin: 6rem auto 4rem;
+      padding: 0 1.5rem;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 2rem;
+    }
+
+    .checkout-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-blue);
+    }
+
+    .checkout-card h2 {
+      font-family: var(--font-display);
+      color: var(--white);
+      font-size: 1.3rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .digital-badge {
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.2), rgba(37, 99, 235, 0.2));
+      border: 1px solid var(--aqua);
+      color: var(--aqua);
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      margin-bottom: 1.5rem;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .item-preview {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      padding: 1rem;
+      background: rgba(3, 9, 31, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .item-preview img {
+      width: 70px;
+      height: 70px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+
+    .item-preview-info {
+      flex: 1;
+    }
+
+    .item-preview-title {
+      color: var(--white);
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .item-preview-cosplayer {
+      color: var(--aqua);
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-top: 0.2rem;
+    }
+
+    .item-preview-price {
+      color: var(--aqua);
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-top: 0.4rem;
+    }
+
+    .voucher-box {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .voucher-box input {
+      flex: 1;
+      background: rgba(3, 9, 31, 0.8);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--white);
+      padding: 0.75rem 1rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .summary-row.discount {
+      color: #4caf50;
+      font-weight: 600;
+    }
+
+    .summary-row.total {
+      color: var(--white);
+      font-size: 1.25rem;
+      font-weight: 700;
+      border-top: 1px solid var(--card-border);
+      padding-top: 0.8rem;
+      margin-top: 0.8rem;
+    }
+
+    .summary-row.total span:last-child {
+      color: var(--aqua);
+    }
+
+    .qris-card {
+      background: rgba(3, 9, 31, 0.7);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.2rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .qris-img {
+      max-width: 220px;
+      width: 100%;
+      border-radius: 12px;
+      border: 2px solid var(--aqua);
+      padding: 0.5rem;
+      background: #fff;
+      margin: 1rem auto;
+    }
+
+    .proof-upload {
+      border: 2px dashed var(--card-border);
+      border-radius: 12px;
+      padding: 1.2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-bottom: 1.5rem;
+    }
+
+    .proof-upload:hover {
+      border-color: var(--aqua);
+      background: rgba(41, 182, 246, 0.05);
+    }
+
+    .proof-preview {
+      max-height: 180px;
+      border-radius: 8px;
+      margin-top: 0.8rem;
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .photopack-checkout-container {
+        grid-template-columns: 1fr;
+        margin-top: 5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="shop.html" class="nav-brand">✦ Aika Sesilia Store</a>
+  <div class="nav-actions">
+    <a href="shop.html" class="btn-ghost" style="padding:0.5rem 1rem;">← Kembali ke Shop</a>
+  </div>
+</nav>
+
+<div class="photopack-checkout-container">
+  <!-- LEFT COLUMN: Account & Payment Info -->
+  <main class="checkout-card">
+    <h2>📸 Pembayaran Photopack Digital</h2>
+
+    <div class="digital-badge">
+      <span style="font-size:1.3rem;">⚡</span>
+      <div>
+        <strong>Pengiriman Digital Instan (Google Drive)</strong>
+        <div style="font-size:0.78rem; opacity:0.85;">Tidak ada ongkos kirim. Akses Google Drive akan diberikan langsung di Profil Anda setelah verifikasi Admin.</div>
+      </div>
+    </div>
+
+    <!-- User Account Info -->
+    <div style="margin-bottom:1.8rem;">
+      <h3 style="color:var(--white); font-size:0.95rem; margin-bottom:0.8rem; font-family:var(--font-display);">1. Informasi Akun Pembeli</h3>
+      <div class="form-group" style="margin-bottom:0.8rem;">
+        <label style="color:var(--text-muted); font-size:0.82rem;">Nama Pembeli</label>
+        <input type="text" id="custName" readonly style="background:rgba(3,9,31,0.6); opacity:0.8; cursor:not-allowed;" />
+      </div>
+      <div class="form-group">
+        <label style="color:var(--text-muted); font-size:0.82rem;">Email Akun (Akses Google Drive akan ditautkan ke email ini)</label>
+        <input type="email" id="custEmail" readonly style="background:rgba(3,9,31,0.6); opacity:0.8; cursor:not-allowed;" />
+      </div>
+    </div>
+
+    <!-- Payment Section -->
+    <div>
+      <h3 style="color:var(--white); font-size:0.95rem; margin-bottom:0.8rem; font-family:var(--font-display);">2. Pembayaran & Upload Bukti Transfer</h3>
+      
+      <div class="qris-card">
+        <div style="font-weight:700; color:var(--white); font-size:0.95rem;">Scan QRIS / Transfer Bank</div>
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.2rem;">Gunakan GoPay, OVO, ShopeePay, BCA, Mandiri, atau e-Wallet lainnya</div>
+        <img src="images/qris-sample.jpg" alt="QRIS Payment" class="qris-img" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=00020101021126670016COM.GO-PAY.WWW0118936009143000000000021520240410000000053033605802ID5912Aika%20Sesilia6013Jakarta%20Selatan61051219062070703A0163048E12'" />
+        <div style="font-size:0.85rem; color:var(--aqua); font-weight:700;">Aika Sesilia Official Store</div>
+      </div>
+
+      <!-- Proof Upload -->
+      <div class="form-group">
+        <label style="color:var(--white); font-size:0.88rem; font-weight:700;">Unggah Bukti Transfer *</label>
+        <div class="proof-upload" onclick="document.getElementById('proofInput').click()">
+          <input type="file" id="proofInput" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="previewProof(event)" />
+          <div style="font-size:2rem;">📄</div>
+          <div style="color:var(--text-muted); font-size:0.85rem; margin-top:0.3rem;">Klik untuk memilih foto / screenshot bukti transfer<br><small>Format: JPG, PNG, WebP (Maks 5MB)</small></div>
+          <img id="proofPreviewImg" class="proof-preview" alt="Preview Bukti Transfer" />
+        </div>
+      </div>
+
+      <button id="btnPay" class="btn-primary w100" style="padding:1rem; font-size:1.05rem; border-radius:12px; margin-top:1rem;" onclick="processPhotopackCheckout()">
+        🚀 Selesaikan Pembayaran & Minta Verifikasi Admin
+      </button>
+    </div>
+  </main>
+
+  <!-- RIGHT COLUMN: Order Summary & Voucher -->
+  <aside class="checkout-card" style="height:fit-content;">
+    <h2>🛒 Rincian Pesanan</h2>
+
+    <!-- Photopack Item Details -->
+    <div id="photopackItemContainer">
+      <div class="item-preview">
+        <div style="width:70px; height:70px; background:rgba(41,182,246,0.1); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:2rem;" id="itemPlaceholder">📸</div>
+        <img id="itemImg" style="display:none;" />
+        <div class="item-preview-info">
+          <div class="item-preview-title" id="itemTitle">Loading Photopack...</div>
+          <div class="item-preview-cosplayer" id="itemCosplayer"></div>
+          <div class="item-preview-price" id="itemPrice">Rp 0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Voucher Form -->
+    <div style="margin-bottom:1.5rem;">
+      <label style="display:block; color:var(--white); font-size:0.85rem; font-weight:700; margin-bottom:0.4rem;">🎟️ Voucher Diskon</label>
+      <div class="voucher-box">
+        <input type="text" id="voucherCode" placeholder="Masukkan kode voucher" />
+        <button class="btn-primary" onclick="applyVoucher()" style="padding:0.75rem 1.2rem; font-size:0.85rem; border-radius:8px;" id="btnApplyVoucher">Gunakan</button>
+      </div>
+      <div id="voucherStatus" style="font-size:0.8rem; margin-top:0.3rem;"></div>
+    </div>
+
+    <!-- Price Calculation Breakdown -->
+    <div style="border-top:1px solid var(--card-border); padding-top:1rem;">
+      <div class="summary-row">
+        <span>Harga Photopack</span>
+        <span id="subtotalPrice">Rp 0</span>
+      </div>
+      <div class="summary-row">
+        <span>Pengiriman Digital</span>
+        <span style="color:#86efac; font-weight:600;">GRATIS (Rp 0)</span>
+      </div>
+      <div class="summary-row discount" id="discountRow" style="display:none;">
+        <span id="discountLabel">Diskon Voucher</span>
+        <span id="discountPrice">- Rp 0</span>
+      </div>
+      <div class="summary-row total">
+        <span>Total Pembayaran</span>
+        <span id="grandTotal">Rp 0</span>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script src="js/main.js"></script>
+<script>
+  let currentUser = null;
+  let photopackProduct = null;
+  let subtotal = 0;
+  let discountAmount = 0;
+  let appliedVoucher = null;
+  let paymentProofBase64 = null;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Session Check
+    const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+    if (!userStr) {
+      alert('Anda harus login terlebih dahulu untuk membeli Photopack.');
+      window.location.href = 'login.html?redirect=checkout-photopack.html';
+      return;
+    }
+    currentUser = JSON.parse(userStr);
+    document.getElementById('custName').value = currentUser.username || 'User';
+    document.getElementById('custEmail').value = currentUser.email || '';
+
+    // 2. Load Photopack Item from URL or Cart
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('id');
+
+    if (productId) {
+      const allProducts = await Products.getAll();
+      photopackProduct = allProducts.find(p => p.id === productId);
+    }
+
+    if (!photopackProduct) {
+      // Fallback: check session or cart for photopack item
+      const sessionItem = localStorage.getItem('aika_checkout_photopack');
+      if (sessionItem) {
+        try { photopackProduct = JSON.parse(sessionItem); } catch(e) {}
+      }
+    }
+
+    if (!photopackProduct) {
+      alert('Produk Photopack tidak ditemukan.');
+      window.location.href = 'shop.html';
+      return;
+    }
+
+    renderPhotopackItem();
+  });
+
+  function renderPhotopackItem() {
+    document.getElementById('itemTitle').textContent = photopackProduct.name;
+    document.getElementById('itemCosplayer').textContent = photopackProduct.cosplayer_name ? 'Cosplayer: ' + photopackProduct.cosplayer_name : 'Eksklusif Digital';
+    
+    subtotal = parseInt(photopackProduct.price || 0, 10);
+    document.getElementById('itemPrice').textContent = formatPrice(subtotal);
+    document.getElementById('subtotalPrice').textContent = formatPrice(subtotal);
+    
+    if (photopackProduct.image) {
+      const img = document.getElementById('itemImg');
+      img.src = photopackProduct.image;
+      img.style.display = 'block';
+      document.getElementById('itemPlaceholder').style.display = 'none';
+    }
+
+    calculateTotal();
+  }
+
+  function calculateTotal() {
+    const finalTotal = Math.max(0, subtotal - discountAmount);
+    document.getElementById('grandTotal').textContent = formatPrice(finalTotal);
+  }
+
+  async function applyVoucher() {
+    const codeInput = document.getElementById('voucherCode').value.trim();
+    const statusEl = document.getElementById('voucherStatus');
+    
+    if (!codeInput) {
+      statusEl.textContent = 'Masukkan kode voucher terlebih dahulu.';
+      statusEl.style.color = '#fca5a5';
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/vouchers');
+      const data = await res.json();
+
+      if (!data.success || !data.vouchers) {
+        throw new Error('Gagal mengambil data voucher');
+      }
+
+      const found = data.vouchers.find(v => v.code.toUpperCase() === codeInput.toUpperCase());
+
+      if (!found) {
+        statusEl.textContent = '❌ Kode voucher tidak ditemukan atau sudah tidak berlaku.';
+        statusEl.style.color = '#fca5a5';
+        resetDiscount();
+        return;
+      }
+
+      if (found.minPurchase && subtotal < found.minPurchase) {
+        statusEl.textContent = `⚠️ Minimal pembelian untuk voucher ini adalah ${formatPrice(found.minPurchase)}`;
+        statusEl.style.color = '#fde047';
+        resetDiscount();
+        return;
+      }
+
+      // Calculate Discount
+      if (found.type === 'percent') {
+        discountAmount = Math.round((subtotal * found.value) / 100);
+        if (found.maxDiscount && discountAmount > found.maxDiscount) {
+          discountAmount = found.maxDiscount;
+        }
+      } else {
+        discountAmount = found.value;
+      }
+
+      appliedVoucher = found;
+      statusEl.textContent = `✅ Voucher ${found.label} berhasil digunakan!`;
+      statusEl.style.color = '#86efac';
+
+      document.getElementById('discountRow').style.display = 'flex';
+      document.getElementById('discountLabel').textContent = `Diskon (${found.label})`;
+      document.getElementById('discountPrice').textContent = `- ${formatPrice(discountAmount)}`;
+
+      calculateTotal();
+
+    } catch(err) {
+      console.error(err);
+      statusEl.textContent = 'Gagal memproses voucher.';
+      statusEl.style.color = '#fca5a5';
+    }
+  }
+
+  function resetDiscount() {
+    discountAmount = 0;
+    appliedVoucher = null;
+    document.getElementById('discountRow').style.display = 'none';
+    calculateTotal();
+  }
+
+  function previewProof(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Ukuran file bukti transfer maksimal 5MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      paymentProofBase64 = e.target.result;
+      const img = document.getElementById('proofPreviewImg');
+      img.src = paymentProofBase64;
+      img.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function processPhotopackCheckout() {
+    if (!paymentProofBase64) {
+      alert('Harap unggah screenshot bukti transfer terlebih dahulu.');
+      return;
+    }
+
+    const payBtn = document.getElementById('btnPay');
+    payBtn.disabled = true;
+    payBtn.textContent = 'Mengirim Pesanan...';
+
+    const orderId = 'ORD-DIGITAL-' + Date.now();
+    const finalTotal = Math.max(0, subtotal - discountAmount);
+
+    const orderPayload = {
+      id: orderId,
+      customerName: currentUser.username,
+      email: currentUser.email,
+      address: 'Pengiriman Digital via Link Google Drive (Tanpa Kurir)',
+      status: 'pending',
+      total: finalTotal,
+      items: [
+        {
+          id: photopackProduct.id,
+          name: photopackProduct.name,
+          price: photopackProduct.price,
+          qty: 1,
+          is_photopack: true,
+          cosplayer_name: photopackProduct.cosplayer_name || null
+        }
+      ],
+      shipping: { name: 'Digital Delivery', cost: 0 }
+    };
+
+    try {
+      // 1. Create Order
+      const resOrder = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderPayload)
+      });
+
+      if (!resOrder.ok) throw new Error('Gagal membuat pesanan');
+
+      // 2. Upload Payment Proof
+      const resProof = await fetch('/api/payment-proof', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: orderId,
+          base64Image: paymentProofBase64,
+          email: currentUser.email,
+          customerName: currentUser.username
+        })
+      });
+
+      if (!resProof.ok) {
+        console.warn('Gagal upload bukti transfer ke payment-proof API, tapi pesanan tersimpan');
+      }
+
+      // 3. Success Redirect
+      localStorage.removeItem('aika_checkout_photopack');
+      alert('🎉 Pesanan Photopack berhasil dibuat!\n\nStatus pesanan: Menunggu Verifikasi Admin.\nLink Google Drive akan langsung terbuka di halaman Profil Anda setelah Admin memverifikasi pembayaran.');
+      window.location.href = 'profile.html?tab=orders';
+
+    } catch(err) {
+      console.error(err);
+      alert('Gagal memproses checkout: ' + err.message);
+      payBtn.disabled = false;
+      payBtn.textContent = '🚀 Selesaikan Pembayaran & Minta Verifikasi Admin';
+    }
+  }
+
+  function formatPrice(n) { return 'Rp ' + (n || 0).toLocaleString('id-ID'); }
+</script>
+</body>
+</html>
