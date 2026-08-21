@@ -1,5 +1,5 @@
 const db = require('./_db');
-const { requireAdmin } = require('./admin-auth');
+const { requireAdmin, verifyAdminToken } = require('./admin-auth');
 const { createMailTransport, getRequiredEnv } = require('./env');
 
 function getMailTransport() {
@@ -25,6 +25,12 @@ const ORDER_DETAIL_COLUMNS = `
 `;
 
 module.exports = async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,x-user-email');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
   const { method } = req;
 
   try {
@@ -135,13 +141,38 @@ module.exports = async (req, res) => {
     }
 
     if (method === 'PUT') {
-      if (!requireAdmin(req, res)) return;
-      const { id, status, resi } = req.body; // resi dari admin jika ada
+      const { id, status, resi, userEmail } = req.body || {};
+      if (!id) {
+        return res.status(400).json({ error: 'Order ID is required' });
+      }
+
+      const adminUser = verifyAdminToken(req);
       
       // Ambil data order yg sekarang
       const d = await db.query(`SELECT ${ ORDER_DETAIL_COLUMNS } FROM orders WHERE id = $1`, [id]);
       if(d.rows.length === 0) return res.status(404).json({error: 'Order not found'});
       let order = d.rows[0];
+
+      // Jika BUKAN admin, perbolehkan customer mengonfirmasi pesanan yang sudah dikirim ('completed')
+      if (!adminUser) {
+        if (status !== 'completed') {
+          return res.status(403).json({ error: 'Hanya admin yang dapat mengubah status ini' });
+        }
+
+        const reqEmail = (req.headers['x-user-email'] || userEmail || req.query?.email || '').toLowerCase().trim();
+        if (reqEmail && order.email && reqEmail !== order.email.toLowerCase().trim()) {
+          return res.status(403).json({ error: 'Tidak memiliki izin untuk mengonfirmasi pesanan ini' });
+        }
+
+        const { rows } = await db.query(
+          `UPDATE orders SET status = $1 WHERE id = $2 RETURNING ${ ORDER_DETAIL_COLUMNS } `,
+          ['completed', id]
+        );
+
+        return res.status(200).json(rows[0]);
+      }
+
+      req.admin = adminUser;
 
       // Update resi ke kolom JSON shipping
       if(resi && order.shipping) {

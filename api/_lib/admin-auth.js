@@ -13,22 +13,22 @@ function getAdminToken(req) {
   return null;
 }
 
-function requireAdmin(req, res) {
+function verifyAdminToken(req) {
   const token = getAdminToken(req);
+  if (!token) return null;
+  const payload = verifyJWT(token);
+  if (!payload || payload.type !== 'admin' || !payload.adminId) {
+    return null;
+  }
+  return payload;
+}
 
-  if (!token) {
+function requireAdmin(req, res) {
+  const payload = verifyAdminToken(req);
+  if (!payload) {
     res.status(401).json({
       success: false,
       error: 'Admin authentication required'
-    });
-    return null;
-  }
-
-  const payload = verifyJWT(token);
-  if (!payload || payload.type !== 'admin' || !payload.adminId) {
-    res.status(401).json({
-      success: false,
-      error: 'Invalid or expired admin session'
     });
     return null;
   }
@@ -39,5 +39,7 @@ function requireAdmin(req, res) {
 
 module.exports = {
   getAdminToken,
+  verifyAdminToken,
   requireAdmin
 };
+

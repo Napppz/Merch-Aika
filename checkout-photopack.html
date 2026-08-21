@@ -307,7 +307,7 @@
         </label>
 
         <input type="file" id="proofInput" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="previewProof(event)" />
-        
+
         <button type="button" class="btn-file-upload" onclick="document.getElementById('proofInput').click()">
           📥 Pilih File Bukti Transfer
         </button>
@@ -318,7 +318,9 @@
         </div>
       </div>
 
-      <button id="btnPay" class="btn-primary w100" style="padding:1rem; font-size:1.05rem; border-radius:50px; margin-top:1.5rem; background:linear-gradient(135deg, #0284c7, #2563eb);" onclick="processPhotopackCheckout()">
+      <button id="btnPay" class="btn-primary w100"
+        style="padding:1rem; font-size:1.05rem; border-radius:50px; margin-top:1.5rem; background:linear-gradient(135deg, #0284c7, #2563eb);"
+        onclick="processPhotopackCheckout()">
         🚀 Selesaikan Pembayaran & Minta Verifikasi Admin
       </button>
     </div>
@@ -587,7 +589,7 @@
         })
       });
 
-      // 3. Save Invoice Order Data for Invoice Page
+      // Save Invoice Order Data for Invoice Page
       const invoiceData = {
         id: orderId,
         date: new Date().toISOString(),
