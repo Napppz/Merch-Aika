@@ -349,27 +349,39 @@
     let currentReviewOrderId = null;
     let allOrders = {};
 
-    document.addEventListener('DOMContentLoaded', async () => {
+    document.addEventListener('DOMContentLoaded', () => {
       const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
       if (!userStr) {
         window.location.href = 'login.html';
         return;
       }
-      currentUser = JSON.parse(userStr);
+      
+      try {
+        currentUser = JSON.parse(userStr);
+      } catch (e) {
+        console.error('Invalid user session:', e);
+        window.location.href = 'login.html';
+        return;
+      }
 
-      // Set up Avatar - wait for it to load completely
-      await loadAvatar();
+      // Populate user info IMMEDIATELY (sync) so UI never gets stuck on LOADING...
+      if (currentUser) {
+        const nameEl = document.getElementById('profName');
+        const emailEl = document.getElementById('profEmail');
+        const setNavName = document.getElementById('settingName');
+        const setNavEmail = document.getElementById('settingEmail');
 
-      document.getElementById('profName').textContent = currentUser.username;
-      document.getElementById('profEmail').textContent = currentUser.email;
+        if (nameEl) nameEl.textContent = currentUser.username || 'User';
+        if (emailEl) emailEl.textContent = currentUser.email || '';
+        if (setNavName) setNavName.value = currentUser.username || '';
+        if (setNavEmail) setNavEmail.value = currentUser.email || '';
+      }
 
-      // Init forms
-      document.getElementById('settingName').value = currentUser.username;
-      document.getElementById('settingEmail').value = currentUser.email;
-
-      loadOrders();
-      loadAddress();
-      loadWishlist();
+      // Load avatar & tabs asynchronously in parallel
+      loadAvatar().catch(err => console.error('Error loading avatar:', err));
+      loadOrders().catch(err => console.error('Error loading orders:', err));
+      loadAddress().catch(err => console.error('Error loading address:', err));
+      loadWishlist().catch(err => console.error('Error loading wishlist:', err));
     });
 
     function switchTab(tabId) {
