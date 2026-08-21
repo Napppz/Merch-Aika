@@ -138,45 +138,105 @@
       color: var(--aqua);
     }
 
-    .qris-card {
-      background: rgba(3, 9, 31, 0.7);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 1.2rem;
-      text-align: center;
-      margin-bottom: 1.5rem;
-    }
-
-    .qris-img {
-      max-width: 220px;
-      width: 100%;
-      border-radius: 12px;
+    /* ── EXACT MERCH QRIS CARD DESIGN ── */
+    .qris-card-container {
+      background: rgba(3, 9, 31, 0.8);
       border: 2px solid var(--aqua);
-      padding: 0.5rem;
-      background: #fff;
-      margin: 1rem auto;
-    }
-
-    .proof-upload {
-      border: 2px dashed var(--card-border);
-      border-radius: 12px;
-      padding: 1.2rem;
+      border-radius: 16px;
+      padding: 1.5rem;
       text-align: center;
-      cursor: pointer;
-      transition: var(--transition);
       margin-bottom: 1.5rem;
+      box-shadow: 0 0 25px rgba(41, 182, 246, 0.2);
     }
 
-    .proof-upload:hover {
-      border-color: var(--aqua);
-      background: rgba(41, 182, 246, 0.05);
+    .qris-card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--aqua);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
     }
 
-    .proof-preview {
+    .qris-image-wrapper {
+      background: #ffffff;
+      padding: 0.8rem;
+      border-radius: 14px;
+      display: inline-block;
+      max-width: 330px;
+      width: 100%;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    .qris-image-wrapper img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      display: block;
+    }
+
+    .qris-total-bar {
+      background: rgba(3, 9, 31, 0.95);
+      border: 1px solid rgba(41, 182, 246, 0.3);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-top: 1.2rem;
+      text-align: center;
+    }
+
+    .qris-total-label {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .qris-total-amount {
+      color: var(--aqua);
+      font-size: 1.7rem;
+      font-weight: 800;
+      margin-top: 0.2rem;
+    }
+
+    .btn-file-upload {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #ffffff;
+      border: none;
+      border-radius: 50px;
+      padding: 0.9rem 1.5rem;
+      font-size: 0.98rem;
+      font-weight: 700;
+      width: 100%;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
+      transition: var(--transition);
+    }
+
+    .btn-file-upload:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(2, 132, 199, 0.6);
+    }
+
+    .proof-preview-box {
+      margin-top: 1rem;
+      text-align: center;
+      display: none;
+      background: rgba(3, 9, 31, 0.6);
+      border: 1px solid var(--card-border);
+      padding: 1rem;
+      border-radius: 12px;
+    }
+
+    .proof-preview-box img {
       max-height: 180px;
       border-radius: 8px;
-      margin-top: 0.8rem;
-      display: none;
+      border: 1px solid var(--card-border);
+      margin-top: 0.5rem;
     }
 
     @media (max-width: 768px) {
@@ -199,13 +259,13 @@
 <div class="photopack-checkout-container">
   <!-- LEFT COLUMN: Account & Payment Info -->
   <main class="checkout-card">
-    <h2>📸 Pembayaran Photopack Digital</h2>
+    <h2>💳 PEMBAYARAN</h2>
 
     <div class="digital-badge">
       <span style="font-size:1.3rem;">⚡</span>
       <div>
         <strong>Pengiriman Digital Instan (Google Drive)</strong>
-        <div style="font-size:0.78rem; opacity:0.85;">Tidak ada ongkos kirim. Akses Google Drive akan diberikan langsung di Profil Anda setelah verifikasi Admin.</div>
+        <div style="font-size:0.78rem; opacity:0.85;">Akses Google Drive diberikan langsung di Profil Anda setelah verifikasi Admin (Tanpa Ongkir).</div>
       </div>
     </div>
 
@@ -217,34 +277,48 @@
         <input type="text" id="custName" readonly style="background:rgba(3,9,31,0.6); opacity:0.8; cursor:not-allowed;" />
       </div>
       <div class="form-group">
-        <label style="color:var(--text-muted); font-size:0.82rem;">Email Akun (Akses Google Drive akan ditautkan ke email ini)</label>
+        <label style="color:var(--text-muted); font-size:0.82rem;">Email Akun (Akses Google Drive ditautkan ke email ini)</label>
         <input type="email" id="custEmail" readonly style="background:rgba(3,9,31,0.6); opacity:0.8; cursor:not-allowed;" />
       </div>
     </div>
 
-    <!-- Payment Section -->
+    <!-- Payment & QRIS Section -->
     <div>
-      <h3 style="color:var(--white); font-size:0.95rem; margin-bottom:0.8rem; font-family:var(--font-display);">2. Pembayaran & Upload Bukti Transfer</h3>
+      <h3 style="color:var(--white); font-size:0.95rem; margin-bottom:1rem; font-family:var(--font-display);">2. Pembayaran & Upload Bukti Transfer</h3>
       
-      <div class="qris-card">
-        <div style="font-weight:700; color:var(--white); font-size:0.95rem;">Scan QRIS / Transfer Bank</div>
-        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.2rem;">Gunakan GoPay, OVO, ShopeePay, BCA, Mandiri, atau e-Wallet lainnya</div>
-        <img src="images/qris-sample.jpg" alt="QRIS Payment" class="qris-img" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=00020101021126670016COM.GO-PAY.WWW0118936009143000000000021520240410000000053033605802ID5912Aika%20Sesilia6013Jakarta%20Selatan61051219062070703A0163048E12'" />
-        <div style="font-size:0.85rem; color:var(--aqua); font-weight:700;">Aika Sesilia Official Store</div>
-      </div>
-
-      <!-- Proof Upload -->
-      <div class="form-group">
-        <label style="color:var(--white); font-size:0.88rem; font-weight:700;">Unggah Bukti Transfer *</label>
-        <div class="proof-upload" onclick="document.getElementById('proofInput').click()">
-          <input type="file" id="proofInput" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="previewProof(event)" />
-          <div style="font-size:2rem;">📄</div>
-          <div style="color:var(--text-muted); font-size:0.85rem; margin-top:0.3rem;">Klik untuk memilih foto / screenshot bukti transfer<br><small>Format: JPG, PNG, WebP (Maks 5MB)</small></div>
-          <img id="proofPreviewImg" class="proof-preview" alt="Preview Bukti Transfer" />
+      <!-- EXACT MERCH QRIS CARD -->
+      <div class="qris-card-container">
+        <div class="qris-card-title">
+          <span>📱</span> Scan QRIS untuk Pembayaran
+        </div>
+        <div class="qris-image-wrapper">
+          <img src="images/Qris/Qris.jpeg" alt="QRIS Aika Sesilia" onerror="this.src='images/qris-sample.jpg'" />
+        </div>
+        <div class="qris-total-bar">
+          <div class="qris-total-label">Total Pembayaran:</div>
+          <div class="qris-total-amount" id="qrisTotalDisplay">Rp 0</div>
         </div>
       </div>
 
-      <button id="btnPay" class="btn-primary w100" style="padding:1rem; font-size:1.05rem; border-radius:12px; margin-top:1rem;" onclick="processPhotopackCheckout()">
+      <!-- Upload Bukti Transfer Section -->
+      <div style="margin-top:1.5rem;">
+        <label style="display:block; color:var(--white); font-size:0.95rem; font-weight:700; margin-bottom:0.8rem;">
+          📸 Upload Bukti Transfer
+        </label>
+
+        <input type="file" id="proofInput" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="previewProof(event)" />
+        
+        <button type="button" class="btn-file-upload" onclick="document.getElementById('proofInput').click()">
+          📥 Pilih File Bukti Transfer
+        </button>
+
+        <div id="proofPreviewBox" class="proof-preview-box">
+          <div style="color:var(--aqua); font-size:0.85rem; font-weight:700;" id="fileNameLabel">✅ File Terpilih</div>
+          <img id="proofPreviewImg" alt="Preview Bukti Transfer" />
+        </div>
+      </div>
+
+      <button id="btnPay" class="btn-primary w100" style="padding:1rem; font-size:1.05rem; border-radius:50px; margin-top:1.5rem; background:linear-gradient(135deg, #0284c7, #2563eb);" onclick="processPhotopackCheckout()">
         🚀 Selesaikan Pembayaran & Minta Verifikasi Admin
       </button>
     </div>
@@ -330,7 +404,6 @@
     }
 
     if (!photopackProduct) {
-      // Fallback: check session or cart for photopack item
       const sessionItem = localStorage.getItem('aika_checkout_photopack');
       if (sessionItem) {
         try { photopackProduct = JSON.parse(sessionItem); } catch(e) {}
@@ -366,7 +439,9 @@
 
   function calculateTotal() {
     const finalTotal = Math.max(0, subtotal - discountAmount);
-    document.getElementById('grandTotal').textContent = formatPrice(finalTotal);
+    const formatted = formatPrice(finalTotal);
+    document.getElementById('grandTotal').textContent = formatted;
+    document.getElementById('qrisTotalDisplay').textContent = formatted;
   }
 
   async function applyVoucher() {
@@ -403,7 +478,6 @@
         return;
       }
 
-      // Calculate Discount
       if (found.type === 'percent') {
         discountAmount = Math.round((subtotal * found.value) / 100);
         if (found.maxDiscount && discountAmount > found.maxDiscount) {
@@ -449,9 +523,13 @@
     const reader = new FileReader();
     reader.onload = function(e) {
       paymentProofBase64 = e.target.result;
+      const box = document.getElementById('proofPreviewBox');
       const img = document.getElementById('proofPreviewImg');
+      const label = document.getElementById('fileNameLabel');
+      
+      label.textContent = `✅ Bukti Transfer Terpilih: ${file.name}`;
       img.src = paymentProofBase64;
-      img.style.display = 'block';
+      box.style.display = 'block';
     };
     reader.readAsDataURL(file);
   }
@@ -490,7 +568,6 @@
     };
 
     try {
-      // 1. Create Order
       const resOrder = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -499,7 +576,6 @@
 
       if (!resOrder.ok) throw new Error('Gagal membuat pesanan');
 
-      // 2. Upload Payment Proof
       const resProof = await fetch('/api/payment-proof', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -515,7 +591,6 @@
         console.warn('Gagal upload bukti transfer ke payment-proof API, tapi pesanan tersimpan');
       }
 
-      // 3. Success Redirect
       localStorage.removeItem('aika_checkout_photopack');
       alert('🎉 Pesanan Photopack berhasil dibuat!\n\nStatus pesanan: Menunggu Verifikasi Admin.\nLink Google Drive akan langsung terbuka di halaman Profil Anda setelah Admin memverifikasi pembayaran.');
       window.location.href = 'profile.html?tab=orders';

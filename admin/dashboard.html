@@ -734,13 +734,29 @@
 
     <!-- ── PRODUCTS ── -->
     <section class="admin-section" id="tab-products">
-      <div class="admin-toolbar">
+      <div class="admin-toolbar" style="margin-bottom: 1.5rem;">
         <div>
           <h2>🛍️ Manajemen Produk</h2>
           <p style="color:var(--text-muted);font-size:0.85rem;margin-top:0.2rem" id="productCountLabel"></p>
         </div>
         <button class="btn-primary" onclick="openProductModal()">+ Tambah Produk</button>
       </div>
+
+      <!-- ── INTERACTIVE FILTER & SEARCH BAR ── -->
+      <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:var(--radius); padding:1rem 1.2rem; margin-bottom:1.5rem; display:flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content:space-between; backdrop-filter:blur(10px);">
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;" id="adminCategoryFilters">
+          <button class="filter-tab active" onclick="setAdminProductCategory('Semua', this)">Semua</button>
+          <button class="filter-tab" onclick="setAdminProductCategory('Photopack', this)">📸 Photopack</button>
+          <button class="filter-tab" onclick="setAdminProductCategory('Pakaian', this)">👕 Pakaian</button>
+          <button class="filter-tab" onclick="setAdminProductCategory('Aksesoris', this)">💎 Aksesoris</button>
+          <button class="filter-tab" onclick="setAdminProductCategory('Foto & Print', this)">🖼️ Foto & Print</button>
+          <button class="filter-tab" onclick="setAdminProductCategory('Acrylic', this)">🧿 Acrylic</button>
+        </div>
+        <div style="min-width:240px; flex:1; max-width:360px;">
+          <input type="text" id="adminProductSearch" oninput="filterAdminProducts()" placeholder="🔍 Cari nama produk / cosplayer..." style="width:100%; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); border-radius:50px; padding:0.6rem 1.2rem; color:var(--white); font-family:var(--font-body); font-size:0.85rem; outline:none;" />
+        </div>
+      </div>
+
       <div class="products-table-wrap">
         <table>
           <thead>
@@ -1388,13 +1404,53 @@
       showToast(`👤 ${username} (${email})`);
     }
 
-    // ── PRODUCTS ──
-    async function renderProducts() {
-      const products = await Products.getAll();
-      const el = document.getElementById('productTableBody');
-      document.getElementById('productCountLabel').textContent = `${products.length} produk terdaftar`;
+    // ── PRODUCTS & ADMIN FILTERING ──
+    let allAdminProducts = [];
+    let currentAdminCategoryFilter = 'Semua';
 
-      el.innerHTML = products.map(p => {
+    function setAdminProductCategory(cat, el) {
+      currentAdminCategoryFilter = cat;
+      const buttons = document.querySelectorAll('#adminCategoryFilters .filter-tab');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      if (el) el.classList.add('active');
+      filterAdminProducts();
+    }
+
+    function filterAdminProducts() {
+      const searchInput = document.getElementById('adminProductSearch');
+      const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+      const el = document.getElementById('productTableBody');
+      const label = document.getElementById('productCountLabel');
+
+      let filtered = [...allAdminProducts];
+
+      // 1. Category Filter
+      if (currentAdminCategoryFilter !== 'Semua') {
+        if (currentAdminCategoryFilter === 'Photopack') {
+          filtered = filtered.filter(p => p.is_photopack || p.category === 'Photopack');
+        } else {
+          filtered = filtered.filter(p => p.category === currentAdminCategoryFilter);
+        }
+      }
+
+      // 2. Search Query Filter
+      if (query) {
+        filtered = filtered.filter(p => {
+          const nameMatch = (p.name || '').toLowerCase().includes(query);
+          const descMatch = (p.description || '').toLowerCase().includes(query);
+          const cosplayerMatch = (p.cosplayer_name || '').toLowerCase().includes(query);
+          const catMatch = (p.category || '').toLowerCase().includes(query);
+          return nameMatch || descMatch || cosplayerMatch || catMatch;
+        });
+      }
+
+      if (label) {
+        label.textContent = `${filtered.length} dari ${allAdminProducts.length} produk terdaftar`;
+      }
+
+      if (!el) return;
+
+      el.innerHTML = filtered.map(p => {
         const isPhotopack = p.is_photopack || p.category === 'Photopack';
         const cosplayerInfo = p.cosplayer_name ? `<div style="font-size:0.75rem;color:var(--aqua);margin-top:2px;">👤 ${p.cosplayer_name}</div>` : '';
         const driveLinkBtn = p.gdrive_link ? `<a href="${p.gdrive_link}" target="_blank" class="btn-edit" style="text-decoration:none;display:inline-block;margin-top:3px;font-size:0.72rem;padding:2px 6px;">📂 GDrive</a>` : '';
@@ -1419,7 +1475,12 @@
       </td>
     </tr>
   `;
-      }).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:2rem">Belum ada produk. Tambahkan produk pertamamu!</td></tr>';
+      }).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:2rem">Tidak ada produk yang cocok dengan pencarian / filter.</td></tr>';
+    }
+
+    async function renderProducts() {
+      allAdminProducts = await Products.getAll();
+      filterAdminProducts();
     }
 
     // ── PRODUCT MODAL ──
