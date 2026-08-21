@@ -229,7 +229,20 @@
 
     <main class="profile-content">
       <section id="tab-orders" class="content-section active">
-        <h2>Riwayat Pesanan</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem; border-bottom:1px solid var(--card-border); padding-bottom:0.8rem;">
+          <h2 style="margin:0; border:none; padding:0;">Riwayat Pesanan</h2>
+          <div style="display:flex; align-items:center; gap:0.6rem;">
+            <label for="userCategoryFilter" style="color:var(--text-muted); font-size:0.85rem; font-weight:600;">Filter Kategori:</label>
+            <select id="userCategoryFilter" onchange="filterUserOrdersCategory(this.value)" style="background:rgba(3,9,31,0.9); border:1px solid var(--aqua); color:var(--white); border-radius:8px; padding:0.4rem 0.8rem; font-family:var(--font-body); font-size:0.85rem; font-weight:700; cursor:pointer; outline:none; box-shadow:0 0 12px rgba(41,182,246,0.25);">
+              <option value="Semua" style="background:#03091f; color:#fff;">Semua Kategori</option>
+              <option value="Photopack" style="background:#03091f; color:#fff;">📸 Photopack Digital</option>
+              <option value="Pakaian" style="background:#03091f; color:#fff;">👕 Pakaian</option>
+              <option value="Aksesoris" style="background:#03091f; color:#fff;">💎 Aksesoris</option>
+              <option value="Foto & Print" style="background:#03091f; color:#fff;">🖼️ Foto & Print</option>
+              <option value="Acrylic" style="background:#03091f; color:#fff;">🧿 Acrylic</option>
+            </select>
+          </div>
+        </div>
         <div id="ordersList">Loading pesanan...</div>
       </section>
 
@@ -493,101 +506,134 @@
       window.location.href = 'login.html';
     }
 
+    let userOrdersList = [];
+    let selectedUserCategory = 'Semua';
+
+    function filterUserOrdersCategory(cat) {
+      selectedUserCategory = cat || 'Semua';
+      renderUserOrders();
+    }
+
     async function loadOrders() {
       const list = document.getElementById('ordersList');
       try {
-        // Memanggil API orders yang dimodifikasi untuk mencari by email (bebas cache)
         const res = await fetch('/api/user-orders?email=' + encodeURIComponent(currentUser.email) + '&_t=' + Date.now());
         if (!res.ok) throw new Error('Failed fetch');
-        const orders = await res.json();
-
-        if (orders.length === 0) {
-          list.innerHTML = '<p style="color:var(--text-muted)">Anda belum memiliki pesanan.</p>';
-          return;
-        }
-
-        list.innerHTML = orders.map(o => {
-          let itemsArr = Array.isArray(o.items) ? o.items : (typeof o.items === 'string' ? JSON.parse(o.items) : []);
-          let shippingInfo = null;
-          try { shippingInfo = typeof o.shipping === 'string' ? JSON.parse(o.shipping) : o.shipping; } catch (e) { }
-
-          allOrders[o.id] = itemsArr;
-
-          const formattedDate = new Date(o.date || o.created_at || Date.now()).toLocaleString('id-ID', {
-            day: '2-digit', month: 'short', year: 'numeric',
-            hour: '2-digit', minute: '2-digit'
-          }) + ' WIB';
-
-          return `
-        <div class="order-card">
-          <div class="order-header">
-            <div>
-              <div class="order-id" style="cursor:pointer; color:var(--aqua); text-decoration:underline;" onclick="openInvoice('${o.id}')" title="Klik untuk lihat Invoice">#${o.id}</div>
-              <div class="order-date">${formattedDate}</div>
-            </div>
-            <div class="order-status ${o.status || 'pending'}">
-              ${o.status === 'paid' ? 'DIKEMAS' : o.status === 'shipped' ? 'DIKIRIM' : o.status === 'completed' ? 'SELESAI' : (o.status?.toUpperCase() || 'PENDING')}
-            </div>
-          </div>
-          <div class="order-items">
-            ${itemsArr.map(i => {
-              const isPhotopack = i.is_photopack;
-              const gdriveLink = i.gdrive_link;
-
-              return `
-              <div style="border-bottom:1px solid rgba(255,255,255,0.05); padding:0.5rem 0;">
-                <div class="order-item">
-                  <span>${i.qty}x ${i.name}${i.size ? ` • Size ${i.size}` : ''} ${isPhotopack ? '<span style="background:rgba(41,182,246,0.2);color:var(--aqua);padding:2px 8px;border-radius:12px;font-size:0.75rem;font-weight:bold;margin-left:6px;">📸 Photopack</span>' : ''}</span>
-                  <span>Rp ${(i.price * i.qty).toLocaleString('id-ID')}</span>
-                </div>
-                ${isPhotopack ? (
-                  gdriveLink ? `
-                    <div style="margin-top:0.5rem; padding:0.75rem 1rem; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
-                      <div>
-                        <div style="font-weight:700; color:#86efac; font-size:0.85rem;">✅ Pembayaran Diverifikasi Admin</div>
-                        <div style="font-size:0.75rem; color:var(--text-muted);">Link Google Drive Photopack siap diakses!</div>
-                      </div>
-                      <a href="${gdriveLink}" target="_blank" rel="noopener noreferrer" style="padding:0.45rem 1rem; font-size:0.82rem; border-radius:6px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; background:linear-gradient(135deg, #10b981, #059669); color:#fff; font-weight:700; box-shadow:0 4px 12px rgba(16,185,129,0.3);">
-                        📂 Buka Google Drive ↗
-                      </a>
-                    </div>
-                  ` : `
-                    <div style="margin-top:0.5rem; padding:0.75rem 1rem; background:rgba(234,179,8,0.1); border:1px solid rgba(234,179,8,0.3); border-radius:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
-                      <div>
-                        <div style="font-weight:700; color:#fde047; font-size:0.85rem;">⏳ Menunggu Verifikasi Admin</div>
-                        <div style="font-size:0.75rem; color:var(--text-muted);">Link Google Drive akan terbuka setelah pembayaran diverifikasi oleh Admin.</div>
-                      </div>
-                      <button disabled style="padding:0.4rem 0.8rem; font-size:0.78rem; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:var(--text-muted); cursor:not-allowed;">
-                        🔒 Link Terkunci (Pending Admin)
-                      </button>
-                    </div>
-                  `
-                ) : ''}
-              </div>
-            `;
-            }).join('')}
-          </div>
-          <div class="order-footer">
-            <span>Total Bayar <strong style="color:var(--aqua);font-size:1.1rem;margin-left:5px">Rp ${(o.total).toLocaleString('id-ID')}</strong></span>
-            <div style="display:flex; gap:0.5rem;">
-              ${o.status === 'shipped' ? `<button class="btn-primary" style="padding:0.4rem 1rem;font-size:0.8rem;border-radius:6px;display:flex;align-items:center;gap:5px" onclick="confirmDelivery('${o.id}')">📦 Konfirmasi Diterima</button>` : ''}
-              <button class="btn-ghost" style="padding:0.4rem 1rem;font-size:0.8rem;border-radius:6px;display:flex;align-items:center;gap:5px" onclick="reorderItems('${o.id}')">🛒 Beli Lagi</button>
-            </div>
-          </div>
-          ${o.status === 'completed' ? `
-            <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--card-border)">
-              ${o.review_id
-                ? '<span style="color:var(--aqua)">⭐ Ulasan Terkirim</span>'
-                : `<button class="review-btn" onclick="giveReview('${o.id}')">Beri Ulasan ⭐</button>`}
-            </div>
-          ` : ''}
-        </div>
-      `;
-        }).join('');
-
+        userOrdersList = await res.json();
+        renderUserOrders();
       } catch (err) {
-        console.error(err);
-        list.innerHTML = '<p style="color:#ef4444">Gagal memuat pesanan.</p>';
+        console.error('Error loading orders:', err);
+        if (list) list.innerHTML = '<p style="color:#fca5a5">Gagal memuat pesanan.</p>';
+      }
+    }
+
+    function renderUserOrders() {
+      const list = document.getElementById('ordersList');
+      if (!list) return;
+
+      if (!userOrdersList || userOrdersList.length === 0) {
+        list.innerHTML = '<p style="color:var(--text-muted)">Anda belum memiliki pesanan.</p>';
+        return;
+      }
+
+      let filtered = [...userOrdersList];
+
+      if (selectedUserCategory !== 'Semua') {
+        filtered = filtered.filter(o => {
+          let itemsArr = Array.isArray(o.items) ? o.items : (typeof o.items === 'string' ? JSON.parse(o.items) : []);
+          return itemsArr.some(i => {
+            if (selectedUserCategory === 'Photopack') {
+              return i.is_photopack || i.category === 'Photopack';
+            }
+            return i.category === selectedUserCategory;
+          });
+        });
+      }
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<p style="color:var(--text-muted); padding:2rem 0; text-align:center;">Tidak ada pesanan ditemukan untuk kategori <strong>${selectedUserCategory}</strong>.</p>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(o => {
+        let itemsArr = Array.isArray(o.items) ? o.items : (typeof o.items === 'string' ? JSON.parse(o.items) : []);
+        let shippingInfo = null;
+        try { shippingInfo = typeof o.shipping === 'string' ? JSON.parse(o.shipping) : o.shipping; } catch (e) { }
+
+        allOrders[o.id] = itemsArr;
+
+        const formattedDate = new Date(o.date || o.created_at || Date.now()).toLocaleString('id-ID', {
+          day: '2-digit', month: 'short', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        }) + ' WIB';
+
+        return `
+      <div class="order-card">
+        <div class="order-header">
+          <div>
+            <div class="order-id" style="cursor:pointer; color:var(--aqua); text-decoration:underline;" onclick="openInvoice('${o.id}')" title="Klik untuk lihat Invoice">#${o.id}</div>
+            <div class="order-date">${formattedDate}</div>
+          </div>
+          <div class="order-status ${o.status || 'pending'}">
+            ${o.status === 'paid' ? 'DIKEMAS' : o.status === 'shipped' ? 'DIKIRIM' : o.status === 'completed' ? 'SELESAI' : (o.status?.toUpperCase() || 'PENDING')}
+          </div>
+        </div>
+        <div class="order-items">
+          ${itemsArr.map(i => {
+            const isPhotopack = i.is_photopack;
+            const gdriveLink = i.gdrive_link;
+
+            return `
+            <div style="border-bottom:1px solid rgba(255,255,255,0.05); padding:0.5rem 0;">
+              <div class="order-item">
+                <span>${i.qty}x ${i.name}${i.size ? ` • Size ${i.size}` : ''} ${isPhotopack ? '<span style="background:rgba(41,182,246,0.2);color:var(--aqua);padding:2px 8px;border-radius:12px;font-size:0.75rem;font-weight:bold;margin-left:6px;">📸 Photopack</span>' : ''}</span>
+                <span>Rp ${(i.price * i.qty).toLocaleString('id-ID')}</span>
+              </div>
+              ${isPhotopack ? (
+                gdriveLink ? `
+                  <div style="margin-top:0.5rem; padding:0.75rem 1rem; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+                    <div>
+                      <div style="font-weight:700; color:#86efac; font-size:0.85rem;">✅ Pembayaran Diverifikasi Admin</div>
+                      <div style="font-size:0.75rem; color:var(--text-muted);">Link Google Drive Photopack siap diakses!</div>
+                    </div>
+                    <a href="${gdriveLink}" target="_blank" rel="noopener noreferrer" style="padding:0.45rem 1rem; font-size:0.82rem; border-radius:6px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; background:linear-gradient(135deg, #10b981, #059669); color:#fff; font-weight:700; box-shadow:0 4px 12px rgba(16,185,129,0.3);">
+                      📂 Buka Google Drive ↗
+                    </a>
+                  </div>
+                ` : `
+                  <div style="margin-top:0.5rem; padding:0.75rem 1rem; background:rgba(234,179,8,0.1); border:1px solid rgba(234,179,8,0.3); border-radius:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+                    <div>
+                      <div style="font-weight:700; color:#fde047; font-size:0.85rem;">⏳ Menunggu Verifikasi Admin</div>
+                      <div style="font-size:0.75rem; color:var(--text-muted);">Link Google Drive akan terbuka setelah pembayaran diverifikasi oleh Admin.</div>
+                    </div>
+                    <button disabled style="padding:0.4rem 0.8rem; font-size:0.78rem; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:var(--text-muted); cursor:not-allowed;">
+                      🔒 Link Terkunci (Pending Admin)
+                    </button>
+                  </div>
+                `
+              ) : ''}
+            </div>
+          `;
+          }).join('')}
+        </div>
+        <div class="order-footer">
+          <span>Total Bayar <strong style="color:var(--aqua);font-size:1.1rem;margin-left:5px">Rp ${(o.total).toLocaleString('id-ID')}</strong></span>
+          <div style="display:flex; gap:0.5rem;">
+            ${o.status === 'shipped' ? `<button class="btn-primary" style="padding:0.4rem 1rem;font-size:0.8rem;border-radius:6px;display:flex;align-items:center;gap:5px" onclick="confirmDelivery('${o.id}')">📦 Konfirmasi Diterima</button>` : ''}
+            <button class="btn-ghost" style="padding:0.4rem 1rem;font-size:0.8rem;border-radius:6px;display:flex;align-items:center;gap:5px" onclick="reorderItems('${o.id}')">🛒 Beli Lagi</button>
+          </div>
+        </div>
+        ${o.status === 'completed' ? `
+          <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--card-border)">
+            ${o.review_id
+              ? '<span style="color:var(--aqua)">⭐ Ulasan Terkirim</span>'
+              : `<button class="review-btn" onclick="giveReview('${o.id}')">Beri Ulasan ⭐</button>`}
+          </div>
+        ` : ''}
+      </div>
+    `;
+      }).join('');
+    }
       }
     }
 

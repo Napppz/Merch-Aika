@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- Presentasi: Halaman konfirmasi yang menampilkan ringkasan pesanan setelah transaksi berhasil dibuat. -->
+<!-- Halaman Konfirmasi Invoice Pesanan Digital & Merchandise -->
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pesanan Berhasil — Aika Sesilia Store</title>
+  <title>Invoice Pesanan — Aika Sesilia Store</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
   <style>
     .success-wrap {
@@ -14,17 +14,17 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 2rem;
+      padding: 3rem 1.5rem;
     }
     .success-card {
-      max-width: 600px;
+      max-width: 650px;
       width: 100%;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 24px;
-      padding: 3rem;
+      padding: 3rem 2.5rem;
       text-align: center;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
       box-shadow: var(--shadow-blue);
     }
     .success-icon {
@@ -41,55 +41,90 @@
     }
     .success-card p { color: var(--text-muted); margin-bottom: 0.5rem; }
     .order-detail {
-      background: rgba(3,9,31,0.5);
+      background: rgba(3,9,31,0.6);
       border: 1px solid var(--card-border);
       border-radius: var(--radius);
-      padding: 1.5rem;
+      padding: 1.8rem;
       margin: 2rem 0;
       text-align: left;
     }
     .order-detail h3 {
       font-family: var(--font-display);
-      font-size: 0.9rem;
+      font-size: 1.1rem;
       color: var(--aqua);
-      margin-bottom: 1rem;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.8rem;
     }
     .detail-row {
       display: flex;
       justify-content: space-between;
-      font-size: 0.85rem;
-      padding: 0.4rem 0;
-      border-bottom: 1px solid rgba(41,182,246,0.1);
+      font-size: 0.88rem;
+      padding: 0.45rem 0;
+      border-bottom: 1px solid rgba(41,182,246,0.08);
     }
     .detail-row:last-child { border: none; }
     .detail-row span:first-child { color: var(--text-muted); }
     .detail-row span:last-child { color: var(--white); font-weight: 600; }
-    .items-list { margin: 1rem 0; }
+    .items-list { margin: 1.2rem 0; }
     .item-row {
       display: flex;
       justify-content: space-between;
-      font-size: 0.85rem;
-      padding: 0.3rem 0;
+      font-size: 0.88rem;
+      padding: 0.4rem 0;
       color: var(--text-muted);
     }
-    .item-row span:last-child { color: var(--aqua); }
-    .cta-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .item-row span:last-child { color: var(--aqua); font-weight: 700; }
+    .cta-buttons { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem; }
+    .btn-print {
+      background: rgba(41,182,246,0.15);
+      border: 1px solid var(--aqua);
+      color: var(--aqua);
+      padding: 0.75rem 1.4rem;
+      border-radius: 50px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+    .btn-print:hover {
+      background: var(--aqua);
+      color: var(--deep-ocean);
+    }
+
+    @media print {
+      body { background: #fff !important; color: #000 !important; }
+      .success-wrap { padding: 0; min-height: auto; }
+      .success-card { border: none; box-shadow: none; background: #fff; color: #000; width: 100%; max-width: 100%; padding: 1rem; }
+      .cta-buttons, .navbar, nav { display: none !important; }
+      .order-detail { background: #f8fafc; border: 1px solid #ccc; color: #000; }
+      .detail-row span:first-child { color: #555; }
+      .detail-row span:last-child { color: #000; }
+      .success-card h1 { color: #000; }
+    }
   </style>
 </head>
 <body>
 <div class="success-wrap">
   <div class="success-card" id="successCard">
     <div class="success-icon">🎉</div>
-    <h1>Pesanan Berhasil!</h1>
-    <p>Terima kasih telah berbelanja di Aika Sesilia Store! 💙</p>
-    <p>Pesananmu sedang diproses dan akan segera dikirim.</p>
+    <h1>Pesanan & Invoice Berhasil!</h1>
+    <p>Terima kasih telah melakukan transaksi di Aika Sesilia Store! 💙</p>
+    
     <div class="order-detail" id="orderDetail">
-      <h3>Detail Pesanan</h3>
+      <h3>INVOICE PESANAN</h3>
       <!-- Filled by JS -->
     </div>
+
     <div class="cta-buttons">
-      <a href="shop.html" class="btn-primary">🛍️ Lanjut Belanja</a>
-      <a href="index.html" class="btn-ghost">🏠 Ke Beranda</a>
+      <a href="profile.html?tab=orders" class="btn-primary" style="padding:0.75rem 1.4rem; border-radius:50px;">📂 Lihat Status & GDrive di Profil</a>
+      <button onclick="window.print()" class="btn-print">🖨️ Cetak / Simpan Invoice (PDF)</button>
+      <a href="shop.html" class="btn-ghost" style="padding:0.75rem 1.4rem; border-radius:50px;">🛍️ Lanjut Belanja</a>
     </div>
   </div>
 </div>
@@ -98,7 +133,6 @@
 <script src="js/main.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  // Try sessionStorage first (contains latest invoice data), then fallback to localStorage
   let order = JSON.parse(sessionStorage.getItem('last_order') || localStorage.getItem('last_order') || '{}');
   const detail = document.getElementById('orderDetail');
   if (!order.id) {
@@ -106,9 +140,15 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
+  const hasPhotopack = (order.items || []).some(i => i.is_photopack || i.category === 'Photopack');
+
   const itemsHtml = (order.items || []).map(i => `
     <div class="item-row">
-      <span>${i.name} × ${i.qty}${i.size ? ` • Size ${i.size}` : ''}</span>
+      <div>
+        <span>${i.qty}x ${i.name}${i.size ? ` • Size ${i.size}` : ''}</span>
+        ${i.is_photopack ? '<span style="background:rgba(41,182,246,0.2);color:var(--aqua);padding:2px 8px;border-radius:12px;font-size:0.75rem;font-weight:bold;margin-left:6px;">📸 Photopack Digital</span>' : ''}
+        ${i.cosplayer_name ? `<div style="font-size:0.78rem;color:var(--aqua);margin-top:2px;">👤 Cosplayer: ${i.cosplayer_name}</div>` : ''}
+      </div>
       <span>${formatPrice(i.price * i.qty)}</span>
     </div>
   `).join('');
@@ -121,23 +161,30 @@ document.addEventListener('DOMContentLoaded', () => {
     : '-';
 
   detail.innerHTML = `
-    <h3>📋 ${order.id}</h3>
+    <h3>
+      <span>📄 INVOICE PESANAN</span>
+      <span style="font-size:0.9rem; color:var(--white); font-weight:700;">#${order.id}</span>
+    </h3>
     <div class="detail-row"><span>Waktu Pesanan</span><span>${formattedDate}</span></div>
-    <div class="detail-row"><span>Customer</span><span>${order.customerName}</span></div>
-    <div class="detail-row"><span>Email</span><span>${order.email}</span></div>
-    <div class="detail-row"><span>Alamat</span><span>${order.address}</span></div>
-    <div class="detail-row"><span>Pengiriman</span><span>${order.shipping?.name || '-'}</span></div>
-    ${order.shipping?.resi ? `<div class="detail-row"><span>No. Resi Pengiriman</span><span style="font-weight:700; color:var(--sky-blue); letter-spacing:1px">${order.shipping.resi}</span></div>` : ''}
-    <div class="detail-row"><span>Status</span><span style="color:var(--aqua)">${order.status === 'paid' ? '📦 Dikemas' : order.status === 'shipped' ? '🚚 Dikirim' : order.status === 'completed' ? '✅ Selesai' : order.status === 'pending' ? '⏳ Menunggu Pembayaran' : order.status?.toUpperCase() || '-'}</span></div>
+    <div class="detail-row"><span>Nama Pembeli</span><span>${order.customerName}</span></div>
+    <div class="detail-row"><span>Email Akun</span><span>${order.email}</span></div>
+    <div class="detail-row"><span>Alamat / Pengiriman</span><span>${order.address}</span></div>
+    <div class="detail-row"><span>Metode Pengiriman</span><span>${order.shipping?.name || 'Digital Delivery'}</span></div>
+    ${order.shipping?.resi ? `<div class="detail-row"><span>No. Resi</span><span style="font-weight:700; color:var(--sky-blue); letter-spacing:1px">${order.shipping.resi}</span></div>` : ''}
+    <div class="detail-row"><span>Status Pembayaran</span><span style="color:#fde047; font-weight:700;">⏳ Menunggu Verifikasi Admin</span></div>
+    
+    ${hasPhotopack ? `
+      <div style="margin:1rem 0; padding:0.9rem; background:rgba(41,182,246,0.1); border:1px solid var(--aqua); border-radius:10px; font-size:0.85rem; color:var(--white);">
+        <strong style="color:var(--aqua); display:block; margin-bottom:0.2rem;">⚡ Informasi Akses Google Drive:</strong>
+        Setelah pembayaran Anda diverifikasi oleh Admin, tombol aktif <strong>📂 Buka Google Drive</strong> akan langsung muncul di halaman <strong>Profil > Riwayat Pesanan</strong> Anda.
+      </div>
+    ` : ''}
+
     <div class="items-list">${itemsHtml}</div>
     <div class="detail-row"><span>Ongkos Kirim</span><span>${formatPrice(order.shipping?.price || 0)}</span></div>
-    ${order.shipping?.discount ? `<div class="detail-row"><span style="color:var(--gold)">Diskon (${order.shipping.discount.code})</span><span style="color:var(--gold)">- ${formatPrice(order.shipping.discount.amount)}</span></div>` : ''}
-    <div class="detail-row" style="font-weight:700"><span style="color:var(--white)">Total</span><span style="color:var(--aqua)">${formatPrice(order.total)}</span></div>
+    ${order.shipping?.discount ? `<div class="detail-row"><span style="color:#4caf50">Diskon Voucher (${order.shipping.discount.code})</span><span style="color:#4caf50">- ${formatPrice(order.shipping.discount.amount)}</span></div>` : ''}
+    <div class="detail-row" style="font-weight:700; font-size:1.05rem; border-top:1px solid var(--card-border); padding-top:0.8rem; margin-top:0.5rem;"><span style="color:var(--white)">Total Pembayaran</span><span style="color:var(--aqua)">${formatPrice(order.total)}</span></div>
   `;
-
-  // Clear sessionStorage after displaying to free up space
-  sessionStorage.removeItem('last_order');
-  sessionStorage.removeItem('last_order_id');
 });
 </script>
 </body>
