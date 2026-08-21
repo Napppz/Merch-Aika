@@ -753,8 +753,18 @@
               <th onclick="toggleProductSort('name')" style="cursor:pointer; user-select:none;" title="Klik untuk mengurutkan Nama Produk">
                 NAMA PRODUK <span id="sortIconName" style="font-size:0.75rem; opacity:0.6;">↕</span>
               </th>
-              <th onclick="cycleCategoryFilter()" style="cursor:pointer; user-select:none; background:rgba(41,182,246,0.12); border:1px solid var(--aqua); border-radius:8px;" title="Klik untuk berganti filter kategori">
-                KATEGORI <span id="catFilterBadge" style="font-size:0.78rem; color:var(--aqua); font-weight:700; margin-left:4px;">[ Semua ▾ ]</span>
+              <th style="min-width:180px;">
+                <div style="display:flex; align-items:center; gap:0.4rem;">
+                  <span>KATEGORI</span>
+                  <select id="adminCategorySelect" onchange="filterAdminCategory(this.value)" style="background:rgba(3,9,31,0.9); border:1px solid var(--aqua); color:var(--white); border-radius:8px; padding:0.3rem 0.6rem; font-family:var(--font-body); font-size:0.82rem; font-weight:700; cursor:pointer; outline:none; box-shadow:0 0 10px rgba(41,182,246,0.2);">
+                    <option value="Semua" style="background:#03091f; color:#fff;">Semua Kategori</option>
+                    <option value="Photopack" style="background:#03091f; color:#fff;">📸 Photopack</option>
+                    <option value="Pakaian" style="background:#03091f; color:#fff;">👕 Pakaian</option>
+                    <option value="Aksesoris" style="background:#03091f; color:#fff;">💎 Aksesoris</option>
+                    <option value="Foto & Print" style="background:#03091f; color:#fff;">🖼️ Foto & Print</option>
+                    <option value="Acrylic" style="background:#03091f; color:#fff;">🧿 Acrylic</option>
+                  </select>
+                </div>
               </th>
               <th onclick="toggleProductSort('price')" style="cursor:pointer; user-select:none;" title="Klik untuk mengurutkan Harga">
                 HARGA <span id="sortIconPrice" style="font-size:0.75rem; opacity:0.6;">↕</span>
@@ -1402,23 +1412,12 @@
 
     // ── PRODUCTS & CLICKABLE TABLE HEADER FILTERING / SORTING ──
     let allAdminProducts = [];
-    const categoryOrderList = ['Semua', 'Photopack', 'Pakaian', 'Aksesoris', 'Foto & Print', 'Acrylic'];
     let currentAdminCategoryFilter = 'Semua';
     let currentSortField = null; // 'name' | 'price' | 'stock'
     let currentSortDirection = 'none'; // 'asc' | 'desc' | 'none'
 
-    function cycleCategoryFilter() {
-      const idx = categoryOrderList.indexOf(currentAdminCategoryFilter);
-      const nextIdx = (idx + 1) % categoryOrderList.length;
-      currentAdminCategoryFilter = categoryOrderList[nextIdx];
-      
-      const badge = document.getElementById('catFilterBadge');
-      if (badge) {
-        const emojiMap = { 'Photopack': '📸 ', 'Pakaian': '👕 ', 'Aksesoris': '💎 ', 'Foto & Print': '🖼️ ', 'Acrylic': '🧿 ' };
-        const icon = emojiMap[currentAdminCategoryFilter] || '';
-        badge.textContent = `[ ${icon}${currentAdminCategoryFilter} ▾ ]`;
-      }
-      
+    function filterAdminCategory(val) {
+      currentAdminCategoryFilter = val || 'Semua';
       filterAdminProducts();
     }
 
