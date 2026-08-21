@@ -704,45 +704,33 @@
 
     async function loadAvatar() {
       const container = document.getElementById('profAvatarText');
-      let saved = null;
+      if (!container) return;
       const cacheKey = 'aika_avatar_' + currentUser.email;
-      const isIos = isIOS();
 
+      // 1. Render cache immediately for smooth UX
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        container.innerHTML = `<img src="${cached}" alt="${currentUser.username}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+      } else {
+        container.innerHTML = (currentUser.username || 'U').charAt(0).toUpperCase();
+      }
+
+      // 2. Always fetch real-time avatar from database API to guarantee Desktop & Mobile match
       try {
-        if (isIos) {
-          console.log('📱 iOS detected - fetching avatar from API with cache bust');
-          const res = await fetch(`/api/avatar?email=${encodeURIComponent(currentUser.email)}&t=${Date.now()}`);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.avatar) {
-              saved = data.avatar;
-              console.log('✅ Avatar loaded from API (iOS)');
-            }
-          }
-        } else {
-          saved = localStorage.getItem(cacheKey);
-          if (!saved) {
-            console.log('💻 Desktop - Avatar not in cache, fetching from API');
-            const res = await fetch(`/api/avatar?email=${encodeURIComponent(currentUser.email)}`);
-            if (res.ok) {
-              const data = await res.json();
-              if (data.avatar) {
-                saved = data.avatar;
-                localStorage.setItem(cacheKey, saved);
-                console.log('✅ Avatar loaded from API (Desktop) and cached');
-              }
-            }
+        const res = await fetch(`/api/avatar?email=${encodeURIComponent(currentUser.email)}&t=${Date.now()}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.avatar) {
+            localStorage.setItem(cacheKey, data.avatar);
+            container.innerHTML = `<img src="${data.avatar}" alt="${currentUser.username}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+            updateNavAvatar();
+          } else if (data && !data.avatar) {
+            localStorage.removeItem(cacheKey);
+            container.innerHTML = (currentUser.username || 'U').charAt(0).toUpperCase();
           }
         }
       } catch (err) {
-        console.error('Error loading avatar:', err);
-      }
-
-      // Render avatar
-      if (saved) {
-        container.innerHTML = `<img src="${saved}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
-      } else {
-        container.innerHTML = currentUser.username.charAt(0).toUpperCase();
+        console.error('Error loading latest avatar from API:', err);
       }
     }
 
@@ -756,20 +744,15 @@
       const reader = new FileReader();
       reader.onload = async function (e) {
         const dataUrl = e.target.result;
-        const isIos = isIOS();
+        const cacheKey = 'aika_avatar_' + currentUser.email;
 
-        if (!isIos) {
-          localStorage.setItem('aika_avatar_' + currentUser.email, dataUrl);
+        // Preview langsung
+        const container = document.getElementById('profAvatarText');
+        if (container) {
+          container.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
         }
 
-        loadAvatar();
-        updateNavAvatar();
-
-        currentUser.avatarUpdated = Date.now();
-        localStorage.setItem('aika_session', JSON.stringify(currentUser));
-
         try {
-          console.log('⏳ Saving avatar to database...');
           const res = await fetch('/api/avatar', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-user-email': currentUser.email },
@@ -778,29 +761,22 @@
 
           if (!res.ok) {
             const errData = await res.json();
-            console.error('❌ Error saving avatar:', errData);
             alert('Gagal menyimpan foto: ' + (errData.error || 'Unknown error'));
+            await loadAvatar();
             return;
           }
 
           const result = await res.json();
-          if (result.avatar) {
-            localStorage.setItem('aika_avatar_' + currentUser.email, result.avatar);
-          }
-
-          if (isIos) {
-            localStorage.removeItem('aika_avatar_' + currentUser.email);
-          }
+          const finalAvatar = result.avatar || dataUrl;
+          localStorage.setItem(cacheKey, finalAvatar);
 
           alert('Foto profil berhasil diperbarui!');
-          if (isIos) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            await loadAvatar();
-            updateNavAvatar();
-          }
+          await loadAvatar();
+          updateNavAvatar();
         } catch (err) {
           console.error('❌ Error saving avatar to API:', err);
           alert('Gagal mengunggah foto ke server: ' + err.message);
+          await loadAvatar();
         }
       };
       reader.readAsDataURL(file);
