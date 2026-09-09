@@ -4,7 +4,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Profil Saya — Aika Sesilia</title>
   <link
     href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Nunito:wght@300;400;600;700&display=swap"
@@ -312,17 +312,158 @@
       opacity: 0.4;
     }
 
-    /* ── MOBILE OPTIMIZATIONS (ANDROID & iOS) ── */
+    /* ── MOBILE & iOS OPTIMIZATIONS ── */
     @media (max-width: 768px) {
       .profile-container {
         grid-template-columns: 1fr;
-        margin-top: 5rem;
-        padding: 0 0.75rem 2rem;
+        margin-top: 4.5rem;
+        padding: 0 0.85rem calc(2rem + env(safe-area-inset-bottom, 0px));
+        gap: 1.25rem;
+      }
+
+      .profile-sidebar {
+        padding: 1.25rem 1rem;
+        border-radius: 16px;
+        text-align: center;
+      }
+
+      .profile-avatar {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
+        margin-bottom: 0.6rem;
+      }
+
+      .profile-name {
+        font-size: 1.15rem;
+        margin-bottom: 0.2rem;
+      }
+
+      .profile-email {
+        font-size: 0.82rem;
+        margin-bottom: 0.6rem;
+      }
+
+      .profile-phone {
+        margin-bottom: 1rem !important;
+        font-size: 0.75rem !important;
+      }
+
+      /* Horizontal Scrollable Pill Tabs on Mobile */
+      .profile-nav {
+        display: flex;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 0.5rem;
+        padding: 0.4rem 0.2rem 0.6rem;
+        margin: 0 -0.5rem;
+        scrollbar-width: none;
+      }
+      .profile-nav::-webkit-scrollbar {
+        display: none;
+      }
+
+      .profile-nav button {
+        width: auto !important;
+        flex-shrink: 0;
+        padding: 0.55rem 0.95rem !important;
+        margin-bottom: 0 !important;
+        font-size: 0.82rem !important;
+        border-radius: 50px !important;
+        white-space: nowrap !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        background: rgba(3, 9, 31, 0.7) !important;
+        border: 1px solid var(--card-border) !important;
+        color: var(--text-muted) !important;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .profile-nav button.active {
+        background: linear-gradient(135deg, rgba(41, 182, 246, 0.25), rgba(21, 101, 192, 0.35)) !important;
+        border-color: var(--aqua) !important;
+        color: var(--aqua) !important;
+        font-weight: 700 !important;
+        box-shadow: 0 2px 10px rgba(41, 182, 246, 0.25);
       }
 
       .profile-content {
         padding: 1.25rem 0.9rem;
         border-radius: 16px;
+      }
+
+      /* 3-Column Compact Stats Overview on Mobile */
+      .stats-overview-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 0.5rem !important;
+        margin-bottom: 1.25rem !important;
+      }
+
+      .stat-card-item {
+        padding: 0.75rem 0.4rem !important;
+        flex-direction: column !important;
+        text-align: center !important;
+        gap: 0.3rem !important;
+        border-radius: 12px !important;
+      }
+
+      .stat-card-icon {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 1.15rem !important;
+      }
+
+      .stat-card-label {
+        font-size: 0.65rem !important;
+        letter-spacing: 0 !important;
+        line-height: 1.2;
+      }
+
+      .stat-card-value {
+        font-size: 1.15rem !important;
+      }
+
+      /* Orders Card Mobile */
+      .order-card {
+        padding: 1rem !important;
+        border-radius: 12px !important;
+      }
+
+      .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+
+      .order-footer {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 0.8rem;
+      }
+
+      .order-footer button,
+      .order-footer a {
+        width: 100% !important;
+        text-align: center;
+        justify-content: center;
+        min-height: 40px;
+        font-size: 0.85rem !important;
+      }
+
+      /* Modals */
+      .cart-overlay .profile-sidebar {
+        width: 95vw !important;
+        max-width: 95vw !important;
+        max-height: 85vh !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 1.5rem 1rem !important;
+      }
+
+      /* Prevent iOS Safari Auto-Zoom on form fields */
+      input, select, textarea {
+        font-size: 16px !important;
       }
     }
 
@@ -429,7 +570,10 @@
       <div class="profile-nav">
         <button class="active" onclick="switchTab('orders', this)">Riwayat Pesanan</button>
         <button onclick="switchTab('photopack', this)">📸 Koleksi Photopack Saya</button>
-        <button onclick="switchTab('wishlist', this)">Favorit Saya</button>
+        <button onclick="switchTab('wishlist', this)" id="btnTabWishlist" style="display:flex; align-items:center; justify-content:space-between;">
+          <span>❤️ Favorit Saya</span>
+          <span id="navWishlistBadge" style="background:rgba(239,68,68,0.25); color:#ef4444; border-radius:12px; padding:2px 8px; font-size:0.75rem; display:none; font-weight:700;">0</span>
+        </button>
         <button onclick="switchTab('address', this)">Buku Alamat</button>
         <button onclick="switchTab('settings', this)">Pengaturan Akun</button>
         <button onclick="logout()" style="color:#ef4444; border-color:rgba(239,68,68,0.3);">Keluar</button>
@@ -438,32 +582,49 @@
 
     <main class="profile-content">
       <!-- ── STATS OVERVIEW CARDS ── -->
-      <div
+      <div class="stats-overview-grid"
         style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-bottom:2rem;">
-        <div
-          style="background:rgba(3,9,31,0.6); border:1px solid var(--card-border); border-radius:var(--radius-sm); padding:1.2rem; display:flex; align-items:center; gap:1rem;">
-          <div
+        <div class="stat-card-item"
+          style="background:rgba(3,9,31,0.6); border:1px solid var(--card-border); border-radius:var(--radius-sm); padding:1.2rem; display:flex; align-items:center; gap:1rem; cursor:pointer;"
+          onclick="switchTab('orders')">
+          <div class="stat-card-icon"
             style="width:45px; height:45px; border-radius:10px; background:rgba(41,182,246,0.15); color:var(--aqua); display:flex; align-items:center; justify-content:center; font-size:1.4rem;">
             🛍️</div>
           <div>
-            <div
+            <div class="stat-card-label"
               style="font-size:0.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">
               Total Transaksi</div>
-            <div style="font-size:1.3rem; font-weight:800; color:var(--white);" id="statTotalOrders">0</div>
+            <div class="stat-card-value" style="font-size:1.3rem; font-weight:800; color:var(--white);" id="statTotalOrders">0</div>
           </div>
         </div>
 
-        <div
+        <div class="stat-card-item"
           style="background:rgba(3,9,31,0.6); border:1px solid var(--card-border); border-radius:var(--radius-sm); padding:1.2rem; display:flex; align-items:center; gap:1rem; cursor:pointer;"
           onclick="switchTab('photopack')">
-          <div
+          <div class="stat-card-icon"
             style="width:45px; height:45px; border-radius:10px; background:rgba(34,197,94,0.15); color:#86efac; display:flex; align-items:center; justify-content:center; font-size:1.4rem;">
             📸</div>
           <div>
-            <div
+            <div class="stat-card-label"
               style="font-size:0.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">
               Koleksi Photopack</div>
-            <div style="font-size:1.3rem; font-weight:800; color:#86efac;" id="statTotalPhotopacks">0</div>
+            <div class="stat-card-value" style="font-size:1.3rem; font-weight:800; color:#86efac;" id="statTotalPhotopacks">0</div>
+          </div>
+        </div>
+
+        <div class="stat-card-item"
+          style="background:rgba(3,9,31,0.6); border:1px solid var(--card-border); border-radius:var(--radius-sm); padding:1.2rem; display:flex; align-items:center; gap:1rem; cursor:pointer; transition:transform 0.2s;"
+          onclick="switchTab('wishlist')"
+          onmouseover="this.style.transform='translateY(-2px)'"
+          onmouseout="this.style.transform='translateY(0)'">
+          <div class="stat-card-icon"
+            style="width:45px; height:45px; border-radius:10px; background:rgba(239,68,68,0.15); color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:1.4rem;">
+            ❤️</div>
+          <div>
+            <div class="stat-card-label"
+              style="font-size:0.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">
+              Favorit Saya</div>
+            <div class="stat-card-value" style="font-size:1.3rem; font-weight:800; color:#ef4444;" id="statTotalWishlist">0</div>
           </div>
         </div>
       </div>
@@ -555,9 +716,12 @@
       </section>
 
       <section id="tab-wishlist" class="content-section">
-        <h2>Favorit Saya (Wishlist)</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem; border-bottom:1px solid var(--card-border); padding-bottom:0.8rem;">
+          <h2 style="margin:0; border:none; padding:0;">❤️ Favorit Saya (Wishlist)</h2>
+          <span id="wishlistSubtitle" style="color:var(--text-muted); font-size:0.85rem;"></span>
+        </div>
         <div id="wishlistContainer"
-          style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1.5rem;">
+          style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:1.5rem;">
           <!-- Wishlist items -->
         </div>
       </section>
@@ -654,6 +818,12 @@
       loadOrders().catch(err => console.error('Error loading orders:', err));
       loadAddress().catch(err => console.error('Error loading address:', err));
       loadWishlist().catch(err => console.error('Error loading wishlist:', err));
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetTab = urlParams.get('tab');
+      if (targetTab) {
+        switchTab(targetTab);
+      }
     });
 
     async function loadUserProfile() {
@@ -695,6 +865,14 @@
       document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
       const targetSection = document.getElementById('tab-' + tabId);
       if (targetSection) targetSection.classList.add('active');
+
+      if (tabId === 'wishlist') {
+        loadWishlist().catch(err => console.error('Error loading wishlist:', err));
+      } else if (tabId === 'orders') {
+        loadOrders().catch(err => console.error('Error loading orders:', err));
+      } else if (tabId === 'address') {
+        loadAddress().catch(err => console.error('Error loading address:', err));
+      }
     }
 
     // Deteksi iOS
@@ -1493,58 +1671,239 @@
       loadAddress();
     }
 
-    /* --- WISHLIST --- */
-    function loadWishlist() {
-      const container = document.getElementById('wishlistContainer');
-      const wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
+    /* --- WISHLIST (FAVORIT SAYA) --- */
+    let currentWishlist = [];
 
-      if (wishlist.length === 0) {
-        container.innerHTML = '<p style="color:var(--text-muted); grid-column:1 / -1;">Wishlist Anda kosong.</p>';
+    async function loadWishlist() {
+      const container = document.getElementById('wishlistContainer');
+      if (!container) return;
+
+      const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+      let userEmail = null;
+      if (userStr) {
+        try {
+          userEmail = JSON.parse(userStr)?.email;
+        } catch (e) {}
+      }
+
+      // Tampilkan state loading jika kontainer masih kosong
+      if (!container.children.length) {
+        container.innerHTML = `
+          <div style="grid-column:1/-1; text-align:center; padding:3rem 1rem; color:var(--text-muted);">
+            <div style="font-size:2.2rem; margin-bottom:0.5rem;">⏳</div>
+            <p>Memuat produk favorit Anda...</p>
+          </div>
+        `;
+      }
+
+      let items = [];
+      let fetchSuccess = false;
+
+      if (userEmail) {
+        try {
+          const res = await fetch(`/api/wishlist?email=${encodeURIComponent(userEmail)}&_t=${Date.now()}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && Array.isArray(data.items)) {
+              items = data.items;
+              fetchSuccess = true;
+              // Sinkronisasi ke cache lokal
+              localStorage.setItem('aika_wishlist', JSON.stringify(items.map(it => ({
+                id: String(it.id),
+                name: it.name,
+                price: it.price,
+                image: it.image
+              }))));
+            }
+          }
+        } catch (err) {
+          console.warn('Gagal memuat wishlist dari server, menggunakan cache:', err);
+        }
+      }
+
+      if (!fetchSuccess) {
+        try {
+          items = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
+        } catch (e) {
+          items = [];
+        }
+      }
+
+      currentWishlist = items;
+
+      // Update badge di nav & statistik
+      const badge = document.getElementById('navWishlistBadge');
+      if (badge) {
+        badge.textContent = items.length;
+        badge.style.display = items.length > 0 ? 'inline-block' : 'none';
+      }
+      const statWishlist = document.getElementById('statTotalWishlist');
+      if (statWishlist) {
+        statWishlist.textContent = items.length;
+      }
+      const subTitle = document.getElementById('wishlistSubtitle');
+      if (subTitle) {
+        subTitle.textContent = items.length ? `${items.length} produk tersimpan` : '';
+      }
+
+      // Empty state yang interaktif & indah
+      if (!items || items.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column:1 / -1; text-align:center; padding:3.5rem 1.5rem; background:rgba(3,9,31,0.5); border:1px dashed var(--card-border); border-radius:var(--radius); margin:1rem 0;">
+            <div style="font-size:3rem; margin-bottom:1rem; opacity:0.8;">💔</div>
+            <h3 style="color:var(--white); margin-bottom:0.5rem; font-size:1.2rem;">Belum Ada Produk Favorit</h3>
+            <p style="color:var(--text-muted); font-size:0.9rem; max-width:420px; margin:0 auto 1.5rem auto; line-height:1.6;">
+              Anda belum menandai produk apapun sebagai favorit. Klik tombol hati ❤️ pada produk yang Anda sukai di katalog toko kami!
+            </p>
+            <a href="shop.html" class="btn-primary" style="display:inline-flex; align-items:center; gap:8px; padding:0.65rem 1.4rem; border-radius:50px; font-weight:700; text-decoration:none;">
+              🛍️ Jelajahi Katalog Toko
+            </a>
+          </div>
+        `;
         return;
       }
 
-      container.innerHTML = wishlist.map((item, idx) => `
-      <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:var(--radius); overflow:hidden; position:relative;">
-        <button style="position:absolute; top:8px; right:8px; background:rgba(3,9,31,0.7); border:none; border-radius:50%; width:30px; height:30px; color:#ef4444; cursor:pointer;" onclick="removeWishlist(${idx})">✕</button>
-        <div style="height:120px; background:var(--midnight-blue); display:flex; align-items:center; justify-content:center;">
-          ${item.image ? `<img src="${item.image}" style="width:100%; height:100%; object-fit:cover;" />` : '<span style="font-size:2rem; opacity:0.3;">🛍️</span>'}
+      container.innerHTML = items.map((item, idx) => {
+        const prodId = String(item.id || item.product_id || idx);
+        const name = (item.name || 'Produk Merchandise').replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+        const price = Number(item.price || 0);
+        const image = item.image || '';
+        const category = item.category || 'Merchandise';
+        const isPhotopack = Boolean(item.isPhotopack || item.is_photopack || category === 'Photopack');
+
+        return `
+        <div class="product-card" style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:var(--radius); overflow:hidden; position:relative; display:flex; flex-direction:column; transition:transform 0.2s ease, box-shadow 0.2s ease; box-shadow:0 4px 20px rgba(0,0,0,0.25);">
+          <button style="position:absolute; top:8px; right:8px; z-index:5; background:rgba(3,9,31,0.8); backdrop-filter:blur(4px); border:1px solid rgba(239,68,68,0.4); border-radius:50%; width:32px; height:32px; color:#ef4444; font-size:0.9rem; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:transform 0.15s ease;" 
+            onmouseover="this.style.transform='scale(1.1)'" 
+            onmouseout="this.style.transform='scale(1)'"
+            onclick="removeWishlistItem('${prodId}')" 
+            title="Hapus dari Favorit">
+            ✕
+          </button>
+          <div style="height:150px; background:var(--midnight-blue); position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="window.location.href='shop.html'">
+            ${image ? `<img src="${image}" alt="${name}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />` : ''}
+            <div style="display:${image ? 'none' : 'flex'}; align-items:center; justify-content:center; font-size:2.5rem; opacity:0.4;">
+              ${isPhotopack ? '📸' : '🛍️'}
+            </div>
+            ${isPhotopack ? `<span style="position:absolute; bottom:8px; left:8px; background:linear-gradient(135deg,#0284c7,#2563eb); color:#fff; font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:4px;">Photopack Digital</span>` : ''}
+          </div>
+          <div style="padding:1rem; display:flex; flex-direction:column; flex:1;">
+            <div style="font-size:0.75rem; color:var(--aqua); font-weight:600; text-transform:uppercase; margin-bottom:4px;">${category}</div>
+            <h4 style="color:var(--white); font-size:0.95rem; margin:0 0 8px 0; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;" title="${name}">${name}</h4>
+            <div style="color:var(--aqua); font-weight:800; font-size:1.05rem; margin-top:auto; margin-bottom:1rem;">
+              Rp ${price.toLocaleString('id-ID')}
+            </div>
+            <div style="display:flex; gap:0.5rem;">
+              ${isPhotopack ? `
+                <a href="checkout-photopack.html?id=${prodId}" class="btn-primary" style="flex:1; text-align:center; padding:0.55rem; font-size:0.8rem; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:4px; font-weight:700; background:linear-gradient(135deg,#0284c7,#2563eb); border:none;">
+                  ⚡ Beli Langsung
+                </a>
+              ` : `
+                <button class="btn-primary" style="flex:1; padding:0.55rem; font-size:0.8rem; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; gap:4px; font-weight:700;" onclick="addWishlistItemToCart('${prodId}')">
+                  🛒 + Keranjang
+                </button>
+              `}
+            </div>
+          </div>
         </div>
-        <div style="padding:1rem;">
-          <h4 style="color:var(--white); font-size:0.95rem; margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</h4>
-          <p style="color:var(--aqua); font-weight:700; font-size:0.9rem; margin-bottom:1rem;">Rp ${(item.price).toLocaleString('id-ID')}</p>
-          <button class="btn-primary" style="width:100%; padding:0.5rem; font-size:0.8rem; border-radius:50px;" onclick="addWishlistToCart(${idx})">+ Keranjang</button>
-        </div>
-      </div>
-    `).join('');
+        `;
+      }).join('');
     }
 
-    function removeWishlist(idx) {
-      let wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
-      wishlist.splice(idx, 1);
-      localStorage.setItem('aika_wishlist', JSON.stringify(wishlist));
-      loadWishlist();
-    }
-
-    function addWishlistToCart(idx) {
-      let wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
-
+    async function removeWishlistItem(productId) {
       const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
-      const key = userStr ? `aika_cart_${JSON.parse(userStr).email}` : 'aika_cart_guest';
-      let cart = JSON.parse(localStorage.getItem(key) || '[]');
+      let userEmail = null;
+      if (userStr) {
+        try {
+          userEmail = JSON.parse(userStr)?.email;
+        } catch (e) {}
+      }
 
-      let item = wishlist[idx];
+      currentWishlist = currentWishlist.filter(w => String(w.id || w.product_id) !== String(productId));
+      localStorage.setItem('aika_wishlist', JSON.stringify(currentWishlist.map(it => ({
+        id: String(it.id || it.product_id),
+        name: it.name,
+        price: it.price,
+        image: it.image
+      }))));
+
+      loadWishlist();
+
+      if (userEmail) {
+        try {
+          await fetch(`/api/wishlist?product_id=${encodeURIComponent(productId)}`, {
+            method: 'DELETE',
+            headers: { 'x-user-email': userEmail }
+          });
+        } catch (err) {
+          console.error('Gagal menghapus wishlist dari server:', err);
+        }
+      }
+    }
+
+    async function addWishlistItemToCart(productId) {
+      const item = currentWishlist.find(w => String(w.id || w.product_id) === String(productId));
       if (!item) return;
 
-      let exist = cart.find(c => c.name === item.name);
+      const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+      let userEmail = null;
+      if (userStr) {
+        try {
+          userEmail = JSON.parse(userStr)?.email;
+        } catch (e) {}
+      }
+
+      // 1. Sync to server /api/cart
+      if (userEmail) {
+        try {
+          await fetch('/api/cart', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-user-email': userEmail
+            },
+            body: JSON.stringify({ product_id: item.id || productId, quantity: 1, size: null })
+          });
+        } catch (err) {
+          console.error('Gagal sync keranjang ke server:', err);
+        }
+      }
+
+      // 2. Simpan juga ke localStorage
+      const key = userEmail ? `aika_cart_${userEmail}` : 'aika_cart_guest';
+      let cart = JSON.parse(localStorage.getItem(key) || '[]');
+      let exist = cart.find(c => String(c.id) === String(item.id || productId) || c.name === item.name);
       if (exist) {
         exist.qty = (exist.qty || 1) + 1;
       } else {
-        item.qty = 1;
-        cart.push(item);
+        cart.push({
+          id: item.id || productId,
+          name: item.name,
+          price: item.price,
+          qty: 1,
+          image: item.image || ''
+        });
       }
-
       localStorage.setItem(key, JSON.stringify(cart));
-      alert(item.name + ' ditambahkan ke keranjang!');
+
+      alert(`✅ "${item.name}" berhasil ditambahkan ke keranjang belanja!`);
+    }
+
+    // Alias kompatibilitas
+    function removeWishlist(idx) {
+      if (currentWishlist[idx]) {
+        removeWishlistItem(currentWishlist[idx].id || currentWishlist[idx].product_id);
+      } else {
+        removeWishlistItem(idx);
+      }
+    }
+
+    function addWishlistToCart(idx) {
+      if (currentWishlist[idx]) {
+        addWishlistItemToCart(currentWishlist[idx].id || currentWishlist[idx].product_id);
+      } else {
+        addWishlistItemToCart(idx);
+      }
     }
   </script>
 </body>

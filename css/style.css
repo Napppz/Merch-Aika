@@ -1123,3 +1123,22 @@ body {
   .nav-links { display: none; }
   .featured, .about, .contact { padding: 4rem 1.5rem; }
 }
+
+/* ── GLOBAL MOBILE & iOS POLISH ── */
+@media (max-width: 768px) {
+  /* Prevent iOS Safari auto-zoom on form inputs */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* Smooth touch feedback */
+  button, a, .btn-primary, .btn-secondary, .btn-ghost {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* iOS safe area spacing */
+  body {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+

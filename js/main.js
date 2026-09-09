@@ -56,35 +56,117 @@ const Orders = {
   }
 };
 
-// ── WISHLIST TOGGLE ──
-window.toggleWishlist = function(btn) {
+// ── WISHLIST TOGGLE & SYNC ──
+window.toggleWishlist = async function(btn) {
   const product = {
-    id: btn.getAttribute('data-id'),
-    name: btn.getAttribute('data-name'),
+    id: String(btn.getAttribute('data-id') || ''),
+    name: btn.getAttribute('data-name') || 'Produk',
     price: parseInt(btn.getAttribute('data-price') || '0', 10),
     image: btn.getAttribute('data-img') || ''
   };
+  if (!product.id) return;
+
   let wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
-  const existsIndex = wishlist.findIndex(w => w.id === product.id);
+  const existsIndex = wishlist.findIndex(w => String(w.id) === product.id);
   
   const svg = btn.querySelector('svg');
+  const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+  let userEmail = null;
+  if (userStr) {
+    try {
+      userEmail = JSON.parse(userStr)?.email;
+    } catch (e) {}
+  }
+
   if (existsIndex >= 0) {
     wishlist.splice(existsIndex, 1);
-    svg.style.fill = 'none';
-    svg.style.color = 'var(--text-muted)';
+    if (svg) {
+      svg.setAttribute('fill', 'none');
+      svg.style.fill = 'none';
+      svg.style.color = 'var(--text-muted)';
+    }
+    btn.style.color = 'var(--text-muted)';
     showToast('Dihapus dari Favorit 💔');
+
+    if (userEmail) {
+      try {
+        await fetch(`/api/wishlist?product_id=${encodeURIComponent(product.id)}`, {
+          method: 'DELETE',
+          headers: { 'x-user-email': userEmail }
+        });
+      } catch (err) {
+        console.error('Failed to remove wishlist from server:', err);
+      }
+    }
   } else {
     wishlist.push(product);
-    svg.style.fill = '#ef4444';
-    svg.style.color = '#ef4444';
+    if (svg) {
+      svg.setAttribute('fill', '#ef4444');
+      svg.style.fill = '#ef4444';
+      svg.style.color = '#ef4444';
+    }
+    btn.style.color = '#ef4444';
     showToast('Ditambahkan ke Favorit ❤️');
+
+    if (userEmail) {
+      try {
+        await fetch('/api/wishlist', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-email': userEmail
+          },
+          body: JSON.stringify({ product_id: product.id })
+        });
+      } catch (err) {
+        console.error('Failed to add wishlist to server:', err);
+      }
+    }
   }
   localStorage.setItem('aika_wishlist', JSON.stringify(wishlist));
 };
 
 function checkWishlistStatus(id) {
   const wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
-  return wishlist.some(w => w.id === id);
+  return wishlist.some(w => String(w.id) === String(id));
+}
+
+async function syncWishlistWithServer() {
+  try {
+    const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+    if (!userStr) return;
+    const user = JSON.parse(userStr);
+    if (!user || !user.email) return;
+
+    const res = await fetch(`/api/wishlist?email=${encodeURIComponent(user.email)}&_t=${Date.now()}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.items)) {
+        const serverWishlist = data.items.map(item => ({
+          id: String(item.id),
+          name: item.name,
+          price: item.price,
+          image: item.image
+        }));
+        localStorage.setItem('aika_wishlist', JSON.stringify(serverWishlist));
+
+        // Update all heart icons on current page
+        document.querySelectorAll('button[data-id][onclick*="toggleWishlist"]').forEach(btn => {
+          const id = String(btn.getAttribute('data-id'));
+          const isWish = serverWishlist.some(w => String(w.id) === id);
+          const svg = btn.querySelector('svg');
+          if (svg) {
+            svg.setAttribute('fill', isWish ? '#ef4444' : 'none');
+            svg.style.fill = isWish ? '#ef4444' : 'none';
+            svg.style.color = isWish ? '#ef4444' : 'var(--text-muted)';
+            btn.style.color = isWish ? '#ef4444' : 'var(--text-muted)';
+          }
+        });
+      }
+    }
+  } catch (err) {
+    console.error('Error syncing wishlist with server:', err);
+  }
 }
 
 let cachedProductsMap = {};
@@ -379,6 +461,7 @@ async function loadReviews() {
 document.addEventListener('DOMContentLoaded', () => {
   initFadeIn();
   loadReviews();
+  syncWishlistWithServer();
   // Navbar scroll effect
   window.addEventListener('scroll', () => {
     const nav = document.querySelector('.navbar');
