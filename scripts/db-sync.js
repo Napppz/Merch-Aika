@@ -31,6 +31,7 @@ async function syncDatabase() {
         badge TEXT,
         image TEXT,
         sizes TEXT,
+        tag TEXT,
         gdrive_link TEXT,
         cosplayer_name VARCHAR(100),
         is_photopack BOOLEAN DEFAULT FALSE,
@@ -41,6 +42,7 @@ async function syncDatabase() {
 
     // Add missing columns if table already existed without them
     await pool.query(`
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS tag TEXT;
       ALTER TABLE products ADD COLUMN IF NOT EXISTS gdrive_link TEXT;
       ALTER TABLE products ADD COLUMN IF NOT EXISTS cosplayer_name VARCHAR(100);
       ALTER TABLE products ADD COLUMN IF NOT EXISTS is_photopack BOOLEAN DEFAULT FALSE;

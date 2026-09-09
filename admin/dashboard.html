@@ -1226,6 +1226,16 @@
           dipakai untuk kategori pakaian.</div>
       </div>
 
+      <div class="form-group" id="productTagGroup">
+        <label>Tag Khusus Ukuran & Varian Harga</label>
+        <select id="productTag" onchange="updateTagNotice()">
+          <option value="">-- Standar (Tanpa Tambahan Biaya Size) --</option>
+          <option value="Pakaian Kaos">👕 Pakaian Kaos (XL +15k, XXL +25k, XXXL +30k)</option>
+          <option value="Haori">👘 Haori (XL, XXL, XXXL +50k)</option>
+        </select>
+        <div id="productTagNotice" style="display:none; font-size:0.8rem; margin-top:0.45rem; padding:0.55rem 0.85rem; border-radius:8px; background:rgba(41,182,246,0.12); color:var(--aqua); border:1px solid rgba(41,182,246,0.25); line-height:1.4;"></div>
+      </div>
+
       <!-- ── PHOTOPACK DIGITAL GROUP ── -->
       <div class="form-group" id="productPhotopackGroup" style="margin-top: 1rem; padding: 1rem; background: rgba(41,182,246,0.06); border: 1px dashed var(--aqua); border-radius: 10px;">
         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
@@ -1661,7 +1671,10 @@
         ${cosplayerInfo}
         ${driveLinkBtn}
       </td>
-      <td><span class="badge-cat">${isPhotopack ? '📸 Photopack' : p.category}</span></td>
+      <td>
+        <span class="badge-cat">${isPhotopack ? '📸 Photopack' : p.category}</span>
+        ${p.tag ? `<div style="margin-top:4px;"><span class="badge-cat" style="background:rgba(41,182,246,0.15);color:var(--aqua);border:1px solid rgba(41,182,246,0.3);font-size:0.75rem;">🏷️ ${p.tag}</span></div>` : ''}
+      </td>
       <td class="td-price">${formatPrice(p.price)}</td>
       <td>${p.stock ?? '-'}</td>
       <td>${p.badge ? `<span class="badge-cat">${p.badge}</span>` : '—'}</td>
@@ -1786,14 +1799,39 @@
       setProductImageMeta('Belum ada file dipilih');
     }
 
+    function updateTagNotice() {
+      const tagVal = document.getElementById('productTag')?.value || '';
+      const noticeEl = document.getElementById('productTagNotice');
+      if (!noticeEl) return;
+      if (tagVal === 'Pakaian Kaos') {
+        noticeEl.innerHTML = '🏷️ <strong>Pakaian Kaos Aktif:</strong> Biaya tambahan ukuran otomatis diterapkan saat checkout: <strong>XL (+Rp 15.000)</strong>, <strong>XXL (+Rp 25.000)</strong>, <strong>XXXL (+Rp 30.000)</strong>. Ukuran S, M, L harga normal.';
+        noticeEl.style.display = 'block';
+      } else if (tagVal === 'Haori') {
+        noticeEl.innerHTML = '🏷️ <strong>Haori Aktif:</strong> Biaya tambahan ukuran otomatis diterapkan saat checkout: <strong>XL, XXL, XXXL (+Rp 50.000)</strong>. Ukuran S, M, L harga normal.';
+        noticeEl.style.display = 'block';
+      } else {
+        noticeEl.innerHTML = '';
+        noticeEl.style.display = 'none';
+      }
+    }
+
     function toggleProductSizesField() {
       const category = document.getElementById('productCategory')?.value || '';
       const sizesGroup = document.getElementById('productSizesGroup');
       const sizesInput = document.getElementById('productSizes');
+      const tagGroup = document.getElementById('productTagGroup');
+      const isClothing = category === 'Pakaian';
       if (sizesGroup && sizesInput) {
-        const isClothing = category === 'Pakaian';
         sizesGroup.style.display = isClothing ? 'block' : 'none';
         if (!isClothing) sizesInput.value = '';
+      }
+      if (tagGroup) {
+        tagGroup.style.display = isClothing ? 'block' : 'none';
+        if (!isClothing) {
+          const tagSelect = document.getElementById('productTag');
+          if (tagSelect) tagSelect.value = '';
+          updateTagNotice();
+        }
       }
       togglePhotopackFields();
     }
@@ -1861,6 +1899,16 @@
         document.getElementById('productImage').value = p.image || '';
         document.getElementById('productSizes').value = p.sizes || 'S, M, L, XL, XXL, XXXL';
         
+        let initialTag = p.tag || '';
+        if (!initialTag && p.name) {
+          const nm = p.name.toLowerCase();
+          if (nm.includes('haori')) initialTag = 'Haori';
+          else if (nm.includes('kaos') || p.category === 'Pakaian') initialTag = 'Pakaian Kaos';
+        }
+        const tagInput = document.getElementById('productTag');
+        if (tagInput) tagInput.value = initialTag;
+        updateTagNotice();
+
         const isPhotopack = p.is_photopack || p.category === 'Photopack';
         document.getElementById('productIsPhotopack').checked = !!isPhotopack;
         document.getElementById('productCosplayer').value = p.cosplayer_name || '';
@@ -1878,6 +1926,9 @@
         document.getElementById('productCategory').value = 'Pakaian';
         document.getElementById('productStock').value = 10;
         document.getElementById('productBadge').value = '';
+        const tagInput = document.getElementById('productTag');
+        if (tagInput) tagInput.value = 'Pakaian Kaos';
+        updateTagNotice();
         document.getElementById('productIsPhotopack').checked = false;
         setProductPreview('');
       }
@@ -1939,6 +1990,7 @@
 
         const categoryVal = document.getElementById('productCategory').value;
         const isPhotopackBool = document.getElementById('productIsPhotopack').checked || categoryVal === 'Photopack';
+        const tagVal = categoryVal === 'Pakaian' ? (document.getElementById('productTag')?.value || null) : null;
 
         const data = {
           name,
@@ -1948,6 +2000,7 @@
           oldPrice: parseInt(document.getElementById('productOldPrice').value) || null,
           stock: parseInt(document.getElementById('productStock').value) || 0,
           badge: document.getElementById('productBadge').value || null,
+          tag: tagVal,
           image: imageUrl,
           sizes: categoryVal === 'Pakaian'
             ? (document.getElementById('productSizes').value || 'S, M, L, XL, XXL, XXXL').split(',').map(size => size.trim()).filter(Boolean).join(', ')
@@ -2176,6 +2229,9 @@
     <div style="background:rgba(3,9,31,0.5);border:1px solid var(--card-border);border-radius:8px;padding:1rem;margin-bottom:1rem">
       <h4 style="color:var(--aqua);margin-bottom:0.8rem;font-size:0.85rem">ITEM PESANAN</h4>
       ${(order.items || []).map(i => `<div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:0.3rem 0;color:var(--text-muted)"><span>${i.name}${i.size ? ` (Size ${i.size})` : ''} ×${i.qty}</span><span style="color:var(--aqua)">${formatPrice(i.price * i.qty)}</span></div>`).join('')}
+      ${Number(shipObj.sizeSurcharge) > 0 ? `<div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:0.3rem 0;color:var(--text-muted)"><span>Biaya Varian Size</span><span style="color:var(--aqua)">+ ${formatPrice(shipObj.sizeSurcharge)}</span></div>` : ''}
+      ${Number(shipObj.price) > 0 ? `<div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:0.3rem 0;color:var(--text-muted)"><span>Ongkos Kirim (${shipObj.name || 'Pengiriman'})</span><span style="color:var(--aqua)">${formatPrice(shipObj.price)}</span></div>` : ''}
+      ${shipObj.discount && Number(shipObj.discount.amount) > 0 ? `<div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:0.3rem 0;color:var(--gold)"><span>Diskon (${shipObj.discount.code || 'Promo'})</span><span>- ${formatPrice(shipObj.discount.amount)}</span></div>` : ''}
       <hr style="border-color:rgba(41,182,246,0.1);margin:0.8rem 0">
       <div style="display:flex;justify-content:space-between;font-size:0.9rem;font-weight:700"><span style="color:var(--white)">Total Nilai Pesanan</span><span style="color:var(--aqua)">${formatPrice(order.total)}</span></div>
       ${isDp ? `

@@ -2428,6 +2428,19 @@
               </tbody>
             </table>
 
+            ${Number(shippingInfo.sizeSurcharge) > 0 ? `
+              <div style="display: flex; justify-content: space-between; font-size: 13.5px; color: #64748b; padding-top: 6px;">
+                <span>Biaya Varian Size</span>
+                <span>+ Rp ${Number(shippingInfo.sizeSurcharge).toLocaleString('id-ID')}</span>
+              </div>
+            ` : ''}
+            ${Number(shippingInfo.price) > 0 ? `
+              <div style="display: flex; justify-content: space-between; font-size: 13.5px; color: #64748b; padding-top: 4px;">
+                <span>Ongkos Kirim (${shippingInfo.name || 'Kurir'})</span>
+                <span>+ Rp ${Number(shippingInfo.price).toLocaleString('id-ID')}</span>
+              </div>
+            ` : ''}
+
             <div class="total-row">
               <span>TOTAL NILAI PESANAN</span>
               <span>Rp ${(order.total || 0).toLocaleString('id-ID')}</span>

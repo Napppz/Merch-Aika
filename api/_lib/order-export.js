@@ -86,12 +86,13 @@ function escapeHtml(value) {
 
 function buildCsv(order) {
   const shippingCost = Number(order.shipping?.price) || 0;
+  const sizeSurcharge = Number(order.shipping?.sizeSurcharge) || 0;
   const discountAmount = Number(order.shipping?.discount?.amount) || 0;
-  const subtotal = Math.max(0, (Number(order.total) || 0) - shippingCost + discountAmount);
+  const subtotal = Math.max(0, (Number(order.total) || 0) - shippingCost - sizeSurcharge + discountAmount);
 
   const lines = [
-    ['INVOICE PESANAN AIKA SESILIA'],
-    ['Order ID', order.id],
+    ['INVOICE PESANAN'],
+    ['Order ID', `#${order.id}`],
     ['Waktu Pesanan', formatDate(order.date)],
     ['Customer', order.customerName],
     ['Email', order.email],
@@ -119,6 +120,9 @@ function buildCsv(order) {
   lines.push([]);
   lines.push(['RINGKASAN PEMBAYARAN']);
   lines.push(['Subtotal Produk', formatCurrency(subtotal)]);
+  if (sizeSurcharge > 0) {
+    lines.push(['Biaya Varian Size', `+ ${formatCurrency(sizeSurcharge)}`]);
+  }
   lines.push(['Ongkos Kirim', formatCurrency(shippingCost)]);
   if (discountAmount > 0) {
     lines.push([
@@ -143,8 +147,9 @@ function buildCsv(order) {
 
 function buildExcelHtml(order) {
   const shippingCost = Number(order.shipping?.price) || 0;
+  const sizeSurcharge = Number(order.shipping?.sizeSurcharge) || 0;
   const discountAmount = Number(order.shipping?.discount?.amount) || 0;
-  const subtotal = Math.max(0, (Number(order.total) || 0) - shippingCost + discountAmount);
+  const subtotal = Math.max(0, (Number(order.total) || 0) - shippingCost - sizeSurcharge + discountAmount);
   const discountLabel = order.shipping?.discount?.code
     ? `Diskon (${escapeHtml(order.shipping.discount.code)})`
     : 'Diskon';
@@ -213,6 +218,7 @@ function buildExcelHtml(order) {
         <h2>Ringkasan Pembayaran</h2>
         <table class="summary">
           <tr><td>Subtotal Produk</td><td>${escapeHtml(formatCurrency(subtotal))}</td></tr>
+          ${sizeSurcharge > 0 ? `<tr><td>Biaya Varian Size</td><td style="color:#0284c7;font-weight:bold;">+ ${escapeHtml(formatCurrency(sizeSurcharge))}</td></tr>` : ''}
           <tr><td>Ongkos Kirim</td><td>${escapeHtml(formatCurrency(shippingCost))}</td></tr>
           ${discountAmount > 0 ? `<tr><td>${discountLabel}</td><td>- ${escapeHtml(formatCurrency(discountAmount))}</td></tr>` : ''}
           <tr><td>Total Nilai Pesanan</td><td>${escapeHtml(formatCurrency(order.total))}</td></tr>

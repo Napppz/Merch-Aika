@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS products (
   badge TEXT,
   image TEXT,
   sizes TEXT,
+  tag TEXT,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

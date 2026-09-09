@@ -171,6 +171,68 @@ async function syncWishlistWithServer() {
 
 let cachedProductsMap = {};
 
+// ── SIZE SURCHARGE RULES ──
+const SIZE_SURCHARGE_RULES = {
+  'Pakaian Kaos': {
+    XL: 15000,
+    XXL: 25000,
+    XXXL: 30000
+  },
+  'Haori': {
+    XL: 50000,
+    XXL: 50000,
+    XXXL: 50000
+  }
+};
+
+function getProductSizeTag(p) {
+  if (!p) return '';
+  const rawTag = String(p.tag || '').trim();
+  if (rawTag) {
+    if (/haori/i.test(rawTag)) return 'Haori';
+    if (/kaos/i.test(rawTag)) return 'Pakaian Kaos';
+    return rawTag;
+  }
+  const name = String(p.name || '').toLowerCase();
+  const category = String(p.category || '').toLowerCase();
+  if (name.includes('haori')) return 'Haori';
+  if (name.includes('kaos') || name.includes('t-shirt') || name.includes('tshirt') || category === 'pakaian') {
+    return 'Pakaian Kaos';
+  }
+  return '';
+}
+
+function getProductSizeSurcharge(p, size) {
+  if (!p || !size) return 0;
+  const tag = getProductSizeTag(p);
+  const rules = SIZE_SURCHARGE_RULES[tag];
+  if (!rules) return 0;
+  const key = String(size).trim().toUpperCase();
+  return rules[key] || 0;
+}
+
+function handleCardSizeChange(productId, size, priceElId) {
+  const p = cachedProductsMap[productId] || cachedProductsMap[String(productId)];
+  const el = document.getElementById(priceElId);
+  if (!p || !el) return;
+  const surcharge = getProductSizeSurcharge(p, size);
+  const finalPrice = (parseInt(p.price, 10) || 0) + surcharge;
+  el.innerHTML = `${formatPrice(finalPrice)}${surcharge > 0 ? ` <span style="font-size:0.75rem;color:var(--aqua);font-weight:normal;">(+${formatPrice(surcharge)})</span>` : ''}`;
+}
+
+function handleModalSizeChange(productId, size) {
+  const p = cachedProductsMap[productId] || cachedProductsMap[String(productId)];
+  const priceEl = document.getElementById('modalProductPrice');
+  if (!p || !priceEl) return;
+  const surcharge = getProductSizeSurcharge(p, size);
+  const finalPrice = (parseInt(p.price, 10) || 0) + surcharge;
+  priceEl.innerHTML = `
+    ${formatPrice(finalPrice)}
+    ${p.oldPrice ? `<span class="product-modal-old-price">${formatPrice(p.oldPrice)}</span>` : ''}
+    ${surcharge > 0 ? `<span style="font-size:0.8rem;color:var(--aqua);font-weight:normal;display:block;margin-top:0.25rem;">(Termasuk tambahan ukuran ${size}: +${formatPrice(surcharge)})</span>` : ''}
+  `;
+}
+
 // ── RENDER PRODUCT CARD ──
 function renderProductCard(p, compact = false) {
   cachedProductsMap[p.id] = p;
@@ -182,7 +244,9 @@ function renderProductCard(p, compact = false) {
   const heartColor = isWishlisted ? '#ef4444' : 'var(--text-muted)';
   const sizes = String(p.sizes || '').split(',').map(size => size.trim()).filter(Boolean);
   const sizeSelectId = `size-${String(p.id || '').replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+  const cardPriceId = `price-${String(p.id || '').replace(/[^a-zA-Z0-9_-]/g, '-')}`;
   const badgeText = p.badge || (isPhotopack ? '📸 Photopack Digital' : '');
+  const productTag = getProductSizeTag(p);
 
   return `
     <div class="product-card fade-in" style="cursor:pointer;" onclick="if(!event.target.closest('button') && !event.target.closest('select') && !event.target.closest('a')) openProductDetail('${p.id}')">
@@ -202,14 +266,29 @@ function renderProductCard(p, compact = false) {
         ${badgeText ? `<span class="product-badge" style="${isPhotopack ? 'background:linear-gradient(135deg, #0284c7, #2563eb);color:#fff;' : ''}">${badgeText}</span>` : ''}
       </div>
       <div class="product-body">
-        ${category ? `<div class="product-category">${isPhotopack ? '📸 Photopack Digital' : category}</div>` : ''}
+        <div style="display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:0.35rem;">
+          ${category ? `<div class="product-category" style="margin-bottom:0;">${isPhotopack ? '📸 Photopack Digital' : category}</div>` : ''}
+          ${productTag ? `<span class="product-tag-pill" style="font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:6px; background:rgba(41,182,246,0.15); color:var(--aqua); border:1px solid rgba(41,182,246,0.3); display:inline-block;">🏷️ ${productTag}</span>` : ''}
+        </div>
         <div class="product-name" style="transition:color 0.2s ease;">${p.name}</div>
         <div class="product-desc">${p.description}</div>
         ${sizes.length ? `<div style="margin-top:0.75rem;color:var(--text-muted);font-size:0.78rem;">Ukuran: <span style="color:var(--aqua);font-weight:700">${sizes.join(', ')}</span></div>` : ''}
-        ${sizes.length ? `<div style="margin-top:0.8rem;" onclick="event.stopPropagation()"><label for="${sizeSelectId}" style="display:block;color:var(--white);font-size:0.78rem;font-weight:700;margin-bottom:0.35rem;">Pilih Size</label><select id="${sizeSelectId}" style="width:100%;border-radius:8px;background:rgba(3,9,31,0.8);border:1px solid var(--card-border);color:var(--white);padding:0.65rem;font-family:var(--font-body);font-size:0.85rem;"><option value="">-- Pilih Size --</option>${sizes.map(size => `<option value="${size}">${size}</option>`).join('')}</select></div>` : ''}
+        ${sizes.length ? `
+          <div style="margin-top:0.8rem;" onclick="event.stopPropagation()">
+            <label for="${sizeSelectId}" style="display:block;color:var(--white);font-size:0.78rem;font-weight:700;margin-bottom:0.35rem;">Pilih Size</label>
+            <select id="${sizeSelectId}" onchange="handleCardSizeChange('${p.id}', this.value, '${cardPriceId}')" style="width:100%;border-radius:8px;background:rgba(3,9,31,0.8);border:1px solid var(--card-border);color:var(--white);padding:0.65rem;font-family:var(--font-body);font-size:0.85rem;">
+              <option value="">-- Pilih Size --</option>
+              ${sizes.map(size => {
+                const surcharge = getProductSizeSurcharge(p, size);
+                const surchargeText = surcharge > 0 ? ` (+${formatPrice(surcharge)})` : '';
+                return `<option value="${size}">${size}${surchargeText}</option>`;
+              }).join('')}
+            </select>
+          </div>
+        ` : ''}
         <div class="product-footer">
           <div>
-            <div class="product-price">${formatPrice(p.price)}</div>
+            <div class="product-price" id="${cardPriceId}">${formatPrice(p.price)}</div>
             ${p.oldPrice ? `<div class="product-old-price">${formatPrice(p.oldPrice)}</div>` : ''}
           </div>
           <div style="display:flex; gap:0.4rem; align-items:center;">
@@ -218,7 +297,7 @@ function renderProductCard(p, compact = false) {
             </button>
             ${isPhotopack ? `
               <button class="btn-primary" style="padding:0.5rem 0.85rem; font-size:0.82rem; border-radius:8px; display:inline-flex; align-items:center; gap:4px; font-weight:700; background:linear-gradient(135deg, #0284c7, #2563eb); border:none; box-shadow:0 4px 14px rgba(2,132,199,0.35); cursor:pointer;" onclick="event.stopPropagation(); window.location.href='checkout-photopack.html?id=${p.id}'">
-                ⚡ Beli
+              ⚡ Beli
               </button>
             ` : `
               <button class="add-cart-btn" 
@@ -226,6 +305,7 @@ function renderProductCard(p, compact = false) {
                 data-name='${(p.name || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;")}' 
                 data-price="${p.price}" 
                 data-img="${p.image || ''}" 
+                data-tag="${productTag}"
                 data-is-photopack="false"
                 data-size-select="${sizes.length ? sizeSelectId : ''}"
                 onclick="event.stopPropagation(); Cart.addFromBtn(this)">
@@ -259,6 +339,7 @@ async function openProductDetail(id) {
   const isPhotopack = p.is_photopack || normalizeProductCategory(p.category) === 'Photopack';
   const category = normalizeProductCategory(p.category);
   const sizes = getProductSizes(p);
+  const productTag = getProductSizeTag(p);
 
   let modalEl = document.getElementById('productDetailModal');
   if (!modalEl) {
@@ -273,15 +354,23 @@ async function openProductDetail(id) {
 
   const badgeHtml = isPhotopack
     ? `<span class="product-modal-badge">📸 Digital Photopack Eksklusif</span>`
-    : `<span class="product-modal-badge" style="background:var(--sea-blue);">${category}</span>`;
+    : `<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:0.5rem;">
+        <span class="product-modal-badge" style="background:var(--sea-blue); margin-bottom:0;">${category}</span>
+        ${productTag ? `<span class="product-modal-badge" style="background:rgba(2,132,199,0.25); border:1px solid #0284c7; color:#38bdf8; margin-bottom:0;">🏷️ ${productTag}</span>` : ''}
+      </div>`;
 
   const sizeOptionsHtml = sizes.length ? `
     <div style="margin-bottom:1.2rem;">
       <label style="display:block; color:var(--white); font-size:0.82rem; font-weight:700; margin-bottom:0.4rem;">Pilih Ukuran:</label>
-      <select id="modalProductSize" style="width:100%; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.75rem; font-family:var(--font-body); font-size:0.9rem;">
+      <select id="modalProductSize" onchange="handleModalSizeChange('${p.id}', this.value)" style="width:100%; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.75rem; font-family:var(--font-body); font-size:0.9rem;">
         <option value="">-- Pilih Ukuran --</option>
-        ${sizes.map(s => `<option value="${s}">${s}</option>`).join('')}
+        ${sizes.map(s => {
+          const surcharge = getProductSizeSurcharge(p, s);
+          const surchargeText = surcharge > 0 ? ` (+${formatPrice(surcharge)})` : '';
+          return `<option value="${s}">${s}${surchargeText}</option>`;
+        }).join('')}
       </select>
+      ${productTag ? `<div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.4rem;">💡 Tag: <strong style="color:var(--aqua)">${productTag}</strong> (Varian size tertentu memiliki penyesuaian harga khusus)</div>` : ''}
     </div>
   ` : '';
 
@@ -297,7 +386,7 @@ async function openProductDetail(id) {
         <div>
           ${badgeHtml}
           <h2 class="product-modal-title">${p.name}</h2>
-          <div class="product-modal-price">
+          <div class="product-modal-price" id="modalProductPrice">
             ${formatPrice(p.price)}
             ${p.oldPrice ? `<span class="product-modal-old-price">${formatPrice(p.oldPrice)}</span>` : ''}
           </div>
@@ -353,6 +442,7 @@ function addModalItemToCart(productId) {
     name: p.name,
     price: p.price,
     img: p.image || '',
+    tag: getProductSizeTag(p),
     size: size,
     is_photopack: false
   });
@@ -363,6 +453,11 @@ function addModalItemToCart(productId) {
 window.openProductDetail = openProductDetail;
 window.closeProductDetail = closeProductDetail;
 window.addModalItemToCart = addModalItemToCart;
+window.handleCardSizeChange = handleCardSizeChange;
+window.handleModalSizeChange = handleModalSizeChange;
+window.getProductSizeTag = getProductSizeTag;
+window.getProductSizeSurcharge = getProductSizeSurcharge;
+window.SIZE_SURCHARGE_RULES = SIZE_SURCHARGE_RULES;
 window.getProductSizes = getProductSizes;
 
 document.addEventListener('keydown', (e) => {

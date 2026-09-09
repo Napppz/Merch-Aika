@@ -563,10 +563,50 @@
     let availableVouchers = {};
     let appliedDiscount = null;
     let currentShippingRate = 12000; // Harga default awal
-    const SIZE_SURCHARGE_MAP = {
-      XXL: 15000,
-      XXXL: 15000
+    const SIZE_SURCHARGE_RULES = {
+      'Pakaian Kaos': {
+        XL: 15000,
+        XXL: 25000,
+        XXXL: 30000
+      },
+      'Haori': {
+        XL: 50000,
+        XXL: 50000,
+        XXXL: 50000
+      }
     };
+
+    function getItemSizeTag(item) {
+      if (!item) return '';
+      const rawTag = String(item.tag || '').trim();
+      if (rawTag) {
+        if (/haori/i.test(rawTag)) return 'Haori';
+        if (/kaos/i.test(rawTag)) return 'Pakaian Kaos';
+        return rawTag;
+      }
+      const name = String(item.name || '').toLowerCase();
+      const category = String(item.category || '').toLowerCase();
+      if (name.includes('haori')) return 'Haori';
+      if (name.includes('kaos') || name.includes('t-shirt') || name.includes('tshirt') || category === 'pakaian') {
+        return 'Pakaian Kaos';
+      }
+      return '';
+    }
+
+    function getItemSizeSurcharge(item, sizeOverride = null) {
+      const sizeToCheck = sizeOverride !== null ? sizeOverride : item?.size;
+      if (!item || !sizeToCheck) return 0;
+      const tag = getItemSizeTag(item);
+      const rules = SIZE_SURCHARGE_RULES[tag];
+      if (!rules) return 0;
+      const key = String(sizeToCheck).trim().toUpperCase();
+      return rules[key] || 0;
+    }
+
+    function getCartSubtotal() {
+      if (Cart && typeof Cart.subtotal === 'function') return Cart.subtotal();
+      return (Cart?.items || []).reduce((sum, i) => sum + (parseInt(i.price, 10) || 0) * (parseInt(i.qty, 10) || 0), 0);
+    }
 
     function normalizeVoucherCode(code) {
       return String(code || '').trim().toUpperCase();
@@ -721,7 +761,7 @@
 
     function getDiscountAmount() {
       if (!appliedDiscount) return 0;
-      const subtotal = Cart.total();
+      const subtotal = getCartSubtotal();
       let discountAmt = 0;
       if (appliedDiscount.type === 'percent') {
         discountAmt = (subtotal * appliedDiscount.value) / 100;
@@ -740,9 +780,8 @@
     }
 
     function getSizeSurchargeTotal() {
-      return Cart.items.reduce((sum, item) => {
-        const normalizedSize = String(item.size || '').trim().toUpperCase();
-        const surcharge = SIZE_SURCHARGE_MAP[normalizedSize] || 0;
+      return (Cart?.items || []).reduce((sum, item) => {
+        const surcharge = getItemSizeSurcharge(item);
         return sum + (surcharge * (parseInt(item.qty, 10) || 0));
       }, 0);
     }
@@ -750,7 +789,7 @@
     let currentPaymentScheme = 'full'; // 'full' or 'dp50'
 
     function getGrandTotal() {
-      const subtotal = Cart.total();
+      const subtotal = getCartSubtotal();
       const shipping = getShippingTotal();
       const sizeSurcharge = getSizeSurchargeTotal();
       const discountAmt = getDiscountAmount();
@@ -788,7 +827,7 @@
       }
 
       const voucher = availableVouchers[code];
-      const subtotal = Cart.total();
+      const subtotal = getCartSubtotal();
 
       if (voucher) {
         if (voucher.minPurchase && subtotal < voucher.minPurchase) {
@@ -807,7 +846,7 @@
     }
 
     function updateOrderSummary() {
-      const subtotal = Cart.total();
+      const subtotal = getCartSubtotal();
       const shipping = getShippingTotal();
       const sizeSurcharge = getSizeSurchargeTotal();
       const grand = getGrandTotal();
@@ -912,7 +951,7 @@
         return;
       }
 
-      const subtotal = Cart.total();
+      const subtotal = getCartSubtotal();
       const sizeSurcharge = getSizeSurchargeTotal();
       const shipping = getShippingTotal();
       const grand = getGrandTotal();
@@ -995,24 +1034,35 @@
     <div>
       <div class="checkout-section" style="position:sticky;top:100px">
         <h2>🛍️ Ringkasan Pesanan</h2>
-        ${items.map((item, index) => `
+        ${items.map((item, index) => {
+          const itemSurcharge = getItemSizeSurcharge(item);
+          const itemTag = getItemSizeTag(item);
+          return `
           <div class="order-summary-item">
             <div>
               <div class="item-name">${item.name}</div>
-              <div class="item-qty">× ${item.qty}${item.size ? ` • Size ${item.size}` : ''}</div>
+              <div class="item-qty">
+                × ${item.qty}${item.size ? ` • Size <strong style="color:var(--white);">${item.size}</strong>${itemSurcharge > 0 ? ` <span style="color:var(--aqua);font-weight:700;">(+${formatPrice(itemSurcharge)})</span>` : ''}` : ''}
+                ${itemTag ? `<span style="font-size:0.7rem;margin-left:6px;padding:1px 6px;border-radius:4px;background:rgba(41,182,246,0.12);color:var(--aqua);display:inline-block;">🏷️ ${itemTag}</span>` : ''}
+              </div>
               ${item.availableSizes && item.availableSizes.length ? `
                 <div style="margin-top:0.45rem">
                   <label for="checkoutSize${index}" style="display:block;color:var(--white);font-size:0.78rem;font-weight:700;margin-bottom:0.25rem;">Pilih Size</label>
                   <select id="checkoutSize${index}" onchange="updateCheckoutItemSize(${index}, this.value)" style="width:100%;border-radius:8px;background:rgba(3,9,31,0.8);border:1px solid var(--card-border);color:var(--white);padding:0.55rem;font-family:var(--font-body);font-size:0.82rem;">
                     <option value="">-- Pilih Size --</option>
-                    ${item.availableSizes.map(size => `<option value="${size}" ${item.size === size ? 'selected' : ''}>${size}</option>`).join('')}
+                    ${item.availableSizes.map(size => {
+                      const sc = getItemSizeSurcharge(item, size);
+                      const scText = sc > 0 ? ` (+${formatPrice(sc)})` : '';
+                      return `<option value="${size}" ${item.size === size ? 'selected' : ''}>${size}${scText}</option>`;
+                    }).join('')}
                   </select>
                 </div>
               ` : ''}
             </div>
-            <div class="item-price">${formatPrice(item.price * item.qty)}</div>
+            <div class="item-price">${formatPrice((parseInt(item.price, 10) || 0) * (parseInt(item.qty, 10) || 1))}</div>
           </div>
-        `).join('')}
+        `;
+        }).join('')}
         <hr class="order-divider">
 
         <!-- Discount Code Input -->
@@ -1331,7 +1381,7 @@
         fullDest = `${address}, ${selectedKota}, ${provEl?.value || ''}`;
       }
 
-      const subtotal = Cart.total();
+      const subtotal = getCartSubtotal();
       const sizeSurcharge = getSizeSurchargeTotal();
       const grand = getGrandTotal();
       const discountAmt = getDiscountAmount();

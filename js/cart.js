@@ -1,4 +1,46 @@
 // -- CART MANAGEMENT --
+const CART_SIZE_SURCHARGE_RULES = {
+  'Pakaian Kaos': {
+    XL: 15000,
+    XXL: 25000,
+    XXXL: 30000
+  },
+  'Haori': {
+    XL: 50000,
+    XXL: 50000,
+    XXXL: 50000
+  }
+};
+
+function getItemSizeTag(item) {
+  if (!item) return '';
+  const rawTag = String(item.tag || '').trim();
+  if (rawTag) {
+    if (/haori/i.test(rawTag)) return 'Haori';
+    if (/kaos/i.test(rawTag)) return 'Pakaian Kaos';
+    return rawTag;
+  }
+  const name = String(item.name || '').toLowerCase();
+  const category = String(item.category || '').toLowerCase();
+  if (name.includes('haori')) return 'Haori';
+  if (name.includes('kaos') || name.includes('t-shirt') || name.includes('tshirt') || category === 'pakaian') {
+    return 'Pakaian Kaos';
+  }
+  return '';
+}
+
+function getItemSizeSurcharge(item) {
+  if (!item || !item.size) return 0;
+  const tag = getItemSizeTag(item);
+  const rules = (window.SIZE_SURCHARGE_RULES || CART_SIZE_SURCHARGE_RULES)[tag];
+  if (!rules) return 0;
+  const key = String(item.size).trim().toUpperCase();
+  return rules[key] || 0;
+}
+
+window.getItemSizeTag = getItemSizeTag;
+window.getItemSizeSurcharge = getItemSizeSurcharge;
+
 const Cart = {
   items: [],
   isSaving: false,
@@ -45,6 +87,7 @@ const Cart = {
             name: i.name,
             price: i.price,
             image: i.image,
+            tag: i.tag || getItemSizeTag(i),
             availableSizes: String(i.sizes || '').split(',').map(size => size.trim()).filter(Boolean),
             size: i.size || '',
             qty: i.qty
@@ -57,7 +100,10 @@ const Cart = {
       }
     } else {
       // Guest user uses localStorage
-      this.items = JSON.parse(localStorage.getItem('aika_cart_guest') || '[]');
+      this.items = JSON.parse(localStorage.getItem('aika_cart_guest') || '[]').map(i => ({
+        ...i,
+        tag: i.tag || getItemSizeTag(i)
+      }));
     }
 
     this.updateUI();
@@ -77,12 +123,14 @@ const Cart = {
 
     const itemKey = this.makeItemKey(product);
     const existing = this.items.find(i => this.makeItemKey(i) === itemKey);
+    const tag = product.tag || getItemSizeTag(product);
 
     // Optimistic UI update
     if (existing) {
       existing.qty += 1;
+      if (!existing.tag && tag) existing.tag = tag;
     } else {
-      this.items.push({ ...product, qty: 1 });
+      this.items.push({ ...product, tag, qty: 1 });
     }
     this.updateUI();
     showToast(`✅ ${product.name} ditambahkan ke keranjang!`);
@@ -124,6 +172,7 @@ const Cart = {
       name: btn.getAttribute('data-name'),
       price: parseInt(btn.getAttribute('data-price') || '0', 10),
       image: btn.getAttribute('data-img') || '',
+      tag: btn.getAttribute('data-tag') || '',
       is_photopack: btn.getAttribute('data-is-photopack') === 'true',
       size: selectedSize
     });
@@ -235,8 +284,16 @@ const Cart = {
     }
   },
 
+  subtotal() {
+    return this.items.reduce((sum, i) => sum + (parseInt(i.price, 10) || 0) * (parseInt(i.qty, 10) || 0), 0);
+  },
+
+  sizeSurchargeTotal() {
+    return this.items.reduce((sum, i) => sum + (getItemSizeSurcharge(i) * (parseInt(i.qty, 10) || 0)), 0);
+  },
+
   total() {
-    return this.items.reduce((sum, i) => sum + i.price * i.qty, 0);
+    return this.subtotal() + this.sizeSurchargeTotal();
   },
 
   count() {
@@ -251,23 +308,29 @@ const Cart = {
     if (!itemsEl) return;
 
     if (this.items.length === 0) {
-      itemsEl.innerHTML = '<div class="cart-empty">??<br>Keranjangmu kosong</div>';
+      itemsEl.innerHTML = '<div class="cart-empty">🛒<br>Keranjangmu kosong</div>';
     } else {
-      itemsEl.innerHTML = this.items.map(item => `
-        <div class="cart-item">
-          <div class="cart-item-img">${item.image ? `<img src="${item.image}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;" onerror="this.parentElement.textContent='???'">` : '???'}</div>
-          <div class="cart-item-info">
-            <div class="cart-item-name">${item.name}</div>
-            ${item.size ? `<div class="cart-item-size" style="color:var(--text-muted);font-size:0.78rem;margin-top:0.15rem">Ukuran: ${item.size}</div>` : ''}
-            <div class="cart-item-price">${formatPrice(item.price)}</div>
+      itemsEl.innerHTML = this.items.map(item => {
+        const surcharge = getItemSizeSurcharge(item);
+        const unitPrice = (parseInt(item.price, 10) || 0) + surcharge;
+        const sizeLabel = item.size ? `Ukuran: ${item.size}${surcharge > 0 ? ` <span style="color:var(--aqua);font-weight:700;">(+${formatPrice(surcharge)})</span>` : ''}` : '';
+
+        return `
+          <div class="cart-item">
+            <div class="cart-item-img">${item.image ? `<img src="${item.image}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;" onerror="this.parentElement.textContent='🛍️'">` : '🛍️'}</div>
+            <div class="cart-item-info">
+              <div class="cart-item-name">${item.name}</div>
+              ${sizeLabel ? `<div class="cart-item-size" style="color:var(--text-muted);font-size:0.78rem;margin-top:0.15rem">${sizeLabel}</div>` : ''}
+              <div class="cart-item-price">${formatPrice(unitPrice)}</div>
+            </div>
+            <div class="cart-item-qty">
+              <button class="qty-btn" onclick="Cart.updateQty('${item.id}', '${(item.size || '').replace(/'/g, "\\'")}', -1)">-</button>
+              <span>${item.qty}</span>
+              <button class="qty-btn" onclick="Cart.updateQty('${item.id}', '${(item.size || '').replace(/'/g, "\\'")}', 1)">+</button>
+            </div>
           </div>
-          <div class="cart-item-qty">
-            <button class="qty-btn" onclick="Cart.updateQty('${item.id}', '${(item.size || '').replace(/'/g, "\\'")}', -1)">-</button>
-            <span>${item.qty}</span>
-            <button class="qty-btn" onclick="Cart.updateQty('${item.id}', '${(item.size || '').replace(/'/g, "\\'")}', 1)">+</button>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     const totalEl = document.getElementById('cartTotal');

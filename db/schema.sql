@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS products (
   badge TEXT,
   image TEXT,
   sizes TEXT,
+  tag TEXT,
   gdrive_link TEXT,
   cosplayer_name VARCHAR(100),
   is_photopack BOOLEAN DEFAULT FALSE,
