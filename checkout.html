@@ -184,6 +184,128 @@
         font-size: 0.8rem;
       }
     }
+    /* Payment Scheme Selection Styling */
+    .payment-scheme-container {
+      margin: 1.5rem 0 1rem;
+    }
+    .payment-scheme-title-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--white);
+      margin-bottom: 0.8rem;
+    }
+    .payment-scheme-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.8rem;
+    }
+    .payment-scheme-card {
+      display: flex;
+      flex-direction: column;
+      padding: 1.1rem;
+      border: 2px solid var(--card-border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: rgba(3,9,31,0.55);
+      position: relative;
+    }
+    .payment-scheme-card:hover {
+      border-color: rgba(41,182,246,0.5);
+      background: rgba(41,182,246,0.06);
+    }
+    .payment-scheme-card input[type="radio"] {
+      position: absolute;
+      top: 1.1rem;
+      right: 1.1rem;
+      accent-color: var(--aqua);
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      margin: 0;
+    }
+    .payment-scheme-card:has(input:checked) {
+      border-color: var(--aqua);
+      background: rgba(41,182,246,0.12);
+      box-shadow: 0 0 20px rgba(41,182,246,0.22);
+    }
+    .payment-scheme-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.35rem;
+      padding-right: 2rem;
+    }
+    .scheme-badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-full {
+      background: rgba(41,182,246,0.2);
+      color: var(--aqua);
+      border: 1px solid rgba(41,182,246,0.35);
+    }
+    .badge-dp {
+      background: rgba(234,179,8,0.2);
+      color: #fde047;
+      border: 1px solid rgba(234,179,8,0.4);
+    }
+    .scheme-name {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--white);
+    }
+    .scheme-desc {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+      margin: 0 0 0.6rem 0;
+    }
+    .scheme-price-tag {
+      margin-top: auto;
+      padding-top: 0.5rem;
+      border-top: 1px dashed rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--aqua);
+    }
+    .scheme-price-tag span:first-child {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      font-weight: normal;
+    }
+
+    /* DP Breakdown Notice Box */
+    .dp-notice-box {
+      background: rgba(234,179,8,0.08);
+      border: 1px solid rgba(234,179,8,0.3);
+      border-radius: 10px;
+      padding: 0.9rem;
+      margin: 1rem 0;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+    .dp-notice-box strong {
+      color: #fde047;
+    }
+    @media (max-width: 600px) {
+      .payment-scheme-grid {
+        grid-template-columns: 1fr;
+        gap: 0.7rem;
+      }
+    }
     .empty-cart-msg {
       text-align: center;
       padding: 4rem 2rem;
@@ -493,12 +615,34 @@ function getSizeSurchargeTotal() {
   }, 0);
 }
 
+let currentPaymentScheme = 'full'; // 'full' or 'dp50'
+
 function getGrandTotal() {
   const subtotal = Cart.total();
   const shipping = getShippingTotal();
   const sizeSurcharge = getSizeSurchargeTotal();
   const discountAmt = getDiscountAmount();
-  return subtotal + sizeSurcharge + shipping - discountAmt;
+  return Math.max(0, subtotal + sizeSurcharge + shipping - discountAmt);
+}
+
+function getDpAmount() {
+  const grand = getGrandTotal();
+  return Math.ceil(grand * 0.5);
+}
+
+function getRemainingAmount() {
+  const grand = getGrandTotal();
+  const dp = getDpAmount();
+  return Math.max(0, grand - dp);
+}
+
+function getPayNowAmount() {
+  return currentPaymentScheme === 'dp50' ? getDpAmount() : getGrandTotal();
+}
+
+function updatePaymentScheme(scheme) {
+  currentPaymentScheme = scheme;
+  updateOrderSummary();
 }
 
 function applyDiscount() {
@@ -536,25 +680,75 @@ function updateOrderSummary() {
   const sizeSurcharge = getSizeSurchargeTotal();
   const grand = getGrandTotal();
   const discountAmt = getDiscountAmount();
+  const dp = getDpAmount();
+  const remaining = getRemainingAmount();
 
   const discountRow = document.getElementById('discountRow');
-  if (appliedDiscount) {
-    discountRow.innerHTML = `<span>Diskon (${appliedDiscount.label})</span><span style="color: var(--gold);">- ${formatPrice(discountAmt)}</span>`;
-    discountRow.style.display = 'flex';
-  } else {
-    discountRow.style.display = 'none';
+  if (discountRow) {
+    if (appliedDiscount) {
+      discountRow.innerHTML = `<span>Diskon (${appliedDiscount.label})</span><span style="color: var(--gold);">- ${formatPrice(discountAmt)}</span>`;
+      discountRow.style.display = 'flex';
+    } else {
+      discountRow.style.display = 'none';
+    }
   }
 
   const sizeSurchargeRow = document.getElementById('sizeSurchargeRow');
-  if (sizeSurcharge > 0) {
-    sizeSurchargeRow.innerHTML = `<span>Biaya Varian Size</span><span>+ ${formatPrice(sizeSurcharge)}</span>`;
-    sizeSurchargeRow.style.display = 'flex';
-  } else {
-    sizeSurchargeRow.style.display = 'none';
+  if (sizeSurchargeRow) {
+    if (sizeSurcharge > 0) {
+      sizeSurchargeRow.innerHTML = `<span>Biaya Varian Size</span><span>+ ${formatPrice(sizeSurcharge)}</span>`;
+      sizeSurchargeRow.style.display = 'flex';
+    } else {
+      sizeSurchargeRow.style.display = 'none';
+    }
   }
 
-  document.getElementById('shippingRow').innerHTML = `<span>Ongkos Kirim</span><span>${formatPrice(shipping)}</span>`;
-  document.getElementById('grandTotal').innerHTML = `<span>Total</span><span>${formatPrice(grand)}</span>`;
+  const shippingRow = document.getElementById('shippingRow');
+  if (shippingRow) {
+    shippingRow.innerHTML = `<span>Ongkos Kirim</span><span>${formatPrice(shipping)}</span>`;
+  }
+
+  const grandTotalEl = document.getElementById('grandTotal');
+  if (grandTotalEl) {
+    grandTotalEl.innerHTML = `<span>Total Nilai Pesanan</span><span>${formatPrice(grand)}</span>`;
+  }
+
+  // Update dynamic values in payment scheme selection cards
+  const fullAmountEl = document.getElementById('schemeFullAmount');
+  if (fullAmountEl) fullAmountEl.textContent = formatPrice(grand);
+  const dpAmountEl = document.getElementById('schemeDpAmount');
+  if (dpAmountEl) dpAmountEl.textContent = formatPrice(dp);
+
+  // Update DP breakdown & Action button
+  const payNowRow = document.getElementById('payNowRow');
+  const remainingRow = document.getElementById('remainingRow');
+  const dpNoticeBox = document.getElementById('dpNoticeBox');
+  const checkoutBtn = document.getElementById('checkoutSubmitBtn');
+
+  if (currentPaymentScheme === 'dp50') {
+    if (payNowRow) {
+      payNowRow.style.display = 'flex';
+      payNowRow.innerHTML = `<span>Tagihan DP 50% (Bayar Sekarang)</span><span style="color: #4ade80; font-size:1.15rem; font-weight:800;">${formatPrice(dp)}</span>`;
+    }
+    if (remainingRow) {
+      remainingRow.style.display = 'flex';
+      remainingRow.innerHTML = `<span>Sisa Pelunasan Nanti</span><span style="color: var(--gold); font-weight:700;">${formatPrice(remaining)}</span>`;
+    }
+    if (dpNoticeBox) {
+      dpNoticeBox.style.display = 'block';
+      dpNoticeBox.innerHTML = `💡 Anda memilih skema <strong>DP 50%</strong>. Tagihan yang harus ditransfer sekarang adalah <strong>${formatPrice(dp)}</strong>. Sisa tagihan pelunasan sebesar <strong>${formatPrice(remaining)}</strong> dibayarkan saat pesanan siap dikirim / COD.`;
+    }
+    if (checkoutBtn) {
+      checkoutBtn.innerHTML = `💳 Lanjut Pembayaran DP 50% • ${formatPrice(dp)}`;
+    }
+  } else {
+    if (payNowRow) payNowRow.style.display = 'none';
+    if (remainingRow) remainingRow.style.display = 'none';
+    if (dpNoticeBox) dpNoticeBox.style.display = 'none';
+    if (checkoutBtn) {
+      checkoutBtn.innerHTML = `💳 Lanjut ke Pembayaran • ${formatPrice(grand)}`;
+    }
+  }
 }
 
 async function updateCheckoutItemSize(index, newSize) {
@@ -708,13 +902,56 @@ function renderCheckout() {
         </div>
         <div class="order-total-row" id="discountRow" style="display:none; color: var(--gold);">
         </div>
-        <hr class="order-divider">
-        <div class="order-total-row grand" id="grandTotal">
-          <span>Total</span><span>${formatPrice(grand)}</span>
+
+        <!-- Payment Scheme Selection -->
+        <div class="payment-scheme-container">
+          <label class="payment-scheme-title-label">💳 Skema Pembayaran *</label>
+          <div class="payment-scheme-grid">
+            <label class="payment-scheme-card" id="schemeFullCard">
+              <input type="radio" name="paymentScheme" value="full" ${currentPaymentScheme === 'full' ? 'checked' : ''} onchange="updatePaymentScheme('full')" />
+              <div class="payment-scheme-header">
+                <span class="scheme-badge badge-full">Lunas</span>
+                <span class="scheme-name">Bayar Penuh</span>
+              </div>
+              <p class="scheme-desc">Bayar seluruh tagihan pesanan sekaligus sekarang.</p>
+              <div class="scheme-price-tag">
+                <span>Bayar Sekarang:</span>
+                <strong id="schemeFullAmount">${formatPrice(grand)}</strong>
+              </div>
+            </label>
+
+            <label class="payment-scheme-card" id="schemeDpCard">
+              <input type="radio" name="paymentScheme" value="dp50" ${currentPaymentScheme === 'dp50' ? 'checked' : ''} onchange="updatePaymentScheme('dp50')" />
+              <div class="payment-scheme-header">
+                <span class="scheme-badge badge-dp">⚡ DP 50%</span>
+                <span class="scheme-name">Uang Muka 50%</span>
+              </div>
+              <p class="scheme-desc">Bayar 50% sekarang, sisa 50% saat pesanan siap / COD.</p>
+              <div class="scheme-price-tag">
+                <span>DP Sekarang:</span>
+                <strong id="schemeDpAmount" style="color:#4ade80;">${formatPrice(getDpAmount())}</strong>
+              </div>
+            </label>
+          </div>
         </div>
 
-        <button class="btn-primary payment-btn" onclick="showPaymentStep()">
-          💳 Lanjut ke Pembayaran
+        <div class="dp-notice-box" id="dpNoticeBox" style="${currentPaymentScheme === 'dp50' ? 'display:block;' : 'display:none;'}">
+          💡 Anda memilih skema <strong>DP 50%</strong>. Tagihan yang harus ditransfer sekarang adalah <strong>${formatPrice(getDpAmount())}</strong>. Sisa tagihan pelunasan sebesar <strong>${formatPrice(getRemainingAmount())}</strong> dibayarkan saat pesanan siap dikirim / COD.
+        </div>
+
+        <hr class="order-divider">
+        <div class="order-total-row" id="grandTotal">
+          <span>Total Nilai Pesanan</span><span>${formatPrice(grand)}</span>
+        </div>
+        <div class="order-total-row" id="payNowRow" style="${currentPaymentScheme === 'dp50' ? 'display:flex;' : 'display:none;'}">
+          <span>Tagihan DP 50% (Bayar Sekarang)</span><span style="color: #4ade80; font-size:1.15rem; font-weight:800;">${formatPrice(getDpAmount())}</span>
+        </div>
+        <div class="order-total-row" id="remainingRow" style="${currentPaymentScheme === 'dp50' ? 'display:flex;' : 'display:none;'}">
+          <span>Sisa Pelunasan Nanti</span><span style="color: var(--gold); font-weight:700;">${formatPrice(getRemainingAmount())}</span>
+        </div>
+
+        <button class="btn-primary payment-btn" id="checkoutSubmitBtn" onclick="showPaymentStep()">
+          ${currentPaymentScheme === 'dp50' ? `💳 Lanjut Pembayaran DP 50% • ${formatPrice(getDpAmount())}` : `💳 Lanjut ke Pembayaran • ${formatPrice(grand)}`}
         </button>
       </div>
     </div>
@@ -740,15 +977,33 @@ function showPaymentStep() {
   if (!modal) return;
   
   const grand = getGrandTotal();
-  const subtotal = Cart.total();
+  const isDp = currentPaymentScheme === 'dp50';
+  const dpAmount = getDpAmount();
+  const remainingAmount = getRemainingAmount();
+  const transferAmount = isDp ? dpAmount : grand;
   
   modal.innerHTML = `
     <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;">
-      <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:2rem;max-width:600px;width:90%;max-height:90vh;overflow-y:auto;">
+      <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:2rem;max-width:600px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.6);">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
-          <h2 style="margin:0;color:var(--white);font-family:var(--font-display);">💳 Pembayaran</h2>
+          <h2 style="margin:0;color:var(--white);font-family:var(--font-display);">💳 Pembayaran ${isDp ? 'DP 50%' : 'Pesanan'}</h2>
           <button onclick="closePaymentModal()" style="background:none;border:none;font-size:1.5rem;color:var(--text-muted);cursor:pointer;">✕</button>
         </div>
+
+        <!-- Scheme Notice Badge -->
+        ${isDp ? `
+          <div style="background:rgba(234,179,8,0.12);border:1px solid rgba(234,179,8,0.4);border-radius:10px;padding:1rem;margin-bottom:1.5rem;display:flex;align-items:flex-start;gap:0.8rem;">
+            <span style="font-size:1.6rem;line-height:1;">⚡</span>
+            <div style="font-size:0.86rem;line-height:1.45;">
+              <strong style="color:#fde047;display:block;margin-bottom:0.25rem;">Skema Pembayaran: DP 50% (Uang Muka)</strong>
+              <span style="color:var(--text-muted);">Total nilai pesanan <strong>${formatPrice(grand)}</strong>. Anda membayar uang muka 50% sekarang sebesar <strong style="color:#4ade80;">${formatPrice(dpAmount)}</strong>. Sisa tagihan sebesar <strong style="color:var(--gold);">${formatPrice(remainingAmount)}</strong> akan dilunasi saat barang siap dikirim / COD.</span>
+            </div>
+          </div>
+        ` : `
+          <div style="background:rgba(41,182,246,0.1);border:1px solid rgba(41,182,246,0.3);border-radius:10px;padding:0.75rem 1rem;margin-bottom:1.5rem;font-size:0.85rem;color:var(--white);display:flex;align-items:center;gap:0.5rem;">
+            <span>💎</span> <span>Skema Pembayaran: <strong>Pembayaran Penuh (100% Lunas)</strong></span>
+          </div>
+        `}
         
         <!-- QRIS Section -->
         <div style="background:rgba(41,182,246,0.1);border:2px solid var(--aqua);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem;">
@@ -757,21 +1012,25 @@ function showPaymentStep() {
             <img src="images/Qris/Qris.jpeg" alt="QRIS" style="max-width:300px;width:100%;height:auto;" onerror="this.src='https://via.placeholder.com/300?text=QRIS'" />
           </div>
           <div style="background:rgba(0,0,0,0.3);padding:1rem;border-radius:8px;color:var(--text-muted);font-size:0.9rem;text-align:center;">
-            <p style="margin:0 0 0.5rem 0;"><strong>Total Pembayaran:</strong></p>
-            <p style="margin:0;color:var(--aqua);font-size:1.2rem;font-weight:700;">${formatPrice(grand)}</p>
+            <p style="margin:0 0 0.4rem 0;"><strong>${isDp ? 'Jumlah Transfer DP 50% Sekarang:' : 'Total Pembayaran:'}</strong></p>
+            <p style="margin:0;color:${isDp ? '#4ade80' : 'var(--aqua)'};font-size:1.35rem;font-weight:800;">${formatPrice(transferAmount)}</p>
+            ${isDp ? `<p style="margin:0.5rem 0 0 0;font-size:0.82rem;color:var(--gold);">Sisa Pelunasan: <strong>${formatPrice(remainingAmount)}</strong></p>` : ''}
           </div>
         </div>
         
         <!-- Upload Proof -->
         <div style="margin-bottom:1.5rem;">
-          <h3 style="color:var(--white);margin-bottom:1rem;">📸 Upload Bukti Transfer</h3>
+          <h3 style="color:var(--white);margin-bottom:0.5rem;">📸 Upload Bukti Transfer</h3>
+          <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:0.8rem;">
+            Harap transfer tepat sebesar <strong style="color:${isDp ? '#4ade80' : 'var(--aqua)'};">${formatPrice(transferAmount)}</strong> lalu unggah bukti transfer di bawah:
+          </p>
           <input type="file" id="proofFile" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleProofUpload(event)">
           <button onclick="document.getElementById('proofFile').click();" class="btn-primary" style="width:100%;padding:1rem;text-align:center;">
             📤 Pilih File Bukti Transfer
           </button>
           <div id="proofPreview" style="margin-top:1rem;"></div>
           <button id="submitPaymentBtn" class="btn-primary" style="width:100%;padding:1rem;margin-top:1rem;background:#4caf50;cursor:pointer;display:none;" onclick="submitPaymentProof()">
-            ✅ Kirim Bukti & Buat Pesanan
+            ✅ Kirim Bukti & Buat Pesanan ${isDp ? '(DP 50%)' : ''}
           </button>
         </div>
         
@@ -945,6 +1204,9 @@ async function submitPaymentProof() {
   const grand = getGrandTotal();
   const discountAmt = getDiscountAmount();
   const discountCode = appliedDiscount ? appliedDiscount.code : null;
+  const isDp = currentPaymentScheme === 'dp50';
+  const dpAmount = getDpAmount();
+  const remainingAmount = getRemainingAmount();
 
   const orderData = {
     customerName, email, phone, address: fullDest, note,
@@ -955,7 +1217,13 @@ async function submitPaymentProof() {
       name: currentShippingMethod === 'jne' ? 'JNE Reguler' : 'COD di Event',
       price: getShippingTotal(),
       sizeSurcharge: sizeSurcharge,
-      discount: discountAmt > 0 ? { code: discountCode, amount: discountAmt } : null
+      discount: discountAmt > 0 ? { code: discountCode, amount: discountAmt } : null,
+      paymentScheme: currentPaymentScheme, // 'full' or 'dp50'
+      isDp: isDp,
+      dpPercent: isDp ? 50 : 100,
+      dpAmount: isDp ? dpAmount : grand,
+      remainingAmount: isDp ? remainingAmount : 0,
+      originalTotal: grand
     },
     subtotal, total: grand
   };
@@ -1010,7 +1278,11 @@ async function submitPaymentProof() {
     } catch(e) { console.warn('Cleanup error:', e); }
     
     // Store order in sessionStorage (without base64 images)
-    const orderForStorage = { ...order, status: 'payment_pending' };
+    const orderForStorage = { 
+      ...order, 
+      shipping: orderData.shipping, // Ensure complete shipping & DP info is preserved
+      status: 'payment_pending' 
+    };
     delete orderForStorage.payment_proof; // Don't store large image
     try {
       sessionStorage.setItem('last_order', JSON.stringify(orderForStorage));
@@ -1019,7 +1291,7 @@ async function submitPaymentProof() {
     }
     
     closePaymentModal();
-    showToast('✅ Pesanan dibuat! Silakan lengkapi pembayaran.');
+    showToast(isDp ? '✅ Pesanan berhasil dibuat dengan DP 50%!' : '✅ Pesanan dibuat! Silakan pantau verifikasi pembayaran.');
     
     // Redirect ke order success
     setTimeout(() => {

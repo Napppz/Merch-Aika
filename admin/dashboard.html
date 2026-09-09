@@ -1902,12 +1902,27 @@
       document.getElementById('orderCountLabel').textContent = `${orders.length} pesanan`;
 
       const el = document.getElementById('orderTableBody');
-      el.innerHTML = orders.map(o => `
+      el.innerHTML = orders.map(o => {
+        let shipObj = {};
+        try { shipObj = typeof o.shipping === 'string' ? JSON.parse(o.shipping) : (o.shipping || {}); } catch(e) {}
+        const isDp = shipObj.paymentScheme === 'dp50' || shipObj.isDp;
+        const dpAmount = Number(shipObj.dpAmount) || Math.ceil((Number(o.total) || 0) * 0.5);
+        const remainingAmount = Number(shipObj.remainingAmount) || Math.max(0, (Number(o.total) || 0) - dpAmount);
+
+        return `
     <tr>
       <td style="font-family:monospace;color:var(--aqua);font-size:0.8rem">${o.id}</td>
       <td class="td-name">${o.customerName}<br><span style="font-size:0.75rem;color:var(--text-muted)">${o.email}</span></td>
       <td style="font-size:0.8rem">${(o.items || []).map(i => `${i.name}${i.size ? ` (Size ${i.size})` : ''} ×${i.qty}`).join('<br>')}</td>
-      <td class="td-price">${formatPrice(o.total)}</td>
+      <td class="td-price">
+        ${formatPrice(o.total)}
+        ${isDp ? `
+          <div style="font-size:0.73rem;color:#fde047;font-weight:600;margin-top:3px;">
+            ⚡ DP: ${formatPrice(dpAmount)}
+            <div style="color:var(--text-muted);font-weight:normal;">Sisa: ${formatPrice(remainingAmount)}</div>
+          </div>
+        ` : ''}
+      </td>
       <td style="font-size:0.8rem">${o.shipping?.name || '-'}</td>
       <td>${statusBadge(o.status)}</td>
       <td style="font-size:0.75rem;color:var(--text-muted)">
@@ -1922,7 +1937,8 @@
         </div>
       </td>
     </tr>
-  `).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem">Belum ada pesanan.</td></tr>';
+  `;
+      }).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem">Belum ada pesanan.</td></tr>';
     }
 
     function filterOrders(val) { renderOrders(val); }
@@ -1968,10 +1984,24 @@
       if (!order) return;
       const content = document.getElementById('orderDetailContent');
 
+      let shipObj = {};
+      try { shipObj = typeof order.shipping === 'string' ? JSON.parse(order.shipping) : (order.shipping || {}); } catch(e) {}
+      const isDp = shipObj.paymentScheme === 'dp50' || shipObj.isDp;
+      const dpAmount = Number(shipObj.dpAmount) || Math.ceil((Number(order.total) || 0) * 0.5);
+      const remainingAmount = Number(shipObj.remainingAmount) || Math.max(0, (Number(order.total) || 0) - dpAmount);
+
       // Render payment proof section jika ada
       const paymentProofHTML = order.payment_proof ? `
     <div style="background:rgba(76,175,80,0.1);border:2px solid #4caf50;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem">
-      <h4 style="color:#4caf50;margin-top:0;margin-bottom:1rem;font-size:0.95rem">✅ BUKTI PEMBAYARAN QRIS</h4>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;flex-wrap:wrap;gap:0.5rem;">
+        <h4 style="color:#4caf50;margin:0;font-size:0.95rem">✅ BUKTI PEMBAYARAN QRIS ${isDp ? '(DP 50%)' : ''}</h4>
+        ${isDp ? `<span style="background:rgba(234,179,8,0.2);color:#fde047;border:1px solid rgba(234,179,8,0.4);padding:3px 9px;border-radius:12px;font-size:0.75rem;font-weight:bold;">⚡ Tagihan DP: ${formatPrice(dpAmount)}</span>` : ''}
+      </div>
+      ${isDp ? `
+        <p style="font-size:0.82rem;color:var(--text-muted);margin:0 0 1rem 0;line-height:1.4;">
+          Pembeli memilih <strong>DP 50%</strong>. Pastikan bukti transfer bernilai <strong>${formatPrice(dpAmount)}</strong>. Sisa tagihan pelunasan: <strong style="color:var(--gold);">${formatPrice(remainingAmount)}</strong>.
+        </p>
+      ` : ''}
       <div style="background:var(--white);border-radius:8px;padding:1rem;text-align:center;margin-bottom:1rem;max-height:400px;overflow:auto">
         <img src="${order.payment_proof}" alt="Bukti Transfer" style="max-width:100%;height:auto;border-radius:4px;" />
       </div>
@@ -1989,6 +2019,12 @@
       <div class="form-group"><label>Status</label><input readonly value="${order.status}" style="background:rgba(3,9,31,0.6)"></div>
       <div class="form-group"><label>Customer</label><input readonly value="${order.customerName}" style="background:rgba(3,9,31,0.6)"></div>
       <div class="form-group"><label>Email</label><input readonly value="${order.email}" style="background:rgba(3,9,31,0.6)"></div>
+      <div class="form-group"><label>Skema Pembayaran</label><input readonly value="${isDp ? '⚡ DP 50% (Uang Muka)' : '💎 Bayar Penuh (100%)'}" style="background:rgba(3,9,31,0.6); color:${isDp ? '#fde047' : 'var(--aqua)'}; font-weight:bold;"></div>
+      ${isDp ? `
+        <div class="form-group"><label>Nominal DP 50% (Transfer)</label><input readonly value="${formatPrice(dpAmount)}" style="background:rgba(3,9,31,0.6); color:#4ade80; font-weight:bold;"></div>
+      ` : `
+        <div class="form-group"><label>Nominal Pembayaran</label><input readonly value="${formatPrice(order.total)}" style="background:rgba(3,9,31,0.6); color:var(--aqua); font-weight:bold;"></div>
+      `}
       <div class="form-group" style="grid-column:1/-1"><label>Alamat</label><input readonly value="${order.address || '-'}" style="background:rgba(3,9,31,0.6)"></div>
       <div class="form-group" style="grid-column:1/-1"><label>Tanggal & Waktu Pesan</label><input readonly value="${order.date ? new Date(order.date).toLocaleString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-'}" style="background:rgba(3,9,31,0.6); color: var(--aqua);"></div>
     </div>
@@ -1996,7 +2032,11 @@
       <h4 style="color:var(--aqua);margin-bottom:0.8rem;font-size:0.85rem">ITEM PESANAN</h4>
       ${(order.items || []).map(i => `<div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:0.3rem 0;color:var(--text-muted)"><span>${i.name}${i.size ? ` (Size ${i.size})` : ''} ×${i.qty}</span><span style="color:var(--aqua)">${formatPrice(i.price * i.qty)}</span></div>`).join('')}
       <hr style="border-color:rgba(41,182,246,0.1);margin:0.8rem 0">
-      <div style="display:flex;justify-content:space-between;font-size:0.9rem;font-weight:700"><span style="color:var(--white)">Total</span><span style="color:var(--aqua)">${formatPrice(order.total)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:0.9rem;font-weight:700"><span style="color:var(--white)">Total Nilai Pesanan</span><span style="color:var(--aqua)">${formatPrice(order.total)}</span></div>
+      ${isDp ? `
+        <div style="display:flex;justify-content:space-between;font-size:0.88rem;color:#4ade80;font-weight:700;margin-top:0.35rem"><span>Tagihan DP 50% (Dibayar)</span><span>${formatPrice(dpAmount)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--gold);font-weight:700;margin-top:0.25rem"><span>Sisa Pelunasan Nanti</span><span>${formatPrice(remainingAmount)}</span></div>
+      ` : ''}
     </div>
     <div class="form-group">
       <label>Update Status</label>

@@ -93,6 +93,10 @@ module.exports = async (req, res) => {
       }
 
       const order = rows[0];
+      const shipObj = typeof order.shipping === 'string' ? JSON.parse(order.shipping || '{}') : (order.shipping || {});
+      const isDp = shipObj.paymentScheme === 'dp50';
+      const dpAmount = shipObj.dpAmount || Math.ceil((order.total || 0) * 0.5);
+      const remainingAmount = shipObj.remainingAmount || Math.max(0, (order.total || 0) - dpAmount);
       const transporter = getMailTransportSafe();
 
       // Email ke Admin - Bukti Pembayaran Diterima
@@ -105,24 +109,29 @@ module.exports = async (req, res) => {
           from: `"Aika Sesilia" <${emailUser}>`,
           to: adminEmail,
           replyTo: emailUser,
-          subject: `[Aika Sesilia] Bukti Pembayaran Masuk - Pesanan #${orderId}`,
+          subject: `[Aika Sesilia] Bukti Pembayaran Masuk ${isDp ? '(DP 50%) ' : ''}- Pesanan #${orderId}`,
           html: `
             <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background:#f5f5f5; padding:2rem; border-radius:8px;">
-              <h2 style="color: #4caf50; border-bottom: 2px solid #4caf50; padding-bottom:1rem;">✅ BUKTI PEMBAYARAN MASUK</h2>
+              <h2 style="color: #4caf50; border-bottom: 2px solid #4caf50; padding-bottom:1rem;">✅ BUKTI PEMBAYARAN MASUK ${isDp ? '(DP 50%)' : ''}</h2>
               
-              <p style="margin: 1rem 0;"><strong>Pelanggan:</strong> ${customerName} (${email})</p>
-              <p style="margin: 1rem 0;"><strong>No. Pesanan:</strong> #${orderId}</p>
-              <p style="margin: 1rem 0;"><strong>Total:</strong> Rp ${order.total?.toLocaleString('id-ID') || '-'}</p>
+              <p style="margin: 0.8rem 0;"><strong>Pelanggan:</strong> ${customerName} (${email})</p>
+              <p style="margin: 0.8rem 0;"><strong>No. Pesanan:</strong> #${orderId}</p>
+              <p style="margin: 0.8rem 0;"><strong>Total Nilai Pesanan:</strong> Rp ${order.total?.toLocaleString('id-ID') || '-'}</p>
+              <p style="margin: 0.8rem 0;"><strong>Skema Pembayaran:</strong> <span style="color:#0284c7;font-weight:bold;">${isDp ? '⚡ DP 50% (Uang Muka)' : '💎 Full Payment (100%)'}</span></p>
+              ${isDp ? `
+                <p style="margin: 0.8rem 0;color:#16a34a;font-weight:bold;">Nominal DP 50% Yang Ditransfer: Rp ${dpAmount.toLocaleString('id-ID')}</p>
+                <p style="margin: 0.8rem 0;color:#d97706;">Sisa Tagihan Pelunasan Nanti: Rp ${remainingAmount.toLocaleString('id-ID')}</p>
+              ` : ''}
               
               <div style="background:#fff; padding:1.5rem; border-left: 4px solid #4caf50; border-radius:4px; margin:1.5rem 0;">
-                <p style="margin:0;font-weight:bold;color:#333;">📸 Screenshot Transfer:</p>
+                <p style="margin:0;font-weight:bold;color:#333;">📸 Screenshot Transfer ${isDp ? '(Pembayaran DP 50%)' : ''}:</p>
                 <p style="margin:0.5rem 0; font-size:0.9rem; color:#666;">Bukti pembayaran telah diterima dan tersimpan di database.</p>
                 <p style="margin:1rem 0; padding:1rem; background:#fffbea; border-radius:4px; font-size:0.85rem; color:#666;">
-                  <strong>⚠️ Harap verifikasi:</strong> Cek di dashboard admin untuk melihat screenshot bukti transfer sebelum mengkonfirmasi pembayaran.
+                  <strong>⚠️ Harap verifikasi:</strong> Pastikan nominal transfer pada screenshot sesuai dengan tagihan ${isDp ? `DP 50% (Rp ${dpAmount.toLocaleString('id-ID')})` : `(Rp ${order.total?.toLocaleString('id-ID')})`} sebelum mengonfirmasi status pesanan.
                 </p>
               </div>
               
-              <p style="margin-top:1.5rem; font-size:0.9rem;"><strong>Status:</strong> <span style="color:#ff9800; font-weight:bold;">⏳ MENUNGGU VERIFIKASI</span></p>
+              <p style="margin-top:1.5rem; font-size:0.9rem;"><strong>Status:</strong> <span style="color:#ff9800; font-weight:bold;">⏳ MENUNGGU VERIFIKASI ${isDp ? 'DP' : ''}</span></p>
               <p style="font-size:0.85rem;color:#999;margin-top:2rem;">Email ini dikirim otomatis. Mohon segera verifikasi pembayaran.</p>
             </div>
           `
@@ -139,19 +148,24 @@ module.exports = async (req, res) => {
           from: `"Aika Sesilia" <${emailUser}>`,
           to: email,
           replyTo: emailUser,
-          subject: `[Aika Sesilia] Bukti Pembayaran Diterima - Pesanan #${orderId}`,
+          subject: `[Aika Sesilia] Bukti Pembayaran ${isDp ? 'DP 50% ' : ''}Diterima - Pesanan #${orderId}`,
           html: `
             <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-              <h2 style="color: #4caf50;">Bukti Pembayaran Kami Terima!</h2>
+              <h2 style="color: #4caf50;">Bukti Pembayaran ${isDp ? 'DP 50% ' : ''}Kami Terima!</h2>
               <p>Halo ${customerName},</p>
-              <p>Terima kasih! Kami telah menerima bukti pembayaran Anda untuk pesanan <strong>#${orderId}</strong>.</p>
+              <p>Terima kasih! Kami telah menerima bukti pembayaran ${isDp ? '<strong>DP 50% (Uang Muka)</strong>' : ''} Anda untuk pesanan <strong>#${orderId}</strong>.</p>
               
               <div style="background:#f0f8f0; padding:1.5rem; border-left: 4px solid #4caf50; border-radius:4px; margin:1.5rem 0;">
-                <p style="margin:0;font-weight:bold;color:#333;">Status: Sedang Diverifikasi</p>
+                <p style="margin:0;font-weight:bold;color:#333;">Status: Sedang Diverifikasi Admin</p>
                 <p style="margin:0.5rem 0; font-size:0.9rem; color:#666;">Tim kami akan memverifikasi pembayaran Anda dalam 1-2 jam kerja.</p>
+                ${isDp ? `
+                  <p style="margin:0.8rem 0 0 0; font-size:0.88rem; color:#0f766e;">
+                    <strong>Catatan DP:</strong> Anda telah mengunggah bukti transfer DP 50% (Rp ${dpAmount.toLocaleString('id-ID')}). Sisa pelunasan sebesar Rp ${remainingAmount.toLocaleString('id-ID')} dibayarkan saat pesanan siap dikirim / COD.
+                  </p>
+                ` : ''}
               </div>
               
-              <p style="margin-top:1.5rem;">Anda akan menerima email konfirmasi pembayaran setelah diverifikasi.</p>
+              <p style="margin-top:1.5rem;">Anda akan menerima email konfirmasi pesanan setelah diverifikasi.</p>
               <p>Jika ada pertanyaan, jangan ragu untuk menghubungi kami.</p>
               <br/>
               <p>Terima kasih,<br/><strong>Aika Sesilia</strong></p>

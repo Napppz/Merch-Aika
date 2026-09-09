@@ -58,6 +58,11 @@ module.exports = async (req, res) => {
         [id, customerName, email, address, status, total, typeof items === 'string' ? items : JSON.stringify(items), typeof shipping === 'string' ? shipping : JSON.stringify(shipping)]
       );
 
+      const shipObj = typeof shipping === 'string' ? JSON.parse(shipping || '{}') : (shipping || {});
+      const isDp = shipObj.paymentScheme === 'dp50';
+      const dpAmount = shipObj.dpAmount || Math.ceil(total * 0.5);
+      const remainingAmount = shipObj.remainingAmount || Math.max(0, total - dpAmount);
+
       // (1/2) Kirim Notifikasi Email - Pesanan Baru ke Customer
       try {
         const transporter = getMailTransport();
@@ -66,13 +71,21 @@ module.exports = async (req, res) => {
           from: `"Aika Sesilia" <${emailUser}>`,
           to: email, // Email pembeli
           replyTo: emailUser,
-          subject: `[Aika Sesilia] Pesanan #${id} Diterima 📦`,
+          subject: `[Aika Sesilia] Pesanan #${id} Diterima ${isDp ? '(DP 50%) ' : ''}📦`,
           html: `
             <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
               <h2 style="color: #29b6f6;">Halo, ${customerName}!</h2>
               <p>Terima kasih telah berbelanja di Aika Sesilia Merch.</p>
-              <p>Pesanan Anda dengan nomor <strong>#${id}</strong> telah diterima dan sedang menunggu pembayaran.</p>
-              <p><strong>Total Pembayaran: Rp ${total.toLocaleString('id-ID')}</strong></p>
+              <p>Pesanan Anda dengan nomor <strong>#${id}</strong> telah diterima dan sedang menunggu verifikasi pembayaran ${isDp ? '<strong>DP 50% (Uang Muka)</strong>' : ''}.</p>
+              <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:1rem;margin:1rem 0;">
+                <p style="margin:0 0 0.5rem 0;"><strong>Total Nilai Pesanan: Rp ${total.toLocaleString('id-ID')}</strong></p>
+                ${isDp ? `
+                  <p style="margin:0 0 0.5rem 0;color:#0284c7;font-size:1.1rem;"><strong>Tagihan DP 50% (Harus Ditransfer): Rp ${dpAmount.toLocaleString('id-ID')}</strong></p>
+                  <p style="margin:0;color:#64748b;font-size:0.9rem;">Sisa Tagihan Pelunasan: Rp ${remainingAmount.toLocaleString('id-ID')} (dibayarkan saat pesanan siap dikirim / COD)</p>
+                ` : `
+                  <p style="margin:0;color:#0284c7;font-size:1.1rem;"><strong>Total Pembayaran: Rp ${total.toLocaleString('id-ID')}</strong></p>
+                `}
+              </div>
               <p>Silakan selesaikan pembayaran melalui aplikasi atau website untuk melanjutkan.</p>
               <p>Terima kasih atas kepercayaan Anda!</p>
               <br/>
@@ -97,10 +110,10 @@ module.exports = async (req, res) => {
           from: `"Aika Sesilia" <${emailUser}>`,
           to: adminEmail,
           replyTo: emailUser,
-          subject: `[ADMIN] Pesanan Baru #${id} dari ${customerName}`,
+          subject: `[ADMIN] Pesanan Baru #${id} ${isDp ? '(DP 50%) ' : ''}dari ${customerName}`,
           html: `
             <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-              <h2 style="color: #ff6b6b;">📦 Pesanan Baru Masuk!</h2>
+              <h2 style="color: #ff6b6b;">📦 Pesanan Baru Masuk! ${isDp ? '<span style="font-size:0.8em;color:#29b6f6;">(SKEMA DP 50%)</span>' : ''}</h2>
               <p>Ada pesanan baru yang perlu diproses.</p>
               <table style="width:100%;border-collapse:collapse;margin-bottom:1rem;">
                 <tr style="background:#e8e8e8;">
@@ -120,15 +133,29 @@ module.exports = async (req, res) => {
                   <td style="padding:0.8rem;border:1px solid #ddd;">${address}</td>
                 </tr>
                 <tr style="background:#e8e8e8;">
-                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Total</td>
+                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Total Nilai Pesanan</td>
                   <td style="padding:0.8rem;border:1px solid #ddd;color:#ff6b6b;font-weight:bold;">Rp ${total.toLocaleString('id-ID')}</td>
                 </tr>
+                <tr>
+                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Skema Pembayaran</td>
+                  <td style="padding:0.8rem;border:1px solid #ddd;color:#29b6f6;font-weight:bold;">${isDp ? '⚡ DP 50% (Uang Muka)' : '💎 Full Payment (100%)'}</td>
+                </tr>
+                ${isDp ? `
+                <tr style="background:#e8e8e8;">
+                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Nominal DP 50%</td>
+                  <td style="padding:0.8rem;border:1px solid #ddd;color:#4caf50;font-weight:bold;">Rp ${dpAmount.toLocaleString('id-ID')}</td>
+                </tr>
+                <tr>
+                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Sisa Pelunasan Nanti</td>
+                  <td style="padding:0.8rem;border:1px solid #ddd;color:#ff9800;font-weight:bold;">Rp ${remainingAmount.toLocaleString('id-ID')}</td>
+                </tr>
+                ` : ''}
               </table>
               <h3 style="color:#333;">Item Pesanan:</h3>
               <ul style="background:#fff; padding:1.5rem; border-left: 4px solid #ff6b6b; border-radius:4px;">
                 ${itemsHTML}
               </ul>
-              <p style="color:#666;margin-top:1.5rem;">Status: <strong style="color:#ff9800;">&#9203; MENUNGGU PEMBAYARAN</strong></p>
+              <p style="color:#666;margin-top:1.5rem;">Status: <strong style="color:#ff9800;">&#9203; MENUNGGU PEMBAYARAN ${isDp ? 'DP' : ''}</strong></p>
               <p style="font-size:0.9rem;color:#999;margin-top:2rem;">Email ini dikirim otomatis oleh sistem. Mohon segera verifikasi pembayaran pesanan ini.</p>
             </div>
           `

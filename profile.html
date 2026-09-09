@@ -975,6 +975,10 @@
         let shippingInfo = null;
         try { shippingInfo = typeof o.shipping === 'string' ? JSON.parse(o.shipping) : o.shipping; } catch (e) { }
 
+        const isDp = shippingInfo?.paymentScheme === 'dp50' || shippingInfo?.isDp;
+        const dpAmount = Number(shippingInfo?.dpAmount) || Math.ceil((Number(o.total) || 0) * 0.5);
+        const remainingAmount = Number(shippingInfo?.remainingAmount) || Math.max(0, (Number(o.total) || 0) - dpAmount);
+
         allOrders[o.id] = itemsArr;
 
         const formattedDate = new Date(o.date || o.created_at || Date.now()).toLocaleString('id-ID', {
@@ -989,8 +993,11 @@
             <div class="order-id" style="cursor:pointer; color:var(--aqua); text-decoration:underline;" onclick="printOrderInvoice('${o.id}')" title="Klik untuk cetak / lihat Invoice">#${o.id}</div>
             <div class="order-date">${formattedDate}</div>
           </div>
-          <div class="order-status ${o.status || 'pending'}">
-            ${o.status === 'paid' ? 'DIKEMAS' : o.status === 'shipped' ? 'DIKIRIM' : o.status === 'completed' ? 'SELESAI' : (o.status?.toUpperCase() || 'PENDING')}
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            ${isDp ? '<span style="background:rgba(234,179,8,0.2); color:#fde047; border:1px solid rgba(234,179,8,0.4); padding:3px 9px; border-radius:12px; font-size:0.75rem; font-weight:700;">⚡ DP 50%</span>' : ''}
+            <div class="order-status ${o.status || 'pending'}">
+              ${o.status === 'paid' ? 'DIKEMAS' : o.status === 'shipped' ? 'DIKIRIM' : o.status === 'completed' ? 'SELESAI' : (o.status?.toUpperCase() || 'PENDING')}
+            </div>
           </div>
         </div>
         <div class="order-items">
@@ -1051,7 +1058,14 @@
         }).join('')}
         </div>
         <div class="order-footer">
-          <span>Total Bayar <strong style="color:var(--aqua);font-size:1.1rem;margin-left:5px">Rp ${(o.total).toLocaleString('id-ID')}</strong></span>
+          ${isDp ? `
+            <div>
+              <div style="font-size:0.85rem;color:var(--text-muted)">Total Pesanan: <strong style="color:var(--white)">Rp ${(o.total).toLocaleString('id-ID')}</strong></div>
+              <div style="font-size:0.95rem;color:#4ade80;font-weight:700;margin-top:2px">DP 50%: Rp ${dpAmount.toLocaleString('id-ID')} <span style="font-size:0.78rem;color:var(--gold);font-weight:normal;">(Sisa: Rp ${remainingAmount.toLocaleString('id-ID')})</span></div>
+            </div>
+          ` : `
+            <span>Total Bayar <strong style="color:var(--aqua);font-size:1.1rem;margin-left:5px">Rp ${(o.total).toLocaleString('id-ID')}</strong></span>
+          `}
           <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
             <button class="btn-ghost" style="padding:0.4rem 0.8rem;font-size:0.8rem;border-radius:6px;display:flex;align-items:center;gap:5px" onclick="printOrderInvoice('${o.id}')">🧾 Cetak Invoice</button>
             ${o.status === 'shipped' ? `<button class="btn-primary" style="padding:0.4rem 1rem;font-size:0.8rem;border-radius:6px;display:flex;align-items:center;gap:5px" onclick="confirmDelivery('${o.id}')">📦 Konfirmasi Diterima</button>` : ''}
@@ -1079,6 +1093,9 @@
 
       let itemsArr = Array.isArray(order.items) ? order.items : (typeof order.items === 'string' ? JSON.parse(order.items) : []);
       let shippingInfo = typeof order.shipping === 'string' ? JSON.parse(order.shipping || '{}') : (order.shipping || {});
+      const isDp = shippingInfo.paymentScheme === 'dp50' || shippingInfo.isDp;
+      const dpAmount = Number(shippingInfo.dpAmount) || Math.ceil((Number(order.total) || 0) * 0.5);
+      const remainingAmount = Number(shippingInfo.remainingAmount) || Math.max(0, (Number(order.total) || 0) - dpAmount);
 
       const formattedDate = new Date(order.date || order.created_at || Date.now()).toLocaleString('id-ID', {
         day: '2-digit', month: 'long', year: 'numeric',
@@ -1140,7 +1157,7 @@
               <div style="text-align: right;">
                 <strong style="color: #0f172a; display: block; margin-bottom: 4px;">Waktu Transaksi:</strong>
                 <div style="color: #64748b;">${formattedDate}</div>
-                ${shippingInfo.name ? `<div style="color: #64748b; margin-top: 4px; font-size: 12.5px;">Kurir: ${shippingInfo.name} ${shippingInfo.resi ? `(Resi: ${shippingInfo.resi})` : ''}</div>` : ''}
+                ${shippingInfo.name ? `<div style="color: #64748b; margin-top: 4px; font-size: 12.5px;">Kurir: ${shippingInfo.name} ${isDp ? '• (DP 50%)' : ''} ${shippingInfo.resi ? `(Resi: ${shippingInfo.resi})` : ''}</div>` : ''}
               </div>
             </div>
 
@@ -1170,9 +1187,19 @@
             </table>
 
             <div class="total-row">
-              <span>TOTAL PEMBAYARAN</span>
+              <span>TOTAL NILAI PESANAN</span>
               <span>Rp ${(order.total || 0).toLocaleString('id-ID')}</span>
             </div>
+            ${isDp ? `
+              <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; color: #16a34a; padding-top: 8px;">
+                <span>TAGIHAN DP 50% (DIBAYAR)</span>
+                <span>Rp ${dpAmount.toLocaleString('id-ID')}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; color: #d97706; padding-top: 5px;">
+                <span>SISA TAGIHAN PELUNASAN NANTI</span>
+                <span>Rp ${remainingAmount.toLocaleString('id-ID')}</span>
+              </div>
+            ` : ''}
 
             <div class="footer">
               <p style="margin: 0 0 4px;">Terima kasih atas dukungan dan cinta kalian untuk Aika Sesilia!</p>
