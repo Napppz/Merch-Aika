@@ -29,12 +29,13 @@ function getItemSizeTag(item) {
   return '';
 }
 
-function getItemSizeSurcharge(item) {
-  if (!item || !item.size) return 0;
+function getItemSizeSurcharge(item, sizeOverride = null) {
+  const sizeToCheck = sizeOverride !== null ? sizeOverride : item?.size;
+  if (!item || !sizeToCheck) return 0;
   const tag = getItemSizeTag(item);
   const rules = (window.SIZE_SURCHARGE_RULES || CART_SIZE_SURCHARGE_RULES)[tag];
   if (!rules) return 0;
-  const key = String(item.size).trim().toUpperCase();
+  const key = String(sizeToCheck).trim().toUpperCase();
   return rules[key] || 0;
 }
 
@@ -367,18 +368,25 @@ function toggleCart() {
 }
 
 function goToCheckout() {
-  const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
-  if (!userStr) {
-    showToast('⚠️ Anda harus login untuk checkout!');
-    setTimeout(() => { window.location.href = 'login.html?redirect=checkout-photopack.html'; }, 1500);
-    return;
-  }
   if (Cart.items.length === 0) {
     showToast('⚠️ Keranjang masih kosong!');
     return;
   }
 
-  const hasPhotopackOnly = Cart.items.every(i => i.is_photopack || i.category === 'Photopack');
+  const hasPhotopackOnly = Cart.items.length > 0 && Cart.items.every(i => i.is_photopack || i.category === 'Photopack');
+  const targetPage = (hasPhotopackOnly && Cart.items.length === 1)
+    ? `checkout-photopack.html?id=${Cart.items[0].id}`
+    : 'checkout.html';
+
+  const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+  if (!userStr) {
+    showToast('⚠️ Anda harus login untuk checkout!');
+    setTimeout(() => {
+      window.location.href = `login.html?redirect=${encodeURIComponent(targetPage)}`;
+    }, 1500);
+    return;
+  }
+
   if (hasPhotopackOnly && Cart.items.length === 1) {
     localStorage.setItem('aika_checkout_photopack', JSON.stringify(Cart.items[0]));
     window.location.href = `checkout-photopack.html?id=${Cart.items[0].id}`;

@@ -48,7 +48,8 @@ const Orders = {
       const dbOrder = await response.json();
       return dbOrder; // Return the full DB order including auto-generated date
     }
-    return order;
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.error || `Gagal membuat pesanan (Status ${response.status})`);
   },
   async update(id, data) {
     data.id = id;

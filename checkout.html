@@ -563,7 +563,7 @@
     let availableVouchers = {};
     let appliedDiscount = null;
     let currentShippingRate = 12000; // Harga default awal
-    const SIZE_SURCHARGE_RULES = {
+    const CHECKOUT_SIZE_SURCHARGE_RULES = window.SIZE_SURCHARGE_RULES || {
       'Pakaian Kaos': {
         XL: 15000,
         XXL: 25000,
@@ -597,7 +597,7 @@
       const sizeToCheck = sizeOverride !== null ? sizeOverride : item?.size;
       if (!item || !sizeToCheck) return 0;
       const tag = getItemSizeTag(item);
-      const rules = SIZE_SURCHARGE_RULES[tag];
+      const rules = (window.SIZE_SURCHARGE_RULES || CHECKOUT_SIZE_SURCHARGE_RULES)[tag];
       if (!rules) return 0;
       const key = String(sizeToCheck).trim().toUpperCase();
       return rules[key] || 0;
@@ -1416,7 +1416,7 @@
       try {
         order = await Orders.add(orderData);
       } catch (err) {
-        showToast('❌ Gagal membuat pesanan');
+        showToast('❌ ' + (err.message || 'Gagal membuat pesanan'));
         return;
       }
 
