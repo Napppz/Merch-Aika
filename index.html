@@ -1,461 +1,539 @@
 <!DOCTYPE html>
 <!-- Presentasi: Halaman utama website yang menampilkan hero section, leaderboard, dan navigasi akun pengguna. -->
 <html lang="id">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Aika Sesilia — Official Merch Store</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
+
 <body>
-<div class="cursor-glow"></div>
+  <div class="cursor-glow"></div>
 
-<!-- NAV -->
-<nav class="navbar">
-  <div class="nav-brand">
-    <span class="brand-logo">✦</span>
-    <span class="brand-name">Aika Sesilia</span>
-  </div>
-  <ul class="nav-links">
-    <li><a href="index.html" class="active">Home</a></li>
-    <li><a href="shop.html">Shop</a></li>
-    <li><a href="#about">About</a></li>
-    <li><a href="#contact">Contact</a></li>
-  </ul>
-  <div class="nav-actions">
-    <button class="cart-btn" onclick="toggleCart()">
-      🛒 <span class="cart-count" id="cartCount">0</span>
-    </button>
-
-    <!-- User Auth Button (dinamis) -->
-    <div class="user-nav" id="userNav">
-      <!-- diisi oleh JS -->
+  <!-- NAV -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="brand-logo">✦</span>
+      <span class="brand-name">Aika Sesilia</span>
     </div>
-  </div>
-</nav>
-
-<style>
-  /* ── User Nav Button ── */
-  .user-nav { position: relative; }
-
-  .user-btn-guest {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    background: linear-gradient(135deg, rgba(41,182,246,0.15), rgba(21,101,192,0.2));
-    border: 1px solid rgba(41,182,246,0.4);
-    color: var(--aqua);
-    padding: 0.45rem 1rem;
-    border-radius: 50px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    cursor: pointer;
-    text-decoration: none;
-    transition: var(--transition);
-    font-family: var(--font-body);
-    white-space: nowrap;
-  }
-  .user-btn-guest:hover {
-    background: linear-gradient(135deg, rgba(41,182,246,0.3), rgba(21,101,192,0.35));
-    border-color: var(--aqua);
-    box-shadow: 0 0 15px rgba(41,182,246,0.25);
-    transform: translateY(-1px);
-  }
-
-  .user-btn-logged {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(41,182,246,0.1);
-    border: 1px solid rgba(41,182,246,0.3);
-    color: var(--white);
-    padding: 0.4rem 0.8rem;
-    border-radius: 50px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
-    font-family: var(--font-body);
-    white-space: nowrap;
-  }
-  .user-btn-logged:hover {
-    background: rgba(41,182,246,0.2);
-    border-color: var(--aqua);
-  }
-
-  .user-avatar {
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--sea-blue), var(--aqua));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    font-weight: 900;
-    color: var(--white);
-    flex-shrink: 0;
-    border: 1px solid rgba(41,182,246,0.5);
-  }
-
-  /* Dropdown */
-  .user-dropdown {
-    position: absolute;
-    top: calc(100% + 10px);
-    right: 0;
-    background: var(--midnight-blue);
-    border: 1px solid var(--card-border);
-    border-radius: 16px;
-    padding: 0.5rem;
-    min-width: 200px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 20px rgba(41,182,246,0.1);
-    z-index: 9999;
-    opacity: 0;
-    transform: translateY(-8px) scale(0.97);
-    pointer-events: none;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(20px);
-  }
-  .user-dropdown.open {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    pointer-events: all;
-  }
-  .user-dropdown-header {
-    padding: 0.8rem 1rem;
-    border-bottom: 1px solid var(--card-border);
-    margin-bottom: 0.4rem;
-  }
-  .user-dropdown-name {
-    font-weight: 700;
-    color: var(--white);
-    font-size: 0.9rem;
-  }
-  .user-dropdown-email {
-    color: var(--text-muted);
-    font-size: 0.75rem;
-    margin-top: 2px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.6rem 1rem;
-    border-radius: 10px;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
-    text-decoration: none;
-    border: none;
-    background: none;
-    width: 100%;
-    font-family: var(--font-body);
-    text-align: left;
-  }
-  .dropdown-item:hover {
-    background: rgba(41,182,246,0.1);
-    color: var(--aqua);
-  }
-  .dropdown-item.logout {
-    color: #fca5a5;
-    border-top: 1px solid var(--card-border);
-    margin-top: 0.4rem;
-  }
-  .dropdown-item.logout:hover {
-    background: rgba(239,68,68,0.1);
-    color: #ef4444;
-  }
-
-  /* ── Shark Animation ── */
-  .sharks {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0; left: 0;
-    overflow: hidden;
-    pointer-events: none;
-    z-index: 1;
-    opacity: 0.4;
-  }
-  .shark {
-    position: absolute;
-    font-size: 6rem;
-    filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5)) grayscale(100%) brightness(0.4) contrast(1.2) sepia(1.5) hue-rotate(200deg);
-    animation: swim linear infinite;
-    will-change: transform;
-    opacity: 0.7;
-    transform: scaleX(-1); /* Face right */
-  }
-  
-  .shark.s1 { top: 15%; left: -20%; animation-duration: 28s; animation-delay: 0s; font-size: 8rem; }
-  .shark.s2 { top: 40%; left: -20%; animation-duration: 35s; animation-delay: 5s; font-size: 6rem; }
-  .shark.s3 { top: 70%; left: -20%; animation-duration: 25s; animation-delay: 10s; font-size: 7rem; }
-  .shark.s4 { top: 25%; left: -20%; animation-duration: 32s; animation-delay: 15s; font-size: 5rem; }
-
-  @keyframes swim {
-    0% { transform: scaleX(-1) translate(0, 0px) rotate(-5deg); }
-    25% { transform: scaleX(-1) translate(-25vw, -30px) rotate(0deg); }
-    50% { transform: scaleX(-1) translate(-50vw, 15px) rotate(5deg); }
-    75% { transform: scaleX(-1) translate(-75vw, -10px) rotate(0deg); }
-    100% { transform: scaleX(-1) translate(-120vw, 0px) rotate(-5deg); }
-  }
-</style>
-
-
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-bg">
-    <!-- Shark Animation -->
-    <div class="sharks">
-      <div class="shark s1">🦈</div>
-      <div class="shark s2">🦈</div>
-      <div class="shark s3">🦈</div>
-      <div class="shark s4">🦈</div>
-    </div>
-    
-    <div class="bubble b1"></div>
-    <div class="bubble b2"></div>
-    <div class="bubble b3"></div>
-    <div class="bubble b4"></div>
-    <div class="wave-overlay"></div>
-  </div>
-  <div class="hero-content">
-    <p class="hero-tagline">✦ Official Merchandise ✦</p>
-    <h1 class="hero-title">
-      <span id="typingTextBase"></span>&nbsp;<em id="typingTextItalic"></em><span class="typing-cursor">|</span>
-    </h1>
-    <p class="hero-sub">Koleksi eksklusif merchandise dari cosplayer favoritmu.<br>Wearable art, langsung dari Aika.</p>
-    <div class="hero-cta">
-      <a href="shop.html" class="btn-primary">Lihat Koleksi</a>
-      <a href="#about" class="btn-ghost">Tentang Aika</a>
-    </div>
-  </div>
-  <div class="hero-image-wrap">
-    <div class="hero-circle">
-      <img src="images/Profil/phoebe.JPG" alt="Phoebe" class="hero-img" id="mainHeroImage" onerror="this.src='https://ui-avatars.com/api/?name=Phoebe&size=300&background=1565C0&color=fff'" />
-      <div class="hero-initials" style="display: none;">PH</div>
-    </div>
-    <div class="float-badge badge1">🎭 Cosplayer</div>
-    <div class="float-badge badge2">💙 Since 2016</div>
-  </div>
-</section>
-
-<!-- LEADERBOARD - TOP BUYERS -->
-<section class="leaderboard" id="leaderboard">
-  <div class="section-header">
-    <p class="section-eyebrow">✦ Top Supporters ✦</p>
-    <h2>Top Global Hiu Keren</h2>
-    <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 0.95rem;">Terima kasih untuk dukungan dan kepercayaan kalian!</p>
-  </div>
-  
-  <div class="leaderboard-container">
-    <div class="leaderboard-stats" id="leaderboardStats"></div>
-    <!-- Wrapper div diperlukan agar border-radius bekerja di iOS Safari -->
-    <div class="leaderboard-table-wrap">
-      <table class="leaderboard-table">
-        <thead>
-          <tr>
-            <th style="width: 60px;">Rank</th>
-            <th style="text-align: left;">Fans</th>
-            <th style="text-align: center;">Pembelian</th>
-            <th style="text-align: right;">Total Spending</th>
-          </tr>
-        </thead>
-        <tbody id="leaderboardBody">
-          <tr>
-            <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
-              ⏳ Memuat data...
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
-
-<!-- FEATURED PRODUCTS -->
-<section class="featured" id="featured">
-  <div class="section-header">
-    <p class="section-eyebrow">✦ Koleksi Terbaru ✦</p>
-    <h2>Featured Merch</h2>
-  </div>
-  <div class="product-grid" id="featuredGrid">
-    <!-- Products loaded via JS -->
-    <div class="loading-placeholder">
-      <div class="skeleton"></div>
-      <div class="skeleton"></div>
-      <div class="skeleton"></div>
-    </div>
-  </div>
-  <div class="section-cta">
-    <a href="shop.html" class="btn-primary">Lihat Semua Produk →</a>
-  </div>
-</section>
-
-<!-- FEATURED PHOTOPACK -->
-<section class="featured" id="featuredPhotopack" style="padding-top: 0;">
-  <div class="section-header">
-    <p class="section-eyebrow">✦ Koleksi Terbaru Photopack ✦</p>
-    <h2>Featured Photopack</h2>
-  </div>
-  <div class="product-grid" id="featuredPhotopackGrid">
-    <!-- Products loaded via JS -->
-    <div class="loading-placeholder">
-      <div class="skeleton"></div>
-      <div class="skeleton"></div>
-      <div class="skeleton"></div>
-    </div>
-  </div>
-  <div class="section-cta">
-    <a href="shop.html?category=Photopack" class="btn-primary" style="background: linear-gradient(135deg, #0284c7, #2563eb); border: none; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.35);">Lihat Semua Photopack →</a>
-  </div>
-</section>
-
-<!-- ABOUT -->
-<section class="about" id="about">
-  <div class="about-deco"></div>
-  <div class="about-content">
-    <div class="about-text">
-      <p class="section-eyebrow">✦ About ✦</p>
-      <h2>Siapa Aika Sesilia?</h2>
-      <p>Aika Sesilia adalah cosplayer berbasis di Indonesia yang dikenal dengan kostum detail dan penuh karakter. Setiap merchandise yang dijual adalah ekspresi nyata dari passion Aika dalam dunia cosplay.</p>
-      <p>Setiap produk dipilih dan dikurasi langsung oleh Aika — memastikan kualitas terbaik untuk para fans tercinta.</p>
-      <div class="about-stats">
-        <div class="stat"><span>136K+</span><p>Followers</p></div>
-        <div class="stat"><span>100+</span><p>Cosplay</p></div>
-        <div class="stat"><span>5★</span><p>Rating</p></div>
-      </div>
-    </div>
-    <div class="about-visual">
-      <div class="about-card" style="overflow: hidden;">
-        <img src="images/Profil/Charlotta.jpg" alt="Aika Sesilia as Charlotta" style="width: 100%; height: 100%; object-fit: cover;" />
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- REVIEWS -->
-<section class="reviews" id="reviews" style="padding: 6rem 3rem; background: var(--midnight-blue); position:relative;">
-  <div class="section-header">
-    <p class="section-eyebrow">✦ Testimoni Pelanggan ✦</p>
-    <h2>Apa Kata Mereka?</h2>
-  </div>
-  <div id="reviewsGrid" class="reviews-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:2rem; max-width:1300px; margin:0 auto;">
-    <p style="text-align:center; color:var(--text-muted); grid-column:1/-1">Belum ada ulasan.</p>
-  </div>
-</section>
-
-<!-- CONTACT -->
-<section class="contact" id="contact">
-  <div class="contact-inner">
-    <p class="section-eyebrow">✦ Hubungi Kami ✦</p>
-    <h2>Ada Pertanyaan?</h2>
-    <p>DM kami di Instagram atau kirim email langsung.</p>
-    <div class="contact-links" style="margin-bottom: 3rem;">
-      <a href="https://www.instagram.com/aika_sesilia/" target="_blank" class="contact-card">📸 Instagram</a>
-      <a href="https://wa.me/6285171722053" target="_blank" class="contact-card">💬 WhatsApp</a>
-      <div class="contact-card">✉ aikasesilia.contact@gmail.com</div>
-    </div>
-
-    <!-- Contact Form -->
-    <form id="contactForm" class="contact-form">
-      <input type="hidden" name="access_key" value="3730ae1e-d099-4b9b-a638-9ca3791b7168">
-      <input type="hidden" name="subject" value="Pesan Baru dari Web Aika Sesilia">
-      <input type="hidden" name="from_name" value="Aika Merch Store">
-      <input type="checkbox" name="botcheck" class="hidden" style="display: none;">
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="name">Nama Lengkap</label>
-          <input type="text" name="name" id="name" placeholder="Siapa nama Anda?" required>
-        </div>
-        <div class="form-group">
-          <label for="email">Alamat Email</label>
-          <input type="email" name="email" id="email" placeholder="email@contoh.com" required>
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="message">Pesan Anda</label>
-        <textarea name="message" id="message" rows="5" placeholder="Tuliskan pesan atau pertanyaan Anda di sini..." required></textarea>
-      </div>
-      <button type="submit" class="btn-primary w100" id="submitBtn" style="padding: 1.2rem; margin-top: 1rem;">
-        🚀 Kirim Pesan
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="shop.html">Shop</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="cart-btn" onclick="toggleCart()">
+        🛒 <span class="cart-count" id="cartCount">0</span>
       </button>
-      <div id="formResult" class="form-result"></div>
-    </form>
-  </div>
-</section>
 
-<footer class="footer">
-  <p>© 2025 Aika Sesilia Official Store. All rights reserved.</p>
-  <p class="footer-sub">Made with 💙 for the cosplay community</p>
-</footer>
+      <!-- User Auth Button (dinamis) -->
+      <div class="user-nav" id="userNav">
+        <!-- diisi oleh JS -->
+      </div>
+    </div>
+  </nav>
 
-<!-- CART SIDEBAR -->
-<div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
-<aside class="cart-sidebar" id="cartSidebar">
-  <div class="cart-header">
-    <h3>🛒 Keranjang</h3>
-    <button onclick="toggleCart()" class="cart-close">✕</button>
-  </div>
-  <div class="cart-items" id="cartItems"></div>
-  <div class="cart-footer">
-    <div class="cart-total">Total: <strong id="cartTotal">Rp 0</strong></div>
-    <button class="btn-primary w100" onclick="goToCheckout()">Checkout →</button>
-  </div>
-</aside>
+  <style>
+    /* ── User Nav Button ── */
+    .user-nav {
+      position: relative;
+    }
 
-<script src="js/cart.js"></script>
-<script src="js/main.js"></script>
-<script>
-  loadFeaturedProducts();
-  loadLeaderboard();
-  
-  // Load Hero Image settings
-  fetch('/api/settings').then(res => res.json())
-    .then(data => {
-      if (data.hero_image) {
-        document.getElementById('mainHeroImage').src = data.hero_image;
+    .user-btn-guest {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: linear-gradient(135deg, rgba(41, 182, 246, 0.15), rgba(21, 101, 192, 0.2));
+      border: 1px solid rgba(41, 182, 246, 0.4);
+      color: var(--aqua);
+      padding: 0.45rem 1rem;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: var(--transition);
+      font-family: var(--font-body);
+      white-space: nowrap;
+    }
+
+    .user-btn-guest:hover {
+      background: linear-gradient(135deg, rgba(41, 182, 246, 0.3), rgba(21, 101, 192, 0.35));
+      border-color: var(--aqua);
+      box-shadow: 0 0 15px rgba(41, 182, 246, 0.25);
+      transform: translateY(-1px);
+    }
+
+    .user-btn-logged {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(41, 182, 246, 0.1);
+      border: 1px solid rgba(41, 182, 246, 0.3);
+      color: var(--white);
+      padding: 0.4rem 0.8rem;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: var(--font-body);
+      white-space: nowrap;
+    }
+
+    .user-btn-logged:hover {
+      background: rgba(41, 182, 246, 0.2);
+      border-color: var(--aqua);
+    }
+
+    .user-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--sea-blue), var(--aqua));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 900;
+      color: var(--white);
+      flex-shrink: 0;
+      border: 1px solid rgba(41, 182, 246, 0.5);
+    }
+
+    /* Dropdown */
+    .user-dropdown {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      background: var(--midnight-blue);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 0.5rem;
+      min-width: 200px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(41, 182, 246, 0.1);
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(-8px) scale(0.97);
+      pointer-events: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(20px);
+    }
+
+    .user-dropdown.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: all;
+    }
+
+    .user-dropdown-header {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 0.4rem;
+    }
+
+    .user-dropdown-name {
+      font-weight: 700;
+      color: var(--white);
+      font-size: 0.9rem;
+    }
+
+    .user-dropdown-email {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.6rem 1rem;
+      border-radius: 10px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+      border: none;
+      background: none;
+      width: 100%;
+      font-family: var(--font-body);
+      text-align: left;
+    }
+
+    .dropdown-item:hover {
+      background: rgba(41, 182, 246, 0.1);
+      color: var(--aqua);
+    }
+
+    .dropdown-item.logout {
+      color: #fca5a5;
+      border-top: 1px solid var(--card-border);
+      margin-top: 0.4rem;
+    }
+
+    .dropdown-item.logout:hover {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+    }
+
+    /* ── Shark Animation ── */
+    .sharks {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.4;
+    }
+
+    .shark {
+      position: absolute;
+      font-size: 6rem;
+      filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.5)) grayscale(100%) brightness(0.4) contrast(1.2) sepia(1.5) hue-rotate(200deg);
+      animation: swim linear infinite;
+      will-change: transform;
+      opacity: 0.7;
+      transform: scaleX(-1);
+      /* Face right */
+    }
+
+    .shark.s1 {
+      top: 15%;
+      left: -20%;
+      animation-duration: 28s;
+      animation-delay: 0s;
+      font-size: 8rem;
+    }
+
+    .shark.s2 {
+      top: 40%;
+      left: -20%;
+      animation-duration: 35s;
+      animation-delay: 5s;
+      font-size: 6rem;
+    }
+
+    .shark.s3 {
+      top: 70%;
+      left: -20%;
+      animation-duration: 25s;
+      animation-delay: 10s;
+      font-size: 7rem;
+    }
+
+    .shark.s4 {
+      top: 25%;
+      left: -20%;
+      animation-duration: 32s;
+      animation-delay: 15s;
+      font-size: 5rem;
+    }
+
+    @keyframes swim {
+      0% {
+        transform: scaleX(-1) translate(0, 0px) rotate(-5deg);
       }
-    }).catch(err => console.log('Gagal memuat settings', err));
 
-  // Format rupiah - iOS Safari tidak support toLocaleString('id-ID')
-  function formatRupiah(angka) {
-    const num = parseInt(angka) || 0;
-    // Gunakan metode manual agar kompatibel dengan semua browser termasuk iOS Safari
-    return 'Rp ' + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  }
+      25% {
+        transform: scaleX(-1) translate(-25vw, -30px) rotate(0deg);
+      }
 
-  // Load Leaderboard
-  async function loadLeaderboard() {
-    try {
-      const res = await fetch('/api/leaderboard?limit=10');
-      if (!res.ok) throw new Error('Failed to load leaderboard');
-      
-      const json = await res.json();
-      const data = json.data || [];
-      
-      if (!data || data.length === 0) {
-        document.getElementById('leaderboardBody').innerHTML = `
+      50% {
+        transform: scaleX(-1) translate(-50vw, 15px) rotate(5deg);
+      }
+
+      75% {
+        transform: scaleX(-1) translate(-75vw, -10px) rotate(0deg);
+      }
+
+      100% {
+        transform: scaleX(-1) translate(-120vw, 0px) rotate(-5deg);
+      }
+    }
+  </style>
+
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg">
+      <!-- Shark Animation -->
+      <div class="sharks">
+        <div class="shark s1">🦈</div>
+        <div class="shark s2">🦈</div>
+        <div class="shark s3">🦈</div>
+        <div class="shark s4">🦈</div>
+      </div>
+
+      <div class="bubble b1"></div>
+      <div class="bubble b2"></div>
+      <div class="bubble b3"></div>
+      <div class="bubble b4"></div>
+      <div class="wave-overlay"></div>
+    </div>
+    <div class="hero-content">
+      <p class="hero-tagline">✦ Official Merchandise ✦</p>
+      <h1 class="hero-title">
+        <span id="typingTextBase"></span>&nbsp;<em id="typingTextItalic"></em><span class="typing-cursor">|</span>
+      </h1>
+      <p class="hero-sub">Koleksi eksklusif merchandise dari cosplayer favoritmu.<br>Wearable art, langsung dari Aika.
+      </p>
+      <div class="hero-cta">
+        <a href="shop.html" class="btn-primary">Lihat Koleksi</a>
+        <a href="#about" class="btn-ghost">Tentang Aika</a>
+      </div>
+    </div>
+    <div class="hero-image-wrap">
+      <div class="hero-circle">
+        <img src="images/Profil/phoebe.JPG" alt="Phoebe" class="hero-img" id="mainHeroImage"
+          onerror="this.src='https://ui-avatars.com/api/?name=Phoebe&size=300&background=1565C0&color=fff'" />
+        <div class="hero-initials" style="display: none;">PH</div>
+      </div>
+      <div class="float-badge badge1">🎭 Cosplayer</div>
+      <div class="float-badge badge2">💙 Since 2016</div>
+    </div>
+  </section>
+
+  <!-- LEADERBOARD - TOP BUYERS -->
+  <section class="leaderboard" id="leaderboard">
+    <div class="section-header">
+      <p class="section-eyebrow">✦ Top Supporters ✦</p>
+      <h2>Top Global Hiu Keren</h2>
+      <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 0.95rem;">Terima kasih untuk dukungan dan
+        kepercayaan kalian!</p>
+    </div>
+
+    <div class="leaderboard-container">
+      <div class="leaderboard-stats" id="leaderboardStats"></div>
+      <!-- Wrapper div diperlukan agar border-radius bekerja di iOS Safari -->
+      <div class="leaderboard-table-wrap">
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th style="width: 60px;">Rank</th>
+              <th style="text-align: left;">Fans</th>
+              <th style="text-align: center;">Pembelian</th>
+              <th style="text-align: right;">Total Spending</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody">
+            <tr>
+              <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                ⏳ Memuat data...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURED PRODUCTS -->
+  <section class="featured" id="featured">
+    <div class="section-header">
+      <p class="section-eyebrow">✦ Koleksi Terbaru ✦</p>
+      <h2>Featured Merch</h2>
+    </div>
+    <div class="product-grid" id="featuredGrid">
+      <!-- Products loaded via JS -->
+      <div class="loading-placeholder">
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+      </div>
+    </div>
+    <div class="section-cta">
+      <a href="shop.html" class="btn-primary">Lihat Semua Produk →</a>
+    </div>
+  </section>
+
+  <!-- FEATURED PHOTOPACK -->
+  <section class="featured" id="featuredPhotopack" style="padding-top: 0;">
+    <div class="section-header">
+      <p class="section-eyebrow">✦ Koleksi Terbaru Photopack ✦</p>
+      <h2>Featured Photopack</h2>
+    </div>
+    <div class="product-grid" id="featuredPhotopackGrid">
+      <!-- Products loaded via JS -->
+      <div class="loading-placeholder">
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+      </div>
+    </div>
+    <div class="section-cta">
+      <a href="shop.html?category=Photopack" class="btn-primary"
+        style="background: linear-gradient(135deg, #0284c7, #2563eb); border: none; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.35);">Lihat
+        Semua Photopack →</a>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about" id="about">
+    <div class="about-deco"></div>
+    <div class="about-content">
+      <div class="about-text">
+        <p class="section-eyebrow">✦ About ✦</p>
+        <h2>Siapa Aika Sesilia?</h2>
+        <p>Aika Sesilia adalah cosplayer berbasis di Indonesia yang dikenal dengan kostum detail dan penuh karakter.
+          Setiap merchandise yang dijual adalah ekspresi nyata dari passion Aika dalam dunia cosplay.</p>
+        <p>Setiap produk dipilih dan dikurasi langsung oleh Aika — memastikan kualitas terbaik untuk para fans tercinta.
+        </p>
+        <div class="about-stats">
+          <div class="stat"><span>136K+</span>
+            <p>Followers</p>
+          </div>
+          <div class="stat"><span>100+</span>
+            <p>Cosplay</p>
+          </div>
+          <div class="stat"><span>5★</span>
+            <p>Rating</p>
+          </div>
+        </div>
+      </div>
+      <div class="about-visual">
+        <div class="about-card" style="overflow: hidden;">
+          <img src="images/Profil/Charlotta.jpg" alt="Aika Sesilia as Charlotta"
+            style="width: 100%; height: 100%; object-fit: cover;" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REVIEWS -->
+  <section class="reviews" id="reviews"
+    style="padding: 6rem 3rem; background: var(--midnight-blue); position:relative;">
+    <div class="section-header">
+      <p class="section-eyebrow">✦ Testimoni Pelanggan ✦</p>
+      <h2>Apa Kata Mereka?</h2>
+    </div>
+    <div id="reviewsGrid" class="reviews-grid"
+      style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:2rem; max-width:1300px; margin:0 auto;">
+      <p style="text-align:center; color:var(--text-muted); grid-column:1/-1">Belum ada ulasan.</p>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact" id="contact">
+    <div class="contact-inner">
+      <p class="section-eyebrow">✦ Hubungi Kami ✦</p>
+      <h2>Ada Pertanyaan?</h2>
+      <p>DM kami di Instagram atau kirim email langsung.</p>
+      <div class="contact-links" style="margin-bottom: 3rem;">
+        <a href="https://www.instagram.com/aika_sesilia/" target="_blank" class="contact-card">📸 Instagram</a>
+        <a href="https://wa.me/6285171722053" target="_blank" class="contact-card">💬 WhatsApp</a>
+        <div class="contact-card">✉ aikasesilia.contact@gmail.com</div>
+      </div>
+
+      <!-- Contact Form -->
+      <form id="contactForm" class="contact-form">
+        <input type="hidden" name="access_key" value="3730ae1e-d099-4b9b-a638-9ca3791b7168">
+        <input type="hidden" name="subject" value="Pesan Baru dari Web Aika Sesilia">
+        <input type="hidden" name="from_name" value="Aika Merch Store">
+        <input type="checkbox" name="botcheck" class="hidden" style="display: none;">
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="name">Nama Lengkap</label>
+            <input type="text" name="name" id="name" placeholder="Siapa nama Anda?" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Alamat Email</label>
+            <input type="email" name="email" id="email" placeholder="email@contoh.com" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="message">Pesan Anda</label>
+          <textarea name="message" id="message" rows="5" placeholder="Tuliskan pesan atau pertanyaan Anda di sini..."
+            required></textarea>
+        </div>
+        <button type="submit" class="btn-primary w100" id="submitBtn" style="padding: 1.2rem; margin-top: 1rem;">
+          🚀 Kirim Pesan
+        </button>
+        <div id="formResult" class="form-result"></div>
+      </form>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>© 2025 Aika Sesilia Official Store. All rights reserved.</p>
+    <p class="footer-sub">Made with 💙 for the cosplay community</p>
+  </footer>
+
+  <!-- CART SIDEBAR -->
+  <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+  <aside class="cart-sidebar" id="cartSidebar">
+    <div class="cart-header">
+      <h3>🛒 Keranjang</h3>
+      <button onclick="toggleCart()" class="cart-close">✕</button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-footer">
+      <div class="cart-total">Total: <strong id="cartTotal">Rp 0</strong></div>
+      <button class="btn-primary w100" onclick="goToCheckout()">Checkout →</button>
+    </div>
+  </aside>
+
+  <script src="js/cart.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    loadFeaturedProducts();
+    loadLeaderboard();
+
+    // Load Hero Image settings
+    fetch('/api/settings').then(res => res.json())
+      .then(data => {
+        if (data.hero_image) {
+          document.getElementById('mainHeroImage').src = data.hero_image;
+        }
+      }).catch(err => console.log('Gagal memuat settings', err));
+
+    // Format rupiah - iOS Safari tidak support toLocaleString('id-ID')
+    function formatRupiah(angka) {
+      const num = parseInt(angka) || 0;
+      // Gunakan metode manual agar kompatibel dengan semua browser termasuk iOS Safari
+      return 'Rp ' + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    // Load Leaderboard
+    async function loadLeaderboard() {
+      try {
+        const res = await fetch('/api/leaderboard?limit=10');
+        if (!res.ok) throw new Error('Failed to load leaderboard');
+
+        const json = await res.json();
+        const data = json.data || [];
+
+        if (!data || data.length === 0) {
+          document.getElementById('leaderboardBody').innerHTML = `
           <tr>
             <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
               Belum ada pembeli 😢
             </td>
           </tr>
         `;
-        return;
-      }
-      
-      // Render stats
-      const totalOrders = data.reduce((sum, u) => sum + (parseInt(u.total_orders) || 0), 0);
-      
-      document.getElementById('leaderboardStats').innerHTML = `
+          return;
+        }
+
+        // Render stats
+        const totalOrders = data.reduce((sum, u) => sum + (parseInt(u.total_orders) || 0), 0);
+
+        document.getElementById('leaderboardStats').innerHTML = `
         <div class="stat-card-lb">
           <div class="stat-value">${data.length}</div>
           <div class="stat-label">Top Supporters</div>
@@ -465,23 +543,23 @@
           <div class="stat-label">Pembelian Total</div>
         </div>
       `;
-      
-      // Render table
-      const tbody = document.getElementById('leaderboardBody');
-      tbody.innerHTML = data.map(user => {
-        const rank = parseInt(user.rank) || 0;
-        const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
-        const safeUsername = (user.username || 'Anonymous').replace(/</g, '&lt;');
-        const firstChar = safeUsername.charAt(0).toUpperCase();
-        const avatarHtml = user.avatar 
-          ? `<img src="${user.avatar}" alt="${safeUsername}" class="leaderboard-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="leaderboard-avatar" style="display:none">${firstChar}</div>`
-          : `<div class="leaderboard-avatar">${firstChar}</div>`;
-        
-        const totalSpent = parseInt(user.total_spent) || 0;
-        const totalOrders = parseInt(user.total_orders) || 0;
-        const totalItems = parseInt(user.total_items) || 0;
 
-        return `
+        // Render table
+        const tbody = document.getElementById('leaderboardBody');
+        tbody.innerHTML = data.map(user => {
+          const rank = parseInt(user.rank) || 0;
+          const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
+          const safeUsername = (user.username || 'Anonymous').replace(/</g, '&lt;');
+          const firstChar = safeUsername.charAt(0).toUpperCase();
+          const avatarHtml = user.avatar
+            ? `<img src="${user.avatar}" alt="${safeUsername}" class="leaderboard-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="leaderboard-avatar" style="display:none">${firstChar}</div>`
+            : `<div class="leaderboard-avatar">${firstChar}</div>`;
+
+          const totalSpent = parseInt(user.total_spent) || 0;
+          const totalOrders = parseInt(user.total_orders) || 0;
+          const totalItems = parseInt(user.total_items) || 0;
+
+          return `
           <tr>
             <td style="text-align: center;">
               <div class="rank-badge ${rankClass}">${rank}</div>
@@ -507,67 +585,67 @@
             </td>
           </tr>
         `;
-      }).join('');
-      
-    } catch (err) {
-      console.error('Error loading leaderboard:', err);
-      document.getElementById('leaderboardBody').innerHTML = `
+        }).join('');
+
+      } catch (err) {
+        console.error('Error loading leaderboard:', err);
+        document.getElementById('leaderboardBody').innerHTML = `
         <tr>
           <td colspan="4" style="text-align: center; padding: 2rem; color: #ff6b6b;">
             &#9888; Gagal memuat leaderboard
           </td>
         </tr>
       `;
+      }
     }
-  }
-</script>
+  </script>
 
-<script>
-/* ── User Auth Navbar ── */
-(function() {
-  const nav = document.getElementById('userNav');
-  if (!nav) return;
+  <script>
+    /* ── User Auth Navbar ── */
+    (function () {
+      const nav = document.getElementById('userNav');
+      if (!nav) return;
 
-  // Deteksi iOS
-  function isIOS() {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  }
+      // Deteksi iOS
+      function isIOS() {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      }
 
-  // Baca sesi login
-  let session = null;
-  try {
-    const raw = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
-    if (raw) session = JSON.parse(raw);
-  } catch {}
+      // Baca sesi login
+      let session = null;
+      try {
+        const raw = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+        if (raw) session = JSON.parse(raw);
+      } catch { }
 
-  if (session && session.loggedIn) {
-    // ── SUDAH LOGIN ──
-    const initials = (session.username || session.email || 'U')
-      .replace(/[^a-zA-Z0-9]/g,'').slice(0,2).toUpperCase();
-      
-    const cacheKey = 'aika_avatar_' + session.email;
-    let savedAvatar = localStorage.getItem(cacheKey);
+      if (session && session.loggedIn) {
+        // ── SUDAH LOGIN ──
+        const initials = (session.username || session.email || 'U')
+          .replace(/[^a-zA-Z0-9]/g, '').slice(0, 2).toUpperCase();
 
-    // Always fetch latest avatar from API to stay in sync with Desktop/Mobile updates
-    fetch(`/api/avatar?email=${encodeURIComponent(session.email)}&t=${Date.now()}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data && data.avatar) {
-          localStorage.setItem(cacheKey, data.avatar);
-          document.querySelectorAll('.user-avatar').forEach(el => {
-            el.innerHTML = `<img src="${data.avatar}" alt="${session.username}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
-          });
-        } else if (data && !data.avatar) {
-          localStorage.removeItem(cacheKey);
-        }
-      })
-      .catch(err => console.error('Error syncing nav avatar:', err));
+        const cacheKey = 'aika_avatar_' + session.email;
+        let savedAvatar = localStorage.getItem(cacheKey);
 
-    const avatarContent = savedAvatar 
-      ? `<img src="${savedAvatar}" alt="${session.username}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
-      : initials;
+        // Always fetch latest avatar from API to stay in sync with Desktop/Mobile updates
+        fetch(`/api/avatar?email=${encodeURIComponent(session.email)}&t=${Date.now()}`)
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (data && data.avatar) {
+              localStorage.setItem(cacheKey, data.avatar);
+              document.querySelectorAll('.user-avatar').forEach(el => {
+                el.innerHTML = `<img src="${data.avatar}" alt="${session.username}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+              });
+            } else if (data && !data.avatar) {
+              localStorage.removeItem(cacheKey);
+            }
+          })
+          .catch(err => console.error('Error syncing nav avatar:', err));
 
-    nav.innerHTML = `
+        const avatarContent = savedAvatar
+          ? `<img src="${savedAvatar}" alt="${session.username}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
+          : initials;
+
+        nav.innerHTML = `
       <button class="user-btn-logged" id="userMenuBtn" onclick="toggleUserDropdown()" aria-label="Menu akun">
         <div class="user-avatar">${avatarContent}</div>
         <span>${session.username || 'Akun'}</span>
@@ -585,38 +663,38 @@
         <button class="dropdown-item logout" onclick="doLogout()">🚪 Keluar</button>
       </div>
     `;
-  } else {
-    // ── BELUM LOGIN ──
-    nav.innerHTML = `
+      } else {
+        // ── BELUM LOGIN ──
+        nav.innerHTML = `
       <a href="login.html" class="user-btn-guest" id="loginNavBtn">
         👤 Masuk
       </a>
     `;
-  }
+      }
 
-  // Toggle dropdown
-  window.toggleUserDropdown = function() {
-    const dd = document.getElementById('userDropdown');
-    if (dd) dd.classList.toggle('open');
-  };
+      // Toggle dropdown
+      window.toggleUserDropdown = function () {
+        const dd = document.getElementById('userDropdown');
+        if (dd) dd.classList.toggle('open');
+      };
 
-  // Tutup dropdown kalau klik di luar
-  document.addEventListener('click', function(e) {
-    const btn = document.getElementById('userMenuBtn');
-    const dd = document.getElementById('userDropdown');
-    if (dd && btn && !btn.contains(e.target) && !dd.contains(e.target)) {
-      dd.classList.remove('open');
-    }
-  });
+      // Tutup dropdown kalau klik di luar
+      document.addEventListener('click', function (e) {
+        const btn = document.getElementById('userMenuBtn');
+        const dd = document.getElementById('userDropdown');
+        if (dd && btn && !btn.contains(e.target) && !dd.contains(e.target)) {
+          dd.classList.remove('open');
+        }
+      });
 
-  // Logout
-  window.doLogout = function() {
-    localStorage.removeItem('aika_session');
-    sessionStorage.removeItem('aika_session');
-    window.location.reload();
-  };
-})();
-</script>
+      // Logout
+      window.doLogout = function () {
+        localStorage.removeItem('aika_session');
+        sessionStorage.removeItem('aika_session');
+        window.location.reload();
+      };
+    })();
+  </script>
 </body>
-</html>
 
+</html>

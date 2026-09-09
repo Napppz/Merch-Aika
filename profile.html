@@ -11,127 +11,411 @@
     rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
   <style>
-    .profile-container {
-      max-width: 1000px;
-      margin: 8rem auto 4rem;
-      padding: 0 2rem;
-      display: grid;
-      grid-template-columns: 300px 1fr;
-      gap: 2rem;
+    /* ============================================================
+       PROFILE DASHBOARD — ULTRA-CLEAN MOBILE & iOS DESIGN SYSTEM
+       ============================================================ */
+    html, body {
+      overflow-x: hidden;
+      max-width: 100vw;
     }
 
+    .profile-container {
+      max-width: 1080px;
+      width: 100%;
+      margin: 6.5rem auto 4rem;
+      padding: 0 1.5rem;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 1.75rem;
+      align-items: start;
+      box-sizing: border-box;
+    }
+
+    /* ── PROFILE SIDEBAR / USER CARD ── */
     .profile-sidebar {
-      background: var(--card-bg);
+      background: rgba(7, 26, 62, 0.5);
       border: 1px solid var(--card-border);
       border-radius: var(--radius);
-      padding: 2rem;
+      padding: 1.75rem 1.25rem;
       text-align: center;
-      height: fit-content;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      position: sticky;
+      top: 5.5rem;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    .profile-header-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .profile-avatar-wrap {
+      position: relative;
+      display: inline-block;
+      margin: 0 auto 0.85rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .profile-avatar {
-      width: 100px;
-      height: 100px;
+      width: 92px;
+      height: 92px;
       border-radius: 50%;
       background: linear-gradient(135deg, var(--sea-blue), var(--aqua));
       color: var(--white);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 3rem;
+      font-size: 2.6rem;
       font-weight: 700;
-      margin: 0 auto 1rem;
+      overflow: hidden;
+      box-shadow: 0 6px 24px rgba(41, 182, 246, 0.35);
+      border: 3px solid rgba(41, 182, 246, 0.4);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .profile-avatar:active {
+      transform: scale(0.96);
+    }
+
+    .avatar-edit-badge {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--aqua), var(--sea-blue));
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      border: 2px solid var(--deep-ocean);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+      transition: transform 0.2s ease;
+      pointer-events: none;
+    }
+
+    .profile-avatar-wrap:hover .avatar-edit-badge {
+      transform: scale(1.1);
+    }
+
+    .profile-info-wrap {
+      text-align: center;
+      width: 100%;
+      min-width: 0;
     }
 
     .profile-name {
       font-family: var(--font-display);
       color: var(--white);
-      font-size: 1.2rem;
-      margin-bottom: 0.5rem;
+      font-size: 1.18rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      word-break: break-word;
+      line-height: 1.3;
     }
 
     .profile-email {
       color: var(--text-muted);
-      font-size: 0.9rem;
-      margin-bottom: 2rem;
+      font-size: 0.84rem;
+      margin-bottom: 0.75rem;
+      word-break: break-all;
+    }
+
+    .profile-phone-badge {
+      background: rgba(41, 182, 246, 0.1);
+      border: 1px solid rgba(41, 182, 246, 0.25);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--aqua);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 1.4rem;
+      max-width: 100%;
+    }
+
+    .btn-quick-logout {
+      display: none; /* Visible on mobile header */
+    }
+
+    /* ── NAVIGATION TABS ── */
+    .profile-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      width: 100%;
     }
 
     .profile-nav button {
       width: 100%;
-      background: transparent;
+      background: rgba(3, 9, 31, 0.4);
       border: 1px solid var(--card-border);
       color: var(--text-muted);
-      padding: 0.8rem;
-      margin-bottom: 0.5rem;
+      padding: 0.75rem 1rem;
       border-radius: var(--radius-sm);
       cursor: pointer;
       transition: var(--transition);
       text-align: left;
       font-family: var(--font-body);
+      font-size: 0.88rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
     }
 
     .profile-nav button.active,
     .profile-nav button:hover {
-      background: rgba(41, 182, 246, 0.1);
+      background: rgba(41, 182, 246, 0.15);
       color: var(--aqua);
       border-color: var(--aqua);
     }
 
+    .profile-nav button:active {
+      transform: scale(0.98);
+    }
+
+    /* ── MAIN CONTENT AREA ── */
     .profile-content {
-      background: var(--card-bg);
+      background: rgba(7, 26, 62, 0.4);
       border: 1px solid var(--card-border);
       border-radius: var(--radius);
-      padding: 2rem;
+      padding: 1.8rem 1.6rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      min-width: 0;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .content-section {
       display: none;
+      animation: fadeIn 0.25s ease;
+      min-width: 0;
+      width: 100%;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .content-section.active {
       display: block;
     }
 
-    .content-section h2 {
+    .section-title {
       font-family: var(--font-display);
       color: var(--white);
-      margin-bottom: 1.5rem;
-      border-bottom: 1px solid var(--card-border);
-      padding-bottom: 0.5rem;
+      font-size: 1.35rem;
+      margin: 0;
+      font-weight: 700;
     }
 
-    /* Orders List */
-    .order-card {
+    .section-header-wrap {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.9rem;
+      min-width: 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    /* ── STATS OVERVIEW CARDS ── */
+    .stats-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .stat-card-item {
+      background: rgba(3, 9, 31, 0.55);
       border: 1px solid var(--card-border);
       border-radius: var(--radius-sm);
-      padding: 1.5rem;
+      padding: 1.1rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    .stat-card-item:hover {
+      transform: translateY(-2px);
+      border-color: var(--aqua);
+      box-shadow: 0 4px 16px rgba(41, 182, 246, 0.15);
+    }
+
+    .stat-card-item:active {
+      transform: scale(0.98);
+    }
+
+    .stat-card-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: rgba(41, 182, 246, 0.12);
+      color: var(--aqua);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      flex-shrink: 0;
+    }
+
+    .stat-card-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stat-card-value {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1.1;
+    }
+
+    /* ── CATEGORY FILTER ── */
+    .category-filter-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      max-width: 100%;
+      min-width: 0;
+    }
+
+    .filter-label {
+      color: var(--text-muted);
+      font-size: 0.84rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .category-select {
+      background: rgba(3, 9, 31, 0.85);
+      border: 1px solid var(--aqua);
+      color: var(--white);
+      border-radius: 8px;
+      padding: 0.42rem 0.85rem;
+      font-family: var(--font-body);
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+      box-shadow: 0 0 10px rgba(41, 182, 246, 0.2);
+      transition: var(--transition);
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    /* ── ORDER CARDS ── */
+    .order-card {
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 1.25rem 1.35rem;
       margin-bottom: 1rem;
-      background: rgba(3, 9, 31, 0.5);
+      background: rgba(3, 9, 31, 0.55);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      width: 100%;
+      box-sizing: border-box;
+      min-width: 0;
+    }
+
+    .order-card:hover {
+      border-color: rgba(41, 182, 246, 0.4);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
 
     .order-header {
       display: flex;
       justify-content: space-between;
-      border-bottom: 1px solid var(--card-border);
-      padding-bottom: 1rem;
-      margin-bottom: 1rem;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 0.85rem;
+      margin-bottom: 0.85rem;
+      gap: 0.5rem;
+      min-width: 0;
     }
 
     .order-id {
       color: var(--aqua);
-      font-weight: 700;
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      text-decoration: underline;
+    }
+
+    .order-invoice-icon {
+      font-size: 0.85rem;
+      opacity: 0.8;
     }
 
     .order-date {
       color: var(--text-muted);
-      font-size: 0.85rem;
+      font-size: 0.78rem;
+      margin-top: 2px;
+    }
+
+    .order-header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .badge-dp {
+      background: rgba(234, 179, 8, 0.18);
+      color: #fde047;
+      border: 1px solid rgba(234, 179, 8, 0.35);
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      white-space: nowrap;
     }
 
     .order-status {
-      padding: 4px 12px;
+      padding: 4px 10px;
       border-radius: 50px;
-      font-size: 0.8rem;
-      font-weight: 700;
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
     }
 
     .order-status.paid {
@@ -140,61 +424,263 @@
       border: 1px solid rgba(34, 197, 94, 0.3);
     }
 
+    .order-status.shipped {
+      background: rgba(41, 182, 246, 0.15);
+      color: var(--aqua);
+      border: 1px solid rgba(41, 182, 246, 0.3);
+    }
+
+    .order-status.completed {
+      background: rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+
     .order-status.pending {
       background: rgba(234, 179, 8, 0.15);
       color: #fde047;
       border: 1px solid rgba(234, 179, 8, 0.3);
     }
 
-    .order-status.processing {
-      background: rgba(41, 182, 246, 0.15);
-      color: var(--aqua);
-      border: 1px solid rgba(41, 182, 246, 0.3);
-    }
-
     .order-items {
-      margin-bottom: 1rem;
+      margin-bottom: 0.85rem;
     }
 
-    .order-item {
+    .order-item-row {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 0.7rem 0;
+    }
+
+    .order-item-row:last-child {
+      border-bottom: none;
+    }
+
+    .order-item-main {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 0.9rem;
-      padding: 0.5rem 0;
-      color: var(--text-main);
+      gap: 0.8rem;
+      min-width: 0;
     }
 
+    .order-item-img {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: rgba(3, 9, 31, 0.8);
+      border: 1px solid var(--card-border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .order-item-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .order-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .order-item-name {
+      font-weight: 700;
+      color: var(--white);
+      font-size: 0.88rem;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+
+    .badge-photopack-tag {
+      background: rgba(41, 182, 246, 0.18);
+      color: var(--aqua);
+      border: 1px solid rgba(41, 182, 246, 0.3);
+      padding: 1px 6px;
+      border-radius: 8px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      margin-left: 4px;
+      display: inline-block;
+    }
+
+    .order-item-meta {
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      margin-top: 2px;
+    }
+
+    .order-item-price {
+      font-weight: 800;
+      color: var(--aqua);
+      font-size: 0.9rem;
+      text-align: right;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* Photopack badge inside order item */
+    .photopack-badge {
+      margin-top: 0.55rem;
+      padding: 0.6rem 0.85rem;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      font-size: 0.8rem;
+      box-sizing: border-box;
+    }
+
+    .photopack-badge.ready {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .photopack-badge.pending {
+      background: rgba(234, 179, 8, 0.08);
+      border: 1px solid rgba(234, 179, 8, 0.25);
+    }
+
+    .photopack-badge-info {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .photopack-badge-title {
+      font-weight: 700;
+      color: #86efac;
+      font-size: 0.8rem;
+    }
+
+    .photopack-badge.pending .photopack-badge-title {
+      color: #fde047;
+    }
+
+    .photopack-badge-sub {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .photopack-drive-link {
+      padding: 0.38rem 0.75rem;
+      font-size: 0.76rem;
+      font-weight: 700;
+      border-radius: 6px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .photopack-locked-tag {
+      padding: 0.35rem 0.65rem;
+      font-size: 0.72rem;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* Order Footer */
     .order-footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-weight: 700;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 0.85rem;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      min-width: 0;
     }
 
-    /* Review Form */
+    .order-total-block .total-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .order-total-block .total-val {
+      color: var(--aqua);
+      font-size: 1.05rem;
+      margin-left: 4px;
+    }
+
+    .order-total-block .dp-label {
+      font-size: 0.88rem;
+      color: #4ade80;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .order-total-block .dp-remain {
+      font-size: 0.75rem;
+      color: var(--gold);
+      font-weight: normal;
+    }
+
+    .order-footer-actions {
+      display: flex;
+      gap: 0.45rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      padding: 0.42rem 0.8rem;
+      font-size: 0.78rem;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: var(--transition);
+    }
+
+    .reviewed-pill {
+      color: var(--aqua);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 4px 8px;
+    }
+
     .review-btn {
       background: var(--aqua);
       color: var(--deep-ocean);
       border: none;
-      padding: 5px 10px;
-      border-radius: 5px;
-      font-size: 0.8rem;
+      padding: 0.42rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
       cursor: pointer;
       font-weight: 700;
     }
 
-    /* ── 2-COLUMN PHOTOPACK FEED GRID (DESKTOP & MOBILE) ── */
+    /* ── 2-COLUMN PHOTOPACK FEED GRID ── */
     .photopack-feed-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 1rem;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .photopack-card-box {
       background: rgba(3, 9, 31, 0.85);
       border: 1px solid var(--card-border);
-      border-radius: 16px;
+      border-radius: 14px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -202,12 +688,14 @@
       transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
+      min-width: 0;
+      box-sizing: border-box;
     }
 
     .photopack-card-box:hover {
-      transform: translateY(-4px);
+      transform: translateY(-3px);
       border-color: var(--aqua);
-      box-shadow: 0 8px 30px rgba(41, 182, 246, 0.2);
+      box-shadow: 0 8px 24px rgba(41, 182, 246, 0.2);
     }
 
     .photopack-card-box:active {
@@ -223,7 +711,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      -webkit-backface-visibility: hidden;
       transform: translateZ(0);
     }
 
@@ -241,25 +728,24 @@
 
     .photopack-watermark {
       position: absolute;
-      bottom: 8px;
-      left: 8px;
+      bottom: 7px;
+      left: 7px;
       background: rgba(3, 9, 31, 0.7);
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
       border: 1px solid rgba(255, 255, 255, 0.15);
       color: #fff;
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 6px;
-      letter-spacing: 0.2px;
+      padding: 2px 6px;
+      border-radius: 5px;
       pointer-events: none;
     }
 
     .photopack-status-tag {
       position: absolute;
-      top: 8px;
-      right: 8px;
+      top: 7px;
+      right: 7px;
       font-size: 0.68rem;
       font-weight: 800;
       padding: 2px 7px;
@@ -268,8 +754,18 @@
       -webkit-backdrop-filter: blur(4px);
     }
 
+    .photopack-status-tag.ready {
+      background: rgba(34, 197, 94, 0.9);
+      color: #fff;
+    }
+
+    .photopack-status-tag.pending {
+      background: rgba(234, 179, 8, 0.9);
+      color: #000;
+    }
+
     .photopack-body-content {
-      padding: 0.85rem 0.85rem 0.95rem;
+      padding: 0.8rem;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -277,7 +773,7 @@
     }
 
     .photopack-creator-name {
-      font-size: 0.92rem;
+      font-size: 0.88rem;
       font-weight: 800;
       color: var(--white);
       margin-bottom: 0.2rem;
@@ -285,173 +781,744 @@
     }
 
     .photopack-item-title {
-      font-size: 0.84rem;
+      font-size: 0.8rem;
       color: #94a3b8;
       line-height: 1.3;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.45rem;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      min-height: 2.2em;
+      min-height: 2.1em;
     }
 
     .photopack-item-time {
       display: flex;
       align-items: center;
       gap: 5px;
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       color: var(--text-muted);
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.7rem;
       white-space: nowrap;
       overflow: hidden;
-      text-overflow: ellipsis;
     }
 
     .photopack-item-time span.divider {
       opacity: 0.4;
     }
 
-    /* ── MOBILE & iOS OPTIMIZATIONS ── */
+    .photopack-btn-drive {
+      width: 100%;
+      padding: 0.55rem 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border-radius: 7px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      text-decoration: none;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+    }
+
+    .photopack-btn-pending {
+      width: 100%;
+      padding: 0.5rem 0.45rem;
+      font-size: 0.74rem;
+      font-weight: 700;
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fde047;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    /* ── WISHLIST TAB ── */
+    #wishlistContainer {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 1.25rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .wishlist-card {
+      background: rgba(3, 9, 31, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    .wishlist-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--aqua);
+    }
+
+    .wishlist-del-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      z-index: 5;
+      background: rgba(3, 9, 31, 0.8);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      color: #ef4444;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    .wishlist-del-btn:active {
+      transform: scale(0.9);
+    }
+
+    .wishlist-img-frame {
+      height: 145px;
+      background: var(--midnight-blue);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .wishlist-img-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .wishlist-digital-tag {
+      position: absolute;
+      bottom: 6px;
+      left: 6px;
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .wishlist-card-body {
+      padding: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .wishlist-cat-label {
+      font-size: 0.72rem;
+      color: var(--aqua);
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+
+    .wishlist-prod-title {
+      color: var(--white);
+      font-size: 0.88rem;
+      margin: 0 0 6px 0;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .wishlist-prod-price {
+      color: var(--aqua);
+      font-weight: 800;
+      font-size: 0.95rem;
+      margin-top: auto;
+      margin-bottom: 0.75rem;
+    }
+
+    .wishlist-action-btn {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 0.78rem;
+      border-radius: 7px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-weight: 700;
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── SETTINGS TAB ── */
+    .settings-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      max-width: 580px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .settings-group-card {
+      background: rgba(3, 9, 31, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-sm);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      box-sizing: border-box;
+    }
+
+    .settings-group-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 700;
+      color: var(--white);
+      font-size: 0.95rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 0.2rem;
+    }
+
+    .phone-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .phone-status-pill {
+      font-size: 0.72rem;
+      color: var(--aqua);
+      font-weight: 700;
+      background: rgba(41, 182, 246, 0.1);
+      padding: 2px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(41, 182, 246, 0.2);
+    }
+
+    .form-help-text {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 4px;
+      display: block;
+      line-height: 1.4;
+    }
+
+    .btn-save-settings {
+      margin-top: 0.5rem;
+      padding: 0.8rem 1.5rem;
+      font-size: 0.92rem;
+      font-weight: 700;
+      border-radius: 10px;
+    }
+
+    /* ── ADDRESS TAB ── */
+    .address-list-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      margin-bottom: 1.75rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .address-item-card {
+      background: rgba(3, 9, 31, 0.5);
+      border: 1px solid var(--card-border);
+      padding: 1rem 1.1rem;
+      border-radius: var(--radius-sm);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.8rem;
+      box-sizing: border-box;
+    }
+
+    .address-badge {
+      color: var(--aqua);
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .address-text {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .address-del-btn {
+      background: transparent;
+      border: none;
+      color: #ef4444;
+      padding: 0.4rem;
+      cursor: pointer;
+      font-size: 1rem;
+      border-radius: 6px;
+    }
+
+    .address-del-btn:active {
+      transform: scale(0.9);
+    }
+
+    .address-add-card {
+      background: rgba(3, 9, 31, 0.4);
+      padding: 1.25rem;
+      border: 1px dashed var(--card-border);
+      border-radius: var(--radius-sm);
+      box-sizing: border-box;
+    }
+
+    .address-add-title {
+      margin-bottom: 0.85rem;
+      color: var(--white);
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+    }
+
+    .address-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .btn-save-addr {
+      align-self: flex-start;
+      padding: 0.6rem 1.2rem;
+      font-size: 0.85rem;
+      border-radius: 8px;
+    }
+
+    /* Navbar Back Button text switch */
+    .back-text-mobile {
+      display: none;
+    }
+
+    /* ============================================================
+       MOBILE & iOS DEDICATED OPTIMIZATIONS (iPhone & Android)
+       ============================================================ */
     @media (max-width: 768px) {
-      .profile-container {
-        grid-template-columns: 1fr;
-        margin-top: 4.5rem;
-        padding: 0 0.85rem calc(2rem + env(safe-area-inset-bottom, 0px));
-        gap: 1.25rem;
+      .navbar {
+        padding: 0.75rem 1rem !important;
+        padding-top: max(0.75rem, env(safe-area-inset-top, 0px)) !important;
       }
 
+      .back-text-full {
+        display: none !important;
+      }
+
+      .back-text-mobile {
+        display: inline-block !important;
+        font-weight: 700;
+        font-size: 0.82rem;
+      }
+
+      .nav-back-btn {
+        padding: 0.4rem 0.8rem !important;
+        border-radius: 50px !important;
+      }
+
+      .profile-container {
+        grid-template-columns: 1fr !important;
+        margin-top: calc(3.8rem + env(safe-area-inset-top, 0px)) !important;
+        padding: 0 0.75rem calc(2.5rem + env(safe-area-inset-bottom, 0px)) !important;
+        gap: 0.75rem !important;
+        max-width: 100vw !important;
+        box-sizing: border-box !important;
+      }
+
+      /* ── COMPACT iOS-STYLE PROFILE CARD ── */
       .profile-sidebar {
-        padding: 1.25rem 1rem;
-        border-radius: 16px;
-        text-align: center;
+        padding: 0.85rem 0.9rem !important;
+        border-radius: 16px !important;
+        position: static !important;
+        text-align: left !important;
+        background: linear-gradient(145deg, rgba(7, 26, 62, 0.65), rgba(3, 9, 31, 0.8)) !important;
+        border: 1px solid rgba(41, 182, 246, 0.25) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      .profile-header-card {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 0.8rem !important;
+        position: relative !important;
+        margin-bottom: 0.75rem !important;
+        padding-bottom: 0.75rem !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      .profile-avatar-wrap {
+        margin: 0 !important;
+        flex-shrink: 0 !important;
       }
 
       .profile-avatar {
-        width: 80px;
-        height: 80px;
-        font-size: 2rem;
-        margin-bottom: 0.6rem;
+        width: 58px !important;
+        height: 58px !important;
+        font-size: 1.6rem !important;
+        border-width: 2px !important;
+      }
+
+      .avatar-edit-badge {
+        width: 20px !important;
+        height: 20px !important;
+        font-size: 0.62rem !important;
+        bottom: 0 !important;
+        right: 0 !important;
+        border-width: 1.5px !important;
+      }
+
+      .profile-info-wrap {
+        text-align: left !important;
+        flex: 1 !important;
+        min-width: 0 !important;
       }
 
       .profile-name {
-        font-size: 1.15rem;
-        margin-bottom: 0.2rem;
+        font-size: 1.02rem !important;
+        margin-bottom: 0.12rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
       }
 
       .profile-email {
-        font-size: 0.82rem;
-        margin-bottom: 0.6rem;
+        font-size: 0.75rem !important;
+        margin-bottom: 0.3rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
       }
 
-      .profile-phone {
-        margin-bottom: 1rem !important;
-        font-size: 0.75rem !important;
+      .profile-phone-badge {
+        margin-bottom: 0 !important;
+        padding: 2px 8px !important;
+        font-size: 0.7rem !important;
+        border-radius: 12px !important;
+        display: inline-flex !important;
+      }
+
+      /* Quick Logout button on top right of profile card */
+      .btn-quick-logout {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 3px !important;
+        background: rgba(239, 68, 68, 0.12) !important;
+        border: 1px solid rgba(239, 68, 68, 0.3) !important;
+        color: #fca5a5 !important;
+        padding: 4px 8px !important;
+        border-radius: 8px !important;
+        font-size: 0.7rem !important;
+        font-weight: 700 !important;
+        cursor: pointer !important;
+        align-self: flex-start !important;
+        margin-left: auto !important;
+        -webkit-tap-highlight-color: transparent !important;
+        transition: background 0.2s ease !important;
+        white-space: nowrap !important;
+      }
+
+      .btn-quick-logout:active {
+        background: rgba(239, 68, 68, 0.28) !important;
+      }
+
+      /* Hide redundant logout button in tab row on mobile */
+      .nav-logout-btn {
+        display: none !important;
       }
 
       /* Horizontal Scrollable Pill Tabs on Mobile */
       .profile-nav {
-        display: flex;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        gap: 0.5rem;
-        padding: 0.4rem 0.2rem 0.6rem;
-        margin: 0 -0.5rem;
-        scrollbar-width: none;
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        gap: 0.4rem !important;
+        padding: 0.1rem 0 !important;
+        scrollbar-width: none !important;
+        width: 100% !important;
       }
+
       .profile-nav::-webkit-scrollbar {
-        display: none;
+        display: none !important;
       }
 
       .profile-nav button {
         width: auto !important;
-        flex-shrink: 0;
-        padding: 0.55rem 0.95rem !important;
-        margin-bottom: 0 !important;
-        font-size: 0.82rem !important;
+        flex-shrink: 0 !important;
+        padding: 0.45rem 0.8rem !important;
+        font-size: 0.78rem !important;
         border-radius: 50px !important;
         white-space: nowrap !important;
         display: inline-flex !important;
         align-items: center !important;
-        gap: 5px !important;
+        gap: 4px !important;
         background: rgba(3, 9, 31, 0.7) !important;
-        border: 1px solid var(--card-border) !important;
+        border: 1px solid rgba(41, 182, 246, 0.22) !important;
         color: var(--text-muted) !important;
-        -webkit-tap-highlight-color: transparent;
+        -webkit-tap-highlight-color: transparent !important;
       }
 
       .profile-nav button.active {
-        background: linear-gradient(135deg, rgba(41, 182, 246, 0.25), rgba(21, 101, 192, 0.35)) !important;
+        background: linear-gradient(135deg, rgba(41, 182, 246, 0.3), rgba(21, 101, 192, 0.45)) !important;
         border-color: var(--aqua) !important;
-        color: var(--aqua) !important;
+        color: var(--white) !important;
         font-weight: 700 !important;
-        box-shadow: 0 2px 10px rgba(41, 182, 246, 0.25);
+        box-shadow: 0 2px 10px rgba(41, 182, 246, 0.25) !important;
       }
 
+      /* ── CONTENT CONTAINER MOBILE ── */
       .profile-content {
-        padding: 1.25rem 0.9rem;
-        border-radius: 16px;
+        padding: 0.95rem 0.8rem !important;
+        border-radius: 16px !important;
+        background: rgba(7, 26, 62, 0.35) !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
       }
 
-      /* 3-Column Compact Stats Overview on Mobile */
+      /* ── 3-IN-1 COMPACT METRIC BAR (MOBILE & iOS) ── */
       .stats-overview-grid {
+        display: grid !important;
         grid-template-columns: repeat(3, 1fr) !important;
-        gap: 0.5rem !important;
-        margin-bottom: 1.25rem !important;
+        gap: 0 !important;
+        margin-bottom: 1rem !important;
+        background: rgba(3, 9, 31, 0.75) !important;
+        border: 1px solid rgba(41, 182, 246, 0.25) !important;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
       }
 
       .stat-card-item {
-        padding: 0.75rem 0.4rem !important;
+        padding: 0.6rem 0.25rem !important;
         flex-direction: column !important;
         text-align: center !important;
-        gap: 0.3rem !important;
-        border-radius: 12px !important;
+        gap: 0.15rem !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        position: relative !important;
+        min-width: 0 !important;
+      }
+
+      .stat-card-item:not(:last-child)::after {
+        content: "" !important;
+        position: absolute !important;
+        right: 0 !important;
+        top: 18% !important;
+        bottom: 18% !important;
+        width: 1px !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+      }
+
+      .stat-card-item:active {
+        background: rgba(41, 182, 246, 0.1) !important;
       }
 
       .stat-card-icon {
-        width: 36px !important;
-        height: 36px !important;
-        font-size: 1.15rem !important;
-      }
-
-      .stat-card-label {
-        font-size: 0.65rem !important;
-        letter-spacing: 0 !important;
-        line-height: 1.2;
+        display: none !important; /* Save vertical height on mobile */
       }
 
       .stat-card-value {
+        font-size: 1.25rem !important;
+        font-weight: 800 !important;
+      }
+
+      .stat-card-label {
+        font-size: 0.66rem !important;
+        letter-spacing: 0 !important;
+        color: var(--text-muted) !important;
+        font-weight: 700 !important;
+        white-space: nowrap !important;
+      }
+
+      /* Section header mobile */
+      .section-header-wrap {
+        margin-bottom: 0.9rem !important;
+        padding-bottom: 0.65rem !important;
+        gap: 0.6rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      .section-title {
         font-size: 1.15rem !important;
       }
 
-      /* Orders Card Mobile */
+      .category-filter-wrap {
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 0.5rem !important;
+        box-sizing: border-box !important;
+      }
+
+      .category-select {
+        flex: 1 !important;
+        font-size: 0.8rem !important;
+        padding: 0.4rem 0.6rem !important;
+        min-width: 0 !important;
+      }
+
+      /* ── ORDERS CARD MOBILE ── */
       .order-card {
-        padding: 1rem !important;
+        padding: 0.85rem 0.75rem !important;
         border-radius: 12px !important;
+        margin-bottom: 0.75rem !important;
+        background: rgba(3, 9, 31, 0.6) !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
       }
 
       .order-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
+        align-items: center !important;
+        padding-bottom: 0.6rem !important;
+        margin-bottom: 0.6rem !important;
+      }
+
+      .order-id {
+        font-size: 0.88rem !important;
+      }
+
+      .order-date {
+        font-size: 0.7rem !important;
+      }
+
+      .order-status {
+        padding: 2px 7px !important;
+        font-size: 0.68rem !important;
+      }
+
+      .order-item-img {
+        width: 42px !important;
+        height: 42px !important;
+      }
+
+      .order-item-name {
+        font-size: 0.82rem !important;
+      }
+
+      .order-item-price {
+        font-size: 0.84rem !important;
       }
 
       .order-footer {
-        flex-direction: column;
+        flex-direction: column !important;
         align-items: stretch !important;
-        gap: 0.8rem;
-      }
-
-      .order-footer button,
-      .order-footer a {
+        gap: 0.6rem !important;
+        padding-top: 0.6rem !important;
         width: 100% !important;
-        text-align: center;
-        justify-content: center;
-        min-height: 40px;
-        font-size: 0.85rem !important;
       }
 
-      /* Modals */
+      /* Grid of action buttons on mobile */
+      .order-footer-actions {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.45rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      .order-footer-actions .action-btn {
+        width: 100% !important;
+        min-height: 38px !important;
+        font-size: 0.78rem !important;
+        padding: 0.45rem 0.35rem !important;
+        text-align: center !important;
+        border-radius: 8px !important;
+      }
+
+      .order-footer-actions .btn-primary-action {
+        grid-column: 1 / -1 !important;
+      }
+
+      /* ── WISHLIST 2-COLUMN GRID MOBILE ── */
+      #wishlistContainer {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.6rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      .wishlist-card {
+        border-radius: 12px !important;
+      }
+
+      .wishlist-img-frame {
+        height: 120px !important;
+      }
+
+      .wishlist-card-body {
+        padding: 0.65rem 0.55rem !important;
+      }
+
+      .wishlist-cat-label {
+        font-size: 0.65rem !important;
+      }
+
+      .wishlist-prod-title {
+        font-size: 0.78rem !important;
+        line-height: 1.25 !important;
+        min-height: 2.5em !important;
+      }
+
+      .wishlist-prod-price {
+        font-size: 0.85rem !important;
+        margin-bottom: 0.55rem !important;
+      }
+
+      .wishlist-action-btn {
+        padding: 0.45rem 0.35rem !important;
+        font-size: 0.72rem !important;
+        border-radius: 6px !important;
+      }
+
+      /* ── SETTINGS FORM MOBILE ── */
+      .settings-form {
+        gap: 1rem !important;
+        width: 100% !important;
+      }
+
+      .settings-group-card {
+        padding: 1rem 0.85rem !important;
+        width: 100% !important;
+      }
+
+      .btn-save-settings {
+        width: 100% !important;
+        padding: 0.75rem !important;
+      }
+
+      /* ── MODALS MOBILE ── */
       .cart-overlay .profile-sidebar {
         width: 95vw !important;
         max-width: 95vw !important;
@@ -461,7 +1528,7 @@
         padding: 1.5rem 1rem !important;
       }
 
-      /* Prevent iOS Safari Auto-Zoom on form fields */
+      /* Prevent iOS Safari auto-zoom on inputs */
       input, select, textarea {
         font-size: 16px !important;
       }
@@ -469,66 +1536,60 @@
 
     @media (max-width: 480px) {
       .photopack-feed-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.6rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.55rem !important;
       }
 
       .photopack-card-box {
-        border-radius: 12px;
+        border-radius: 12px !important;
       }
 
       .photopack-cover-frame {
-        aspect-ratio: 1 / 1.1;
+        aspect-ratio: 1 / 1.1 !important;
       }
 
       .photopack-watermark {
-        font-size: 0.62rem;
-        padding: 2px 5px;
-        bottom: 5px;
-        left: 5px;
-        border-radius: 4px;
+        font-size: 0.6rem !important;
+        padding: 1px 5px !important;
+        bottom: 5px !important;
+        left: 5px !important;
       }
 
       .photopack-status-tag {
-        font-size: 0.62rem;
-        padding: 2px 5px;
-        top: 5px;
-        right: 5px;
-        border-radius: 4px;
+        font-size: 0.6rem !important;
+        padding: 1px 5px !important;
+        top: 5px !important;
+        right: 5px !important;
       }
 
       .photopack-body-content {
-        padding: 0.65rem 0.6rem 0.75rem;
+        padding: 0.65rem 0.55rem !important;
       }
 
       .photopack-creator-name {
-        font-size: 0.82rem;
-        margin-bottom: 0.15rem;
+        font-size: 0.8rem !important;
       }
 
       .photopack-item-title {
-        font-size: 0.74rem;
-        line-height: 1.25;
-        margin-bottom: 0.4rem;
-        min-height: 2em;
+        font-size: 0.72rem !important;
+        line-height: 1.25 !important;
+        margin-bottom: 0.35rem !important;
+        min-height: 2em !important;
       }
 
       .photopack-item-time {
-        font-size: 0.62rem;
-        gap: 4px;
-        margin-bottom: 0.6rem;
+        font-size: 0.6rem !important;
+        margin-bottom: 0.55rem !important;
       }
 
       .photopack-btn-drive {
-        padding: 0.5rem 0.4rem !important;
-        font-size: 0.72rem !important;
-        border-radius: 6px !important;
+        padding: 0.45rem 0.35rem !important;
+        font-size: 0.7rem !important;
       }
 
       .photopack-btn-pending {
-        padding: 0.45rem 0.3rem !important;
-        font-size: 0.68rem !important;
-        border-radius: 6px !important;
+        padding: 0.4rem 0.3rem !important;
+        font-size: 0.66rem !important;
       }
     }
   </style>
@@ -536,115 +1597,106 @@
 
 <body>
 
-  <!-- NAV (Diisi oleh main.js jika ada, kita buat simple sementara) -->
+  <!-- NAV -->
   <nav class="navbar">
     <a href="index.html" class="nav-brand">✦ Aika Sesilia</a>
     <div class="nav-actions">
-      <a href="index.html" class="btn-ghost" style="padding: 0.5rem 1rem">Kembali ke Toko</a>
+      <a href="index.html" class="btn-ghost nav-back-btn">
+        <span class="back-text-full">Kembali ke Toko</span>
+        <span class="back-text-mobile">← Toko</span>
+      </a>
     </div>
   </nav>
 
   <div class="profile-container">
     <aside class="profile-sidebar">
-      <div class="profile-avatar" id="profAvatarContainer" style="position:relative; cursor:pointer;"
-        onclick="document.getElementById('avatarUpload').click()" title="Klik untuk ubah foto">
-        <div id="profAvatarText"
-          style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">?</div>
-        <div
-          style="position:absolute; inset:0; background:rgba(0,0,0,0.5); border-radius:50%; display:flex; align-items:center; justify-content:center; opacity:0; transition:0.3s;"
-          onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
-          <span style="font-size:0.8rem; color:#fff;">Ubah</span>
+      <div class="profile-header-card">
+        <div class="profile-avatar-wrap" onclick="document.getElementById('avatarUpload').click()" title="Ketuk untuk ganti foto">
+          <div class="profile-avatar" id="profAvatarContainer">
+            <div id="profAvatarText">?</div>
+          </div>
+          <div class="avatar-edit-badge" title="Ubah Foto">📷</div>
+          <input type="file" id="avatarUpload" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
         </div>
+
+        <div class="profile-info-wrap">
+          <div class="profile-name" id="profName">Loading...</div>
+          <div class="profile-email" id="profEmail">loading@...</div>
+          <div class="profile-phone-badge" id="profPhoneBadge">
+            <span>📱</span> <span id="profPhoneText">Memuat No. HP...</span>
+          </div>
+        </div>
+
+        <!-- Quick logout button on mobile header -->
+        <button type="button" class="btn-quick-logout" onclick="logout()" title="Keluar dari akun">
+          🚪 Keluar
+        </button>
       </div>
-      <button type="button" onclick="document.getElementById('avatarUpload').click()"
-        style="background:transparent; border:none; color:var(--aqua); font-size:0.82rem; font-weight:700; cursor:pointer; margin-bottom:1rem; display:inline-flex; align-items:center; justify-content:center; gap:4px; text-decoration:underline;">
-        📷 (Ganti Foto Profil)
-      </button>
-      <input type="file" id="avatarUpload" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
-      <div class="profile-name" id="profName">Loading...</div>
-      <div class="profile-email" id="profEmail" style="margin-bottom:0.5rem;">loading@...</div>
-      <div class="profile-phone" id="profPhoneBadge"
-        style="background:rgba(41,182,246,0.1); border:1px solid rgba(41,182,246,0.25); border-radius:20px; padding:4px 12px; font-size:0.8rem; font-weight:700; color:var(--aqua); display:inline-flex; align-items:center; gap:6px; margin-bottom:1.5rem;">
-        <span>📱</span> <span id="profPhoneText">Memuat No. HP...</span>
-      </div>
+
       <div class="profile-nav">
-        <button class="active" onclick="switchTab('orders', this)">Riwayat Pesanan</button>
-        <button onclick="switchTab('photopack', this)">📸 Koleksi Photopack Saya</button>
+        <button class="active" onclick="switchTab('orders', this)">
+          <span>🛍️ Pesanan</span>
+        </button>
+        <button onclick="switchTab('photopack', this)">
+          <span>📸 Photopack</span>
+        </button>
         <button onclick="switchTab('wishlist', this)" id="btnTabWishlist" style="display:flex; align-items:center; justify-content:space-between;">
-          <span>❤️ Favorit Saya</span>
+          <span>❤️ Favorit</span>
           <span id="navWishlistBadge" style="background:rgba(239,68,68,0.25); color:#ef4444; border-radius:12px; padding:2px 8px; font-size:0.75rem; display:none; font-weight:700;">0</span>
         </button>
-        <button onclick="switchTab('address', this)">Buku Alamat</button>
-        <button onclick="switchTab('settings', this)">Pengaturan Akun</button>
-        <button onclick="logout()" style="color:#ef4444; border-color:rgba(239,68,68,0.3);">Keluar</button>
+        <button onclick="switchTab('address', this)">
+          <span>📍 Alamat</span>
+        </button>
+        <button onclick="switchTab('settings', this)">
+          <span>⚙️ Pengaturan</span>
+        </button>
+        <button class="nav-logout-btn" onclick="logout()" style="color:#ef4444; border-color:rgba(239,68,68,0.3);">
+          <span>🚪 Keluar</span>
+        </button>
       </div>
     </aside>
 
     <main class="profile-content">
-      <!-- ── STATS OVERVIEW CARDS ── -->
-      <div class="stats-overview-grid"
-        style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-bottom:2rem;">
-        <div class="stat-card-item"
-          style="background:rgba(3,9,31,0.6); border:1px solid var(--card-border); border-radius:var(--radius-sm); padding:1.2rem; display:flex; align-items:center; gap:1rem; cursor:pointer;"
-          onclick="switchTab('orders')">
-          <div class="stat-card-icon"
-            style="width:45px; height:45px; border-radius:10px; background:rgba(41,182,246,0.15); color:var(--aqua); display:flex; align-items:center; justify-content:center; font-size:1.4rem;">
-            🛍️</div>
+      <!-- ── STATS OVERVIEW CARDS (3-IN-1 METRIC BAR) ── -->
+      <div class="stats-overview-grid">
+        <div class="stat-card-item" onclick="switchTab('orders')" title="Lihat Pesanan">
+          <div class="stat-card-icon">🛍️</div>
           <div>
-            <div class="stat-card-label"
-              style="font-size:0.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">
-              Total Transaksi</div>
-            <div class="stat-card-value" style="font-size:1.3rem; font-weight:800; color:var(--white);" id="statTotalOrders">0</div>
+            <div class="stat-card-value" id="statTotalOrders">0</div>
+            <div class="stat-card-label">Pesanan</div>
           </div>
         </div>
 
-        <div class="stat-card-item"
-          style="background:rgba(3,9,31,0.6); border:1px solid var(--card-border); border-radius:var(--radius-sm); padding:1.2rem; display:flex; align-items:center; gap:1rem; cursor:pointer;"
-          onclick="switchTab('photopack')">
-          <div class="stat-card-icon"
-            style="width:45px; height:45px; border-radius:10px; background:rgba(34,197,94,0.15); color:#86efac; display:flex; align-items:center; justify-content:center; font-size:1.4rem;">
-            📸</div>
+        <div class="stat-card-item" onclick="switchTab('photopack')" title="Lihat Photopack">
+          <div class="stat-card-icon" style="background:rgba(34,197,94,0.15); color:#86efac;">📸</div>
           <div>
-            <div class="stat-card-label"
-              style="font-size:0.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">
-              Koleksi Photopack</div>
-            <div class="stat-card-value" style="font-size:1.3rem; font-weight:800; color:#86efac;" id="statTotalPhotopacks">0</div>
+            <div class="stat-card-value" style="color:#86efac;" id="statTotalPhotopacks">0</div>
+            <div class="stat-card-label">Photopack</div>
           </div>
         </div>
 
-        <div class="stat-card-item"
-          style="background:rgba(3,9,31,0.6); border:1px solid var(--card-border); border-radius:var(--radius-sm); padding:1.2rem; display:flex; align-items:center; gap:1rem; cursor:pointer; transition:transform 0.2s;"
-          onclick="switchTab('wishlist')"
-          onmouseover="this.style.transform='translateY(-2px)'"
-          onmouseout="this.style.transform='translateY(0)'">
-          <div class="stat-card-icon"
-            style="width:45px; height:45px; border-radius:10px; background:rgba(239,68,68,0.15); color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:1.4rem;">
-            ❤️</div>
+        <div class="stat-card-item" onclick="switchTab('wishlist')" title="Lihat Favorit">
+          <div class="stat-card-icon" style="background:rgba(239,68,68,0.15); color:#ef4444;">❤️</div>
           <div>
-            <div class="stat-card-label"
-              style="font-size:0.75rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">
-              Favorit Saya</div>
-            <div class="stat-card-value" style="font-size:1.3rem; font-weight:800; color:#ef4444;" id="statTotalWishlist">0</div>
+            <div class="stat-card-value" style="color:#ef4444;" id="statTotalWishlist">0</div>
+            <div class="stat-card-label">Favorit</div>
           </div>
         </div>
       </div>
 
       <!-- ── SECTION: ORDERS ── -->
       <section id="tab-orders" class="content-section active">
-        <div
-          style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem; border-bottom:1px solid var(--card-border); padding-bottom:0.8rem;">
-          <h2 style="margin:0; border:none; padding:0;">Riwayat Pesanan</h2>
-          <div style="display:flex; align-items:center; gap:0.6rem;">
-            <label for="userCategoryFilter" style="color:var(--text-muted); font-size:0.85rem; font-weight:600;">Filter
-              Kategori:</label>
-            <select id="userCategoryFilter" onchange="filterUserOrdersCategory(this.value)"
-              style="background:rgba(3,9,31,0.9); border:1px solid var(--aqua); color:var(--white); border-radius:8px; padding:0.4rem 0.8rem; font-family:var(--font-body); font-size:0.85rem; font-weight:700; cursor:pointer; outline:none; box-shadow:0 0 12px rgba(41,182,246,0.25);">
-              <option value="Semua" style="background:#03091f; color:#fff;">Semua Kategori</option>
-              <option value="Photopack" style="background:#03091f; color:#fff;">📸 Photopack Digital</option>
-              <option value="Pakaian" style="background:#03091f; color:#fff;">👕 Pakaian</option>
-              <option value="Aksesoris" style="background:#03091f; color:#fff;">💎 Aksesoris</option>
-              <option value="Foto & Print" style="background:#03091f; color:#fff;">🖼️ Foto & Print</option>
-              <option value="Acrylic" style="background:#03091f; color:#fff;">🧿 Acrylic</option>
+        <div class="section-header-wrap">
+          <h2 class="section-title">Riwayat Pesanan</h2>
+          <div class="category-filter-wrap">
+            <label for="userCategoryFilter" class="filter-label">Filter:</label>
+            <select id="userCategoryFilter" onchange="filterUserOrdersCategory(this.value)" class="category-select">
+              <option value="Semua">Semua Kategori</option>
+              <option value="Photopack">📸 Photopack Digital</option>
+              <option value="Pakaian">👕 Pakaian</option>
+              <option value="Aksesoris">💎 Aksesoris</option>
+              <option value="Foto & Print">🖼️ Foto & Print</option>
+              <option value="Acrylic">🧿 Acrylic</option>
             </select>
           </div>
         </div>
@@ -653,9 +1705,9 @@
 
       <!-- ── SECTION: PHOTOPACK VAULT (Koleksi Photopack Saya) ── -->
       <section id="tab-photopack" class="content-section">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem; border-bottom:1px solid var(--card-border); padding-bottom:0.8rem;">
-          <h2 style="margin:0; border:none; padding:0;">📸 Koleksi Photopack Saya</h2>
-          <span style="font-size:0.85rem; color:var(--aqua);" id="photopackCountLabel">0 Koleksi</span>
+        <div class="section-header-wrap">
+          <h2 class="section-title">📸 Koleksi Photopack Saya</h2>
+          <span style="font-size:0.85rem; color:var(--aqua); font-weight:700;" id="photopackCountLabel">0 Koleksi</span>
         </div>
         <div id="photopackVaultList" class="photopack-feed-grid">
           <!-- Photopack items will be rendered here in 2 columns -->
@@ -664,64 +1716,75 @@
 
       <!-- ── SECTION: SETTINGS ── -->
       <section id="tab-settings" class="content-section">
-        <h2>Pengaturan Akun</h2>
-        <form id="settingsForm" onsubmit="saveSettings(event)"
-          style="display:flex; flex-direction:column; gap:1.5rem; max-width:500px;">
-          <div class="form-group" style="margin:0;">
-            <label>Nama Lengkap</label>
-            <input type="text" id="settingName" required />
+        <div class="section-header-wrap">
+          <h2 class="section-title">Pengaturan Akun</h2>
+        </div>
+        <form id="settingsForm" onsubmit="saveSettings(event)" class="settings-form">
+          <div class="settings-group-card">
+            <div class="settings-group-header">
+              <span>👤</span> <span>Informasi Profil</span>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label for="settingName">Nama Lengkap</label>
+              <input type="text" id="settingName" required placeholder="Nama Anda" />
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label for="settingEmail">Email <small style="color:var(--text-muted);">(Tidak dapat diubah)</small></label>
+              <input type="email" id="settingEmail" readonly style="opacity:0.6; cursor:not-allowed;" />
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label for="settingPhone" class="phone-label-row">
+                <span>Nomor WhatsApp / HP</span>
+                <span class="phone-status-pill" id="phoneStatusBadge">Bisa Diubah</span>
+              </label>
+              <input type="tel" id="settingPhone" placeholder="Contoh: 08123456789" />
+              <small class="form-help-text">Nomor ini digunakan untuk notifikasi pesanan dan koordinasi pengiriman kurir.</small>
+            </div>
           </div>
-          <div class="form-group" style="margin:0;">
-            <label>Email <small style="color:var(--text-muted)">(Tidak dapat diubah)</small></label>
-            <input type="email" id="settingEmail" readonly style="opacity:0.6; cursor:not-allowed;" />
+
+          <div class="settings-group-card">
+            <div class="settings-group-header">
+              <span>🔒</span> <span>Keamanan Akun</span>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label for="settingPassword">Password Baru <small style="color:var(--text-muted);">(Kosongkan jika tidak diubah)</small></label>
+              <input type="password" id="settingPassword" placeholder="••••••••" />
+            </div>
           </div>
-          <div class="form-group" style="margin:0;">
-            <label style="display:flex; justify-content:space-between; align-items:center;">
-              <span>Nomor WhatsApp / HP Terdaftar</span>
-              <span style="font-size:0.75rem; color:var(--aqua); font-weight:700;" id="phoneStatusBadge">Bisa
-                Diubah</span>
-            </label>
-            <input type="tel" id="settingPhone" placeholder="Contoh: 08123456789" />
-            <small style="color:var(--text-muted); font-size:0.78rem; margin-top:4px; display:block;">Nomor ini
-              digunakan untuk notifikasi pesanan dan koordinasi pengiriman kurir.</small>
-          </div>
-          <div class="form-group" style="margin:0;">
-            <label>Password Baru <small style="color:var(--text-muted)">(Kosongkan jika tidak ingin
-                diubah)</small></label>
-            <input type="password" id="settingPassword" placeholder="••••••••" />
-          </div>
-          <button type="submit" class="btn-primary" style="margin-top:1rem;" id="btnSaveSettings">Simpan Perubahan
-            Profil</button>
+
+          <button type="submit" class="btn-primary btn-save-settings" id="btnSaveSettings">Simpan Perubahan Profil</button>
         </form>
       </section>
 
+      <!-- ── SECTION: ADDRESS ── -->
       <section id="tab-address" class="content-section">
-        <h2>Buku Alamat</h2>
-        <div id="addressList" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:2rem;">
+        <div class="section-header-wrap">
+          <h2 class="section-title">Buku Alamat</h2>
+        </div>
+        <div id="addressList" class="address-list-wrap">
           <!-- Alamat akan dimuat di sini -->
         </div>
-        <div
-          style="background:rgba(3,9,31,0.5); padding:1.5rem; border:1px dashed var(--card-border); border-radius:var(--radius-sm);">
-          <h3 style="margin-bottom:1rem;color:var(--white);font-family:var(--font-display);">Tambah Alamat Baru</h3>
-          <form id="addressForm" onsubmit="saveAddress(event)" style="display:flex; flex-direction:column; gap:1rem;">
+        <div class="address-add-card">
+          <h3 class="address-add-title">➕ Tambah Alamat Baru</h3>
+          <form id="addressForm" onsubmit="saveAddress(event)" class="address-form">
             <div class="form-group" style="margin:0;">
-              <input type="text" id="addrLabel" placeholder="Label (cth: Rumah, Kantor)" required />
+              <input type="text" id="addrLabel" placeholder="Label (cth: Rumah, Kantor, Kos)" required />
             </div>
             <div class="form-group" style="margin:0;">
-              <textarea id="addrText" rows="3" placeholder="Alamat Lengkap" style="resize:none;" required></textarea>
+              <textarea id="addrText" rows="3" placeholder="Alamat Lengkap (Jalan, RT/RW, No., Kelurahan, Kecamatan, Kota, Kode Pos)" style="resize:none;" required></textarea>
             </div>
-            <button type="submit" class="btn-secondary" style="align-self:flex-start;">Simpan Alamat</button>
+            <button type="submit" class="btn-secondary btn-save-addr">Simpan Alamat</button>
           </form>
         </div>
       </section>
 
+      <!-- ── SECTION: WISHLIST ── -->
       <section id="tab-wishlist" class="content-section">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem; border-bottom:1px solid var(--card-border); padding-bottom:0.8rem;">
-          <h2 style="margin:0; border:none; padding:0;">❤️ Favorit Saya (Wishlist)</h2>
+        <div class="section-header-wrap">
+          <h2 class="section-title">❤️ Favorit Saya (Wishlist)</h2>
           <span id="wishlistSubtitle" style="color:var(--text-muted); font-size:0.85rem;"></span>
         </div>
-        <div id="wishlistContainer"
-          style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:1.5rem;">
+        <div id="wishlistContainer">
           <!-- Wishlist items -->
         </div>
       </section>
@@ -1127,7 +2190,7 @@
       if (!list) return;
 
       if (!userOrdersList || userOrdersList.length === 0) {
-        list.innerHTML = '<p style="color:var(--text-muted)">Anda belum memiliki pesanan.</p>';
+        list.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:2rem 0;">Anda belum memiliki riwayat pesanan.</p>';
         return;
       }
 
@@ -1164,17 +2227,24 @@
           hour: '2-digit', minute: '2-digit'
         }) + ' WIB';
 
+        const statusLower = (o.status || 'pending').toLowerCase();
+        const statusClass = ['paid', 'shipped', 'completed'].includes(statusLower) ? statusLower : 'pending';
+        const statusLabel = o.status === 'paid' ? 'DIKEMAS' : o.status === 'shipped' ? 'DIKIRIM' : o.status === 'completed' ? 'SELESAI' : (o.status?.toUpperCase() || 'PENDING');
+
         return `
       <div class="order-card">
         <div class="order-header">
           <div>
-            <div class="order-id" style="cursor:pointer; color:var(--aqua); text-decoration:underline;" onclick="printOrderInvoice('${o.id}')" title="Klik untuk cetak / lihat Invoice">#${o.id}</div>
+            <div class="order-id" onclick="printOrderInvoice('${o.id}')" title="Klik untuk cetak / lihat Invoice">
+              <span>#${o.id}</span>
+              <span class="order-invoice-icon">🧾</span>
+            </div>
             <div class="order-date">${formattedDate}</div>
           </div>
-          <div style="display:flex; align-items:center; gap:0.5rem;">
-            ${isDp ? '<span style="background:rgba(234,179,8,0.2); color:#fde047; border:1px solid rgba(234,179,8,0.4); padding:3px 9px; border-radius:12px; font-size:0.75rem; font-weight:700;">⚡ DP 50%</span>' : ''}
-            <div class="order-status ${o.status || 'pending'}">
-              ${o.status === 'paid' ? 'DIKEMAS' : o.status === 'shipped' ? 'DIKIRIM' : o.status === 'completed' ? 'SELESAI' : (o.status?.toUpperCase() || 'PENDING')}
+          <div class="order-header-right">
+            ${isDp ? '<span class="badge-dp">⚡ DP 50%</span>' : ''}
+            <div class="order-status ${statusClass}">
+              ${statusLabel}
             </div>
           </div>
         </div>
@@ -1186,48 +2256,44 @@
           const gdriveLink = i.gdrive_link || prod.gdrive_link;
 
           return `
-            <div style="border-bottom:1px solid rgba(255,255,255,0.06); padding:0.75rem 0;">
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
-                <div style="display:flex; align-items:center; gap:0.9rem;">
-                  <div style="width:52px; height:52px; border-radius:8px; overflow:hidden; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); flex-shrink:0; display:flex; align-items:center; justify-content:center;">
-                    ${itemImg 
-                      ? `<img src="${itemImg}" alt="${i.name}" style="width:100%; height:100%; object-fit:cover;" />` 
-                      : `<span style="font-size:1.5rem;">${isPhotopack ? '📸' : '🛍️'}</span>`}
+            <div class="order-item-row">
+              <div class="order-item-main">
+                <div class="order-item-img">
+                  ${itemImg
+              ? `<img src="${itemImg}" alt="${i.name}" />`
+              : `<span style="font-size:1.4rem;">${isPhotopack ? '📸' : '🛍️'}</span>`}
+                </div>
+                <div class="order-item-info">
+                  <div class="order-item-name">
+                    ${i.name}
+                    ${isPhotopack ? '<span class="badge-photopack-tag">📸 Digital</span>' : ''}
                   </div>
-                  <div>
-                    <div style="font-weight:700; color:var(--white); font-size:0.95rem; line-height:1.3;">
-                      ${i.name}
-                      ${isPhotopack ? '<span style="background:rgba(41,182,246,0.18); color:var(--aqua); border:1px solid rgba(41,182,246,0.3); padding:2px 7px; border-radius:10px; font-size:0.72rem; font-weight:700; margin-left:6px;">📸 Photopack</span>' : ''}
-                    </div>
-                    <div style="color:var(--text-muted); font-size:0.8rem; margin-top:3px;">
-                      ${i.qty} pcs ${i.size ? `• Size ${i.size}` : ''} • @ Rp ${(parseInt(i.price, 10) || 0).toLocaleString('id-ID')}
-                    </div>
+                  <div class="order-item-meta">
+                    ${i.qty}x ${i.size ? `• ${i.size}` : ''} • @ Rp ${(parseInt(i.price, 10) || 0).toLocaleString('id-ID')}
                   </div>
                 </div>
-                <div style="font-weight:800; color:var(--aqua); font-size:0.95rem; text-align:right;">
+                <div class="order-item-price">
                   Rp ${((parseInt(i.price, 10) || 0) * (parseInt(i.qty, 10) || 1)).toLocaleString('id-ID')}
                 </div>
               </div>
               ${isPhotopack ? (
               gdriveLink ? `
-                  <div style="margin-top:0.75rem; padding:0.75rem 1rem; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
-                    <div>
-                      <div style="font-weight:700; color:#86efac; font-size:0.85rem;">✅ Pembayaran Diverifikasi Admin</div>
-                      <div style="font-size:0.75rem; color:var(--text-muted);">Link Google Drive Photopack siap diakses!</div>
+                  <div class="photopack-badge ready">
+                    <div class="photopack-badge-info">
+                      <span class="photopack-badge-title">✅ Link Photopack Siap</span>
+                      <span class="photopack-badge-sub">Pembayaran telah terverifikasi admin</span>
                     </div>
-                    <a href="${gdriveLink}" target="_blank" rel="noopener noreferrer" style="padding:0.45rem 1rem; font-size:0.82rem; border-radius:6px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; background:linear-gradient(135deg, #10b981, #059669); color:#fff; font-weight:700; box-shadow:0 4px 12px rgba(16,185,129,0.3);">
-                      📂 Buka Google Drive ↗
+                    <a href="${gdriveLink}" target="_blank" rel="noopener noreferrer" class="photopack-drive-link">
+                      📂 Buka Drive ↗
                     </a>
                   </div>
                 ` : `
-                  <div style="margin-top:0.75rem; padding:0.75rem 1rem; background:rgba(234,179,8,0.1); border:1px solid rgba(234,179,8,0.3); border-radius:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
-                    <div>
-                      <div style="font-weight:700; color:#fde047; font-size:0.85rem;">⏳ Menunggu Verifikasi Admin</div>
-                      <div style="font-size:0.75rem; color:var(--text-muted);">Link Google Drive akan terbuka setelah pembayaran diverifikasi oleh Admin.</div>
+                  <div class="photopack-badge pending">
+                    <div class="photopack-badge-info">
+                      <span class="photopack-badge-title">⏳ Menunggu Verifikasi Admin</span>
+                      <span class="photopack-badge-sub">Link Google Drive akan terbuka setelah diverifikasi</span>
                     </div>
-                    <button disabled style="padding:0.4rem 0.8rem; font-size:0.78rem; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:var(--text-muted); cursor:not-allowed;">
-                      🔒 Link Terkunci (Pending Admin)
-                    </button>
+                    <span class="photopack-locked-tag">🔒 Terkunci</span>
                   </div>
                 `
             ) : ''}
@@ -1236,27 +2302,25 @@
         }).join('')}
         </div>
         <div class="order-footer">
-          ${isDp ? `
-            <div>
-              <div style="font-size:0.85rem;color:var(--text-muted)">Total Pesanan: <strong style="color:var(--white)">Rp ${(o.total).toLocaleString('id-ID')}</strong></div>
-              <div style="font-size:0.95rem;color:#4ade80;font-weight:700;margin-top:2px">DP 50%: Rp ${dpAmount.toLocaleString('id-ID')} <span style="font-size:0.78rem;color:var(--gold);font-weight:normal;">(Sisa: Rp ${remainingAmount.toLocaleString('id-ID')})</span></div>
-            </div>
-          ` : `
-            <span>Total Bayar <strong style="color:var(--aqua);font-size:1.1rem;margin-left:5px">Rp ${(o.total).toLocaleString('id-ID')}</strong></span>
-          `}
-          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-            <button class="btn-ghost" style="padding:0.4rem 0.8rem;font-size:0.8rem;border-radius:6px;display:flex;align-items:center;gap:5px" onclick="printOrderInvoice('${o.id}')">🧾 Cetak Invoice</button>
-            ${o.status === 'shipped' ? `<button class="btn-primary" style="padding:0.4rem 1rem;font-size:0.8rem;border-radius:6px;display:flex;align-items:center;gap:5px" onclick="confirmDelivery('${o.id}')">📦 Konfirmasi Diterima</button>` : ''}
-            <button class="btn-ghost" style="padding:0.4rem 1rem;font-size:0.8rem;border-radius:6px;display:flex;align-items:center;gap:5px" onclick="reorderItems('${o.id}')">🛒 Beli Lagi</button>
+          <div class="order-total-block">
+            ${isDp ? `
+              <div class="total-label">Total: <strong style="color:var(--white)">Rp ${(o.total).toLocaleString('id-ID')}</strong></div>
+              <div class="dp-label">DP 50%: Rp ${dpAmount.toLocaleString('id-ID')} <span class="dp-remain">(Sisa: Rp ${remainingAmount.toLocaleString('id-ID')})</span></div>
+            ` : `
+              <div class="total-label">Total Bayar: <strong class="total-val">Rp ${(o.total).toLocaleString('id-ID')}</strong></div>
+            `}
+          </div>
+          <div class="order-footer-actions">
+            <button class="btn-ghost action-btn" onclick="printOrderInvoice('${o.id}')">🧾 Invoice</button>
+            ${o.status === 'shipped' ? `<button class="btn-primary action-btn btn-primary-action" onclick="confirmDelivery('${o.id}')">📦 Diterima</button>` : ''}
+            <button class="btn-ghost action-btn" onclick="reorderItems('${o.id}')">🛒 Beli Lagi</button>
+            ${o.status === 'completed' ? (
+              o.review_id
+                ? '<span class="reviewed-pill">⭐ Ulasan Terkirim</span>'
+                : `<button class="review-btn action-btn" onclick="giveReview('${o.id}')">⭐ Beri Ulasan</button>`
+            ) : ''}
           </div>
         </div>
-        ${o.status === 'completed' ? `
-          <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--card-border)">
-            ${o.review_id
-              ? '<span style="color:var(--aqua)">⭐ Ulasan Terkirim</span>'
-              : `<button class="review-btn" onclick="giveReview('${o.id}')">Beri Ulasan ⭐</button>`}
-          </div>
-        ` : ''}
       </div>
     `;
       }).join('');
@@ -1635,17 +2699,17 @@
       const addresses = JSON.parse(localStorage.getItem('aika_address_' + currentUser.email) || '[]');
 
       if (addresses.length === 0) {
-        list.innerHTML = '<p style="color:var(--text-muted)">Belum ada alamat yang tersimpan .</p>';
+        list.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:1.5rem 0;">Belum ada alamat yang tersimpan.</p>';
         return;
       }
 
       list.innerHTML = addresses.map((addr, idx) => `
-      <div style="background:var(--card-bg); border:1px solid var(--card-border); padding:1rem; border-radius:var(--radius-sm); display:flex; justify-content:space-between; align-items:flex-start;">
+      <div class="address-item-card">
         <div>
-          <h4 style="color:var(--white); margin-bottom:5px; font-family:var(--font-display);">${addr.label}</h4>
-          <p style="color:var(--text-muted); font-size:0.9rem; line-height:1.5;">${addr.address}</p>
+          <div class="address-badge">📍 ${addr.label}</div>
+          <p class="address-text">${addr.address}</p>
         </div>
-        <button class="btn-ghost" style="border:none; color:#ef4444; padding:0.5rem;" onclick="deleteAddress(${idx})">🗑️ Hapus</button>
+        <button class="address-del-btn" onclick="deleteAddress(${idx})" title="Hapus Alamat">🗑️</button>
       </div>
     `).join('');
     }
@@ -1772,34 +2836,32 @@
         const isPhotopack = Boolean(item.isPhotopack || item.is_photopack || category === 'Photopack');
 
         return `
-        <div class="product-card" style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:var(--radius); overflow:hidden; position:relative; display:flex; flex-direction:column; transition:transform 0.2s ease, box-shadow 0.2s ease; box-shadow:0 4px 20px rgba(0,0,0,0.25);">
-          <button style="position:absolute; top:8px; right:8px; z-index:5; background:rgba(3,9,31,0.8); backdrop-filter:blur(4px); border:1px solid rgba(239,68,68,0.4); border-radius:50%; width:32px; height:32px; color:#ef4444; font-size:0.9rem; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:transform 0.15s ease;" 
-            onmouseover="this.style.transform='scale(1.1)'" 
-            onmouseout="this.style.transform='scale(1)'"
+        <div class="wishlist-card">
+          <button class="wishlist-del-btn" 
             onclick="removeWishlistItem('${prodId}')" 
             title="Hapus dari Favorit">
             ✕
           </button>
-          <div style="height:150px; background:var(--midnight-blue); position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="window.location.href='shop.html'">
-            ${image ? `<img src="${image}" alt="${name}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />` : ''}
-            <div style="display:${image ? 'none' : 'flex'}; align-items:center; justify-content:center; font-size:2.5rem; opacity:0.4;">
+          <div class="wishlist-img-frame" onclick="window.location.href='shop.html'">
+            ${image ? `<img src="${image}" alt="${name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />` : ''}
+            <div style="display:${image ? 'none' : 'flex'}; align-items:center; justify-content:center; font-size:2.2rem; opacity:0.4;">
               ${isPhotopack ? '📸' : '🛍️'}
             </div>
-            ${isPhotopack ? `<span style="position:absolute; bottom:8px; left:8px; background:linear-gradient(135deg,#0284c7,#2563eb); color:#fff; font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:4px;">Photopack Digital</span>` : ''}
+            ${isPhotopack ? `<span class="wishlist-digital-tag">Digital</span>` : ''}
           </div>
-          <div style="padding:1rem; display:flex; flex-direction:column; flex:1;">
-            <div style="font-size:0.75rem; color:var(--aqua); font-weight:600; text-transform:uppercase; margin-bottom:4px;">${category}</div>
-            <h4 style="color:var(--white); font-size:0.95rem; margin:0 0 8px 0; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;" title="${name}">${name}</h4>
-            <div style="color:var(--aqua); font-weight:800; font-size:1.05rem; margin-top:auto; margin-bottom:1rem;">
+          <div class="wishlist-card-body">
+            <div class="wishlist-cat-label">${category}</div>
+            <h4 class="wishlist-prod-title" title="${name}">${name}</h4>
+            <div class="wishlist-prod-price">
               Rp ${price.toLocaleString('id-ID')}
             </div>
-            <div style="display:flex; gap:0.5rem;">
+            <div>
               ${isPhotopack ? `
-                <a href="checkout-photopack.html?id=${prodId}" class="btn-primary" style="flex:1; text-align:center; padding:0.55rem; font-size:0.8rem; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:4px; font-weight:700; background:linear-gradient(135deg,#0284c7,#2563eb); border:none;">
-                  ⚡ Beli Langsung
+                <a href="checkout-photopack.html?id=${prodId}" class="btn-primary wishlist-action-btn" style="background:linear-gradient(135deg,#0284c7,#2563eb); border:none;">
+                  ⚡ Beli
                 </a>
               ` : `
-                <button class="btn-primary" style="flex:1; padding:0.55rem; font-size:0.8rem; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; gap:4px; font-weight:700;" onclick="addWishlistItemToCart('${prodId}')">
+                <button class="btn-primary wishlist-action-btn" onclick="addWishlistItemToCart('${prodId}')">
                   🛒 + Keranjang
                 </button>
               `}

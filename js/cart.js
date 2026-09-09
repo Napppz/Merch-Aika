@@ -14,7 +14,7 @@ const Cart = {
 
   async load() {
     const email = this.getUserEmail();
-    
+
     if (email) {
       // Sync guest cart to database if exists
       const guestCart = JSON.parse(localStorage.getItem('aika_cart_guest') || '[]');
@@ -26,7 +26,7 @@ const Cart = {
               headers: { 'Content-Type': 'application/json', 'x-user-email': email },
               body: JSON.stringify({ product_id: item.id, quantity: item.qty, size: item.size || null })
             });
-          } catch(e) {}
+          } catch (e) { }
         }
         localStorage.removeItem('aika_cart_guest');
       }
@@ -59,7 +59,7 @@ const Cart = {
       // Guest user uses localStorage
       this.items = JSON.parse(localStorage.getItem('aika_cart_guest') || '[]');
     }
-    
+
     this.updateUI();
   },
 
@@ -74,10 +74,10 @@ const Cart = {
   async add(product) {
     if (this.isSaving) return;
     const email = this.getUserEmail();
-    
+
     const itemKey = this.makeItemKey(product);
     const existing = this.items.find(i => this.makeItemKey(i) === itemKey);
-    
+
     // Optimistic UI update
     if (existing) {
       existing.qty += 1;
@@ -132,7 +132,7 @@ const Cart = {
   async remove(id, size = '') {
     if (this.isSaving) return;
     const email = this.getUserEmail();
-    
+
     // Optimistic UI update
     this.items = this.items.filter(i => !(i.id == id && (i.size || '') === (size || '')));
     this.updateUI();
@@ -157,7 +157,7 @@ const Cart = {
   async updateQty(id, size, delta) {
     if (this.isSaving) return;
     const email = this.getUserEmail();
-    
+
     const item = this.items.find(i => i.id == id && (i.size || '') === (size || ''));
     if (!item) return;
 
@@ -166,7 +166,7 @@ const Cart = {
     if (item.qty <= 0) {
       return this.remove(id, size);
     }
-    
+
     this.updateUI();
 
     if (email) {

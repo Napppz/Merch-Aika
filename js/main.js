@@ -5,12 +5,12 @@ const Products = {
   },
   async add(product) {
     product.id = 'p' + Date.now();
-    await fetch('/api/products', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(product) });
+    await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(product) });
     return product;
   },
   async update(id, data) {
     data.id = id;
-    await fetch('/api/products', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+    await fetch('/api/products', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
   },
   async delete(id) {
     await fetch('/api/products?id=' + id, { method: 'DELETE' });
@@ -43,21 +43,21 @@ const Orders = {
     order.id = 'ORD-' + Date.now();
     order.status = 'pending';
     order.date = new Date().toISOString(); // Attach client-side real-time date explicitly as fallback
-    const response = await fetch('/api/orders', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(order) });
+    const response = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(order) });
     if (response.ok) {
-       const dbOrder = await response.json();
-       return dbOrder; // Return the full DB order including auto-generated date
+      const dbOrder = await response.json();
+      return dbOrder; // Return the full DB order including auto-generated date
     }
     return order;
   },
   async update(id, data) {
     data.id = id;
-    await fetch('/api/orders', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+    await fetch('/api/orders', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
   }
 };
 
 // ── WISHLIST TOGGLE & SYNC ──
-window.toggleWishlist = async function(btn) {
+window.toggleWishlist = async function (btn) {
   const product = {
     id: String(btn.getAttribute('data-id') || ''),
     name: btn.getAttribute('data-name') || 'Produk',
@@ -68,14 +68,14 @@ window.toggleWishlist = async function(btn) {
 
   let wishlist = JSON.parse(localStorage.getItem('aika_wishlist') || '[]');
   const existsIndex = wishlist.findIndex(w => String(w.id) === product.id);
-  
+
   const svg = btn.querySelector('svg');
   const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
   let userEmail = null;
   if (userStr) {
     try {
       userEmail = JSON.parse(userStr)?.email;
-    } catch (e) {}
+    } catch (e) { }
   }
 
   if (existsIndex >= 0) {
@@ -197,8 +197,8 @@ function renderProductCard(p, compact = false) {
           <svg width="20" height="20" fill="${heartFill}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
         </button>
         ${p.image
-          ? `<img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="product-placeholder" style="display:none">${emoji[category] || '🛍️'}</div>`
-          : `<div class="product-placeholder">${emoji[category] || (isPhotopack ? '📸' : '🛍️')}</div>`}
+      ? `<img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="product-placeholder" style="display:none">${emoji[category] || '🛍️'}</div>`
+      : `<div class="product-placeholder">${emoji[category] || (isPhotopack ? '📸' : '🛍️')}</div>`}
         ${badgeText ? `<span class="product-badge" style="${isPhotopack ? 'background:linear-gradient(135deg, #0284c7, #2563eb);color:#fff;' : ''}">${badgeText}</span>` : ''}
       </div>
       <div class="product-body">
@@ -265,7 +265,7 @@ async function openProductDetail(id) {
     modalEl = document.createElement('div');
     modalEl.id = 'productDetailModal';
     modalEl.className = 'product-modal-overlay';
-    modalEl.onclick = function(e) {
+    modalEl.onclick = function (e) {
       if (e.target === modalEl) closeProductDetail();
     };
     document.body.appendChild(modalEl);
@@ -289,9 +289,9 @@ async function openProductDetail(id) {
     <div class="product-modal-card">
       <button class="product-modal-close" onclick="closeProductDetail()" aria-label="Tutup">✕</button>
       <div class="product-modal-img-wrap">
-        ${p.image 
-          ? `<img src="${p.image}" alt="${p.name}" />`
-          : `<div style="font-size:4rem;">${isPhotopack ? '📸' : '🛍️'}</div>`}
+        ${p.image
+      ? `<img src="${p.image}" alt="${p.name}" />`
+      : `<div style="font-size:4rem;">${isPhotopack ? '📸' : '🛍️'}</div>`}
       </div>
       <div class="product-modal-info" style="display:flex; flex-direction:column; justify-content:space-between;">
         <div>
@@ -374,7 +374,7 @@ async function loadFeaturedProducts() {
   const grid = document.getElementById('featuredGrid');
   const photopackGrid = document.getElementById('featuredPhotopackGrid');
   if (!grid && !photopackGrid) return;
-  
+
   const all = await Products.getAll();
 
   // Featured Merch (Khusus produk fisik / non-photopack)
@@ -431,7 +431,7 @@ async function loadReviews() {
       grid.innerHTML = '<p style="text-align:center; color:var(--text-muted); grid-column:1/-1">Belum ada ulasan. Belilah produk dan jadilah yang pertama mereview!</p>';
       return;
     }
-    
+
     grid.innerHTML = reviews.map((r, i) => `
       <div class="product-card fade-in" style="padding:2rem; text-align:left; background: linear-gradient(145deg, rgba(10,56,114,0.6), rgba(3,9,31,0.8)); position:relative; box-shadow: var(--shadow-blue); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); animation-delay: ${i * 0.1}s;">
         <div style="position:absolute; top:1rem; right:1.5rem; font-size:3rem; color:var(--aqua); opacity:0.1; font-family:var(--font-display)">"</div>
@@ -493,7 +493,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const result = document.getElementById('formResult');
     const submitBtn = document.getElementById('submitBtn');
 
-    form.addEventListener('submit', function(e) {
+    form.addEventListener('submit', function (e) {
       e.preventDefault();
       const formData = new FormData(form);
       const object = Object.fromEntries(formData);
@@ -512,29 +512,29 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         body: json
       })
-      .then(async (response) => {
-        let json = await response.json();
-        if (response.status == 200) {
-          result.innerHTML = "✅ Pesan berhasil terkirim! Aika akan segera membalasnya.";
-          result.classList.add("success");
-          form.reset();
-        } else {
-          console.log(response);
-          result.innerHTML = json.message;
+        .then(async (response) => {
+          let json = await response.json();
+          if (response.status == 200) {
+            result.innerHTML = "✅ Pesan berhasil terkirim! Aika akan segera membalasnya.";
+            result.classList.add("success");
+            form.reset();
+          } else {
+            console.log(response);
+            result.innerHTML = json.message;
+            result.classList.add("error");
+          }
+        })
+        .catch(error => {
+          console.log(error);
+          result.innerHTML = "❌ Terjadi kesalahan. Silakan coba lagi nanti.";
           result.classList.add("error");
-        }
-      })
-      .catch(error => {
-        console.log(error);
-        result.innerHTML = "❌ Terjadi kesalahan. Silakan coba lagi nanti.";
-        result.classList.add("error");
-      })
-      .then(function() {
-        submitBtn.disabled = false;
-        setTimeout(() => {
-          result.style.display = "none";
-        }, 5000);
-      });
+        })
+        .then(function () {
+          submitBtn.disabled = false;
+          setTimeout(() => {
+            result.style.display = "none";
+          }, 5000);
+        });
     });
   }
 
@@ -596,14 +596,14 @@ function initSmoothScroll() {
   document.addEventListener('click', function (e) {
     const anchor = e.target.closest('a[href^="#"]');
     if (!anchor) return;
-    
+
     const targetId = anchor.getAttribute('href');
     if (targetId === '#') return;
-    
+
     const target = document.querySelector(targetId);
     if (target) {
       e.preventDefault();
-      
+
       const offset = 90; // Balanced offset for mobile/desktop navbar
       const targetPosition = target.getBoundingClientRect().top + window.pageYOffset;
       const offsetPosition = targetPosition - offset;
@@ -612,7 +612,7 @@ function initSmoothScroll() {
         top: offsetPosition,
         behavior: 'smooth'
       });
-      
+
       // Update browser URL without jumping
       history.pushState(null, null, targetId);
     }

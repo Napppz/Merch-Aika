@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <!-- Presentasi: Halaman login user dan admin yang mengatur alur autentikasi serta penyimpanan sesi di browser. -->
 <html lang="id">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Masuk — Aika Sesilia</title>
-  <meta name="description" content="Masuk ke akun Aika Sesilia kamu untuk berbelanja lebih mudah dan melihat riwayat pesanan." />
+  <meta name="description"
+    content="Masuk ke akun Aika Sesilia kamu untuk berbelanja lebih mudah dan melihat riwayat pesanan." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
   <!-- Google Identity Services (GSI) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -20,19 +24,27 @@
       padding: 2rem 1rem;
       position: relative;
     }
+
     body::before {
       content: '';
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(ellipse at 70% 20%, rgba(21,101,192,0.25), transparent 60%),
-        radial-gradient(ellipse at 20% 80%, rgba(41,182,246,0.1), transparent 50%);
+        radial-gradient(ellipse at 70% 20%, rgba(21, 101, 192, 0.25), transparent 60%),
+        radial-gradient(ellipse at 20% 80%, rgba(41, 182, 246, 0.1), transparent 50%);
       pointer-events: none;
       z-index: 0;
     }
 
     /* Stars */
-    .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
     .star {
       position: absolute;
       border-radius: 50%;
@@ -40,7 +52,20 @@
       animation: twinkle var(--dur, 3s) ease-in-out infinite var(--delay, 0s);
       opacity: 0;
     }
-    @keyframes twinkle { 0%,100%{opacity:0;transform:scale(.5)} 50%{opacity:.8;transform:scale(1.2)} }
+
+    @keyframes twinkle {
+
+      0%,
+      100% {
+        opacity: 0;
+        transform: scale(.5)
+      }
+
+      50% {
+        opacity: .8;
+        transform: scale(1.2)
+      }
+    }
 
     .auth-wrapper {
       position: relative;
@@ -55,57 +80,89 @@
       border-radius: 28px;
       padding: 3rem 2.5rem;
       backdrop-filter: blur(24px);
-      box-shadow: var(--shadow-blue), 0 0 80px rgba(41,182,246,0.08);
+      box-shadow: var(--shadow-blue), 0 0 80px rgba(41, 182, 246, 0.08);
       position: relative;
       overflow: hidden;
     }
+
     .auth-card::before {
       content: '';
       position: absolute;
-      top: 0; left: 0; right: 0;
+      top: 0;
+      left: 0;
+      right: 0;
       height: 3px;
       background: linear-gradient(90deg, var(--sea-blue), var(--aqua), var(--sea-blue));
       background-size: 200% 100%;
       animation: shimmerBar 3s linear infinite;
     }
-    @keyframes shimmerBar { 0%{background-position:0% 0%} 100%{background-position:200% 0%} }
+
+    @keyframes shimmerBar {
+      0% {
+        background-position: 0% 0%
+      }
+
+      100% {
+        background-position: 200% 0%
+      }
+    }
 
     .auth-logo {
       text-align: center;
       margin-bottom: 2rem;
     }
+
     .auth-logo .brand-logo {
       font-size: 2.8rem;
       display: block;
       color: var(--aqua);
       animation: spin 8s linear infinite;
     }
+
     .auth-logo h1 {
       font-family: var(--font-display);
       font-size: 1.3rem;
       color: var(--white);
       margin: 0.6rem 0 0.2rem;
     }
-    .auth-logo p { color: var(--text-muted); font-size: 0.85rem; }
+
+    .auth-logo p {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
 
     /* Input with icon */
-    .input-icon-wrap { position: relative; }
+    .input-icon-wrap {
+      position: relative;
+    }
+
     .input-icon {
       position: absolute;
-      left: 1rem; top: 50%;
+      left: 1rem;
+      top: 50%;
       transform: translateY(-50%);
       font-size: 1rem;
       pointer-events: none;
       opacity: 0.6;
     }
-    .input-icon-wrap input { padding-left: 2.8rem !important; }
+
+    .input-icon-wrap input {
+      padding-left: 2.8rem !important;
+    }
 
     /* Password toggle */
-    .password-wrap { position: relative; }
-    .password-wrap input { padding-right: 3rem !important; }
+    .password-wrap {
+      position: relative;
+    }
+
+    .password-wrap input {
+      padding-right: 3rem !important;
+    }
+
     .toggle-pw {
       position: absolute;
-      right: 1rem; top: 50%;
+      right: 1rem;
+      top: 50%;
       transform: translateY(-50%);
       background: none;
       border: none;
@@ -114,7 +171,10 @@
       font-size: 1rem;
       transition: var(--transition);
     }
-    .toggle-pw:hover { color: var(--aqua); }
+
+    .toggle-pw:hover {
+      color: var(--aqua);
+    }
 
     /* Alert */
     .auth-alert {
@@ -125,15 +185,17 @@
       animation: fadeUp 0.3s ease;
       display: none;
     }
+
     .auth-alert.error {
-      background: rgba(239,68,68,0.12);
-      border: 1px solid rgba(239,68,68,0.3);
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
       color: #fca5a5;
       display: block;
     }
+
     .auth-alert.success {
-      background: rgba(34,197,94,0.12);
-      border: 1px solid rgba(34,197,94,0.3);
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.3);
       color: #86efac;
       display: block;
     }
@@ -148,22 +210,27 @@
       margin-bottom: 1.5rem;
       flex-wrap: wrap;
     }
+
     .remember-wrap {
       display: flex;
       align-items: center;
       gap: 0.6rem;
     }
+
     .remember-wrap input[type="checkbox"] {
-      width: 16px; height: 16px;
+      width: 16px;
+      height: 16px;
       accent-color: var(--aqua);
       cursor: pointer;
     }
+
     .remember-wrap label {
       font-size: 0.82rem;
       color: var(--text-muted);
       cursor: pointer;
       user-select: none;
     }
+
     .forgot-link {
       font-size: 0.82rem;
       color: var(--text-muted);
@@ -171,6 +238,7 @@
       transition: var(--transition);
       white-space: nowrap;
     }
+
     .forgot-link:hover {
       color: var(--aqua);
       text-decoration: underline;
@@ -180,7 +248,7 @@
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.7);
+      background: rgba(0, 0, 0, 0.7);
       backdrop-filter: blur(6px);
       z-index: 9999;
       display: flex;
@@ -190,7 +258,12 @@
       pointer-events: none;
       transition: var(--transition);
     }
-    .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
     .modal-card {
       background: var(--midnight-blue);
       border: 1px solid var(--card-border);
@@ -203,10 +276,15 @@
       transition: var(--transition);
       box-shadow: var(--shadow-blue);
     }
-    .modal-overlay.active .modal-card { transform: scale(1); }
+
+    .modal-overlay.active .modal-card {
+      transform: scale(1);
+    }
+
     .modal-close {
       position: absolute;
-      top: 1rem; right: 1.2rem;
+      top: 1rem;
+      right: 1.2rem;
       background: none;
       border: none;
       color: var(--text-muted);
@@ -214,14 +292,23 @@
       cursor: pointer;
       transition: var(--transition);
     }
-    .modal-close:hover { color: var(--white); }
+
+    .modal-close:hover {
+      color: var(--white);
+    }
+
     .modal-title {
       font-family: var(--font-display);
       font-size: 1rem;
       color: var(--white);
       margin-bottom: 0.3rem;
     }
-    .modal-sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+
+    .modal-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
 
     /* Nav link */
     .auth-nav-link {
@@ -233,8 +320,16 @@
       margin-top: 1.2rem;
       transition: var(--transition);
     }
-    .auth-nav-link a { color: var(--aqua); font-weight: 700; text-decoration: none; }
-    .auth-nav-link a:hover { text-decoration: underline; }
+
+    .auth-nav-link a {
+      color: var(--aqua);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .auth-nav-link a:hover {
+      text-decoration: underline;
+    }
 
     /* Tabs */
     .auth-tabs {
@@ -245,6 +340,7 @@
       padding: 4px;
       margin-bottom: 2rem;
     }
+
     .auth-tab {
       flex: 1;
       padding: 0.7rem;
@@ -256,10 +352,11 @@
       border-radius: 10px;
       transition: var(--transition);
     }
+
     .auth-tab.active {
       color: var(--white);
-      background: rgba(41,182,246,0.15);
-      border: 1px solid rgba(41,182,246,0.2);
+      background: rgba(41, 182, 246, 0.15);
+      border: 1px solid rgba(41, 182, 246, 0.2);
     }
 
     /* ── Google OAuth & Divider ── */
@@ -272,6 +369,7 @@
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
+
     .auth-divider::before,
     .auth-divider::after {
       content: '';
@@ -279,9 +377,11 @@
       height: 1px;
       background: var(--card-border);
     }
+
     .auth-divider span {
       padding: 0 0.8rem;
     }
+
     .google-auth-wrap {
       display: flex;
       flex-direction: column;
@@ -289,6 +389,7 @@
       gap: 0.8rem;
       width: 100%;
     }
+
     .google-custom-btn {
       width: 100%;
       display: flex;
@@ -305,13 +406,15 @@
       border: 1px solid rgba(255, 255, 255, 0.5);
       cursor: pointer;
       transition: all 0.25s ease;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
     }
+
     .google-custom-btn:hover {
       background: #f8fafc;
-      box-shadow: 0 4px 16px rgba(41,182,246,0.3);
+      box-shadow: 0 4px 16px rgba(41, 182, 246, 0.3);
       transform: translateY(-1px);
     }
+
     .google-custom-btn svg {
       width: 20px;
       height: 20px;
@@ -319,468 +422,479 @@
     }
 
     @media (max-width: 560px) {
-      .auth-card { padding: 2rem 1.5rem; border-radius: 20px; }
-      .remember-forgot-wrap { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+      .auth-card {
+        padding: 2rem 1.5rem;
+        border-radius: 20px;
+      }
+
+      .remember-forgot-wrap {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
     }
   </style>
 </head>
+
 <body>
 
-<div class="stars" id="stars"></div>
+  <div class="stars" id="stars"></div>
 
-<div class="auth-wrapper">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <span class="brand-logo">✦</span>
-      <h1>Masuk ke Akun</h1>
-      <p>Aika Sesilia Merch Store</p>
-    </div>
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <span class="brand-logo">✦</span>
+        <h1>Masuk ke Akun</h1>
+        <p>Aika Sesilia Merch Store</p>
+      </div>
 
-    <div class="auth-tabs">
-      <div class="auth-tab active" id="tab-user" onclick="switchRole('user')">👤 User</div>
-      <div class="auth-tab" id="tab-admin" onclick="switchRole('admin')">🔑 Admin</div>
-    </div>
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tab-user" onclick="switchRole('user')">👤 User</div>
+        <div class="auth-tab" id="tab-admin" onclick="switchRole('admin')">🔑 Admin</div>
+      </div>
 
-    <div class="auth-alert" id="authAlert"></div>
+      <div class="auth-alert" id="authAlert"></div>
 
-    <!-- ── LOGIN FORM ── -->
-    <form id="loginForm" onsubmit="return false;">
+      <!-- ── LOGIN FORM ── -->
+      <form id="loginForm" onsubmit="return false;">
+        <div class="form-group">
+          <label for="login-email">Email / Username</label>
+          <div class="input-icon-wrap">
+            <span class="input-icon">✉️</span>
+            <input type="text" id="login-email" name="email" placeholder="email@contoh.com" autocomplete="username"
+              autocapitalize="none" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')doLogin()" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <div class="password-wrap input-icon-wrap">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="login-password" name="password" placeholder="Password kamu"
+              autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" />
+            <button class="toggle-pw" type="button" onclick="togglePw()" id="pwToggle">👁</button>
+          </div>
+        </div>
+
+        <!-- Remember Me & Forgot Password in one line -->
+        <div class="remember-forgot-wrap">
+          <div class="remember-wrap">
+            <input type="checkbox" id="rememberMe" checked />
+            <label for="rememberMe">Ingat saya di perangkat ini</label>
+          </div>
+          <a href="#" class="forgot-link" onclick="openForgot();return false">Lupa password?</a>
+        </div>
+
+        <button type="button" class="btn-primary w100" onclick="doLogin()" style="padding:1rem;font-size:1rem"
+          id="loginBtn">
+          Masuk →
+        </button>
+      </form>
+
+      <!-- ── Google Sign In Section (User Only) ── -->
+      <div id="googleAuthSection">
+        <div class="auth-divider">
+          <span>atau masuk dengan</span>
+        </div>
+        <div class="google-auth-wrap">
+          <div id="googleBtnWrapper" style="display:flex;justify-content:center;min-height:44px;width:100%;"></div>
+        </div>
+      </div>
+
+      <p class="auth-nav-link" id="registerLink">Belum punya akun? <a href="register.html">Daftar Sekarang</a></p>
+
+    </div><!-- /auth-card -->
+
+    <a href="index.html" class="auth-nav-link"
+      style="color:var(--text-muted);opacity:0.6;font-size:0.8rem;margin-top:1rem">
+      ← Kembali ke Toko
+    </a>
+  </div><!-- /auth-wrapper -->
+
+  <!-- ── Forgot Password Modal ── -->
+  <div class="modal-overlay" id="forgotModal">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeForgot()">✕</button>
+      <p class="modal-title">🔐 Reset Password</p>
+      <p class="modal-sub">Masukkan email yang terdaftar. Kami akan mengirimkan instruksi reset password.</p>
+      <div class="auth-alert" id="forgotAlert"></div>
       <div class="form-group">
-        <label for="login-email">Email / Username</label>
+        <label for="forgot-email">Alamat Email</label>
         <div class="input-icon-wrap">
           <span class="input-icon">✉️</span>
-          <input type="text" id="login-email" name="email" placeholder="email@contoh.com" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false"
-            onkeydown="if(event.key==='Enter')doLogin()" />
+          <input type="email" id="forgot-email" placeholder="email@contoh.com" autocapitalize="none" autocorrect="off"
+            spellcheck="false" inputmode="email" onkeydown="if(event.key==='Enter')sendReset()" />
         </div>
       </div>
-
-      <div class="form-group">
-        <label for="login-password">Password</label>
-        <div class="password-wrap input-icon-wrap">
-          <span class="input-icon">🔒</span>
-          <input type="password" id="login-password" name="password" placeholder="Password kamu" autocomplete="current-password"
-            onkeydown="if(event.key==='Enter')doLogin()" />
-          <button class="toggle-pw" type="button" onclick="togglePw()" id="pwToggle">👁</button>
-        </div>
-      </div>
-
-      <!-- Remember Me & Forgot Password in one line -->
-      <div class="remember-forgot-wrap">
-        <div class="remember-wrap">
-          <input type="checkbox" id="rememberMe" checked />
-          <label for="rememberMe">Ingat saya di perangkat ini</label>
-        </div>
-        <a href="#" class="forgot-link" onclick="openForgot();return false">Lupa password?</a>
-      </div>
-
-      <button type="button" class="btn-primary w100" onclick="doLogin()" style="padding:1rem;font-size:1rem" id="loginBtn">
-        Masuk →
+      <button class="btn-primary w100" onclick="sendReset()" style="padding:1rem;font-size:1rem">
+        Kirim Link Reset →
       </button>
-    </form>
-
-    <!-- ── Google Sign In Section (User Only) ── -->
-    <div id="googleAuthSection">
-      <div class="auth-divider">
-        <span>atau masuk dengan</span>
-      </div>
-      <div class="google-auth-wrap">
-        <div id="googleBtnWrapper" style="display:flex;justify-content:center;min-height:44px;width:100%;"></div>
-      </div>
     </div>
-
-    <p class="auth-nav-link" id="registerLink">Belum punya akun? <a href="register.html">Daftar Sekarang</a></p>
-
-  </div><!-- /auth-card -->
-
-  <a href="index.html" class="auth-nav-link" style="color:var(--text-muted);opacity:0.6;font-size:0.8rem;margin-top:1rem">
-    ← Kembali ke Toko
-  </a>
-</div><!-- /auth-wrapper -->
-
-<!-- ── Forgot Password Modal ── -->
-<div class="modal-overlay" id="forgotModal">
-  <div class="modal-card">
-    <button class="modal-close" onclick="closeForgot()">✕</button>
-    <p class="modal-title">🔐 Reset Password</p>
-    <p class="modal-sub">Masukkan email yang terdaftar. Kami akan mengirimkan instruksi reset password.</p>
-    <div class="auth-alert" id="forgotAlert"></div>
-    <div class="form-group">
-      <label for="forgot-email">Alamat Email</label>
-      <div class="input-icon-wrap">
-        <span class="input-icon">✉️</span>
-        <input type="email" id="forgot-email" placeholder="email@contoh.com" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="email"
-          onkeydown="if(event.key==='Enter')sendReset()" />
-      </div>
-    </div>
-    <button class="btn-primary w100" onclick="sendReset()" style="padding:1rem;font-size:1rem">
-      Kirim Link Reset →
-    </button>
   </div>
-</div>
 
-<script>
-/* ── Stars ── */
-(function() {
-  const c = document.getElementById('stars');
-  if (!c) return;
-  for (let i = 0; i < 50; i++) {
-    const s = document.createElement('div');
-    s.className = 'star';
-    s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${2+Math.random()*4}s;--delay:${Math.random()*5}s;width:${1+Math.random()*2}px;height:${1+Math.random()*2}px`;
-    c.appendChild(s);
-  }
-})();
-
-/* ── Alert ── */
-function showAlert(msg, type='error', target='authAlert', autoHide=(target !== 'forgotAlert')) {
-  const el = document.getElementById(target);
-  if (!el) return;
-  if (el._timer) {
-    clearTimeout(el._timer);
-    el._timer = null;
-  }
-  el.className = 'auth-alert ' + type;
-  el.innerHTML = (type==='error'?'⚠ ':'✅ ') + msg;
-  if (autoHide) {
-    el._timer = setTimeout(() => { el.className = 'auth-alert'; }, 5000);
-  }
-}
-function clearAlert(target='authAlert') { 
-  const el = document.getElementById(target);
-  if (el) {
-    if (el._timer) clearTimeout(el._timer);
-    el.className = 'auth-alert'; 
-  }
-}
-
-function clearUserSession() {
-  localStorage.removeItem('aika_session');
-  sessionStorage.removeItem('aika_session');
-}
-
-function clearAdminSession() {
-  localStorage.removeItem('aika_admin_logged');
-  localStorage.removeItem('aika_admin_user');
-  localStorage.removeItem('aika_admin_token');
-}
-
-function clearAllLoginSessions() {
-  clearUserSession();
-  clearAdminSession();
-}
-
-/* ── Toggle password ── */
-function togglePw() {
-  const pw = document.getElementById('login-password');
-  const btn = document.getElementById('pwToggle');
-  if (pw.type==='password') { pw.type='text'; btn.textContent='🙈'; }
-  else { pw.type='password'; btn.textContent='👁'; }
-}
-
-/* ── Role Management ── */
-let currentRole = 'user';
-
-function switchRole(role) {
-  currentRole = role;
-  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + role).classList.add('active');
-  
-  const regLink = document.getElementById('registerLink');
-  const forgotLink = document.querySelector('.forgot-link');
-  const rememberWrap = document.querySelector('.remember-wrap');
-  const googleSection = document.getElementById('googleAuthSection');
-  
-  if (role === 'admin') {
-    if (regLink) regLink.style.display = 'none';
-    if (forgotLink) forgotLink.style.display = 'none';
-    if (rememberWrap) rememberWrap.style.display = 'none';
-    if (googleSection) googleSection.style.display = 'none';
-    document.getElementById('login-email').placeholder = 'Username Admin';
-  } else {
-    if (regLink) regLink.style.display = 'block';
-    if (forgotLink) forgotLink.style.display = 'inline-block';
-    if (rememberWrap) rememberWrap.style.display = 'flex';
-    if (googleSection) googleSection.style.display = 'block';
-    document.getElementById('login-email').placeholder = 'email@contoh.com';
-  }
-  clearAlert();
-}
-
-/* ── Login ── */
-function doLogin() {
-  const identifier = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
-  const remember = document.getElementById('rememberMe').checked;
-
-  if (!identifier) return showAlert(`Masukkan ${currentRole === 'admin' ? 'username' : 'email/username'} kamu!`);
-  if (!password) return showAlert('Masukkan password kamu!');
-
-  const btn = document.getElementById('loginBtn');
-  const originalText = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin">✦</span> Memproses...';
-
-  if (currentRole === 'admin') {
-    clearAdminSession();
-
-    // Admin Login Logic with Enhanced Security
-    const csrfToken = window.getCSRFToken ? window.getCSRFToken() : null;
-    
-    const loginPayload = { 
-      username: identifier, 
-      password: password,
-      csrf_token: csrfToken // Include CSRF token
-    };
-    
-    fetch('/api/admin-login', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest' // CSRF protection header
-      },
-      body: JSON.stringify(loginPayload),
-      credentials: 'same-origin'
-    })
-    .then(async r => {
-      let data = null;
-      try {
-        data = await r.json();
-      } catch (_) {}
-
-      // Check for rate limiting (429 Too Many Requests)
-      if (r.status === 429) {
-        throw new Error('Terlalu banyak percobaan. Tunggu 15 menit.');
+  <script>
+    /* ── Stars ── */
+    (function () {
+      const c = document.getElementById('stars');
+      if (!c) return;
+      for (let i = 0; i < 50; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        s.style.cssText = `left:${Math.random() * 100}%;top:${Math.random() * 100}%;--dur:${2 + Math.random() * 4}s;--delay:${Math.random() * 5}s;width:${1 + Math.random() * 2}px;height:${1 + Math.random() * 2}px`;
+        c.appendChild(s);
       }
-      // Check for CSRF failure
-      if (r.status === 403) {
-        throw new Error('Token keamanan tidak valid. Muat ulang halaman dan coba lagi.');
-      }
-      if (!r.ok) {
-        throw new Error((data && (data.message || data.error)) || ('Server error: ' + r.status));
-      }
-      return data;
-    })
-    .then(data => {
-      // Clear sensitive input immediately
-      document.getElementById('login-password').value = '';
-      loginPayload.password = '';
-      
-      if (data.success) {
-        console.log('[LOGIN] ✅ Login berhasil, admin data:', data.admin);
-        
-        try {
-          const adminData = data.admin || { id: 1, username: 'Aika', role: 'admin' };
-          const adminToken = adminData.token;
+    })();
 
-          if (!adminToken) {
-            throw new Error('Token admin tidak diterima dari server');
-          }
-
-          // ⚠ Jangan clearAllLoginSessions() — biarkan user session tetap hidup berdampingan
-          
-          localStorage.setItem('aika_admin_logged', 'true');
-          
-          const userObj = {
-            id: adminData.id,
-            username: adminData.username,
-            role: adminData.role,
-            loginTime: Date.now()
-          };
-          localStorage.setItem('aika_admin_user', JSON.stringify(userObj));
-          localStorage.setItem('aika_admin_token', adminToken);
-          
-          showAlert('✅ Login berhasil! Mengalihkan...', 'success');
-          
-          setTimeout(() => {
-            window.location.href = '/admin/dashboard.html';
-          }, 500);
-          
-        } catch (e) {
-          console.error('[LOGIN] ❌ Exception while setting session:', e);
-          showAlert('❌ Error teknis: ' + e.message);
-          btn.disabled = false;
-          btn.innerHTML = originalText;
-        }
-        
-      } else {
-        showAlert(data.message || '❌ Username atau password admin salah!');
-        btn.disabled = false;
-        btn.innerHTML = originalText;
+    /* ── Alert ── */
+    function showAlert(msg, type = 'error', target = 'authAlert', autoHide = (target !== 'forgotAlert')) {
+      const el = document.getElementById(target);
+      if (!el) return;
+      if (el._timer) {
+        clearTimeout(el._timer);
+        el._timer = null;
       }
-    })
-    .catch(err => {
-      showAlert('❌ ' + (err.message || 'Koneksi server gagal. Coba lagi.'));
-      document.getElementById('login-password').value = '';
-      btn.disabled = false;
-      btn.innerHTML = originalText;
-    });
-    return;
-  }
-
-  // User Login Logic
-  clearUserSession();
-  fetch('/api/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ identifier, password })
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (data.success) {
-      onLoginSuccess(data.user, remember);
-    } else {
-      showAlert(data.message || 'Email/username atau password salah!');
-      document.getElementById('login-password').value = '';
-      btn.disabled = false;
-      btn.innerHTML = originalText;
+      el.className = 'auth-alert ' + type;
+      el.innerHTML = (type === 'error' ? '⚠ ' : '✅ ') + msg;
+      if (autoHide) {
+        el._timer = setTimeout(() => { el.className = 'auth-alert'; }, 5000);
+      }
     }
-  })
-  .catch(() => {
-    showAlert('Koneksi ke server gagal. Coba lagi sebentar.');
-    document.getElementById('login-password').value = '';
-    btn.disabled = false;
-    btn.innerHTML = originalText;
-  });
-}
-
-function onLoginSuccess(user, remember) {
-  // ⚠ Jangan hapus admin session — biarkan keduanya hidup berdampingan
-  showAlert('Berhasil masuk! Mengalihkan...', 'success');
-  const sessionData = { email: user.email, username: user.username, loggedIn: true };
-  if (remember) {
-    localStorage.setItem('aika_session', JSON.stringify(sessionData));
-  } else {
-    sessionStorage.setItem('aika_session', JSON.stringify(sessionData));
-  }
-  
-  if (user.avatar) {
-    localStorage.setItem('aika_avatar_' + user.email, user.avatar);
-  }
-  
-  setTimeout(() => {
-    const redir = new URLSearchParams(location.search).get('redirect') || 'index.html';
-    window.location.href = redir;
-  }, 1200);
-}
-
-/* ── Forgot Password Modal ── */
-function openForgot() {
-  document.getElementById('forgotModal').classList.add('active');
-  setTimeout(() => document.getElementById('forgot-email').focus(), 300);
-}
-function closeForgot() {
-  document.getElementById('forgotModal').classList.remove('active');
-  document.getElementById('forgotAlert').className = 'auth-alert';
-}
-document.getElementById('forgotModal').addEventListener('click', function(e) {
-  if (e.target === this) closeForgot();
-});
-
-async function sendReset() {
-  const emailInput = document.getElementById('forgot-email');
-  const email = emailInput ? emailInput.value.trim() : '';
-  const resetBtn = document.querySelector('#forgotModal .btn-primary');
-  
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return showAlert('Masukkan alamat email yang valid!', 'error', 'forgotAlert', false);
-  }
-
-  const originalText = resetBtn ? resetBtn.innerHTML : 'Kirim Link Reset →';
-  if (resetBtn) {
-    resetBtn.disabled = true;
-    resetBtn.innerHTML = '<span class="spin">✦</span> Mengirim...';
-  }
-
-  showAlert('Sedang memproses permintaan reset password...', 'success', 'forgotAlert', false);
-  
-  try {
-    const res = await fetch('/api/forgot-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Gagal mengirim instruksi reset password');
-    
-    // Notifikasi tetap menetap (tidak hilang otomatis)
-    showAlert('Instruksi reset password telah dikirim ke <strong>' + email + '</strong>. Silakan cek kotak masuk (Inbox atau Spam) email kamu.', 'success', 'forgotAlert', false);
-    
-    if (resetBtn) {
-      resetBtn.disabled = false;
-      resetBtn.innerHTML = 'Kirim Ulang Link Reset';
+    function clearAlert(target = 'authAlert') {
+      const el = document.getElementById(target);
+      if (el) {
+        if (el._timer) clearTimeout(el._timer);
+        el.className = 'auth-alert';
+      }
     }
-  } catch (err) {
-    showAlert(err.message, 'error', 'forgotAlert', false);
-    if (resetBtn) {
-      resetBtn.disabled = false;
-      resetBtn.innerHTML = originalText;
+
+    function clearUserSession() {
+      localStorage.removeItem('aika_session');
+      sessionStorage.removeItem('aika_session');
     }
-  }
-}
 
-/* ── Auto-fill if coming from register ── */
-const pendingEmail = localStorage.getItem('aika_pending_login');
-if (pendingEmail) {
-  document.getElementById('login-email').value = pendingEmail;
-  localStorage.removeItem('aika_pending_login');
-}
+    function clearAdminSession() {
+      localStorage.removeItem('aika_admin_logged');
+      localStorage.removeItem('aika_admin_user');
+      localStorage.removeItem('aika_admin_token');
+    }
 
-/* ── Initial Check & URL Params ── */
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('role') === 'admin') {
-  switchRole('admin');
-}
-
-/* ── Already logged in? ──
-   Dua session bisa hidup berdampingan di browser yang sama:
-   - Admin: localStorage (aika_admin_token)
-   - User:  localStorage (remember me) atau sessionStorage (session only)
-   Auto-redirect hanya terjadi jika role-nya cocok dengan halaman ini.
-── */
-const existing = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
-const isAdminLogged = localStorage.getItem('aika_admin_logged') === 'true';
-const adminUser = localStorage.getItem('aika_admin_user');
-const adminToken = localStorage.getItem('aika_admin_token');
-
-// Validasi admin session
-if (isAdminLogged && (!adminUser || !adminToken)) {
-  clearAdminSession();
-}
-
-const urlRole = urlParams.get('role'); // 'admin' | null
-
-if (urlRole === 'admin') {
-  // Halaman ini dibuka untuk login admin
-  // Kalau admin sudah login → redirect ke dashboard admin
-  if (isAdminLogged && adminUser && adminToken) {
-    try {
-      JSON.parse(adminUser);
-      window.location.href = '/admin/dashboard.html';
-    } catch (e) {
+    function clearAllLoginSessions() {
+      clearUserSession();
       clearAdminSession();
     }
-  }
-  // Jika user biasa sudah login tapi membuka ?role=admin → JANGAN redirect, biarkan mereka login sebagai admin juga
-} else {
-  // Halaman ini dibuka untuk login user biasa
-  // Kalau user sudah login → redirect ke halaman tujuan
-  if (existing) {
-    try {
-      const sess = JSON.parse(existing);
-      if (sess.loggedIn) {
-        const redir = urlParams.get('redirect') || 'index.html';
-        window.location.href = redir;
-      }
-    } catch {}
-  }
-  // Jika admin sudah login tapi membuka login.html tanpa ?role=admin → JANGAN redirect ke admin dashboard
-}
 
-/* ── Reset Password Link Flow ── */
-const resetToken = urlParams.get('reset');
-if (resetToken) {
-  const authCard = document.querySelector('.auth-card');
-  authCard.innerHTML = `
+    /* ── Toggle password ── */
+    function togglePw() {
+      const pw = document.getElementById('login-password');
+      const btn = document.getElementById('pwToggle');
+      if (pw.type === 'password') { pw.type = 'text'; btn.textContent = '🙈'; }
+      else { pw.type = 'password'; btn.textContent = '👁'; }
+    }
+
+    /* ── Role Management ── */
+    let currentRole = 'user';
+
+    function switchRole(role) {
+      currentRole = role;
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('tab-' + role).classList.add('active');
+
+      const regLink = document.getElementById('registerLink');
+      const forgotLink = document.querySelector('.forgot-link');
+      const rememberWrap = document.querySelector('.remember-wrap');
+      const googleSection = document.getElementById('googleAuthSection');
+
+      if (role === 'admin') {
+        if (regLink) regLink.style.display = 'none';
+        if (forgotLink) forgotLink.style.display = 'none';
+        if (rememberWrap) rememberWrap.style.display = 'none';
+        if (googleSection) googleSection.style.display = 'none';
+        document.getElementById('login-email').placeholder = 'Username Admin';
+      } else {
+        if (regLink) regLink.style.display = 'block';
+        if (forgotLink) forgotLink.style.display = 'inline-block';
+        if (rememberWrap) rememberWrap.style.display = 'flex';
+        if (googleSection) googleSection.style.display = 'block';
+        document.getElementById('login-email').placeholder = 'email@contoh.com';
+      }
+      clearAlert();
+    }
+
+    /* ── Login ── */
+    function doLogin() {
+      const identifier = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const remember = document.getElementById('rememberMe').checked;
+
+      if (!identifier) return showAlert(`Masukkan ${currentRole === 'admin' ? 'username' : 'email/username'} kamu!`);
+      if (!password) return showAlert('Masukkan password kamu!');
+
+      const btn = document.getElementById('loginBtn');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spin">✦</span> Memproses...';
+
+      if (currentRole === 'admin') {
+        clearAdminSession();
+
+        // Admin Login Logic with Enhanced Security
+        const csrfToken = window.getCSRFToken ? window.getCSRFToken() : null;
+
+        const loginPayload = {
+          username: identifier,
+          password: password,
+          csrf_token: csrfToken // Include CSRF token
+        };
+
+        fetch('/api/admin-login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest' // CSRF protection header
+          },
+          body: JSON.stringify(loginPayload),
+          credentials: 'same-origin'
+        })
+          .then(async r => {
+            let data = null;
+            try {
+              data = await r.json();
+            } catch (_) { }
+
+            // Check for rate limiting (429 Too Many Requests)
+            if (r.status === 429) {
+              throw new Error('Terlalu banyak percobaan. Tunggu 15 menit.');
+            }
+            // Check for CSRF failure
+            if (r.status === 403) {
+              throw new Error('Token keamanan tidak valid. Muat ulang halaman dan coba lagi.');
+            }
+            if (!r.ok) {
+              throw new Error((data && (data.message || data.error)) || ('Server error: ' + r.status));
+            }
+            return data;
+          })
+          .then(data => {
+            // Clear sensitive input immediately
+            document.getElementById('login-password').value = '';
+            loginPayload.password = '';
+
+            if (data.success) {
+              console.log('[LOGIN] ✅ Login berhasil, admin data:', data.admin);
+
+              try {
+                const adminData = data.admin || { id: 1, username: 'Aika', role: 'admin' };
+                const adminToken = adminData.token;
+
+                if (!adminToken) {
+                  throw new Error('Token admin tidak diterima dari server');
+                }
+
+                // ⚠ Jangan clearAllLoginSessions() — biarkan user session tetap hidup berdampingan
+
+                localStorage.setItem('aika_admin_logged', 'true');
+
+                const userObj = {
+                  id: adminData.id,
+                  username: adminData.username,
+                  role: adminData.role,
+                  loginTime: Date.now()
+                };
+                localStorage.setItem('aika_admin_user', JSON.stringify(userObj));
+                localStorage.setItem('aika_admin_token', adminToken);
+
+                showAlert('✅ Login berhasil! Mengalihkan...', 'success');
+
+                setTimeout(() => {
+                  window.location.href = '/admin/dashboard.html';
+                }, 500);
+
+              } catch (e) {
+                console.error('[LOGIN] ❌ Exception while setting session:', e);
+                showAlert('❌ Error teknis: ' + e.message);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+              }
+
+            } else {
+              showAlert(data.message || '❌ Username atau password admin salah!');
+              btn.disabled = false;
+              btn.innerHTML = originalText;
+            }
+          })
+          .catch(err => {
+            showAlert('❌ ' + (err.message || 'Koneksi server gagal. Coba lagi.'));
+            document.getElementById('login-password').value = '';
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+          });
+        return;
+      }
+
+      // User Login Logic
+      clearUserSession();
+      fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier, password })
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            onLoginSuccess(data.user, remember);
+          } else {
+            showAlert(data.message || 'Email/username atau password salah!');
+            document.getElementById('login-password').value = '';
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+          }
+        })
+        .catch(() => {
+          showAlert('Koneksi ke server gagal. Coba lagi sebentar.');
+          document.getElementById('login-password').value = '';
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        });
+    }
+
+    function onLoginSuccess(user, remember) {
+      // ⚠ Jangan hapus admin session — biarkan keduanya hidup berdampingan
+      showAlert('Berhasil masuk! Mengalihkan...', 'success');
+      const sessionData = { email: user.email, username: user.username, loggedIn: true };
+      if (remember) {
+        localStorage.setItem('aika_session', JSON.stringify(sessionData));
+      } else {
+        sessionStorage.setItem('aika_session', JSON.stringify(sessionData));
+      }
+
+      if (user.avatar) {
+        localStorage.setItem('aika_avatar_' + user.email, user.avatar);
+      }
+
+      setTimeout(() => {
+        const redir = new URLSearchParams(location.search).get('redirect') || 'index.html';
+        window.location.href = redir;
+      }, 1200);
+    }
+
+    /* ── Forgot Password Modal ── */
+    function openForgot() {
+      document.getElementById('forgotModal').classList.add('active');
+      setTimeout(() => document.getElementById('forgot-email').focus(), 300);
+    }
+    function closeForgot() {
+      document.getElementById('forgotModal').classList.remove('active');
+      document.getElementById('forgotAlert').className = 'auth-alert';
+    }
+    document.getElementById('forgotModal').addEventListener('click', function (e) {
+      if (e.target === this) closeForgot();
+    });
+
+    async function sendReset() {
+      const emailInput = document.getElementById('forgot-email');
+      const email = emailInput ? emailInput.value.trim() : '';
+      const resetBtn = document.querySelector('#forgotModal .btn-primary');
+
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return showAlert('Masukkan alamat email yang valid!', 'error', 'forgotAlert', false);
+      }
+
+      const originalText = resetBtn ? resetBtn.innerHTML : 'Kirim Link Reset →';
+      if (resetBtn) {
+        resetBtn.disabled = true;
+        resetBtn.innerHTML = '<span class="spin">✦</span> Mengirim...';
+      }
+
+      showAlert('Sedang memproses permintaan reset password...', 'success', 'forgotAlert', false);
+
+      try {
+        const res = await fetch('/api/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal mengirim instruksi reset password');
+
+        // Notifikasi tetap menetap (tidak hilang otomatis)
+        showAlert('Instruksi reset password telah dikirim ke <strong>' + email + '</strong>. Silakan cek kotak masuk (Inbox atau Spam) email kamu.', 'success', 'forgotAlert', false);
+
+        if (resetBtn) {
+          resetBtn.disabled = false;
+          resetBtn.innerHTML = 'Kirim Ulang Link Reset';
+        }
+      } catch (err) {
+        showAlert(err.message, 'error', 'forgotAlert', false);
+        if (resetBtn) {
+          resetBtn.disabled = false;
+          resetBtn.innerHTML = originalText;
+        }
+      }
+    }
+
+    /* ── Auto-fill if coming from register ── */
+    const pendingEmail = localStorage.getItem('aika_pending_login');
+    if (pendingEmail) {
+      document.getElementById('login-email').value = pendingEmail;
+      localStorage.removeItem('aika_pending_login');
+    }
+
+    /* ── Initial Check & URL Params ── */
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('role') === 'admin') {
+      switchRole('admin');
+    }
+
+    /* ── Already logged in? ──
+       Dua session bisa hidup berdampingan di browser yang sama:
+       - Admin: localStorage (aika_admin_token)
+       - User:  localStorage (remember me) atau sessionStorage (session only)
+       Auto-redirect hanya terjadi jika role-nya cocok dengan halaman ini.
+    ── */
+    const existing = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+    const isAdminLogged = localStorage.getItem('aika_admin_logged') === 'true';
+    const adminUser = localStorage.getItem('aika_admin_user');
+    const adminToken = localStorage.getItem('aika_admin_token');
+
+    // Validasi admin session
+    if (isAdminLogged && (!adminUser || !adminToken)) {
+      clearAdminSession();
+    }
+
+    const urlRole = urlParams.get('role'); // 'admin' | null
+
+    if (urlRole === 'admin') {
+      // Halaman ini dibuka untuk login admin
+      // Kalau admin sudah login → redirect ke dashboard admin
+      if (isAdminLogged && adminUser && adminToken) {
+        try {
+          JSON.parse(adminUser);
+          window.location.href = '/admin/dashboard.html';
+        } catch (e) {
+          clearAdminSession();
+        }
+      }
+      // Jika user biasa sudah login tapi membuka ?role=admin → JANGAN redirect, biarkan mereka login sebagai admin juga
+    } else {
+      // Halaman ini dibuka untuk login user biasa
+      // Kalau user sudah login → redirect ke halaman tujuan
+      if (existing) {
+        try {
+          const sess = JSON.parse(existing);
+          if (sess.loggedIn) {
+            const redir = urlParams.get('redirect') || 'index.html';
+            window.location.href = redir;
+          }
+        } catch { }
+      }
+      // Jika admin sudah login tapi membuka login.html tanpa ?role=admin → JANGAN redirect ke admin dashboard
+    }
+
+    /* ── Reset Password Link Flow ── */
+    const resetToken = urlParams.get('reset');
+    if (resetToken) {
+      const authCard = document.querySelector('.auth-card');
+      authCard.innerHTML = `
     <div class="auth-logo">
       <span class="brand-logo">✦</span>
       <h1>Reset Password</h1>
@@ -802,75 +916,75 @@ if (resetToken) {
     </form>
     <a href="login.html" class="auth-nav-link" style="margin-top:2rem;text-decoration:none">Kembali ke Login</a>
   `;
-}
-
-async function submitNewPassword(token) {
-  const newPass = document.getElementById('reset-password').value;
-  if(newPass.length < 6) return showAlert('Password minimal 6 karakter', 'error', 'resetAlert');
-  
-  try {
-    const res = await fetch('/api/reset-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, newPassword: newPass })
-    });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error || 'Gagal reset password');
-    
-    showAlert('Password berhasil diubah! Silakan login.', 'success', 'resetAlert');
-    setTimeout(() => window.location.href = 'login.html', 2000);
-  } catch(err) {
-    showAlert(err.message, 'error', 'resetAlert');
-  }
-}
-
-/* ── Google Sign-In Integration (GSI) ── */
-let googleClientId = '';
-
-async function initGoogleSignIn() {
-  try {
-    const res = await fetch('/api/google-auth');
-    const data = await res.json();
-    if (data.success && data.clientId) {
-      googleClientId = data.clientId;
-      renderGoogleButton(googleClientId);
-    } else {
-      renderGoogleFallbackBtn();
     }
-  } catch (e) {
-    console.warn('[Google Auth] Failed to fetch config, rendering fallback:', e);
-    renderGoogleFallbackBtn();
-  }
-}
 
-function renderGoogleButton(clientId) {
-  if (window.google && google.accounts && google.accounts.id) {
-    google.accounts.id.initialize({
-      client_id: clientId,
-      callback: handleGoogleSignInCallback,
-      auto_select: false
-    });
-    const container = document.getElementById('googleBtnWrapper');
-    if (container) {
-      container.innerHTML = '';
-      google.accounts.id.renderButton(container, {
-        theme: 'filled_black',
-        size: 'large',
-        shape: 'pill',
-        width: 320,
-        text: 'signin_with',
-        logo_alignment: 'left'
-      });
+    async function submitNewPassword(token) {
+      const newPass = document.getElementById('reset-password').value;
+      if (newPass.length < 6) return showAlert('Password minimal 6 karakter', 'error', 'resetAlert');
+
+      try {
+        const res = await fetch('/api/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, newPassword: newPass })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal reset password');
+
+        showAlert('Password berhasil diubah! Silakan login.', 'success', 'resetAlert');
+        setTimeout(() => window.location.href = 'login.html', 2000);
+      } catch (err) {
+        showAlert(err.message, 'error', 'resetAlert');
+      }
     }
-  } else {
-    setTimeout(() => renderGoogleButton(clientId), 250);
-  }
-}
 
-function renderGoogleFallbackBtn() {
-  const container = document.getElementById('googleBtnWrapper');
-  if (!container) return;
-  container.innerHTML = `
+    /* ── Google Sign-In Integration (GSI) ── */
+    let googleClientId = '';
+
+    async function initGoogleSignIn() {
+      try {
+        const res = await fetch('/api/google-auth');
+        const data = await res.json();
+        if (data.success && data.clientId) {
+          googleClientId = data.clientId;
+          renderGoogleButton(googleClientId);
+        } else {
+          renderGoogleFallbackBtn();
+        }
+      } catch (e) {
+        console.warn('[Google Auth] Failed to fetch config, rendering fallback:', e);
+        renderGoogleFallbackBtn();
+      }
+    }
+
+    function renderGoogleButton(clientId) {
+      if (window.google && google.accounts && google.accounts.id) {
+        google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleGoogleSignInCallback,
+          auto_select: false
+        });
+        const container = document.getElementById('googleBtnWrapper');
+        if (container) {
+          container.innerHTML = '';
+          google.accounts.id.renderButton(container, {
+            theme: 'filled_black',
+            size: 'large',
+            shape: 'pill',
+            width: 320,
+            text: 'signin_with',
+            logo_alignment: 'left'
+          });
+        }
+      } else {
+        setTimeout(() => renderGoogleButton(clientId), 250);
+      }
+    }
+
+    function renderGoogleFallbackBtn() {
+      const container = document.getElementById('googleBtnWrapper');
+      if (!container) return;
+      container.innerHTML = `
     <button type="button" class="google-custom-btn" onclick="handleGoogleCustomClick()">
       <svg viewBox="0 0 24 24">
         <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
@@ -881,91 +995,92 @@ function renderGoogleFallbackBtn() {
       Masuk dengan Google
     </button>
   `;
-}
+    }
 
-async function handleGoogleCustomClick() {
-  if (googleClientId && window.google) {
-    google.accounts.id.prompt();
-    return;
-  }
-  
-  const confirmDemo = confirm(
-    "Google Client ID belum dikonfigurasi di file .env.local (GOOGLE_CLIENT_ID).\n\n" +
-    "Apakah Anda ingin menguji alur Login Google ini sekarang dalam Mode Demo?"
-  );
-  
-  if (!confirmDemo) return;
+    async function handleGoogleCustomClick() {
+      if (googleClientId && window.google) {
+        google.accounts.id.prompt();
+        return;
+      }
 
-  const testEmail = prompt("Masukkan email Google untuk uji coba:", "penggemar_aika@gmail.com");
-  if (!testEmail) return;
+      const confirmDemo = confirm(
+        "Google Client ID belum dikonfigurasi di file .env.local (GOOGLE_CLIENT_ID).\n\n" +
+        "Apakah Anda ingin menguji alur Login Google ini sekarang dalam Mode Demo?"
+      );
 
-  try {
-    showAlert('Memproses autentikasi Google...', 'success');
-    const res = await fetch('/api/google-auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        demoUser: {
-          email: testEmail.trim().toLowerCase(),
-          name: testEmail.split('@')[0],
-          sub: 'demo_google_' + Date.now(),
-          picture: 'https://lh3.googleusercontent.com/a/default-user'
+      if (!confirmDemo) return;
+
+      const testEmail = prompt("Masukkan email Google untuk uji coba:", "penggemar_aika@gmail.com");
+      if (!testEmail) return;
+
+      try {
+        showAlert('Memproses autentikasi Google...', 'success');
+        const res = await fetch('/api/google-auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            demoUser: {
+              email: testEmail.trim().toLowerCase(),
+              name: testEmail.split('@')[0],
+              sub: 'demo_google_' + Date.now(),
+              picture: 'https://lh3.googleusercontent.com/a/default-user'
+            }
+          })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || 'Gagal login dengan Google');
         }
-      })
-    });
-    const data = await res.json();
-    if (!res.ok || !data.success) {
-      throw new Error(data.error || 'Gagal login dengan Google');
-    }
-    onGoogleSuccess(data);
-  } catch (err) {
-    showAlert(err.message || 'Gagal autentikasi Google');
-  }
-}
-
-async function handleGoogleSignInCallback(response) {
-  if (!response || !response.credential) {
-    showAlert('Gagal menerima token dari Google');
-    return;
-  }
-
-  try {
-    showAlert('Memverifikasi akun Google...', 'success');
-    const res = await fetch('/api/google-auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ credential: response.credential })
-    });
-    
-    const data = await res.json();
-    if (!res.ok || !data.success) {
-      throw new Error(data.error || 'Autentikasi Google gagal');
+        onGoogleSuccess(data);
+      } catch (err) {
+        showAlert(err.message || 'Gagal autentikasi Google');
+      }
     }
 
-    onGoogleSuccess(data);
-  } catch (err) {
-    showAlert(err.message || 'Gagal login via Google');
-  }
-}
+    async function handleGoogleSignInCallback(response) {
+      if (!response || !response.credential) {
+        showAlert('Gagal menerima token dari Google');
+        return;
+      }
 
-function onGoogleSuccess(data) {
-  const user = data.user;
-  showAlert(data.message || 'Berhasil masuk dengan Google!', 'success');
-  
-  const sessionData = { email: user.email, username: user.username, loggedIn: true };
-  localStorage.setItem('aika_session', JSON.stringify(sessionData));
-  
-  if (user.avatar) {
-    localStorage.setItem('aika_avatar_' + user.email, user.avatar);
-  }
+      try {
+        showAlert('Memverifikasi akun Google...', 'success');
+        const res = await fetch('/api/google-auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ credential: response.credential })
+        });
 
-  setTimeout(() => {
-    const redir = new URLSearchParams(location.search).get('redirect') || 'index.html';
-    window.location.href = redir;
-  }, 1000);
-}
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || 'Autentikasi Google gagal');
+        }
 
-document.addEventListener('DOMContentLoaded', initGoogleSignIn);
-</script>
+        onGoogleSuccess(data);
+      } catch (err) {
+        showAlert(err.message || 'Gagal login via Google');
+      }
+    }
+
+    function onGoogleSuccess(data) {
+      const user = data.user;
+      showAlert(data.message || 'Berhasil masuk dengan Google!', 'success');
+
+      const sessionData = { email: user.email, username: user.username, loggedIn: true };
+      localStorage.setItem('aika_session', JSON.stringify(sessionData));
+
+      if (user.avatar) {
+        localStorage.setItem('aika_avatar_' + user.email, user.avatar);
+      }
+
+      setTimeout(() => {
+        const redir = new URLSearchParams(location.search).get('redirect') || 'index.html';
+        window.location.href = redir;
+      }, 1000);
+    }
+
+    document.addEventListener('DOMContentLoaded', initGoogleSignIn);
+  </script>
 </body>
+
 </html>
