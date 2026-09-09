@@ -89,6 +89,8 @@ const Cart = {
             price: i.price,
             image: i.image,
             tag: i.tag || getItemSizeTag(i),
+            stock: parseInt(i.stock, 10) || 0,
+            is_photopack: i.is_photopack === true,
             availableSizes: String(i.sizes || '').split(',').map(size => size.trim()).filter(Boolean),
             size: i.size || '',
             qty: i.qty
@@ -103,6 +105,8 @@ const Cart = {
       // Guest user uses localStorage
       this.items = JSON.parse(localStorage.getItem('aika_cart_guest') || '[]').map(i => ({
         ...i,
+        stock: parseInt(i.stock, 10) || 0,
+        is_photopack: i.is_photopack === true,
         tag: i.tag || getItemSizeTag(i)
       }));
     }
@@ -120,18 +124,32 @@ const Cart = {
 
   async add(product) {
     if (this.isSaving) return;
-    const email = this.getUserEmail();
+    const isPhotopack = product.is_photopack === true;
+    const stock = parseInt(product.stock, 10) || 0;
 
+    if (!isPhotopack && product.stock !== undefined && stock <= 0) {
+      showToast('⚠️ Maaf, stok produk ini sudah habis!');
+      return;
+    }
+
+    const email = this.getUserEmail();
     const itemKey = this.makeItemKey(product);
     const existing = this.items.find(i => this.makeItemKey(i) === itemKey);
     const tag = product.tag || getItemSizeTag(product);
+
+    // Cek batas stok saat menambah
+    if (existing && !isPhotopack && product.stock !== undefined && (existing.qty + 1 > stock)) {
+      showToast(`⚠️ Jumlah melebihi stok yang tersedia (${stock} unit)!`);
+      return;
+    }
 
     // Optimistic UI update
     if (existing) {
       existing.qty += 1;
       if (!existing.tag && tag) existing.tag = tag;
+      if (product.stock !== undefined) existing.stock = stock;
     } else {
-      this.items.push({ ...product, tag, qty: 1 });
+      this.items.push({ ...product, tag, stock, is_photopack: isPhotopack, qty: 1 });
     }
     this.updateUI();
     showToast(`✅ ${product.name} ditambahkan ke keranjang!`);
@@ -139,7 +157,7 @@ const Cart = {
     if (email) {
       this.isSaving = true;
       try {
-        await fetch('/api/cart', {
+        const res = await fetch('/api/cart', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -147,6 +165,11 @@ const Cart = {
           },
           body: JSON.stringify({ product_id: product.id, quantity: 1, size: product.size || null })
         });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          showToast(`❌ ${errData.error || 'Gagal menambahkan ke keranjang'}`);
+          await this.load();
+        }
       } catch (err) {
         console.error('Error adding to cart API', err);
       } finally {
@@ -158,6 +181,14 @@ const Cart = {
   },
 
   addFromBtn(btn) {
+    const isPhotopack = btn.getAttribute('data-is-photopack') === 'true';
+    const stock = parseInt(btn.getAttribute('data-stock') || '0', 10);
+
+    if (!isPhotopack && btn.hasAttribute('data-stock') && stock <= 0) {
+      showToast('⚠️ Maaf, stok produk ini sudah habis!');
+      return;
+    }
+
     const sizeSelectId = btn.getAttribute('data-size-select');
     const sizeSelect = sizeSelectId ? document.getElementById(sizeSelectId) : null;
     const selectedSize = sizeSelect ? sizeSelect.value.trim() : '';
@@ -174,7 +205,8 @@ const Cart = {
       price: parseInt(btn.getAttribute('data-price') || '0', 10),
       image: btn.getAttribute('data-img') || '',
       tag: btn.getAttribute('data-tag') || '',
-      is_photopack: btn.getAttribute('data-is-photopack') === 'true',
+      stock: stock,
+      is_photopack: isPhotopack,
       size: selectedSize
     });
   },
@@ -211,6 +243,11 @@ const Cart = {
     const item = this.items.find(i => i.id == id && (i.size || '') === (size || ''));
     if (!item) return;
 
+    if (delta > 0 && !item.is_photopack && item.stock !== undefined && (item.qty + delta > item.stock)) {
+      showToast(`⚠️ Stok produk "${item.name}" hanya tersedia ${item.stock} unit!`);
+      return;
+    }
+
     // Optimistic UI update
     item.qty += delta;
     if (item.qty <= 0) {
@@ -222,7 +259,7 @@ const Cart = {
     if (email) {
       this.isSaving = true;
       try {
-        await fetch('/api/cart', {
+        const res = await fetch('/api/cart', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -230,6 +267,11 @@ const Cart = {
           },
           body: JSON.stringify({ product_id: item.id, quantity: item.qty, size: item.size || null })
         });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          showToast(`❌ ${errData.error || 'Gagal mengubah jumlah'}`);
+          await this.load();
+        }
       } catch (err) {
         console.error('Error updating cart API', err);
       } finally {
@@ -315,19 +357,23 @@ const Cart = {
         const surcharge = getItemSizeSurcharge(item);
         const unitPrice = (parseInt(item.price, 10) || 0) + surcharge;
         const sizeLabel = item.size ? `Ukuran: ${item.size}${surcharge > 0 ? ` <span style="color:var(--aqua);font-weight:700;">(+${formatPrice(surcharge)})</span>` : ''}` : '';
+        const isOutOfStock = !item.is_photopack && item.stock !== undefined && item.stock <= 0;
+        const isExceedingStock = !item.is_photopack && item.stock !== undefined && item.stock > 0 && item.qty > item.stock;
 
         return `
-          <div class="cart-item">
-            <div class="cart-item-img">${item.image ? `<img src="${item.image}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;" onerror="this.parentElement.textContent='🛍️'">` : '🛍️'}</div>
+          <div class="cart-item" style="${isOutOfStock ? 'border-left: 3px solid #ef4444; background: rgba(239, 68, 68, 0.08);' : ''}">
+            <div class="cart-item-img">${item.image ? `<img src="${item.image}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;${isOutOfStock ? 'filter:grayscale(0.7);' : ''}" onerror="this.parentElement.textContent='🛍️'">` : '🛍️'}</div>
             <div class="cart-item-info">
               <div class="cart-item-name">${item.name}</div>
               ${sizeLabel ? `<div class="cart-item-size" style="color:var(--text-muted);font-size:0.78rem;margin-top:0.15rem">${sizeLabel}</div>` : ''}
+              ${isOutOfStock ? `<div style="color:#f87171;font-size:0.75rem;font-weight:800;margin-top:0.2rem;">⚠️ Stok Habis (Mohon Hapus)</div>` : ''}
+              ${isExceedingStock ? `<div style="color:#f59e0b;font-size:0.75rem;font-weight:700;margin-top:0.2rem;">⚠️ Melebihi stok (Tersedia ${item.stock})</div>` : ''}
               <div class="cart-item-price">${formatPrice(unitPrice)}</div>
             </div>
             <div class="cart-item-qty">
               <button class="qty-btn" onclick="Cart.updateQty('${item.id}', '${(item.size || '').replace(/'/g, "\\'")}', -1)">-</button>
               <span>${item.qty}</span>
-              <button class="qty-btn" onclick="Cart.updateQty('${item.id}', '${(item.size || '').replace(/'/g, "\\'")}', 1)">+</button>
+              <button class="qty-btn" ${isOutOfStock || (!item.is_photopack && item.stock !== undefined && item.qty >= item.stock) ? 'disabled style="opacity:0.3;cursor:not-allowed;"' : ''} onclick="Cart.updateQty('${item.id}', '${(item.size || '').replace(/'/g, "\\'")}', 1)">+</button>
             </div>
           </div>
         `;
@@ -370,6 +416,18 @@ function toggleCart() {
 function goToCheckout() {
   if (Cart.items.length === 0) {
     showToast('⚠️ Keranjang masih kosong!');
+    return;
+  }
+
+  const outOfStock = Cart.items.find(i => !i.is_photopack && i.stock !== undefined && i.stock <= 0);
+  if (outOfStock) {
+    showToast(`⚠️ Produk "${outOfStock.name}" sudah habis. Mohon hapus dari keranjang sebelum checkout!`);
+    return;
+  }
+
+  const exceeding = Cart.items.find(i => !i.is_photopack && i.stock !== undefined && i.stock > 0 && i.qty > i.stock);
+  if (exceeding) {
+    showToast(`⚠️ Jumlah "${exceeding.name}" melebihi stok yang tersedia (tersisa ${exceeding.stock}). Mohon sesuaikan jumlahnya!`);
     return;
   }
 

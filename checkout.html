@@ -956,6 +956,9 @@
       const shipping = getShippingTotal();
       const grand = getGrandTotal();
 
+      const hasOutOfStockItem = items.some(i => !i.is_photopack && i.stock !== undefined && i.stock <= 0);
+      const hasExceedingStockItem = items.some(i => !i.is_photopack && i.stock !== undefined && i.stock > 0 && i.qty > i.stock);
+
       content.innerHTML = `
     <!-- LEFT: FORM -->
     <div>
@@ -1034,21 +1037,30 @@
     <div>
       <div class="checkout-section" style="position:sticky;top:100px">
         <h2>🛍️ Ringkasan Pesanan</h2>
+        ${(hasOutOfStockItem || hasExceedingStockItem) ? `
+          <div style="background:rgba(239,68,68,0.15); border:1px solid #ef4444; border-radius:8px; padding:0.8rem; margin-bottom:1rem; color:#f87171; font-size:0.85rem; line-height:1.4;">
+            ⚠️ Ada produk di keranjang yang <strong>stoknya sudah habis atau melebihi stok</strong>. Mohon hapus/sesuaikan item tersebut sebelum membayar.
+          </div>
+        ` : ''}
         ${items.map((item, index) => {
           const itemSurcharge = getItemSizeSurcharge(item);
           const itemTag = getItemSizeTag(item);
+          const isItemOOS = !item.is_photopack && item.stock !== undefined && item.stock <= 0;
+          const isItemExceed = !item.is_photopack && item.stock !== undefined && item.stock > 0 && item.qty > item.stock;
           return `
-          <div class="order-summary-item">
+          <div class="order-summary-item" style="${isItemOOS ? 'border-left:3px solid #ef4444; padding-left:8px;' : ''}">
             <div>
               <div class="item-name">${item.name}</div>
               <div class="item-qty">
                 × ${item.qty}${item.size ? ` • Size <strong style="color:var(--white);">${item.size}</strong>${itemSurcharge > 0 ? ` <span style="color:var(--aqua);font-weight:700;">(+${formatPrice(itemSurcharge)})</span>` : ''}` : ''}
                 ${itemTag ? `<span style="font-size:0.7rem;margin-left:6px;padding:1px 6px;border-radius:4px;background:rgba(41,182,246,0.12);color:var(--aqua);display:inline-block;">🏷️ ${itemTag}</span>` : ''}
               </div>
+              ${isItemOOS ? `<div style="color:#ef4444; font-size:0.78rem; font-weight:800; margin-top:0.25rem;">⚠️ Stok Habis (0 unit tersedia)</div>` : ''}
+              ${isItemExceed ? `<div style="color:#f59e0b; font-size:0.78rem; font-weight:700; margin-top:0.25rem;">⚠️ Melebihi stok (Tersisa: ${item.stock} unit)</div>` : ''}
               ${item.availableSizes && item.availableSizes.length ? `
                 <div style="margin-top:0.45rem">
                   <label for="checkoutSize${index}" style="display:block;color:var(--white);font-size:0.78rem;font-weight:700;margin-bottom:0.25rem;">Pilih Size</label>
-                  <select id="checkoutSize${index}" onchange="updateCheckoutItemSize(${index}, this.value)" style="width:100%;border-radius:8px;background:rgba(3,9,31,0.8);border:1px solid var(--card-border);color:var(--white);padding:0.55rem;font-family:var(--font-body);font-size:0.82rem;">
+                  <select id="checkoutSize${index}" ${isItemOOS ? 'disabled' : ''} onchange="updateCheckoutItemSize(${index}, this.value)" style="width:100%;border-radius:8px;background:rgba(3,9,31,0.8);border:1px solid var(--card-border);color:var(--white);padding:0.55rem;font-family:var(--font-body);font-size:0.82rem;">
                     <option value="">-- Pilih Size --</option>
                     ${item.availableSizes.map(size => {
                       const sc = getItemSizeSurcharge(item, size);
@@ -1132,8 +1144,8 @@
           <span>Sisa Pelunasan Nanti</span><span style="color: var(--gold); font-weight:700;">${formatPrice(getRemainingAmount())}</span>
         </div>
 
-        <button class="btn-primary payment-btn" id="checkoutSubmitBtn" onclick="showPaymentStep()">
-          ${currentPaymentScheme === 'dp50' ? `💳 Lanjut Pembayaran DP 50% • ${formatPrice(getDpAmount())}` : `💳 Lanjut ke Pembayaran • ${formatPrice(grand)}`}
+        <button class="btn-primary payment-btn" id="checkoutSubmitBtn" ${hasOutOfStockItem || hasExceedingStockItem ? 'disabled style="opacity:0.45; cursor:not-allowed; background:#1e293b; border:1px solid #334155; color:#94a3b8;"' : 'onclick="showPaymentStep()"'}>
+          ${hasOutOfStockItem ? '❌ Stok Produk Habis' : (currentPaymentScheme === 'dp50' ? `💳 Lanjut Pembayaran DP 50% • ${formatPrice(getDpAmount())}` : `💳 Lanjut ke Pembayaran • ${formatPrice(grand)}`)}
         </button>
       </div>
     </div>
@@ -1507,6 +1519,19 @@
         showToast(`Pilih size untuk ${itemWithoutSize.name} terlebih dahulu`);
         return false;
       }
+
+      const outOfStockItem = Cart.items.find(i => !i.is_photopack && i.stock !== undefined && i.stock <= 0);
+      if (outOfStockItem) {
+        showToast(`⚠️ Produk "${outOfStockItem.name}" sudah habis! Hapus dari keranjang untuk melanjutkan.`);
+        return false;
+      }
+
+      const exceedingItem = Cart.items.find(i => !i.is_photopack && i.stock !== undefined && i.stock > 0 && i.qty > i.stock);
+      if (exceedingItem) {
+        showToast(`⚠️ Jumlah produk "${exceedingItem.name}" melebihi stok yang tersedia (${exceedingItem.stock} unit)!`);
+        return false;
+      }
+
       return true;
     }
 

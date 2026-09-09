@@ -51,12 +51,48 @@ module.exports = async (req, res) => {
 
     if (method === 'POST') {
       const { id, customerName, email, address, status, total, items, shipping } = req.body;
+      const parsedItems = Array.isArray(items) ? items : (typeof items === 'string' ? JSON.parse(items || '[]') : []);
+
+      // 1. Validasi stok sebelum membuat pesanan
+      for (const item of parsedItems) {
+        if (!item || !item.id) continue;
+        const prodRes = await db.query('SELECT id, name, stock, is_photopack FROM products WHERE id = $1', [item.id]);
+        if (prodRes.rows.length) {
+          const prod = prodRes.rows[0];
+          if (!prod.is_photopack) {
+            const availableStock = parseInt(prod.stock, 10) || 0;
+            const requestedQty = parseInt(item.qty, 10) || 1;
+            if (availableStock <= 0) {
+              return res.status(400).json({
+                error: `Maaf, stok produk "${prod.name}" sudah habis (0 tersisa). Pesanan tidak dapat diproses.`
+              });
+            }
+            if (requestedQty > availableStock) {
+              return res.status(400).json({
+                error: `Stok produk "${prod.name}" tidak mencukupi (tersisa: ${availableStock}, Anda memesan: ${requestedQty}).`
+              });
+            }
+          }
+        }
+      }
+
+      // 2. Buat pesanan
       const { rows } = await db.query(
         `INSERT INTO orders (id, "customerName", email, address, status, total, items, shipping) 
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          RETURNING ${ORDER_LIST_COLUMNS}`,
         [id, customerName, email, address, status, total, typeof items === 'string' ? items : JSON.stringify(items), typeof shipping === 'string' ? shipping : JSON.stringify(shipping)]
       );
+
+      // 3. Potong stok otomatis untuk produk fisik
+      for (const item of parsedItems) {
+        if (!item || !item.id) continue;
+        const requestedQty = parseInt(item.qty, 10) || 1;
+        await db.query(
+          `UPDATE products SET stock = GREATEST(0, stock - $1), updated_at = NOW() WHERE id = $2 AND is_photopack = FALSE`,
+          [requestedQty, item.id]
+        );
+      }
 
       const shipObj = typeof shipping === 'string' ? JSON.parse(shipping || '{}') : (shipping || {});
       const isDp = shipObj.paymentScheme === 'dp50';
@@ -217,6 +253,19 @@ module.exports = async (req, res) => {
       );
       
       order = rows[0];
+
+      // Kembalikan stok jika pesanan dibatalkan
+      if (adminUser && status === 'cancelled' && d.rows[0].status !== 'cancelled') {
+        const orderItems = Array.isArray(order.items) ? order.items : (typeof order.items === 'string' ? JSON.parse(order.items || '[]') : []);
+        for (const it of orderItems) {
+          if (!it || !it.id) continue;
+          const q = parseInt(it.qty, 10) || 1;
+          await db.query(
+            `UPDATE products SET stock = stock + $1, updated_at = NOW() WHERE id = $2 AND is_photopack = FALSE`,
+            [q, it.id]
+          );
+        }
+      }
 
       // Fetch photopack details for email if order status is paid
       let gdriveLinksHTML = '';

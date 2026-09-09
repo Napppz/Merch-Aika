@@ -246,7 +246,11 @@ function renderProductCard(p, compact = false) {
   const sizes = String(p.sizes || '').split(',').map(size => size.trim()).filter(Boolean);
   const sizeSelectId = `size-${String(p.id || '').replace(/[^a-zA-Z0-9_-]/g, '-')}`;
   const cardPriceId = `price-${String(p.id || '').replace(/[^a-zA-Z0-9_-]/g, '-')}`;
-  const badgeText = p.badge || (isPhotopack ? '📸 Photopack Digital' : '');
+  const stock = parseInt(p.stock, 10) || 0;
+  const isOutOfStock = !isPhotopack && stock <= 0;
+  const badgeText = isOutOfStock
+    ? '❌ Habis'
+    : (p.badge || (isPhotopack ? '📸 Photopack Digital' : ''));
   const productTag = getProductSizeTag(p);
 
   return `
@@ -262,9 +266,9 @@ function renderProductCard(p, compact = false) {
           <svg width="20" height="20" fill="${heartFill}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
         </button>
         ${p.image
-      ? `<img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="product-placeholder" style="display:none">${emoji[category] || '🛍️'}</div>`
+      ? `<img src="${p.image}" alt="${p.name}" loading="lazy" style="${isOutOfStock ? 'filter:grayscale(0.65) opacity(0.85);' : ''}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="product-placeholder" style="display:none">${emoji[category] || '🛍️'}</div>`
       : `<div class="product-placeholder">${emoji[category] || (isPhotopack ? '📸' : '🛍️')}</div>`}
-        ${badgeText ? `<span class="product-badge" style="${isPhotopack ? 'background:linear-gradient(135deg, #0284c7, #2563eb);color:#fff;' : ''}">${badgeText}</span>` : ''}
+        ${badgeText ? `<span class="product-badge" style="${isOutOfStock ? 'background:#ef4444;color:#fff;font-weight:800;' : (isPhotopack ? 'background:linear-gradient(135deg, #0284c7, #2563eb);color:#fff;' : '')}">${badgeText}</span>` : ''}
       </div>
       <div class="product-body">
         <div style="display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:0.35rem;">
@@ -273,12 +277,19 @@ function renderProductCard(p, compact = false) {
         </div>
         <div class="product-name" style="transition:color 0.2s ease;">${p.name}</div>
         <div class="product-desc">${p.description}</div>
-        ${sizes.length ? `<div style="margin-top:0.75rem;color:var(--text-muted);font-size:0.78rem;">Ukuran: <span style="color:var(--aqua);font-weight:700">${sizes.join(', ')}</span></div>` : ''}
+        ${!isPhotopack ? `
+          <div style="margin-top:0.45rem; font-size:0.78rem;">
+            ${isOutOfStock 
+              ? `<span style="color:#ef4444; font-weight:800;">⚠️ Stok Habis</span>` 
+              : `<span style="color:var(--text-muted);">Stok: <strong style="color:${stock <= 3 ? '#f59e0b' : '#38bdf8'};">${stock} unit</strong></span>`}
+          </div>
+        ` : ''}
+        ${sizes.length ? `<div style="margin-top:0.5rem;color:var(--text-muted);font-size:0.78rem;">Ukuran: <span style="color:var(--aqua);font-weight:700">${sizes.join(', ')}</span></div>` : ''}
         ${sizes.length ? `
-          <div style="margin-top:0.8rem;" onclick="event.stopPropagation()">
+          <div style="margin-top:0.65rem;" onclick="event.stopPropagation()">
             <label for="${sizeSelectId}" style="display:block;color:var(--white);font-size:0.78rem;font-weight:700;margin-bottom:0.35rem;">Pilih Size</label>
-            <select id="${sizeSelectId}" onchange="handleCardSizeChange('${p.id}', this.value, '${cardPriceId}')" style="width:100%;border-radius:8px;background:rgba(3,9,31,0.8);border:1px solid var(--card-border);color:var(--white);padding:0.65rem;font-family:var(--font-body);font-size:0.85rem;">
-              <option value="">-- Pilih Size --</option>
+            <select id="${sizeSelectId}" ${isOutOfStock ? 'disabled' : ''} onchange="handleCardSizeChange('${p.id}', this.value, '${cardPriceId}')" style="width:100%;border-radius:8px;background:rgba(3,9,31,0.8);border:1px solid var(--card-border);color:var(--white);padding:0.65rem;font-family:var(--font-body);font-size:0.85rem;${isOutOfStock ? 'opacity:0.5;cursor:not-allowed;' : ''}">
+              <option value="">${isOutOfStock ? '-- Stok Habis --' : '-- Pilih Size --'}</option>
               ${sizes.map(size => {
                 const surcharge = getProductSizeSurcharge(p, size);
                 const surchargeText = surcharge > 0 ? ` (+${formatPrice(surcharge)})` : '';
@@ -300,6 +311,10 @@ function renderProductCard(p, compact = false) {
               <button class="btn-primary" style="padding:0.5rem 0.85rem; font-size:0.82rem; border-radius:8px; display:inline-flex; align-items:center; gap:4px; font-weight:700; background:linear-gradient(135deg, #0284c7, #2563eb); border:none; box-shadow:0 4px 14px rgba(2,132,199,0.35); cursor:pointer;" onclick="event.stopPropagation(); window.location.href='checkout-photopack.html?id=${p.id}'">
               ⚡ Beli
               </button>
+            ` : (isOutOfStock ? `
+              <button class="add-cart-btn disabled" disabled style="opacity:0.45; cursor:not-allowed; background:#1e293b; border:1px solid #334155; color:#94a3b8; font-weight:700; padding:0.5rem 0.75rem; font-size:0.8rem; border-radius:8px;" title="Stok produk ini sudah habis">
+                Stok Habis
+              </button>
             ` : `
               <button class="add-cart-btn" 
                 data-id="${p.id}" 
@@ -307,12 +322,13 @@ function renderProductCard(p, compact = false) {
                 data-price="${p.price}" 
                 data-img="${p.image || ''}" 
                 data-tag="${productTag}"
+                data-stock="${stock}"
                 data-is-photopack="false"
                 data-size-select="${sizes.length ? sizeSelectId : ''}"
                 onclick="event.stopPropagation(); Cart.addFromBtn(this)">
                 + Keranjang
               </button>
-            `}
+            `)}
           </div>
         </div>
       </div>
@@ -341,6 +357,8 @@ async function openProductDetail(id) {
   const category = normalizeProductCategory(p.category);
   const sizes = getProductSizes(p);
   const productTag = getProductSizeTag(p);
+  const stock = parseInt(p.stock, 10) || 0;
+  const isOutOfStock = !isPhotopack && stock <= 0;
 
   let modalEl = document.getElementById('productDetailModal');
   if (!modalEl) {
@@ -358,13 +376,16 @@ async function openProductDetail(id) {
     : `<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:0.5rem;">
         <span class="product-modal-badge" style="background:var(--sea-blue); margin-bottom:0;">${category}</span>
         ${productTag ? `<span class="product-modal-badge" style="background:rgba(2,132,199,0.25); border:1px solid #0284c7; color:#38bdf8; margin-bottom:0;">🏷️ ${productTag}</span>` : ''}
+        ${isOutOfStock 
+          ? `<span class="product-modal-badge" style="background:rgba(239,68,68,0.25); border:1px solid #ef4444; color:#f87171; margin-bottom:0; font-weight:800;">⚠️ Stok Habis</span>` 
+          : `<span class="product-modal-badge" style="background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#34d399; margin-bottom:0;">Tersedia: ${stock} unit</span>`}
       </div>`;
 
   const sizeOptionsHtml = sizes.length ? `
     <div style="margin-bottom:1.2rem;">
       <label style="display:block; color:var(--white); font-size:0.82rem; font-weight:700; margin-bottom:0.4rem;">Pilih Ukuran:</label>
-      <select id="modalProductSize" onchange="handleModalSizeChange('${p.id}', this.value)" style="width:100%; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.75rem; font-family:var(--font-body); font-size:0.9rem;">
-        <option value="">-- Pilih Ukuran --</option>
+      <select id="modalProductSize" ${isOutOfStock ? 'disabled' : ''} onchange="handleModalSizeChange('${p.id}', this.value)" style="width:100%; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.75rem; font-family:var(--font-body); font-size:0.9rem; ${isOutOfStock ? 'opacity:0.5;cursor:not-allowed;' : ''}">
+        <option value="">${isOutOfStock ? '-- Stok Habis --' : '-- Pilih Ukuran --'}</option>
         ${sizes.map(s => {
           const surcharge = getProductSizeSurcharge(p, s);
           const surchargeText = surcharge > 0 ? ` (+${formatPrice(surcharge)})` : '';
@@ -380,7 +401,7 @@ async function openProductDetail(id) {
       <button class="product-modal-close" onclick="closeProductDetail()" aria-label="Tutup">✕</button>
       <div class="product-modal-img-wrap">
         ${p.image
-      ? `<img src="${p.image}" alt="${p.name}" />`
+      ? `<img src="${p.image}" alt="${p.name}" style="${isOutOfStock ? 'filter:grayscale(0.65) opacity(0.85);' : ''}" />`
       : `<div style="font-size:4rem;">${isPhotopack ? '📸' : '🛍️'}</div>`}
       </div>
       <div class="product-modal-info" style="display:flex; flex-direction:column; justify-content:space-between;">
@@ -402,11 +423,15 @@ async function openProductDetail(id) {
             <a href="checkout-photopack.html?id=${p.id}" class="btn-primary" style="flex:1; padding:0.9rem 1.2rem; font-size:0.95rem; font-weight:700; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; gap:8px; background:linear-gradient(135deg, #0284c7, #2563eb); text-decoration:none; box-shadow:0 4px 15px rgba(2,132,199,0.4);">
               ⚡ Beli Photopack Sekarang
             </a>
+          ` : (isOutOfStock ? `
+            <button class="btn-primary" disabled style="flex:1; padding:0.9rem 1.2rem; font-size:0.95rem; font-weight:700; border-radius:8px; opacity:0.5; cursor:not-allowed; background:#1e293b; border:1px solid #334155; color:#94a3b8;">
+              ❌ Stok Habis
+            </button>
           ` : `
             <button class="btn-primary" style="flex:1; padding:0.9rem 1.2rem; font-size:0.95rem; font-weight:700; border-radius:8px;" onclick="addModalItemToCart('${p.id}')">
               🛒 + Masukkan Keranjang
             </button>
-          `}
+          `)}
           <button class="btn-ghost" style="padding:0.9rem 1.2rem; font-size:0.95rem; border-radius:8px;" onclick="closeProductDetail()">
             Tutup
           </button>
@@ -430,6 +455,12 @@ function closeProductDetail() {
 function addModalItemToCart(productId) {
   const p = cachedProductsMap[productId] || cachedProductsMap[String(productId)];
   if (!p) return;
+
+  if (!p.is_photopack && (parseInt(p.stock, 10) || 0) <= 0) {
+    showToast('⚠️ Maaf, stok produk ini sudah habis!');
+    return;
+  }
+
   const sizeSelect = document.getElementById('modalProductSize');
   const size = sizeSelect ? sizeSelect.value : null;
 
@@ -444,6 +475,7 @@ function addModalItemToCart(productId) {
     price: p.price,
     img: p.image || '',
     tag: getProductSizeTag(p),
+    stock: parseInt(p.stock, 10) || 0,
     size: size,
     is_photopack: false
   });
