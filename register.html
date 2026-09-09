@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
+  <!-- Google Identity Services (GSI) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     body {
       min-height: 100vh;
@@ -449,6 +451,62 @@
       animation: spin 0.7s linear infinite;
     }
 
+    /* ── Google OAuth & Divider ── */
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      margin: 1.2rem 0 1rem;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--card-border);
+    }
+    .auth-divider span {
+      padding: 0 0.8rem;
+    }
+    .google-auth-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.8rem;
+      width: 100%;
+    }
+    .google-custom-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1.2rem;
+      border-radius: 50px;
+      background: #ffffff;
+      color: #1f2937;
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 0.9rem;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    }
+    .google-custom-btn:hover {
+      background: #f8fafc;
+      box-shadow: 0 4px 16px rgba(41,182,246,0.3);
+      transform: translateY(-1px);
+    }
+    .google-custom-btn svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
     @media (max-width: 560px) {
       .auth-card { padding: 2rem 1.5rem; border-radius: 20px; }
       .otp-input { width: 42px; height: 50px; font-size: 1.2rem; }
@@ -486,6 +544,16 @@
     <div class="form-step active" id="step1">
       <p class="step-title">Informasi Akun</p>
       <p class="step-subtitle">Masukkan data dasar untuk akun kamu.</p>
+
+      <!-- ── Google Quick Sign-Up ── -->
+      <div id="googleRegisterSection" style="margin-bottom:1.2rem">
+        <div class="google-auth-wrap">
+          <div id="googleRegBtnWrapper" style="display:flex;justify-content:center;min-height:44px;width:100%;"></div>
+        </div>
+        <div class="auth-divider">
+          <span>atau daftar manual</span>
+        </div>
+      </div>
 
       <div class="form-group">
         <label for="reg-username">Username</label>
@@ -971,6 +1039,148 @@ function showStep4() {
   // Auto redirect after 4s
   setTimeout(() => { window.location.href = 'login.html'; }, 4000);
 }
+
+/* ── Google Sign-Up Integration (GSI) ── */
+let googleClientId = '';
+
+async function initGoogleSignUp() {
+  try {
+    const res = await fetch('/api/google-auth');
+    const data = await res.json();
+    if (data.success && data.clientId) {
+      googleClientId = data.clientId;
+      renderGoogleSignUpButton(googleClientId);
+    } else {
+      renderGoogleSignUpFallback();
+    }
+  } catch (e) {
+    console.warn('[Google Auth] Failed to fetch config, rendering fallback:', e);
+    renderGoogleSignUpFallback();
+  }
+}
+
+function renderGoogleSignUpButton(clientId) {
+  if (window.google && google.accounts && google.accounts.id) {
+    google.accounts.id.initialize({
+      client_id: clientId,
+      callback: handleGoogleSignUpCallback,
+      auto_select: false
+    });
+    const container = document.getElementById('googleRegBtnWrapper');
+    if (container) {
+      container.innerHTML = '';
+      google.accounts.id.renderButton(container, {
+        theme: 'filled_black',
+        size: 'large',
+        shape: 'pill',
+        width: 320,
+        text: 'signup_with',
+        logo_alignment: 'left'
+      });
+    }
+  } else {
+    setTimeout(() => renderGoogleSignUpButton(clientId), 250);
+  }
+}
+
+function renderGoogleSignUpFallback() {
+  const container = document.getElementById('googleRegBtnWrapper');
+  if (!container) return;
+  container.innerHTML = `
+    <button type="button" class="google-custom-btn" onclick="handleGoogleSignUpCustomClick()">
+      <svg viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.35 24 12 24z"/>
+        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+      </svg>
+      Daftar Cepat dengan Google
+    </button>
+  `;
+}
+
+async function handleGoogleSignUpCustomClick() {
+  if (googleClientId && window.google) {
+    google.accounts.id.prompt();
+    return;
+  }
+  
+  const confirmDemo = confirm(
+    "Google Client ID belum dikonfigurasi di file .env.local (GOOGLE_CLIENT_ID).\n\n" +
+    "Apakah Anda ingin menguji alur Pendaftaran Google ini sekarang dalam Mode Demo?"
+  );
+  
+  if (!confirmDemo) return;
+
+  const testEmail = prompt("Masukkan email Google untuk daftar akun baru:", "calon_fan_aika@gmail.com");
+  if (!testEmail) return;
+
+  try {
+    showAlert('Membuat akun via Google...', 'success');
+    const res = await fetch('/api/google-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        demoUser: {
+          email: testEmail.trim().toLowerCase(),
+          name: testEmail.split('@')[0],
+          sub: 'demo_google_' + Date.now(),
+          picture: 'https://lh3.googleusercontent.com/a/default-user'
+        }
+      })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Gagal mendaftar dengan Google');
+    }
+    onGoogleRegisterSuccess(data);
+  } catch (err) {
+    showAlert(err.message || 'Gagal autentikasi Google');
+  }
+}
+
+async function handleGoogleSignUpCallback(response) {
+  if (!response || !response.credential) {
+    showAlert('Gagal menerima token dari Google');
+    return;
+  }
+
+  try {
+    showAlert('Membuat akun dengan Google...', 'success');
+    const res = await fetch('/api/google-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential: response.credential })
+    });
+    
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Autentikasi Google gagal');
+    }
+
+    onGoogleRegisterSuccess(data);
+  } catch (err) {
+    showAlert(err.message || 'Gagal mendaftar via Google');
+  }
+}
+
+function onGoogleRegisterSuccess(data) {
+  const user = data.user;
+  showAlert(data.message || 'Pendaftaran berhasil! Mengalihkan...', 'success');
+  
+  const sessionData = { email: user.email, username: user.username, loggedIn: true };
+  localStorage.setItem('aika_session', JSON.stringify(sessionData));
+  
+  if (user.avatar) {
+    localStorage.setItem('aika_avatar_' + user.email, user.avatar);
+  }
+
+  setTimeout(() => {
+    window.location.href = 'index.html';
+  }, 1200);
+}
+
+document.addEventListener('DOMContentLoaded', initGoogleSignUp);
 </script>
 </body>
 </html>
