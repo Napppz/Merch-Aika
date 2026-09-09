@@ -1,7 +1,7 @@
 // ── PRODUCT STORAGE (Neon DB API) ──
 const Products = {
   async getAll() {
-    try { const res = await fetch('/api/products'); return await res.json(); } catch { return []; }
+    try { const res = await fetch('/api/products?t=' + Date.now(), { cache: 'no-store' }); return await res.json(); } catch { return []; }
   },
   async add(product) {
     product.id = 'p' + Date.now();

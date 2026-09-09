@@ -52,7 +52,7 @@ function invalidateCache(pattern) {
     });
   } else {
     // Direct key invalidation
-    delete cache[key];
+    delete cache[pattern];
   }
 }
 

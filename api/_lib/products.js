@@ -1,5 +1,5 @@
 const db = require('./_db');
-const { getCache, setCache, invalidateCache } = require('./cache');
+const { getCache, setCache, invalidateCache, clearAllCache } = require('./cache');
 const { requireAdmin } = require('./admin-auth');
 
 let ensuredColumns = false;
@@ -23,18 +23,9 @@ module.exports = async (req, res) => {
     await ensureProductColumns();
 
     if (method === 'GET') {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       const isAdminReq = req.query.admin === 'true';
-      
-      // ✅ Try cache first for public GET requests
-      if (!isAdminReq) {
-        const cached = getCache('products_all');
-        if (cached) {
-          res.setHeader('X-Cache', 'HIT');
-          return res.status(200).json(cached);
-        }
-      }
 
-      res.setHeader('X-Cache', 'MISS');
       const selectFields = isAdminReq
         ? `id, name, category, description, price, "oldPrice", stock, badge, image, sizes, tag, gdrive_link, cosplayer_name, is_photopack, created_at`
         : `id, name, category, description, price, "oldPrice", stock, badge, image, sizes, tag, cosplayer_name, is_photopack, created_at`;
@@ -45,9 +36,6 @@ module.exports = async (req, res) => {
         ORDER BY created_at DESC
       `);
       
-      if (!isAdminReq) {
-        setCache('products_all', rows, 3600);
-      }
       return res.status(200).json(rows);
     } 
     
