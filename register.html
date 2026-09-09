@@ -499,7 +499,7 @@
         <label for="reg-email">Alamat Email</label>
         <div class="input-icon-wrap">
           <span class="input-icon">✉️</span>
-          <input type="email" id="reg-email" name="email" placeholder="email@contoh.com" autocomplete="email" />
+          <input type="email" id="reg-email" name="email" placeholder="email@contoh.com" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="email" />
         </div>
       </div>
 
@@ -645,6 +645,16 @@ let currentStep = 1;
 let generatedOtp = '';
 let resendTimer = null;
 
+// Auto-lowercase email input
+document.addEventListener('DOMContentLoaded', () => {
+  const emailInput = document.getElementById('reg-email');
+  if (emailInput) {
+    emailInput.addEventListener('blur', () => {
+      emailInput.value = emailInput.value.trim().toLowerCase();
+    });
+  }
+});
+
 function showAlert(msg, type='error') {
   const el = document.getElementById('authAlert');
   el.className = 'auth-alert ' + type;
@@ -680,7 +690,9 @@ function updateStepDots() {
 /* ─── Step 1 → 2 ─── */
 function goStep2() {
   const username = document.getElementById('reg-username').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
+  const emailInput = document.getElementById('reg-email');
+  emailInput.value = emailInput.value.trim().toLowerCase();
+  const email = emailInput.value;
   const phone = document.getElementById('reg-phone').value.trim();
 
   if (!username || username.length < 3) return showAlert('Username minimal 3 karakter!');
@@ -745,7 +757,7 @@ async function goStep3() {
   if (pw !== cf) return showAlert('Password dan konfirmasi tidak cocok!');
   if (!terms) return showAlert('Kamu harus menyetujui Syarat & Ketentuan terlebih dahulu!');
 
-  const email = document.getElementById('reg-email').value.trim();
+  const email = document.getElementById('reg-email').value.trim().toLowerCase();
 
   // Loading state
   const btn = document.getElementById('sendOtpBtn');
@@ -864,7 +876,7 @@ function startResendCountdown() {
 }
 
 async function resendCode() {
-  const email = document.getElementById('reg-email').value.trim();
+  const email = document.getElementById('reg-email').value.trim().toLowerCase();
   generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
   const btn = document.getElementById('resendBtn');

@@ -42,6 +42,7 @@ module.exports = async function handler(req, res) {
 
   // Simpan OTP sementara di DB dengan expiry 10 menit
   try {
+    await query(`DELETE FROM otp_codes WHERE LOWER(email) = LOWER($1)`, [cleanEmail]);
     await query(
       `INSERT INTO otp_codes (email, code, expires_at)
        VALUES ($1, $2, NOW() + INTERVAL '10 minutes')
@@ -55,18 +56,14 @@ module.exports = async function handler(req, res) {
 
   const emailUser = getRequiredEnv('EMAIL_USER');
 
-  // Konfigurasi Email Standar Transaksional (Mengurangi risiko masuk spam)
+  // Konfigurasi Email Standar Transaksional (Bebas dari header pemicu Spam Gmail)
   const mailOptions = {
-    from: `"Aika Sesilia" <${emailUser}>`,
+    from: `"Aika Sesilia Store" <${emailUser}>`,
     to: cleanEmail,
     replyTo: emailUser,
-    subject: `[Aika Sesilia] ${cleanOtp} adalah Kode Verifikasi Anda`,
+    subject: 'Kode Verifikasi Pendaftaran Akun — Aika Sesilia Store',
     headers: {
-      'X-Entity-Ref-ID': `aika-otp-${Date.now()}-${cleanOtp}`,
-      'Auto-Submitted': 'auto-generated',
-      'X-Auto-Response-Suppress': 'All',
-      'X-Priority': '1',
-      'Importance': 'high',
+      'X-Entity-Ref-ID': `aika-otp-${Date.now()}`,
     },
     text: `Halo,\n\nKode verifikasi akun Aika Sesilia kamu adalah: ${cleanOtp}\n\nKode ini berlaku selama 10 menit. Jangan berikan kode ini kepada siapapun demi keamanan akun kamu.\n\nJika kamu tidak melakukan permintaan ini, silakan abaikan email ini.\n\nSalam,\nTim Aika Sesilia Merch`,
     html: `

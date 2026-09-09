@@ -57,7 +57,7 @@ module.exports = async function handler(req, res) {
   try {
     // Cek duplicate
     const existing = await query(
-      'SELECT id FROM users WHERE email = $1 OR username = $2',
+      'SELECT id FROM users WHERE LOWER(email) = LOWER($1) OR LOWER(username) = LOWER($2)',
       [email.toLowerCase(), username.toLowerCase()]
     );
     if (existing.rows.length > 0) {

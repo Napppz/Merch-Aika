@@ -9,12 +9,13 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ error: 'Email diperlukan' });
+  const rawEmail = req.body.email;
+  if (!rawEmail) return res.status(400).json({ error: 'Email diperlukan' });
+  const email = String(rawEmail).trim().toLowerCase();
 
   try {
     // Cek apakah user ada
-    const userRes = await query('SELECT * FROM users WHERE email = $1', [email]);
+    const userRes = await query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [email]);
     if (userRes.rows.length === 0) {
       return res.status(404).json({ error: 'Email tidak terdaftar di sistem kami.' });
     }
@@ -31,7 +32,7 @@ module.exports = async function handler(req, res) {
       );
     `);
 
-    await query(`DELETE FROM password_reset_tokens WHERE email = $1`, [email]);
+    await query(`DELETE FROM password_reset_tokens WHERE LOWER(email) = LOWER($1)`, [email]);
     await query(`
       INSERT INTO password_reset_tokens (email, token, expires_at)
       VALUES ($1, $2, $3)
@@ -42,16 +43,12 @@ module.exports = async function handler(req, res) {
     const emailUser = getRequiredEnv('EMAIL_USER');
 
     const mailOptions = {
-      from: `"Aika Sesilia" <${emailUser}>`,
+      from: `"Aika Sesilia Store" <${emailUser}>`,
       to: email,
       replyTo: emailUser,
-      subject: '[Aika Sesilia] Instruksi Reset Password Akun Anda',
+      subject: 'Instruksi Reset Password Akun — Aika Sesilia Store',
       headers: {
         'X-Entity-Ref-ID': `aika-reset-${Date.now()}`,
-        'Auto-Submitted': 'auto-generated',
-        'X-Auto-Response-Suppress': 'All',
-        'X-Priority': '1',
-        'Importance': 'high',
       },
       text: `Halo,\n\nKami menerima permintaan untuk mereset password akun Aika Sesilia Anda.\n\nKlik tautan berikut untuk membuat password baru (berlaku 15 menit):\n${resetLink}\n\nJika Anda tidak meminta reset password, abaikan email ini.\n\nSalam,\nAika Sesilia Merch`,
       html: `

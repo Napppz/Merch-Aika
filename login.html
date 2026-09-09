@@ -291,7 +291,7 @@
         <label for="login-email">Email / Username</label>
         <div class="input-icon-wrap">
           <span class="input-icon">✉️</span>
-          <input type="text" id="login-email" name="email" placeholder="email@contoh.com" autocomplete="username"
+          <input type="text" id="login-email" name="email" placeholder="email@contoh.com" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false"
             onkeydown="if(event.key==='Enter')doLogin()" />
         </div>
       </div>
@@ -340,7 +340,7 @@
       <label for="forgot-email">Alamat Email</label>
       <div class="input-icon-wrap">
         <span class="input-icon">✉️</span>
-        <input type="email" id="forgot-email" placeholder="email@contoh.com"
+        <input type="email" id="forgot-email" placeholder="email@contoh.com" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="email"
           onkeydown="if(event.key==='Enter')sendReset()" />
       </div>
     </div>
