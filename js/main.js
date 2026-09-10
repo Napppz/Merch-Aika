@@ -590,6 +590,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initFadeIn();
   loadReviews();
   syncWishlistWithServer();
+  initMobileBottomNav();
   // Navbar scroll effect
   window.addEventListener('scroll', () => {
     const nav = document.querySelector('.navbar');
@@ -746,3 +747,38 @@ function initSmoothScroll() {
     }
   });
 }
+
+// ── MOBILE BOTTOM NAVIGATION ──
+function initMobileBottomNav() {
+  const bnav = document.getElementById('mobileBottomNav');
+  if (!bnav) return;
+
+  // Sync cart badge if cart loaded
+  if (window.Cart && typeof window.Cart.count === 'function') {
+    const totalCount = window.Cart.count();
+    const bnavCountEl = document.getElementById('mobileBottomCartCount');
+    if (bnavCountEl) {
+      bnavCountEl.textContent = totalCount;
+      bnavCountEl.style.display = totalCount > 0 ? 'flex' : 'none';
+    }
+  }
+
+  // Adjust account & wishlist links if guest
+  const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+  let isLoggedIn = false;
+  try {
+    const sess = userStr ? JSON.parse(userStr) : null;
+    isLoggedIn = !!(sess && sess.loggedIn);
+  } catch (e) {}
+
+  const accBtn = document.getElementById('bnav-account');
+  if (accBtn && !isLoggedIn) {
+    accBtn.href = 'login.html?redirect=profile.html';
+  }
+
+  const wishBtn = document.getElementById('bnav-wishlist');
+  if (wishBtn && !isLoggedIn) {
+    wishBtn.href = 'login.html?redirect=profile.html%3Ftab%3Dwishlist';
+  }
+}
+

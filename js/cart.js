@@ -344,8 +344,15 @@ const Cart = {
   },
 
   updateUI() {
+    const totalCount = this.count();
     const countEl = document.getElementById('cartCount');
-    if (countEl) countEl.textContent = this.count();
+    if (countEl) countEl.textContent = totalCount;
+
+    const bnavCountEl = document.getElementById('mobileBottomCartCount');
+    if (bnavCountEl) {
+      bnavCountEl.textContent = totalCount;
+      bnavCountEl.style.display = totalCount > 0 ? 'flex' : 'none';
+    }
 
     const itemsEl = document.getElementById('cartItems');
     if (!itemsEl) return;

@@ -1595,7 +1595,7 @@
   </style>
 </head>
 
-<body>
+<body class="has-bottom-nav">
 
   <!-- NAV -->
   <nav class="navbar">
@@ -1929,6 +1929,19 @@
       document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
       const targetSection = document.getElementById('tab-' + tabId);
       if (targetSection) targetSection.classList.add('active');
+
+      // Sync active state with mobile bottom nav
+      const bnavWish = document.getElementById('bnav-wishlist');
+      const bnavAcc = document.getElementById('bnav-account');
+      if (bnavWish && bnavAcc) {
+        if (tabId === 'wishlist') {
+          bnavWish.classList.add('active');
+          bnavAcc.classList.remove('active');
+        } else {
+          bnavAcc.classList.add('active');
+          bnavWish.classList.remove('active');
+        }
+      }
 
       if (tabId === 'wishlist') {
         loadWishlist().catch(err => console.error('Error loading wishlist:', err));
@@ -2982,11 +2995,54 @@
       }
     }
   </script>
-  <!-- Floating Back to Home Button for Mobile (Android & iOS) -->
-  <a href="index.html" class="mobile-floating-home-btn" id="profileMobileHomeFab" aria-label="Kembali ke Halaman Utama">
-    <span class="fab-icon">🏠</span>
-    <span>Halaman Utama</span>
-  </a>
+  <!-- MOBILE BOTTOM NAVIGATION BAR -->
+  <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Navigasi Bawah">
+    <a href="index.html" class="bottom-nav-item" id="bnav-home">
+      <span class="bnav-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+      </span>
+      <span class="bnav-label">Beranda</span>
+    </a>
+
+    <a href="shop.html" class="bottom-nav-item" id="bnav-shop">
+      <span class="bnav-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M19 6h-2c0-2.76-2.24-5-5-5S7 3.24 7 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-3c1.66 0 3 1.34 3 3H9c0-1.66 1.34-3 3-3zm7 17H5V8h14v12zm-7-8c-1.66 0-3-1.34-3-3H7c0 2.76 2.24 5 5 5s5-2.24 5-5h-2c0 1.66-1.34 3-3 3z"/>
+        </svg>
+      </span>
+      <span class="bnav-label">Katalog</span>
+    </a>
+
+    <button type="button" class="bottom-nav-item bnav-cart-btn" onclick="toggleCart()" id="bnav-cart" aria-label="Buka Keranjang">
+      <span class="bnav-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+        </svg>
+        <span class="bnav-badge" id="mobileBottomCartCount" style="display:none">0</span>
+      </span>
+      <span class="bnav-label">Keranjang</span>
+    </button>
+
+    <a href="javascript:void(0)" onclick="switchTab('wishlist')" class="bottom-nav-item" id="bnav-wishlist">
+      <span class="bnav-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+      </span>
+      <span class="bnav-label">Favorit</span>
+    </a>
+
+    <a href="javascript:void(0)" onclick="switchTab('orders')" class="bottom-nav-item active" id="bnav-account">
+      <span class="bnav-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+      </span>
+      <span class="bnav-label">Akun</span>
+    </a>
+  </nav>
 </body>
 
 </html>
