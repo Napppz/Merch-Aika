@@ -426,13 +426,37 @@ const Cart = {
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => { Cart.load(); });
+document.addEventListener('DOMContentLoaded', () => {
+  Cart.load();
+
+  // Support opening cart via query parameter ?openCart=true
+  if (new URLSearchParams(window.location.search).get('openCart') === 'true') {
+    setTimeout(() => {
+      const sidebar = document.getElementById('cartSidebar');
+      if (sidebar && !sidebar.classList.contains('open')) {
+        toggleCart();
+      }
+    }, 250);
+  }
+});
+
+// Close cart on Escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const sidebar = document.getElementById('cartSidebar');
+    if (sidebar && sidebar.classList.contains('open')) {
+      toggleCart();
+    }
+  }
+});
 
 function toggleCart() {
   const sidebar = document.getElementById('cartSidebar');
   const overlay = document.getElementById('cartOverlay');
   if (sidebar) sidebar.classList.toggle('open');
   if (overlay) overlay.classList.toggle('active');
+  const isOpen = sidebar ? sidebar.classList.contains('open') : false;
+  document.body.classList.toggle('cart-open', isOpen);
 }
 
 function goToCheckout() {
