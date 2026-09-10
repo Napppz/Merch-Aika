@@ -87,10 +87,10 @@
   <div class="cursor-glow"></div>
 
   <nav class="navbar">
-    <div class="nav-brand">
+    <a href="index.html" class="nav-brand" title="Kembali ke Halaman Utama">
       <span class="brand-logo">✦</span>
       <span class="brand-name">Aika Sesilia</span>
-    </div>
+    </a>
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
       <li><a href="shop.html" class="active">Shop</a></li>
@@ -98,6 +98,11 @@
       <li><a href="index.html#contact">Contact</a></li>
     </ul>
     <div class="nav-actions">
+      <a href="index.html" class="nav-back-btn" title="Kembali ke Halaman Utama">
+        <span class="back-arrow">←</span>
+        <span class="back-text-full">Halaman Utama</span>
+        <span class="back-text-mobile">Beranda</span>
+      </a>
       <button class="cart-btn" onclick="toggleCart()">
         🛒 <span class="cart-count" id="cartCount">0</span>
       </button>
@@ -190,6 +195,11 @@
       applyFilter();
     });
   </script>
+  <!-- Floating Back to Home Button for Mobile (Android & iOS) -->
+  <a href="index.html" class="mobile-floating-home-btn" id="shopMobileHomeFab" aria-label="Kembali ke Halaman Utama">
+    <span class="fab-icon">🏠</span>
+    <span>Halaman Utama</span>
+  </a>
 </body>
 
 </html>

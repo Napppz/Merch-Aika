@@ -1599,11 +1599,12 @@
 
   <!-- NAV -->
   <nav class="navbar">
-    <a href="index.html" class="nav-brand">✦ Aika Sesilia</a>
+    <a href="index.html" class="nav-brand" title="Kembali ke Halaman Utama">✦ Aika Sesilia</a>
     <div class="nav-actions">
-      <a href="index.html" class="btn-ghost nav-back-btn">
-        <span class="back-text-full">Kembali ke Toko</span>
-        <span class="back-text-mobile">← Toko</span>
+      <a href="index.html" class="nav-back-btn" title="Kembali ke Halaman Utama">
+        <span class="back-arrow">←</span>
+        <span class="back-text-full">Halaman Utama</span>
+        <span class="back-text-mobile">Beranda</span>
       </a>
     </div>
   </nav>
@@ -2981,6 +2982,11 @@
       }
     }
   </script>
+  <!-- Floating Back to Home Button for Mobile (Android & iOS) -->
+  <a href="index.html" class="mobile-floating-home-btn" id="profileMobileHomeFab" aria-label="Kembali ke Halaman Utama">
+    <span class="fab-icon">🏠</span>
+    <span>Halaman Utama</span>
+  </a>
 </body>
 
 </html>

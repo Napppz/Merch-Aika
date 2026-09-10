@@ -125,6 +125,7 @@
       <a href="profile.html?tab=orders" class="btn-primary" style="padding:0.75rem 1.4rem; border-radius:50px;">📂 Lihat Status & GDrive di Profil</a>
       <button onclick="window.print()" class="btn-print">🖨️ Cetak / Simpan Invoice (PDF)</button>
       <a href="shop.html" class="btn-ghost" style="padding:0.75rem 1.4rem; border-radius:50px;">🛍️ Lanjut Belanja</a>
+      <a href="index.html" class="btn-ghost" style="padding:0.75rem 1.4rem; border-radius:50px; border-color:rgba(41,182,246,0.5);">🏠 Kembali ke Halaman Utama</a>
     </div>
   </div>
 </div>
@@ -206,5 +207,10 @@ document.addEventListener('DOMContentLoaded', () => {
   `;
 });
 </script>
+<!-- Floating Back to Home Button for Mobile (Android & iOS) -->
+<a href="index.html" class="mobile-floating-home-btn" id="successMobileHomeFab" aria-label="Kembali ke Halaman Utama">
+  <span class="fab-icon">🏠</span>
+  <span>Halaman Utama</span>
+</a>
 </body>
 </html>

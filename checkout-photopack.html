@@ -250,9 +250,14 @@
 <body>
 
 <nav class="navbar">
-  <a href="shop.html" class="nav-brand">✦ Aika Sesilia Store</a>
+  <a href="index.html" class="nav-brand" title="Kembali ke Halaman Utama">✦ Aika Sesilia Store</a>
   <div class="nav-actions">
-    <a href="shop.html" class="btn-ghost" style="padding:0.5rem 1rem;">← Kembali ke Shop</a>
+    <a href="index.html" class="nav-back-btn" title="Kembali ke Halaman Utama">
+      <span class="back-arrow">←</span>
+      <span class="back-text-full">Halaman Utama</span>
+      <span class="back-text-mobile">Beranda</span>
+    </a>
+    <a href="shop.html" class="btn-ghost" style="padding:0.45rem 0.9rem; font-size:0.85rem; border-radius:50px;">🛍️ Shop</a>
   </div>
 </nav>
 
@@ -633,5 +638,10 @@
 
   function formatPrice(n) { return 'Rp ' + (n || 0).toLocaleString('id-ID'); }
 </script>
+<!-- Floating Back to Home Button for Mobile (Android & iOS) -->
+<a href="index.html" class="mobile-floating-home-btn" id="photopackMobileHomeFab" aria-label="Kembali ke Halaman Utama">
+  <span class="fab-icon">🏠</span>
+  <span>Halaman Utama</span>
+</a>
 </body>
 </html>
