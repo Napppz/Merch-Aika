@@ -235,6 +235,84 @@ function buildExcelHtml(order) {
   `;
 }
 
+function buildAllOrdersCsv(orders) {
+  const CSV_HEADERS = [
+    'No.',
+    'Order ID',
+    'Tanggal Pesanan',
+    'Nama Customer',
+    'Email Customer',
+    'Alamat Pengiriman',
+    'Status Pesanan',
+    'Skema Pembayaran',
+    'Daftar Produk',
+    'Total Qty',
+    'Subtotal Produk (Rp)',
+    'Biaya Varian Size (Rp)',
+    'Ongkos Kirim (Rp)',
+    'Kurir Pengiriman',
+    'No. Resi',
+    'Diskon (Rp)',
+    'Kode Voucher',
+    'Tagihan DP (Rp)',
+    'Sisa Pelunasan (Rp)',
+    'Total Pesanan (Rp)'
+  ];
+
+  const rows = orders.map((order, idx) => {
+    const norm = normalizeOrder(order);
+    const items = norm.items || [];
+    const ship = norm.shipping || {};
+
+    const itemsSummary = items.map(i => {
+      const sizeStr = i.size ? ` [Size: ${i.size}]` : '';
+      const qtyStr = ` (${i.qty || 1}x)`;
+      const priceStr = i.price ? ` @Rp${Number(i.price).toLocaleString('id-ID')}` : '';
+      return `${i.name || 'Produk'}${sizeStr}${priceStr}${qtyStr}`;
+    }).join('; ');
+
+    const totalQty = items.reduce((acc, i) => acc + (Number(i.qty) || 0), 0);
+    const shippingCost = Number(ship.price) || 0;
+    const sizeSurcharge = Number(ship.sizeSurcharge) || 0;
+    const discountAmount = Number(ship.discount?.amount) || 0;
+    const discountCode = ship.discount?.code || '-';
+    const subtotal = Math.max(0, (Number(norm.total) || 0) - shippingCost - sizeSurcharge + discountAmount);
+
+    const isDp = ship.paymentScheme === 'dp50' || ship.isDp;
+    const dpAmount = isDp ? (Number(ship.dpAmount) || Math.ceil((Number(norm.total) || 0) * 0.5)) : 0;
+    const remainingAmount = isDp ? (Number(ship.remainingAmount) || Math.max(0, (Number(norm.total) || 0) - dpAmount)) : 0;
+    const schemeLabel = isDp ? 'DP 50% (Uang Muka)' : 'Bayar Penuh (100%)';
+
+    const cleanAddress = String(norm.address || '-').replace(/\r?\n/g, ', ');
+
+    return [
+      idx + 1,
+      norm.id,
+      formatDate(norm.date),
+      norm.customerName || '-',
+      norm.email || '-',
+      cleanAddress,
+      formatStatus(norm.status),
+      schemeLabel,
+      itemsSummary || '-',
+      totalQty,
+      subtotal,
+      sizeSurcharge,
+      shippingCost,
+      ship.name || '-',
+      ship.resi || '-',
+      discountAmount,
+      discountCode,
+      dpAmount,
+      remainingAmount,
+      Number(norm.total) || 0
+    ];
+  });
+
+  const lines = [CSV_HEADERS, ...rows];
+  return `\uFEFF${lines.map(row => row.map(escapeCsv).join(',')).join('\n')}`;
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'GET') {
     res.setHeader('Allow', ['GET']);
@@ -243,32 +321,58 @@ module.exports = async (req, res) => {
 
   if (!requireAdmin(req, res)) return;
 
-  const { id, format = 'csv' } = req.query;
-  if (!id) {
-    return res.status(400).json({ error: 'Order id wajib diisi' });
+  const { id, format = 'csv', status } = req.query;
+
+  // JIKA REQUEST MEMINTA EXPORT ORDER INDIVIDUAL
+  if (id) {
+    if (format === 'csv') {
+      // Sesuai permintaan pengguna, fitur export CSV per order 1-1 dinonaktifkan
+      return res.status(400).json({
+        error: 'Fitur export CSV untuk order 1 per 1 telah dinonaktifkan. Silakan gunakan tombol "Export CSV Semua Order" di manajemen pesanan.'
+      });
+    }
+
+    // Single order invoice Excel masih dapat diakses
+    if (format === 'excel') {
+      const { rows } = await db.query(`SELECT ${ORDER_DETAIL_COLUMNS} FROM orders WHERE id = $1`, [id]);
+      if (!rows.length) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+
+      const order = normalizeOrder(rows[0]);
+      const safeId = String(order.id).replace(/[^a-zA-Z0-9_-]/g, '-');
+      const html = buildExcelHtml(order);
+      return res
+        .status(200)
+        .setHeader('Content-Type', 'application/vnd.ms-excel; charset=utf-8')
+        .setHeader('Content-Disposition', `attachment; filename="invoice-${safeId}.xls"`)
+        .send(`\uFEFF${html}`);
+    }
+
+    return res.status(400).json({ error: 'Format tidak didukung' });
   }
 
-  const { rows } = await db.query(`SELECT ${ORDER_DETAIL_COLUMNS} FROM orders WHERE id = $1`, [id]);
-  if (!rows.length) {
-    return res.status(404).json({ error: 'Order not found' });
+  // EXPORT CSV UNTUK SEMUA ORDER (ATAU FILTER STATUS)
+  let querySql = `SELECT ${ORDER_DETAIL_COLUMNS} FROM orders`;
+  const queryParams = [];
+
+  if (status && status !== 'all') {
+    querySql += ` WHERE status = $1`;
+    queryParams.push(status);
   }
 
-  const order = normalizeOrder(rows[0]);
-  const safeId = String(order.id).replace(/[^a-zA-Z0-9_-]/g, '-');
+  querySql += ` ORDER BY date DESC`;
 
-  if (format === 'excel') {
-    const html = buildExcelHtml(order);
-    return res
-      .status(200)
-      .setHeader('Content-Type', 'application/vnd.ms-excel; charset=utf-8')
-      .setHeader('Content-Disposition', `attachment; filename="invoice-${safeId}.xls"`)
-      .send(`\uFEFF${html}`);
-  }
+  const { rows } = await db.query(querySql, queryParams);
+  const csv = buildAllOrdersCsv(rows);
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const filename = (status && status !== 'all') 
+    ? `pesanan-${status}-aika-${dateStr}.csv` 
+    : `semua-pesanan-aika-${dateStr}.csv`;
 
-  const csv = buildCsv(order);
   return res
     .status(200)
     .setHeader('Content-Type', 'text/csv; charset=utf-8')
-    .setHeader('Content-Disposition', `attachment; filename="invoice-${safeId}.csv"`)
+    .setHeader('Content-Disposition', `attachment; filename="${filename}"`)
     .send(csv);
 };
