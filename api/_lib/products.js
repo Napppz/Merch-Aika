@@ -1,6 +1,6 @@
 const db = require('./_db');
 const { getCache, setCache, invalidateCache, clearAllCache } = require('./cache');
-const { requireAdmin } = require('./admin-auth');
+const { requireAdmin, verifyAdminToken } = require('./admin-auth');
 
 let ensuredColumns = false;
 
@@ -24,7 +24,8 @@ module.exports = async (req, res) => {
 
     if (method === 'GET') {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      const isAdminReq = req.query.admin === 'true';
+      const adminUser = verifyAdminToken(req);
+      const isAdminReq = req.query.admin === 'true' && !!adminUser;
 
       const selectFields = isAdminReq
         ? `id, name, category, description, price, "oldPrice", stock, badge, image, sizes, tag, gdrive_link, cosplayer_name, is_photopack, created_at`

@@ -24,6 +24,75 @@ const ORDER_DETAIL_COLUMNS = `
   payment_proof
 `;
 
+const SIZE_SURCHARGE_RULES = {
+  'Pakaian Kaos': { XL: 15000, XXL: 25000, XXXL: 30000 },
+  'Haori': { XL: 50000, XXL: 50000, XXXL: 50000 }
+};
+
+function getItemSizeTag(prod) {
+  if (!prod) return '';
+  const rawTag = String(prod.tag || '').trim();
+  if (rawTag) {
+    if (/haori/i.test(rawTag)) return 'Haori';
+    if (/kaos/i.test(rawTag)) return 'Pakaian Kaos';
+    return rawTag;
+  }
+  const name = String(prod.name || '').toLowerCase();
+  const category = String(prod.category || '').toLowerCase();
+  if (name.includes('haori')) return 'Haori';
+  if (name.includes('kaos') || name.includes('t-shirt') || name.includes('tshirt') || category === 'pakaian') {
+    return 'Pakaian Kaos';
+  }
+  return '';
+}
+
+function getItemSizeSurcharge(prod, size) {
+  if (!prod || !size) return 0;
+  const tag = getItemSizeTag(prod);
+  const rules = SIZE_SURCHARGE_RULES[tag];
+  if (!rules) return 0;
+  const key = String(size).trim().toUpperCase();
+  return rules[key] || 0;
+}
+
+async function verifyVoucherDiscount(code, subtotal) {
+  if (!code || typeof code !== 'string') return 0;
+  try {
+    const result = await db.query("SELECT value FROM settings WHERE key = 'vouchers'");
+    if (!result.rows.length) return 0;
+    const vouchers = JSON.parse(result.rows[0].value || '[]');
+    if (!Array.isArray(vouchers)) return 0;
+
+    const normalizedCode = code.trim().toUpperCase();
+    const voucher = vouchers.find(v => (v.code || '').trim().toUpperCase() === normalizedCode);
+    if (!voucher || voucher.isActive === false) return 0;
+
+    const now = new Date();
+    if (voucher.startsAt && new Date(voucher.startsAt) > now) return 0;
+    if (voucher.expiresAt && new Date(voucher.expiresAt) < now) return 0;
+
+    const minPurchase = Math.max(0, parseInt(voucher.minPurchase, 10) || 0);
+    if (subtotal < minPurchase) return 0;
+
+    let discount = 0;
+    if (voucher.type === 'percent') {
+      discount = Math.round((subtotal * Math.min(100, Math.max(0, parseInt(voucher.value, 10) || 0))) / 100);
+    } else {
+      discount = Math.max(0, parseInt(voucher.value, 10) || 0);
+    }
+
+    if (voucher.maxDiscount != null) {
+      const maxD = Math.max(0, parseInt(voucher.maxDiscount, 10) || 0);
+      if (discount > maxD) discount = maxD;
+    }
+
+    return Math.min(discount, subtotal);
+  } catch (err) {
+    console.error('Error verifying voucher discount:', err.message);
+    return 0;
+  }
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
@@ -50,54 +119,127 @@ module.exports = async (req, res) => {
     }
 
     if (method === 'POST') {
-      const { id, customerName, email, address, status, total, items, shipping } = req.body;
+      const { id, customerName, email, address, items, shipping } = req.body || {};
+      const orderId = id || ('ORD-' + Date.now());
       const parsedItems = Array.isArray(items) ? items : (typeof items === 'string' ? JSON.parse(items || '[]') : []);
 
-      // 1. Validasi stok sebelum membuat pesanan
-      for (const item of parsedItems) {
-        if (!item || !item.id) continue;
-        const prodRes = await db.query('SELECT id, name, stock, is_photopack FROM products WHERE id = $1', [item.id]);
-        if (prodRes.rows.length) {
-          const prod = prodRes.rows[0];
-          if (!prod.is_photopack) {
-            const availableStock = parseInt(prod.stock, 10) || 0;
-            const requestedQty = parseInt(item.qty, 10) || 1;
-            if (availableStock <= 0) {
-              return res.status(400).json({
-                error: `Maaf, stok produk "${prod.name}" sudah habis (0 tersisa). Pesanan tidak dapat diproses.`
-              });
-            }
-            if (requestedQty > availableStock) {
-              return res.status(400).json({
-                error: `Stok produk "${prod.name}" tidak mencukupi (tersisa: ${availableStock}, Anda memesan: ${requestedQty}).`
-              });
-            }
-          }
-        }
+      if (!parsedItems.length) {
+        return res.status(400).json({ error: 'Pesanan harus memiliki setidaknya 1 item produk.' });
       }
 
-      // 2. Buat pesanan
+      // 1. Validasi produk & stok, serta hitung subtotal dan biaya size dari database
+      let subtotal = 0;
+      let totalSizeSurcharge = 0;
+      let allPhotopack = true;
+      const sanitizedItems = [];
+
+      for (const item of parsedItems) {
+        if (!item || !item.id) continue;
+        const prodRes = await db.query(
+          'SELECT id, name, price, stock, is_photopack, tag, category FROM products WHERE id = $1',
+          [item.id]
+        );
+        if (!prodRes.rows.length) {
+          return res.status(400).json({
+            error: `Produk "${item.name || item.id}" tidak ditemukan di database.`
+          });
+        }
+        const prod = prodRes.rows[0];
+        const requestedQty = Math.max(1, parseInt(item.qty, 10) || 1);
+
+        if (!prod.is_photopack) {
+          allPhotopack = false;
+          const availableStock = parseInt(prod.stock, 10) || 0;
+          if (availableStock <= 0) {
+            return res.status(400).json({
+              error: `Maaf, stok produk "${prod.name}" sudah habis (0 tersisa). Pesanan tidak dapat diproses.`
+            });
+          }
+          if (requestedQty > availableStock) {
+            return res.status(400).json({
+              error: `Stok produk "${prod.name}" tidak mencukupi (tersisa: ${availableStock}, Anda memesan: ${requestedQty}).`
+            });
+          }
+        }
+
+        const officialPrice = Number(prod.price) || 0;
+        const sizeSurcharge = getItemSizeSurcharge(prod, item.size);
+
+        subtotal += officialPrice * requestedQty;
+        totalSizeSurcharge += sizeSurcharge * requestedQty;
+
+        const sanitizedItem = {
+          ...item,
+          name: prod.name,
+          price: officialPrice,
+          qty: requestedQty,
+          is_photopack: Boolean(prod.is_photopack)
+        };
+        // Keamanan: buang link gdrive dari objek item yang disimpan di order
+        delete sanitizedItem.gdrive_link;
+
+        sanitizedItems.push(sanitizedItem);
+      }
+
+      // 2. Validasi shipping, surcharge, voucher discount, dan grand total di server
+      const shipObj = typeof shipping === 'string' ? JSON.parse(shipping || '{}') : (shipping || {});
+      const isCodEvent = shipObj.method === 'cod_event' || shipObj.id === 'cod_event';
+      const shippingCost = (allPhotopack || isCodEvent) ? 0 : Math.max(0, parseInt(shipObj.price, 10) || 0);
+
+      let discountAmount = 0;
+      if (shipObj.discount && shipObj.discount.code) {
+        discountAmount = await verifyVoucherDiscount(shipObj.discount.code, subtotal);
+        if (discountAmount > 0) {
+          shipObj.discount.amount = discountAmount;
+        } else {
+          shipObj.discount = null;
+        }
+      } else {
+        shipObj.discount = null;
+      }
+
+      const verifiedTotal = Math.max(0, subtotal + shippingCost + totalSizeSurcharge - discountAmount);
+      const isDp = shipObj.paymentScheme === 'dp50';
+      const dpAmount = isDp ? Math.ceil(verifiedTotal * 0.5) : verifiedTotal;
+      const remainingAmount = isDp ? Math.max(0, verifiedTotal - dpAmount) : 0;
+
+      shipObj.price = shippingCost;
+      shipObj.sizeSurcharge = totalSizeSurcharge;
+      shipObj.isDp = isDp;
+      shipObj.dpPercent = isDp ? 50 : 100;
+      shipObj.dpAmount = dpAmount;
+      shipObj.remainingAmount = remainingAmount;
+      shipObj.originalTotal = verifiedTotal;
+
+      // Status pesanan baru SELALU 'pending' untuk mencegah manipulasi status
+      const initialStatus = 'pending';
+
+      // 3. Simpan pesanan ke database
       const { rows } = await db.query(
         `INSERT INTO orders (id, "customerName", email, address, status, total, items, shipping) 
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          RETURNING ${ORDER_LIST_COLUMNS}`,
-        [id, customerName, email, address, status, total, typeof items === 'string' ? items : JSON.stringify(items), typeof shipping === 'string' ? shipping : JSON.stringify(shipping)]
+        [
+          orderId,
+          customerName,
+          email,
+          address,
+          initialStatus,
+          verifiedTotal,
+          JSON.stringify(sanitizedItems),
+          JSON.stringify(shipObj)
+        ]
       );
 
-      // 3. Potong stok otomatis untuk produk fisik
-      for (const item of parsedItems) {
-        if (!item || !item.id) continue;
+      // 4. Potong stok otomatis untuk produk fisik
+      for (const item of sanitizedItems) {
+        if (!item || !item.id || item.is_photopack) continue;
         const requestedQty = parseInt(item.qty, 10) || 1;
         await db.query(
           `UPDATE products SET stock = GREATEST(0, stock - $1), updated_at = NOW() WHERE id = $2 AND is_photopack = FALSE`,
           [requestedQty, item.id]
         );
       }
-
-      const shipObj = typeof shipping === 'string' ? JSON.parse(shipping || '{}') : (shipping || {});
-      const isDp = shipObj.paymentScheme === 'dp50';
-      const dpAmount = shipObj.dpAmount || Math.ceil(total * 0.5);
-      const remainingAmount = shipObj.remainingAmount || Math.max(0, total - dpAmount);
 
       // (1/2) Kirim Notifikasi Email - Pesanan Baru ke Customer
       try {
@@ -107,19 +249,19 @@ module.exports = async (req, res) => {
           from: `"Aika Sesilia" <${emailUser}>`,
           to: email, // Email pembeli
           replyTo: emailUser,
-          subject: `[Aika Sesilia] Pesanan #${id} Diterima ${isDp ? '(DP 50%) ' : ''}📦`,
+          subject: `[Aika Sesilia] Pesanan #${orderId} Diterima ${isDp ? '(DP 50%) ' : ''}📦`,
           html: `
             <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
               <h2 style="color: #29b6f6;">Halo, ${customerName}!</h2>
               <p>Terima kasih telah berbelanja di Aika Sesilia Merch.</p>
-              <p>Pesanan Anda dengan nomor <strong>#${id}</strong> telah diterima dan sedang menunggu verifikasi pembayaran ${isDp ? '<strong>DP 50% (Uang Muka)</strong>' : ''}.</p>
+              <p>Pesanan Anda dengan nomor <strong>#${orderId}</strong> telah diterima dan sedang menunggu verifikasi pembayaran ${isDp ? '<strong>DP 50% (Uang Muka)</strong>' : ''}.</p>
               <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:1rem;margin:1rem 0;">
-                <p style="margin:0 0 0.5rem 0;"><strong>Total Nilai Pesanan: Rp ${total.toLocaleString('id-ID')}</strong></p>
+                <p style="margin:0 0 0.5rem 0;"><strong>Total Nilai Pesanan: Rp ${verifiedTotal.toLocaleString('id-ID')}</strong></p>
                 ${isDp ? `
                   <p style="margin:0 0 0.5rem 0;color:#0284c7;font-size:1.1rem;"><strong>Tagihan DP 50% (Harus Ditransfer): Rp ${dpAmount.toLocaleString('id-ID')}</strong></p>
                   <p style="margin:0;color:#64748b;font-size:0.9rem;">Sisa Tagihan Pelunasan: Rp ${remainingAmount.toLocaleString('id-ID')} (dibayarkan saat pesanan siap dikirim / COD)</p>
                 ` : `
-                  <p style="margin:0;color:#0284c7;font-size:1.1rem;"><strong>Total Pembayaran: Rp ${total.toLocaleString('id-ID')}</strong></p>
+                  <p style="margin:0;color:#0284c7;font-size:1.1rem;"><strong>Total Pembayaran: Rp ${verifiedTotal.toLocaleString('id-ID')}</strong></p>
                 `}
               </div>
               <p>Silakan selesaikan pembayaran melalui aplikasi atau website untuk melanjutkan.</p>
@@ -138,7 +280,7 @@ module.exports = async (req, res) => {
         const transporter = getMailTransport();
         const emailUser = getRequiredEnv('EMAIL_USER');
         const adminEmail = process.env.ADMIN_EMAIL || emailUser;
-        const itemsArray = Array.isArray(items) ? items : (typeof items === 'string' ? JSON.parse(items) : []);
+        const itemsArray = sanitizedItems;
         const itemsHTML = itemsArray
           .map(item => `<li>${item.name}${item.size ? ` (Size ${item.size})` : ''} &times; ${item.qty} = Rp ${(item.price * item.qty).toLocaleString('id-ID')}</li>`)
           .join('');
@@ -146,7 +288,7 @@ module.exports = async (req, res) => {
           from: `"Aika Sesilia" <${emailUser}>`,
           to: adminEmail,
           replyTo: emailUser,
-          subject: `[ADMIN] Pesanan Baru #${id} ${isDp ? '(DP 50%) ' : ''}dari ${customerName}`,
+          subject: `[ADMIN] Pesanan Baru #${orderId} ${isDp ? '(DP 50%) ' : ''}dari ${customerName}`,
           html: `
             <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
               <h2 style="color: #ff6b6b;">📦 Pesanan Baru Masuk! ${isDp ? '<span style="font-size:0.8em;color:#29b6f6;">(SKEMA DP 50%)</span>' : ''}</h2>
@@ -154,7 +296,7 @@ module.exports = async (req, res) => {
               <table style="width:100%;border-collapse:collapse;margin-bottom:1rem;">
                 <tr style="background:#e8e8e8;">
                   <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">No. Pesanan</td>
-                  <td style="padding:0.8rem;border:1px solid #ddd;"><strong>#${id}</strong></td>
+                  <td style="padding:0.8rem;border:1px solid #ddd;"><strong>#${orderId}</strong></td>
                 </tr>
                 <tr>
                   <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Nama Pelanggan</td>
@@ -170,7 +312,7 @@ module.exports = async (req, res) => {
                 </tr>
                 <tr style="background:#e8e8e8;">
                   <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Total Nilai Pesanan</td>
-                  <td style="padding:0.8rem;border:1px solid #ddd;color:#ff6b6b;font-weight:bold;">Rp ${total.toLocaleString('id-ID')}</td>
+                  <td style="padding:0.8rem;border:1px solid #ddd;color:#ff6b6b;font-weight:bold;">Rp ${verifiedTotal.toLocaleString('id-ID')}</td>
                 </tr>
                 <tr>
                   <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Skema Pembayaran</td>

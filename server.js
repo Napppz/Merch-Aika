@@ -50,10 +50,40 @@ app.all('/api/:route', async (req, res) => {
   }
 });
 
+// ── Security: Block Sensitive Files & Internal Directories ─────────────────
+app.use((req, res, next) => {
+  const urlPath = req.path.toLowerCase();
+
+  // 1. Block any hidden/dot file or dot directory (.env, .env.local, .git, etc.)
+  if (urlPath.split('/').some(part => part.startsWith('.'))) {
+    return res.status(403).type('text/plain').send('403 Forbidden: Access denied');
+  }
+
+  // 2. Block direct static access to backend code, scripts, and database files
+  const forbiddenPrefixes = ['/api', '/scripts', '/db', '/node_modules'];
+  if (forbiddenPrefixes.some(prefix => urlPath.startsWith(prefix))) {
+    return res.status(403).type('text/plain').send('403 Forbidden: Access denied');
+  }
+
+  // 3. Block sensitive root project files
+  const forbiddenFiles = [
+    '/server.js',
+    '/package.json',
+    '/package-lock.json',
+    '/readme.md'
+  ];
+  if (forbiddenFiles.includes(urlPath)) {
+    return res.status(403).type('text/plain').send('403 Forbidden: Access denied');
+  }
+
+  next();
+});
+
 // ── Static Files ─────────────────────────────────────────────────────────────
 app.use(express.static(path.join(__dirname), {
   index: 'index.html',
-  extensions: ['html']
+  extensions: ['html'],
+  dotfiles: 'deny'
 }));
 
 // Admin page fallback
