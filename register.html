@@ -1362,7 +1362,8 @@
       const user = data.user;
       showAlert(data.message || 'Pendaftaran berhasil! Mengalihkan...', 'success');
 
-      const sessionData = { email: user.email, username: user.username, loggedIn: true };
+      const userToken = data.token || user.token || '';
+      const sessionData = { email: user.email, username: user.username, token: userToken, loggedIn: true };
       localStorage.setItem('aika_session', JSON.stringify(sessionData));
 
       if (user.avatar) {

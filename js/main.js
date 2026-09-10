@@ -73,9 +73,12 @@ window.toggleWishlist = async function (btn) {
   const svg = btn.querySelector('svg');
   const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
   let userEmail = null;
+  let userToken = null;
   if (userStr) {
     try {
-      userEmail = JSON.parse(userStr)?.email;
+      const u = JSON.parse(userStr);
+      userEmail = u?.email;
+      userToken = u?.token;
     } catch (e) { }
   }
 
@@ -93,7 +96,10 @@ window.toggleWishlist = async function (btn) {
       try {
         await fetch(`/api/wishlist?product_id=${encodeURIComponent(product.id)}`, {
           method: 'DELETE',
-          headers: { 'x-user-email': userEmail }
+          headers: {
+            'x-user-email': userEmail,
+            ...(userToken ? { 'Authorization': `Bearer ${userToken}` } : {})
+          }
         });
       } catch (err) {
         console.error('Failed to remove wishlist from server:', err);
@@ -115,7 +121,8 @@ window.toggleWishlist = async function (btn) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-user-email': userEmail
+            'x-user-email': userEmail,
+            ...(userToken ? { 'Authorization': `Bearer ${userToken}` } : {})
           },
           body: JSON.stringify({ product_id: product.id })
         });
@@ -139,7 +146,9 @@ async function syncWishlistWithServer() {
     const user = JSON.parse(userStr);
     if (!user || !user.email) return;
 
-    const res = await fetch(`/api/wishlist?email=${encodeURIComponent(user.email)}&_t=${Date.now()}`);
+    const res = await fetch(`/api/wishlist?email=${encodeURIComponent(user.email)}&_t=${Date.now()}`, {
+      headers: user.token ? { 'Authorization': `Bearer ${user.token}` } : {}
+    });
     if (res.ok) {
       const data = await res.json();
       if (data.success && Array.isArray(data.items)) {

@@ -48,7 +48,31 @@ const Cart = {
 
   getUserEmail() {
     const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
-    return userStr ? JSON.parse(userStr).email : null;
+    if (!userStr) return null;
+    try {
+      return JSON.parse(userStr).email || null;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  getUserToken() {
+    const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+    if (!userStr) return null;
+    try {
+      return JSON.parse(userStr).token || null;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  getAuthHeaders(extraHeaders = {}) {
+    const email = this.getUserEmail();
+    const token = this.getUserToken();
+    const headers = { ...extraHeaders };
+    if (email) headers['x-user-email'] = email;
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return headers;
   },
 
   makeItemKey(product) {
@@ -66,7 +90,7 @@ const Cart = {
           try {
             await fetch('/api/cart', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'x-user-email': email },
+              headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
               body: JSON.stringify({ product_id: item.id, quantity: item.qty, size: item.size || null })
             });
           } catch (e) { }
@@ -77,7 +101,7 @@ const Cart = {
       // User is logged in, fetch from API
       try {
         const res = await fetch('/api/cart', {
-          headers: { 'x-user-email': email }
+          headers: this.getAuthHeaders()
         });
         if (res.ok) {
           const data = await res.json();
@@ -159,10 +183,7 @@ const Cart = {
       try {
         const res = await fetch('/api/cart', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-user-email': email
-          },
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ product_id: product.id, quantity: 1, size: product.size || null })
         });
         if (!res.ok) {
@@ -224,7 +245,7 @@ const Cart = {
       try {
         await fetch(`/api/cart?product_id=${encodeURIComponent(id)}&size=${encodeURIComponent(size || '')}`, {
           method: 'DELETE',
-          headers: { 'x-user-email': email }
+          headers: this.getAuthHeaders()
         });
       } catch (err) {
         console.error('Error removing from cart API', err);
@@ -261,10 +282,7 @@ const Cart = {
       try {
         const res = await fetch('/api/cart', {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-user-email': email
-          },
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ product_id: item.id, quantity: item.qty, size: item.size || null })
         });
         if (!res.ok) {
@@ -306,16 +324,13 @@ const Cart = {
       try {
         await fetch('/api/cart', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-user-email': email
-          },
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ product_id: id, quantity: item.qty, size: normalizedNewSize || null })
         });
 
         await fetch(`/api/cart?product_id=${encodeURIComponent(id)}&size=${encodeURIComponent(normalizedOldSize)}`, {
           method: 'DELETE',
-          headers: { 'x-user-email': email }
+          headers: this.getAuthHeaders()
         });
       } catch (err) {
         console.error('Error changing cart size', err);
@@ -400,7 +415,7 @@ const Cart = {
       try {
         await fetch('/api/cart', {
           method: 'DELETE',
-          headers: { 'x-user-email': email }
+          headers: this.getAuthHeaders()
         });
       } catch (err) {
         console.error('Error clearing cart API', err);

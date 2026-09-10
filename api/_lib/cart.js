@@ -1,4 +1,5 @@
 const { query } = require('./_db');
+const { requireUserOrAdmin } = require('./user-auth');
 
 let ensuredCartSizeSupport = false;
 
@@ -15,12 +16,15 @@ async function ensureCartSizeSupport() {
 module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // Basic auth - expect email in query or manual header for now (later upgrade to JWT)
-  const email = req.headers['x-user-email'] || req.query.email;
+  const email = req.headers['x-user-email'] || req.query.email || req.body?.email;
   
   if (!email) {
     return res.status(401).json({ error: 'Unauthorized: Missing email' });
   }
+
+  // 🔐 Keamanan: Wajibkan token autentikasi yang sah milik akun ini (atau admin)
+  const auth = requireUserOrAdmin(req, res, email);
+  if (!auth) return;
 
   try {
     await ensureCartSizeSupport();

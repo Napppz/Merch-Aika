@@ -5,6 +5,7 @@
 const { query } = require('./_db');
 const crypto = require('crypto');
 const { getPasswordSalt } = require('./env');
+const { generateJWT } = require('./jwt-manager');
 
 function hashPassword(password) {
   const salt = getPasswordSalt();
@@ -177,17 +178,26 @@ module.exports = async function handler(req, res) {
       isNewUser = true;
     }
 
+    const token = generateJWT({
+      userId: loggedInUser.id,
+      email: loggedInUser.email.toLowerCase(),
+      username: loggedInUser.username,
+      type: 'user'
+    });
+
     return res.status(200).json({
       success: true,
       message: isNewUser ? 'Akun berhasil dibuat dengan Google!' : 'Berhasil masuk dengan Google!',
       isNewUser,
+      token,
       user: {
         id: loggedInUser.id,
         username: loggedInUser.username,
         email: loggedInUser.email,
         phone: loggedInUser.phone || '',
         avatar: loggedInUser.avatar || picture || null,
-        verified: loggedInUser.verified
+        verified: loggedInUser.verified,
+        token
       }
     });
 

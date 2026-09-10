@@ -1,11 +1,12 @@
 const { query } = require('./_db');
 const { hasR2Config, parseDataUrlImage, uploadImageBuffer } = require('./r2-storage');
+const { requireUserOrAdmin } = require('./user-auth');
 
 module.exports = async (req, res) => {
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,x-user-email');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-user-email');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -36,7 +37,10 @@ module.exports = async (req, res) => {
     } 
     
     else if (req.method === 'POST') {
-      // POST - Upload/Update avatar
+      // 🔐 Keamanan: Wajibkan token autentikasi yang sah milik akun ini (atau admin)
+      const auth = requireUserOrAdmin(req, res, email);
+      if (!auth) return;
+
       const { avatar } = req.body;
 
       if (!avatar) {

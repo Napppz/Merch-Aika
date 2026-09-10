@@ -1,13 +1,22 @@
 const { query } = require('./_db');
+const { requireUserOrAdmin } = require('./user-auth');
 
 module.exports = async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-user-email');
+
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const email = req.headers['x-user-email'] || req.query.email;
+  const email = req.headers['x-user-email'] || req.query.email || req.body?.user_email;
   
   if (!email) {
     return res.status(401).json({ error: 'Unauthorized: Missing email' });
   }
+
+  // 🔐 Keamanan: Wajibkan token autentikasi yang sah milik akun ini (atau admin)
+  const auth = requireUserOrAdmin(req, res, email);
+  if (!auth) return;
 
   try {
     if (req.method === 'GET') {

@@ -1,9 +1,10 @@
 const { query } = require('./_db');
+const { requireUserOrAdmin } = require('./user-auth');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-user-email');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   
@@ -11,11 +12,15 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { email } = req.query;
+  const email = req.query.email || req.headers['x-user-email'];
 
   if (!email) {
-    return res.status(400).json({ error: 'Email parameter makes is required' });
+    return res.status(400).json({ error: 'Email parameter is required' });
   }
+
+  // 🔐 Keamanan: Wajibkan token autentikasi yang sah milik akun ini (atau admin)
+  const auth = requireUserOrAdmin(req, res, email);
+  if (!auth) return;
 
   try {
     const result = await query(

@@ -1747,9 +1747,13 @@
             <div class="settings-group-header">
               <span>🔒</span> <span>Keamanan Akun</span>
             </div>
+            <div class="form-group" style="margin:0 0 0.8rem 0;">
+              <label for="settingCurrentPassword">Password Saat Ini <small style="color:var(--text-muted);">(Wajib jika ingin mengubah password)</small></label>
+              <input type="password" id="settingCurrentPassword" placeholder="Masukkan password saat ini" autocomplete="current-password" />
+            </div>
             <div class="form-group" style="margin:0;">
-              <label for="settingPassword">Password Baru <small style="color:var(--text-muted);">(Kosongkan jika tidak diubah)</small></label>
-              <input type="password" id="settingPassword" placeholder="••••••••" />
+              <label for="settingPassword">Password Baru <small style="color:var(--text-muted);">(Minimal 6 karakter, kosongkan jika tidak diubah)</small></label>
+              <input type="password" id="settingPassword" placeholder="••••••••" autocomplete="new-password" />
             </div>
           </div>
 
@@ -1859,6 +1863,14 @@
         return;
       }
 
+      if (currentUser && !currentUser.token) {
+        alert('Sistem keamanan akun telah diperbarui. Silakan login kembali untuk memperbarui sesi Anda.');
+        localStorage.removeItem('aika_session');
+        sessionStorage.removeItem('aika_session');
+        window.location.href = 'login.html';
+        return;
+      }
+
       // Populate user info IMMEDIATELY (sync) so UI never gets stuck on LOADING...
       if (currentUser) {
         const nameEl = document.getElementById('profName');
@@ -1893,7 +1905,13 @@
     async function loadUserProfile() {
       if (!currentUser || !currentUser.email) return;
       try {
-        const res = await fetch(`/api/user-profile?email=${encodeURIComponent(currentUser.email)}&_t=${Date.now()}`);
+        const token = currentUser.token || '';
+        const res = await fetch(`/api/user-profile?email=${encodeURIComponent(currentUser.email)}&_t=${Date.now()}`, {
+          headers: {
+            'x-user-email': currentUser.email,
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          }
+        });
         if (res.ok) {
           const data = await res.json();
           if (data.success && data.user) {
@@ -2069,7 +2087,13 @@
           })
           .catch(() => { });
 
-        const res = await fetch('/api/user-orders?email=' + encodeURIComponent(currentUser.email) + '&_t=' + Date.now());
+        const token = currentUser.token || '';
+        const res = await fetch('/api/user-orders?email=' + encodeURIComponent(currentUser.email) + '&_t=' + Date.now(), {
+          headers: {
+            'x-user-email': currentUser.email,
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          }
+        });
         if (!res.ok) throw new Error('Failed fetch');
         userOrdersList = await res.json();
         updateUserStats();
@@ -2530,7 +2554,13 @@
         btn.style.pointerEvents = 'none';
       }
 
-      fetch('/api/user-orders?email=' + encodeURIComponent(currentUser.email) + '&_t=' + Date.now())
+      const token = currentUser.token || '';
+      fetch('/api/user-orders?email=' + encodeURIComponent(currentUser.email) + '&_t=' + Date.now(), {
+        headers: {
+          'x-user-email': currentUser.email,
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
+      })
         .then(res => {
           if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
           return res.json();
@@ -2655,6 +2685,7 @@
       e.preventDefault();
       const newName = document.getElementById('settingName').value.trim();
       const newPhone = document.getElementById('settingPhone').value.trim();
+      const currentPass = document.getElementById('settingCurrentPassword') ? document.getElementById('settingCurrentPassword').value : '';
       const newPass = document.getElementById('settingPassword').value;
       const btn = document.getElementById('btnSaveSettings');
 
@@ -2663,20 +2694,28 @@
         return;
       }
 
+      if (newPass && !currentPass) {
+        alert('Password saat ini wajib diisi untuk mengonfirmasi perubahan password.');
+        return;
+      }
+
       btn.disabled = true;
       btn.textContent = 'Menyimpan...';
 
       try {
+        const token = currentUser.token || '';
         const res = await fetch('/api/user-profile', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'x-user-email': currentUser.email
+            'x-user-email': currentUser.email,
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
           },
           body: JSON.stringify({
             email: currentUser.email,
             username: newName,
             phone: newPhone,
+            currentPassword: currentPass || null,
             newPassword: newPass || null
           })
         });
@@ -2700,6 +2739,7 @@
         userEls.forEach(el => el.textContent = newName);
 
         alert('✅ Pengaturan akun dan nomor HP berhasil disimpan!');
+        if (document.getElementById('settingCurrentPassword')) document.getElementById('settingCurrentPassword').value = '';
         document.getElementById('settingPassword').value = '';
       } catch (err) {
         console.error('Save settings error:', err);
@@ -2792,7 +2832,13 @@
 
       if (userEmail) {
         try {
-          const res = await fetch(`/api/wishlist?email=${encodeURIComponent(userEmail)}&_t=${Date.now()}`);
+          const token = currentUser?.token || '';
+          const res = await fetch(`/api/wishlist?email=${encodeURIComponent(userEmail)}&_t=${Date.now()}`, {
+            headers: {
+              'x-user-email': userEmail,
+              ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            }
+          });
           if (res.ok) {
             const data = await res.json();
             if (data.success && Array.isArray(data.items)) {
@@ -2920,9 +2966,13 @@
 
       if (userEmail) {
         try {
+          const token = currentUser?.token || '';
           await fetch(`/api/wishlist?product_id=${encodeURIComponent(productId)}`, {
             method: 'DELETE',
-            headers: { 'x-user-email': userEmail }
+            headers: {
+              'x-user-email': userEmail,
+              ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            }
           });
         } catch (err) {
           console.error('Gagal menghapus wishlist dari server:', err);
@@ -2945,11 +2995,13 @@
       // 1. Sync to server /api/cart
       if (userEmail) {
         try {
+          const token = currentUser?.token || '';
           await fetch('/api/cart', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'x-user-email': userEmail
+              'x-user-email': userEmail,
+              ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             },
             body: JSON.stringify({ product_id: item.id || productId, quantity: 1, size: null })
           });

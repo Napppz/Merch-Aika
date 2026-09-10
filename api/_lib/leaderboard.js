@@ -26,9 +26,19 @@ module.exports = async (req, res) => {
         LIMIT $1
       `, [limit]);
 
+function maskEmail(email) {
+  if (!email || typeof email !== 'string') return null;
+  const parts = email.split('@');
+  if (parts.length !== 2) return null;
+  const name = parts[0];
+  const domain = parts[1];
+  const maskedName = name.length <= 2 ? name[0] + '***' : name.slice(0, 2) + '***' + name.slice(-1);
+  return `${maskedName}@${domain}`;
+}
+
       const leaderboard = result.rows.map((row, index) => ({
         rank: index + 1,
-        email: row.email,
+        email: maskEmail(row.email),
         username: row.username || 'Anonymous',
         avatar: row.avatar || null,
         total_spent: parseInt(row.total_spent) || 0,

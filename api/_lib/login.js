@@ -1,10 +1,11 @@
 // api/_lib/login.js — Vercel Serverless Function
 // Autentikasi user dengan email/username + password
-// 🔐 SECURITY: Rate limiting, timing-safe comparison, CORS whitelist, security headers
+// 🔐 SECURITY: Rate limiting, timing-safe comparison, CORS whitelist, security headers, User JWT
 
 const { query } = require('./_db');
 const crypto = require('crypto');
 const { getPasswordSalt } = require('./env');
+const { generateJWT } = require('./jwt-manager');
 
 // ════════════════════════════════════════════════════════════════
 // RATE LIMITING (In-memory + use Redis in production)
@@ -179,14 +180,23 @@ module.exports = async function handler(req, res) {
     // ─── LOGIN SUCCESS ───
     recordSuccessLoginAttempt(clientIp);
 
+    const token = generateJWT({
+      userId: user.id,
+      email: user.email.toLowerCase(),
+      username: user.username,
+      type: 'user'
+    });
+
     return res.status(200).json({
       success: true,
       message: 'Login berhasil',
+      token,
       user: {
         id: user.id,
         username: user.username,
         email: user.email,
         phone: user.phone,
+        token,
         createdAt: user.created_at,
       }
     });

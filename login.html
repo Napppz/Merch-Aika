@@ -749,7 +749,7 @@
         .then(r => r.json())
         .then(data => {
           if (data.success) {
-            onLoginSuccess(data.user, remember);
+            onLoginSuccess(data.user, remember, data.token);
           } else {
             showAlert(data.message || 'Email/username atau password salah!');
             document.getElementById('login-password').value = '';
@@ -765,10 +765,11 @@
         });
     }
 
-    function onLoginSuccess(user, remember) {
+    function onLoginSuccess(user, remember, token) {
       // ⚠ Jangan hapus admin session — biarkan keduanya hidup berdampingan
       showAlert('Berhasil masuk! Mengalihkan...', 'success');
-      const sessionData = { email: user.email, username: user.username, loggedIn: true };
+      const userToken = token || user.token || '';
+      const sessionData = { email: user.email, username: user.username, token: userToken, loggedIn: true };
       if (remember) {
         localStorage.setItem('aika_session', JSON.stringify(sessionData));
       } else {
@@ -1074,7 +1075,8 @@
       const user = data.user;
       showAlert(data.message || 'Berhasil masuk dengan Google!', 'success');
 
-      const sessionData = { email: user.email, username: user.username, loggedIn: true };
+      const userToken = data.token || user.token || '';
+      const sessionData = { email: user.email, username: user.username, token: userToken, loggedIn: true };
       localStorage.setItem('aika_session', JSON.stringify(sessionData));
 
       if (user.avatar) {

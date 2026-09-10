@@ -1,6 +1,7 @@
 const { query } = require('./_db');
 const crypto = require('crypto');
 const { getPasswordSalt } = require('./env');
+const { requireUserOrAdmin } = require('./user-auth');
 
 function hashPassword(password) {
   const salt = getPasswordSalt();
@@ -19,6 +20,10 @@ module.exports = async function handler(req, res) {
   if (!userEmail) {
     return res.status(400).json({ success: false, error: 'Email user diperlukan' });
   }
+
+  // 🔐 Keamanan: Wajibkan token login sah milik akun ini (atau admin)
+  const auth = requireUserOrAdmin(req, res, userEmail);
+  if (!auth) return;
 
   // ── GET USER PROFILE ──
   if (req.method === 'GET') {
@@ -53,7 +58,7 @@ module.exports = async function handler(req, res) {
 
   // ── UPDATE USER PROFILE ──
   if (req.method === 'PUT' || req.method === 'POST') {
-    const { username, phone, newPassword } = req.body;
+    const { username, phone, currentPassword, newPassword } = req.body || {};
 
     if (!username) {
       return res.status(400).json({ success: false, error: 'Nama pengguna tidak boleh kosong' });
@@ -64,11 +69,49 @@ module.exports = async function handler(req, res) {
       const cleanPhone = phone ? String(phone).trim() : null;
       const cleanUsername = String(username).trim();
 
-      if (newPassword && String(newPassword).trim().length >= 6) {
-        const passwordHash = hashPassword(String(newPassword).trim());
+      if (newPassword && String(newPassword).trim().length > 0) {
+        const trimmedNewPass = String(newPassword).trim();
+        if (trimmedNewPass.length < 6) {
+          return res.status(400).json({ success: false, error: 'Password baru minimal 6 karakter' });
+        }
+
+        // 🔐 Verifikasi password saat ini jika bukan admin
+        if (auth.type !== 'admin') {
+          if (!currentPassword) {
+            return res.status(400).json({
+              success: false,
+              error: 'Password saat ini wajib diisi untuk mengubah password'
+            });
+          }
+
+          const userRow = await query(
+            'SELECT password_hash FROM users WHERE LOWER(email) = LOWER($1)',
+            [userEmail]
+          );
+
+          if (!userRow.rows.length) {
+            return res.status(404).json({ success: false, error: 'User tidak ditemukan' });
+          }
+
+          const currentHash = hashPassword(String(currentPassword).trim());
+          const storedHash = userRow.rows[0].password_hash;
+
+          let isMatch = false;
+          try {
+            isMatch = crypto.timingSafeEqual(Buffer.from(currentHash), Buffer.from(storedHash));
+          } catch (_) {
+            isMatch = false;
+          }
+
+          if (!isMatch) {
+            return res.status(400).json({ success: false, error: 'Password saat ini salah' });
+          }
+        }
+
+        const passwordHash = hashPassword(trimmedNewPass);
         updateResult = await query(
           `UPDATE users 
-           SET username = $1, phone = $2, password_hash = $3 
+           SET username = $1, phone = $2, password_hash = $3, updated_at = NOW() 
            WHERE LOWER(email) = LOWER($4) 
            RETURNING id, username, email, phone`,
           [cleanUsername, cleanPhone, passwordHash, userEmail]
@@ -76,7 +119,7 @@ module.exports = async function handler(req, res) {
       } else {
         updateResult = await query(
           `UPDATE users 
-           SET username = $1, phone = $2 
+           SET username = $1, phone = $2, updated_at = NOW() 
            WHERE LOWER(email) = LOWER($3) 
            RETURNING id, username, email, phone`,
           [cleanUsername, cleanPhone, userEmail]
@@ -90,7 +133,7 @@ module.exports = async function handler(req, res) {
       const updatedUser = updateResult.rows[0];
       return res.status(200).json({
         success: true,
-        message: 'Profil dan nomor HP berhasil diperbarui',
+        message: 'Profil dan pengaturan berhasil diperbarui',
         user: {
           id: updatedUser.id,
           username: updatedUser.username,

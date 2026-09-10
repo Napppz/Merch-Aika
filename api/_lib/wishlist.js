@@ -2,6 +2,7 @@
 // Mengelola produk favorit (Wishlist) pengguna di Neon PostgreSQL
 
 const { query } = require('./_db');
+const { requireUserOrAdmin } = require('./user-auth');
 
 module.exports = async (req, res) => {
   // CORS & Security headers
@@ -23,6 +24,10 @@ module.exports = async (req, res) => {
   }
 
   const cleanEmail = String(rawEmail).trim().toLowerCase();
+
+  // 🔐 Keamanan: Wajibkan token autentikasi yang sah milik akun ini (atau admin)
+  const auth = requireUserOrAdmin(req, res, cleanEmail);
+  if (!auth) return;
 
   try {
     // ─── GET: Ambil daftar wishlist pengguna ───
