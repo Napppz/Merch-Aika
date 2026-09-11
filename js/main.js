@@ -40,13 +40,13 @@ const Orders = {
     try { const res = await fetch('/api/orders?t=' + Date.now()); return await res.json(); } catch { return []; }
   },
   async add(order) {
-    order.id = 'ORD-' + Date.now();
+    delete order.id; // Pastikan nomor invoice di-generate berurutan oleh server
     order.status = 'pending';
     order.date = new Date().toISOString(); // Attach client-side real-time date explicitly as fallback
     const response = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(order) });
     if (response.ok) {
       const dbOrder = await response.json();
-      return dbOrder; // Return the full DB order including auto-generated date
+      return dbOrder; // Return the full DB order including server-generated sequential invoice ID
     }
     const errData = await response.json().catch(() => ({}));
     throw new Error(errData.error || `Gagal membuat pesanan (Status ${response.status})`);

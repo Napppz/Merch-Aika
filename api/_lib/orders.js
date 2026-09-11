@@ -93,6 +93,39 @@ async function verifyVoucherDiscount(code, subtotal) {
   }
 }
 
+async function generateDailyInvoiceId() {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Jakarta',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  const dateKey = formatter.format(now); // e.g. "2026-09-12"
+  const compactDate = dateKey.replace(/-/g, ''); // "20260912"
+
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS invoice_daily_sequences (
+      date_key VARCHAR(10) PRIMARY KEY,
+      last_seq INT NOT NULL DEFAULT 0,
+      updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  const res = await db.query(`
+    INSERT INTO invoice_daily_sequences (date_key, last_seq, updated_at)
+    VALUES ($1, 1, NOW())
+    ON CONFLICT (date_key)
+    DO UPDATE SET last_seq = invoice_daily_sequences.last_seq + 1, updated_at = NOW()
+    RETURNING last_seq;
+  `, [dateKey]);
+
+  const seq = parseInt(res.rows[0].last_seq, 10) || 1;
+  const formattedSeq = String(seq).padStart(2, '0');
+
+  return `INV-${compactDate}-${formattedSeq}`;
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
@@ -120,7 +153,11 @@ module.exports = async (req, res) => {
 
     if (method === 'POST') {
       const { id, customerName, email, address, items, shipping } = req.body || {};
-      const orderId = id || ('ORD-' + Date.now());
+      let orderId = id;
+      // Gunakan ID pengujian hanya jika diawali TEST-, selain itu buat nomor invoice berurutan resmi
+      if (!orderId || !orderId.startsWith('TEST-')) {
+        orderId = await generateDailyInvoiceId();
+      }
       const parsedItems = Array.isArray(items) ? items : (typeof items === 'string' ? JSON.parse(items || '[]') : []);
 
       if (!parsedItems.length) {

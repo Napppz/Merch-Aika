@@ -551,11 +551,9 @@
     payBtn.disabled = true;
     payBtn.textContent = 'Mengirim Pesanan...';
 
-    const orderId = 'ORD-DIGITAL-' + Date.now();
     const finalTotal = Math.max(0, subtotal - discountAmount);
 
     const orderPayload = {
-      id: orderId,
       customerName: currentUser.username,
       email: currentUser.email,
       address: 'Pengiriman Digital via Link Google Drive (Tanpa Kurir)',
@@ -582,7 +580,13 @@
         body: JSON.stringify(orderPayload)
       });
 
-      if (!resOrder.ok) throw new Error('Gagal membuat pesanan');
+      if (!resOrder.ok) {
+        const errData = await resOrder.json().catch(() => ({}));
+        throw new Error(errData.error || 'Gagal membuat pesanan');
+      }
+
+      const createdOrder = await resOrder.json();
+      const orderId = createdOrder.id;
 
       const resProof = await fetch('/api/payment-proof', {
         method: 'POST',

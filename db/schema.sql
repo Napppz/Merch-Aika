@@ -126,3 +126,9 @@ CREATE INDEX IF NOT EXISTS idx_user_addresses_email ON user_addresses (user_emai
 CREATE INDEX IF NOT EXISTS idx_carts_user_email ON carts (user_email);
 CREATE UNIQUE INDEX IF NOT EXISTS carts_user_product_size_unique ON carts (user_email, product_id, COALESCE(size, ''));
 CREATE INDEX IF NOT EXISTS idx_wishlists_user_email ON wishlists (user_email);
+
+CREATE TABLE IF NOT EXISTS invoice_daily_sequences (
+  date_key VARCHAR(10) PRIMARY KEY,
+  last_seq INT NOT NULL DEFAULT 0,
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);

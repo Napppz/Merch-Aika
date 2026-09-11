@@ -1414,7 +1414,7 @@
         try { const res = await adminFetch('/api/orders?t=' + Date.now()); return await res.json(); } catch { return []; }
       },
       async add(order) {
-        order.id = 'ORD-' + Date.now();
+        delete order.id;
         order.status = 'pending';
         const res = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(order) });
         return await res.json();
