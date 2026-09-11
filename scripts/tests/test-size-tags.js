@@ -1,5 +1,6 @@
+require('dotenv').config({ path: require('path').join(__dirname, '../../.env.local') });
 const assert = require('assert');
-const db = require('../api/_lib/_db');
+const db = require('../../api/_lib/_db');
 
 // Mirror rules from main.js / cart.js / checkout.html
 const SIZE_SURCHARGE_RULES = {

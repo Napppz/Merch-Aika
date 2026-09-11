@@ -1,6 +1,6 @@
-require('dotenv').config({ path: '.env.local' });
+require('dotenv').config({ path: require('path').join(__dirname, '../../.env.local') });
 const assert = require('assert');
-const db = require('../api/_lib/_db');
+const db = require('../../api/_lib/_db');
 
 async function run() {
   console.log('🧪 Starting Daily Sequential Invoice Verification Test...');
@@ -30,7 +30,7 @@ async function run() {
   await db.query('DELETE FROM invoice_daily_sequences WHERE date_key = $1', [testSimulatedDateKey]);
 
   // Test the generator function logic directly
-  const orderHandler = require('../api/_lib/orders');
+  const orderHandler = require('../../api/_lib/orders');
 
   // Helper to create order via handler mock
   async function simulateCreateOrder(payload) {

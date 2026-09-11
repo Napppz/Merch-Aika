@@ -1,7 +1,7 @@
-require('dotenv').config({ path: '.env.local' });
+require('dotenv').config({ path: require('path').join(__dirname, '../../.env.local') });
 require('dotenv').config();
 const http = require('http');
-const { generateJWT } = require('../api/_lib/jwt-manager');
+const { generateJWT } = require('../../api/_lib/jwt-manager');
 
 function request(options, bodyData = null) {
   return new Promise((resolve, reject) => {

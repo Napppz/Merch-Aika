@@ -1,4 +1,4 @@
-const db = require('../api/_lib/_db');
+const db = require('../../api/_lib/_db');
 
 async function migrate() {
   console.log('Ensuring tag column in products...');

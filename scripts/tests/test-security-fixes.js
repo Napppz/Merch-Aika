@@ -1,7 +1,7 @@
-require('dotenv').config({ path: '.env.local' });
+require('dotenv').config({ path: require('path').join(__dirname, '../../.env.local') });
 const assert = require('assert');
-const db = require('../api/_lib/_db');
-const { generateJWT } = require('../api/_lib/jwt-manager');
+const db = require('../../api/_lib/_db');
+const { generateJWT } = require('../../api/_lib/jwt-manager');
 
 async function testVulnerability1() {
   console.log('\n--- [TEST 1] Testing Sensitive File Access Blocking ---');

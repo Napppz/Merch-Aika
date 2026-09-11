@@ -1,5 +1,5 @@
-require('dotenv').config({ path: '.env.local' });
-const { query } = require('../api/_lib/_db');
+require('dotenv').config({ path: require('path').join(__dirname, '../../.env.local') });
+const { query } = require('../../api/_lib/_db');
 
 async function checkRecentOrders() {
   const res = await query('SELECT id, "customerName", email, status, items, date FROM orders ORDER BY date DESC LIMIT 5');

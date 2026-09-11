@@ -1,9 +1,9 @@
-require('dotenv').config({ path: '.env.local' });
+require('dotenv').config({ path: require('path').join(__dirname, '../../.env.local') });
 const assert = require('assert');
-const db = require('../api/_lib/_db');
+const db = require('../../api/_lib/_db');
 const crypto = require('crypto');
-const { generateJWT } = require('../api/_lib/jwt-manager');
-const { getPasswordSalt } = require('../api/_lib/env');
+const { generateJWT } = require('../../api/_lib/jwt-manager');
+const { getPasswordSalt } = require('../../api/_lib/env');
 
 function hashPassword(password) {
   const salt = getPasswordSalt();

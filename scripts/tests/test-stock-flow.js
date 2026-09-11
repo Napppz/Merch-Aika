@@ -1,4 +1,5 @@
-const db = require('../api/_lib/_db');
+require('dotenv').config({ path: require('path').join(__dirname, '../../.env.local') });
+const db = require('../../api/_lib/_db');
 
 async function main() {
   console.log('--- 1. Testing Stock Deduction ---');
