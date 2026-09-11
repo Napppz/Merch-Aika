@@ -279,53 +279,57 @@ module.exports = async (req, res) => {
       }
 
       // (1/2) Kirim Notifikasi Email - Pesanan Baru ke Customer
-      try {
-        const transporter = getMailTransport();
-        const emailUser = getRequiredEnv('EMAIL_USER');
-        await transporter.sendMail({
-          from: `"Aika Sesilia" <${emailUser}>`,
-          to: email, // Email pembeli
-          replyTo: emailUser,
-          subject: `[Aika Sesilia] Pesanan #${orderId} Diterima ${isDp ? '(DP 50%) ' : ''}📦`,
-          html: `
-            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-              <h2 style="color: #29b6f6;">Halo, ${customerName}!</h2>
-              <p>Terima kasih telah berbelanja di Aika Sesilia Merch.</p>
-              <p>Pesanan Anda dengan nomor <strong>#${orderId}</strong> telah diterima dan sedang menunggu verifikasi pembayaran ${isDp ? '<strong>DP 50% (Uang Muka)</strong>' : ''}.</p>
-              <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:1rem;margin:1rem 0;">
-                <p style="margin:0 0 0.5rem 0;"><strong>Total Nilai Pesanan: Rp ${verifiedTotal.toLocaleString('id-ID')}</strong></p>
-                ${isDp ? `
-                  <p style="margin:0 0 0.5rem 0;color:#0284c7;font-size:1.1rem;"><strong>Tagihan DP 50% (Harus Ditransfer): Rp ${dpAmount.toLocaleString('id-ID')}</strong></p>
-                  <p style="margin:0;color:#64748b;font-size:0.9rem;">Sisa Tagihan Pelunasan: Rp ${remainingAmount.toLocaleString('id-ID')} (dibayarkan saat pesanan siap dikirim / COD)</p>
-                ` : `
-                  <p style="margin:0;color:#0284c7;font-size:1.1rem;"><strong>Total Pembayaran: Rp ${verifiedTotal.toLocaleString('id-ID')}</strong></p>
-                `}
-              </div>
-              <p>Silakan selesaikan pembayaran melalui aplikasi atau website untuk melanjutkan.</p>
-              <p>Terima kasih atas kepercayaan Anda!</p>
-              <br/>
-              <p>Salam hangat,<br/>Aika Sesilia</p>
-            </div>
-          `
-        });
-      } catch (mailErr) {
-        console.error('Gagal mengirim email ke customer:', mailErr.message);
-      }
+      const isDummyEmail = !email || email.endsWith('@example.com') || email.endsWith('.local') || email.endsWith('@test.com');
+      const isTestEnv = process.env.NODE_ENV === 'test' || Boolean(req.headers && req.headers['x-test-suite']);
 
-      // (1b) Kirim Notifikasi Email ke Admin
-      try {
-        const transporter = getMailTransport();
-        const emailUser = getRequiredEnv('EMAIL_USER');
-        const adminEmail = process.env.ADMIN_EMAIL || emailUser;
-        const itemsArray = sanitizedItems;
-        const itemsHTML = itemsArray
-          .map(item => `<li>${item.name}${item.size ? ` (Size ${item.size})` : ''} &times; ${item.qty} = Rp ${(item.price * item.qty).toLocaleString('id-ID')}</li>`)
-          .join('');
-        await transporter.sendMail({
-          from: `"Aika Sesilia" <${emailUser}>`,
-          to: adminEmail,
-          replyTo: emailUser,
-          subject: `[ADMIN] Pesanan Baru #${orderId} ${isDp ? '(DP 50%) ' : ''}dari ${customerName}`,
+      if (!isDummyEmail && !isTestEnv) {
+        try {
+          const transporter = getMailTransport();
+          const emailUser = getRequiredEnv('EMAIL_USER');
+          await transporter.sendMail({
+            from: `"Aika Sesilia" <${emailUser}>`,
+            to: email, // Email pembeli
+            replyTo: emailUser,
+            subject: `[Aika Sesilia] Pesanan #${orderId} Diterima ${isDp ? '(DP 50%) ' : ''}📦`,
+            html: `
+              <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <h2 style="color: #29b6f6;">Halo, ${customerName}!</h2>
+                <p>Terima kasih telah berbelanja di Aika Sesilia Merch.</p>
+                <p>Pesanan Anda dengan nomor <strong>#${orderId}</strong> telah diterima dan sedang menunggu verifikasi pembayaran ${isDp ? '<strong>DP 50% (Uang Muka)</strong>' : ''}.</p>
+                <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:1rem;margin:1rem 0;">
+                  <p style="margin:0 0 0.5rem 0;"><strong>Total Nilai Pesanan: Rp ${verifiedTotal.toLocaleString('id-ID')}</strong></p>
+                  ${isDp ? `
+                    <p style="margin:0 0 0.5rem 0;color:#0284c7;font-size:1.1rem;"><strong>Tagihan DP 50% (Harus Ditransfer): Rp ${dpAmount.toLocaleString('id-ID')}</strong></p>
+                    <p style="margin:0;color:#64748b;font-size:0.9rem;">Sisa Tagihan Pelunasan: Rp ${remainingAmount.toLocaleString('id-ID')} (dibayarkan saat pesanan siap dikirim / COD)</p>
+                  ` : `
+                    <p style="margin:0;color:#0284c7;font-size:1.1rem;"><strong>Total Pembayaran: Rp ${verifiedTotal.toLocaleString('id-ID')}</strong></p>
+                  `}
+                </div>
+                <p>Silakan selesaikan pembayaran melalui aplikasi atau website untuk melanjutkan.</p>
+                <p>Terima kasih atas kepercayaan Anda!</p>
+                <br/>
+                <p>Salam hangat,<br/>Aika Sesilia</p>
+              </div>
+            `
+          });
+        } catch (mailErr) {
+          console.error('Gagal mengirim email ke customer:', mailErr.message);
+        }
+
+        // (1b) Kirim Notifikasi Email ke Admin
+        try {
+          const transporter = getMailTransport();
+          const emailUser = getRequiredEnv('EMAIL_USER');
+          const adminEmail = process.env.ADMIN_EMAIL || emailUser;
+          const itemsArray = sanitizedItems;
+          const itemsHTML = itemsArray
+            .map(item => `<li>${item.name}${item.size ? ` (Size ${item.size})` : ''} &times; ${item.qty} = Rp ${(item.price * item.qty).toLocaleString('id-ID')}</li>`)
+            .join('');
+          await transporter.sendMail({
+            from: `"Aika Sesilia" <${emailUser}>`,
+            to: adminEmail,
+            replyTo: emailUser,
+            subject: `[ADMIN] Pesanan Baru #${orderId} ${isDp ? '(DP 50%) ' : ''}dari ${customerName}`,
           html: `
             <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
               <h2 style="color: #ff6b6b;">📦 Pesanan Baru Masuk! ${isDp ? '<span style="font-size:0.8em;color:#29b6f6;">(SKEMA DP 50%)</span>' : ''}</h2>
@@ -377,6 +381,7 @@ module.exports = async (req, res) => {
         });
       } catch (mailErr) {
         console.error('Gagal mengirim email ke admin:', mailErr.message);
+      }
       }
 
       return res.status(201).json(rows[0]);

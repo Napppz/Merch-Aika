@@ -37,7 +37,7 @@ async function run() {
     return new Promise((resolve, reject) => {
       const req = {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: { 'content-type': 'application/json', 'x-test-suite': 'true' },
         body: payload
       };
       const res = {
