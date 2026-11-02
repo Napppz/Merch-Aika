@@ -2062,11 +2062,16 @@
       </div>
 
       <div class="form-group" style="text-align:left;">
-        <label style="color:var(--aqua); font-size:0.9rem; margin-bottom:0.5rem; display:block;">Pesan & Kesan</label>
-        <textarea id="reviewComment" rows="4" placeholder="Ceritakan pengalaman Anda dengan produk kami..."
+        <label for="reviewComment" style="color:var(--aqua); font-size:0.9rem; margin-bottom:0.5rem; display:block;">Pesan &amp; Kesan <span style="color:#f87171;" title="Wajib diisi">*</span></label>
+        <textarea id="reviewComment" rows="4" maxlength="600" required
+          placeholder="Ceritakan pengalaman Anda dengan produk kami... (wajib diisi)"
           style="width:100%; resize:none; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.8rem; font-family:var(--font-body); transition:var(--transition); outline:none;"
-          onfocus="this.style.borderColor='var(--aqua)'"
-          onblur="this.style.borderColor='var(--card-border)'"></textarea>
+          oninput="clearReviewCommentError()"
+          onfocus="if(this.dataset.invalid!=='1') this.style.borderColor='var(--aqua)'"
+          onblur="if(this.dataset.invalid!=='1') this.style.borderColor='var(--card-border)'"></textarea>
+        <div id="reviewCommentError" style="display:none; color:#f87171; font-size:0.8rem; margin-top:0.4rem;">
+          ⚠️ Mohon tulis pesan &amp; kesan ulasan Anda terlebih dahulu.
+        </div>
       </div>
 
       <div style="display:flex; gap:1rem; margin-top:2rem">
@@ -3207,12 +3212,25 @@
       }
     }
 
+    function clearReviewCommentError() {
+      const commentEl = document.getElementById('reviewComment');
+      const errEl = document.getElementById('reviewCommentError');
+      if (commentEl) {
+        commentEl.dataset.invalid = '0';
+        commentEl.style.borderColor = 'var(--card-border)';
+      }
+      if (errEl) errEl.style.display = 'none';
+    }
+
     function giveReview(orderId) {
       currentReviewOrderId = orderId;
       document.getElementById('reviewOrderId').textContent = 'Pesanan: #' + orderId;
       document.getElementById('reviewRating').value = '5';
-      document.getElementById('reviewComment').value = '';
+      const commentEl = document.getElementById('reviewComment');
+      commentEl.value = '';
+      clearReviewCommentError();
       document.getElementById('reviewModal').classList.add('active');
+      setTimeout(() => commentEl.focus(), 80);
     }
 
     function openInvoice(orderId) {
@@ -3284,23 +3302,38 @@
 
     async function submitReview() {
       const rating = document.getElementById('reviewRating').value;
-      const comment = document.getElementById('reviewComment').value;
+      const commentEl = document.getElementById('reviewComment');
+      const cleanComment = (commentEl.value || '').trim();
       const btn = document.getElementById('btnSubmitReview');
+
+      if (!cleanComment) {
+        const errEl = document.getElementById('reviewCommentError');
+        commentEl.dataset.invalid = '1';
+        commentEl.style.borderColor = '#f87171';
+        if (errEl) errEl.style.display = 'block';
+        commentEl.focus();
+        return;
+      }
 
       btn.disabled = true;
       btn.textContent = 'Mengirim...';
 
       const avatarStr = localStorage.getItem('aika_avatar_' + currentUser.email) || '';
+      const token = (currentUser && currentUser.token) || '';
 
       try {
         const res = await fetch('/api/reviews', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(currentUser && currentUser.email ? { 'x-user-email': currentUser.email } : {}),
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
           body: JSON.stringify({
             order_id: currentReviewOrderId,
             customer_name: currentUser.username,
-            rating: parseInt(rating),
-            comment: comment,
+            rating: parseInt(rating, 10),
+            comment: cleanComment,
             avatar: avatarStr
           })
         });
@@ -3308,18 +3341,30 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Gagal mengirim ulasan');
 
+        const reviewedOrder = Array.isArray(userOrdersList)
+          ? userOrdersList.find(o => o.id === currentReviewOrderId)
+          : null;
+        if (reviewedOrder) {
+          reviewedOrder.review_id = data.id || true;
+          renderUserOrders();
+        } else {
+          const btnToReplace = Array.from(document.querySelectorAll('.review-btn'))
+            .find(el => el.dataset.oid === currentReviewOrderId);
+          if (btnToReplace) {
+            const pill = document.createElement('span');
+            pill.className = 'reviewed-pill';
+            pill.textContent = '⭐ Ulasan Terkirim';
+            btnToReplace.replaceWith(pill);
+          }
+        }
+
         alert('Terima kasih! Ulasan Anda berhasil dikirim.');
         closeReviewModal();
-
-        const btnToHide = document.querySelector(`button[onclick="giveReview('${currentReviewOrderId}')"]`);
-        if (btnToHide) {
-          btnToHide.parentElement.innerHTML = '<span style="color:var(--aqua)">⭐ Ulasan Terkirim</span>';
-        }
       } catch (err) {
         alert(err.message);
       } finally {
         btn.disabled = false;
-        btn.textContent = 'Kirim';
+        btn.textContent = 'Kirim Ulasan';
       }
     }
 

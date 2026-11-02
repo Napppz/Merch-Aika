@@ -1170,19 +1170,24 @@ async function loadReviews() {
 
     grid.innerHTML = reviews.map((r, i) => {
       const ratingNum = Math.min(5, Math.max(1, parseInt(r.rating, 10) || 5));
-      const safeComment = escapeStoreHtml(r.comment || '');
+      const rawComment = typeof r.comment === 'string' ? r.comment.trim() : '';
+      const fallbackComment = ratingNum >= 4
+        ? 'Puas berbelanja di Aika Sesilia Merch!'
+        : `Memberikan penilaian bintang ${ratingNum}.`;
+      const safeComment = escapeStoreHtml(rawComment || fallbackComment);
       const safeCustomer = escapeStoreHtml(r.customer_name || 'Pelanggan');
       const safeAvatar = sanitizeStoreImageUrl(r.avatar || '');
       const initial = escapeStoreHtml((r.customer_name || 'P').charAt(0).toUpperCase());
+      const commentHtml = rawComment
+        ? `<q style="color:var(--text-main); font-style:italic; display:block; margin-bottom:1.5rem; font-size:1.05rem; line-height: 1.6;">${safeComment}</q>`
+        : `<p style="color:var(--text-muted); font-style:italic; display:block; margin-bottom:1.5rem; font-size:0.98rem; line-height: 1.6;">${safeComment}</p>`;
       return `
       <div class="product-card fade-in" style="padding:2rem; text-align:left; background: linear-gradient(145deg, rgba(10,56,114,0.6), rgba(3,9,31,0.8)); position:relative; box-shadow: var(--shadow-blue); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); animation-delay: ${i * 0.1}s;">
         <div style="position:absolute; top:1rem; right:1.5rem; font-size:3rem; color:var(--aqua); opacity:0.1; font-family:var(--font-display)">"</div>
         <div style="color:var(--gold); margin-bottom:1rem; font-size:1.2rem; filter: drop-shadow(0 0 5px rgba(255,213,79,0.5));">
           ${'⭐'.repeat(ratingNum)}
         </div>
-        <q style="color:var(--text-main); font-style:italic; display:block; margin-bottom:1.5rem; font-size:1.05rem; line-height: 1.6;">
-          ${safeComment}
-        </q>
+        ${commentHtml}
         <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--card-border); padding-top:1rem;">
           <div style="display:flex; align-items:center; gap:0.8rem;">
             <div style="width:35px; height:35px; border-radius:50%; background:var(--aqua); color:var(--deep-ocean); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1rem; font-family:var(--font-display); overflow:hidden;">
