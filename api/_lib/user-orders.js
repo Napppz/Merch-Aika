@@ -1,6 +1,6 @@
 const { query } = require('./_db');
 const { requireUserOrAdmin } = require('./user-auth');
-const { expireStalePendingOrders } = require('./order-lifecycle');
+const { expireStalePendingOrders, ensureOrderPaymentColumns } = require('./order-lifecycle');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -24,6 +24,7 @@ module.exports = async function handler(req, res) {
   if (!auth) return;
 
   try {
+    await ensureOrderPaymentColumns();
     await expireStalePendingOrders();
 
     const result = await query(
@@ -38,6 +39,8 @@ module.exports = async function handler(req, res) {
          o.total,
          o.items,
          o.shipping,
+         (o.payment_proof IS NOT NULL AND o.payment_proof <> '') AS has_payment_proof,
+         (o.pelunasan_proof IS NOT NULL AND o.pelunasan_proof <> '') AS has_pelunasan_proof,
          o.date,
          o.updated_at,
          r.id as review_id
@@ -58,7 +61,17 @@ module.exports = async function handler(req, res) {
 
     const enrichedOrders = result.rows.map(order => {
       let items = Array.isArray(order.items) ? order.items : (typeof order.items === 'string' ? JSON.parse(order.items) : []);
-      const isVerified = ['paid', 'completed', 'shipped'].includes(String(order.status).toLowerCase());
+      let shipObj = {};
+      try {
+        shipObj = typeof order.shipping === 'string' ? JSON.parse(order.shipping || '{}') : (order.shipping || {});
+      } catch (_) {
+        shipObj = {};
+      }
+      const statusLower = String(order.status || '').toLowerCase();
+      const isDp = Boolean(shipObj.paymentScheme === 'dp50' || shipObj.isDp);
+      const isVerified = isDp
+        ? (['paid', 'completed', 'shipped'].includes(statusLower) && (shipObj.pelunasanStatus === 'verified' || statusLower === 'completed'))
+        : ['paid', 'completed', 'shipped'].includes(statusLower);
 
       items = items.map(item => {
         const prod = productMap[item.id] || productMap[(item.name || '').toLowerCase().trim()] || {};

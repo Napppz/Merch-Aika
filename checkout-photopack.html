@@ -258,6 +258,7 @@
       <span class="back-text-mobile">Beranda</span>
     </a>
     <a href="shop.html" class="btn-ghost" style="padding:0.45rem 0.9rem; font-size:0.85rem; border-radius:50px;">🛍️ Shop</a>
+    <div class="user-nav" id="userNav"></div>
   </div>
 </nav>
 
@@ -460,11 +461,39 @@
     document.getElementById('itemPrice').textContent = formatPrice(subtotal);
     document.getElementById('subtotalPrice').textContent = formatPrice(subtotal);
     
-    if (photopackProduct.image) {
+    const galleryImgs = typeof getProductGalleryImages === 'function'
+      ? getProductGalleryImages(photopackProduct)
+      : (photopackProduct.image ? [photopackProduct.image] : []);
+    if (galleryImgs.length > 0) {
       const img = document.getElementById('itemImg');
-      img.src = photopackProduct.image;
+      img.src = galleryImgs[0];
       img.style.display = 'block';
+      img.style.cursor = 'zoom-in';
+      img.title = 'Klik untuk melihat preview/teaser ukuran penuh';
+      img.onclick = () => {
+        if (typeof openImageLightbox === 'function') {
+          openImageLightbox(galleryImgs, 0, photopackProduct.name || 'Preview Photopack');
+        }
+      };
       document.getElementById('itemPlaceholder').style.display = 'none';
+
+      let teaserBtn = document.getElementById('btnViewPhotopackTeasers');
+      if (!teaserBtn) {
+        teaserBtn = document.createElement('button');
+        teaserBtn.type = 'button';
+        teaserBtn.id = 'btnViewPhotopackTeasers';
+        teaserBtn.className = 'btn-ghost';
+        teaserBtn.style.cssText = 'margin-top:0.5rem; padding:0.35rem 0.75rem; font-size:0.76rem; border-radius:50px; display:inline-flex; align-items:center; gap:5px;';
+        document.querySelector('.item-preview-info')?.appendChild(teaserBtn);
+      }
+      teaserBtn.innerHTML = galleryImgs.length > 1
+        ? `🔍 Lihat Teaser (${galleryImgs.length} Foto)`
+        : '🔍 Zoom Sampul';
+      teaserBtn.onclick = () => {
+        if (typeof openImageLightbox === 'function') {
+          openImageLightbox(galleryImgs, 0, photopackProduct.name || 'Preview Photopack');
+        }
+      };
     }
 
     calculateTotal();
@@ -488,7 +517,15 @@
     }
 
     try {
-      const res = await fetch('/api/vouchers');
+      const voucherHeaders = {};
+      if (currentUser && currentUser.token) {
+        voucherHeaders['Authorization'] = 'Bearer ' + currentUser.token;
+      }
+      if (currentUser && currentUser.email) {
+        voucherHeaders['x-user-email'] = currentUser.email;
+      }
+
+      const res = await fetch('/api/vouchers?_t=' + Date.now(), { headers: voucherHeaders });
       const data = await res.json();
 
       if (!data.success || !data.vouchers) {
@@ -500,6 +537,20 @@
       if (!found) {
         statusEl.textContent = '❌ Kode voucher tidak ditemukan atau sudah tidak berlaku.';
         statusEl.style.color = '#fca5a5';
+        resetDiscount();
+        return;
+      }
+
+      if (found.isQuotaFull || (found.maxUses != null && Number(found.remainingQuota) <= 0)) {
+        statusEl.textContent = `❌ Maaf, kuota pemakaian voucher ${found.code} sudah habis.`;
+        statusEl.style.color = '#fca5a5';
+        resetDiscount();
+        return;
+      }
+
+      if (found.oncePerUser && found.usedByCurrentUser) {
+        statusEl.textContent = `⚠️ Voucher ${found.code} hanya berlaku 1x per akun dan sudah pernah Anda gunakan.`;
+        statusEl.style.color = '#fde047';
         resetDiscount();
         return;
       }

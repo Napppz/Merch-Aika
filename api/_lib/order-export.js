@@ -135,13 +135,17 @@ function buildCsv(order) {
     ]);
   }
   lines.push(['Total Nilai Pesanan', formatCurrency(order.total)]);
-  const isDp = order.shipping?.paymentScheme === 'dp50';
+  const isDp = Boolean(order.shipping?.paymentScheme === 'dp50' || order.shipping?.isDp);
   if (isDp) {
     const dpAmount = Number(order.shipping?.dpAmount) || Math.ceil((Number(order.total) || 0) * 0.5);
     const remainingAmount = Number(order.shipping?.remainingAmount) || Math.max(0, (Number(order.total) || 0) - dpAmount);
-    lines.push(['Skema Pembayaran', 'DP 50% (Uang Muka)']);
+    const isLunas = order.shipping?.pelunasanStatus === 'verified';
+    lines.push(['Skema Pembayaran', isLunas ? 'DP 50% (Lunas 100%)' : 'DP 50% (Uang Muka)']);
     lines.push(['Tagihan DP 50% (Dibayar)', formatCurrency(dpAmount)]);
-    lines.push(['Sisa Tagihan Pelunasan', formatCurrency(remainingAmount)]);
+    lines.push([
+      isLunas ? 'Pelunasan Sisa 50% (Terverifikasi)' : 'Sisa Tagihan Pelunasan',
+      formatCurrency(remainingAmount)
+    ]);
   } else {
     lines.push(['Skema Pembayaran', 'Bayar Penuh (100%)']);
   }
@@ -157,7 +161,8 @@ function buildExcelHtml(order) {
   const discountLabel = order.shipping?.discount?.code
     ? `Diskon (${escapeHtml(order.shipping.discount.code)})`
     : 'Diskon';
-  const isDp = order.shipping?.paymentScheme === 'dp50';
+  const isDp = Boolean(order.shipping?.paymentScheme === 'dp50' || order.shipping?.isDp);
+  const isLunas = isDp && order.shipping?.pelunasanStatus === 'verified';
   const dpAmount = Number(order.shipping?.dpAmount) || Math.ceil((Number(order.total) || 0) * 0.5);
   const remainingAmount = Number(order.shipping?.remainingAmount) || Math.max(0, (Number(order.total) || 0) - dpAmount);
 
@@ -229,9 +234,11 @@ function buildExcelHtml(order) {
           ${discountAmount > 0 ? `<tr><td>${discountLabel}</td><td>- ${escapeHtml(formatCurrency(discountAmount))}</td></tr>` : ''}
           <tr><td>Total Nilai Pesanan</td><td>${escapeHtml(formatCurrency(order.total))}</td></tr>
           ${isDp ? `
-            <tr style="background:#e0f2fe;"><td>Skema Pembayaran</td><td style="color:#0369a1;font-weight:bold;">⚡ DP 50% (Uang Muka)</td></tr>
+            <tr style="background:#e0f2fe;"><td>Skema Pembayaran</td><td style="color:#0369a1;font-weight:bold;">⚡ ${isLunas ? 'DP 50% (Lunas 100%)' : 'DP 50% (Uang Muka)'}</td></tr>
             <tr style="background:#dcfce7;"><td>Tagihan DP 50% (Dibayar)</td><td style="color:#15803d;font-weight:bold;">${escapeHtml(formatCurrency(dpAmount))}</td></tr>
-            <tr style="background:#fef3c7;"><td>Sisa Tagihan Pelunasan</td><td style="color:#b45309;font-weight:bold;">${escapeHtml(formatCurrency(remainingAmount))}</td></tr>
+            ${isLunas
+              ? `<tr style="background:#dcfce7;"><td>Pelunasan Sisa 50% (Lunas 100%)</td><td style="color:#15803d;font-weight:bold;">${escapeHtml(formatCurrency(remainingAmount))} ✓</td></tr>`
+              : `<tr style="background:#fef3c7;"><td>Sisa Tagihan Pelunasan</td><td style="color:#b45309;font-weight:bold;">${escapeHtml(formatCurrency(remainingAmount))}</td></tr>`}
           ` : `
             <tr><td>Skema Pembayaran</td><td>💎 Bayar Penuh (100%)</td></tr>
           `}
@@ -287,9 +294,14 @@ function buildAllOrdersCsv(orders) {
     const subtotal = Math.max(0, (Number(norm.total) || 0) - shippingCost - sizeSurcharge + discountAmount);
 
     const isDp = ship.paymentScheme === 'dp50' || ship.isDp;
+    const isLunas = isDp && ship.pelunasanStatus === 'verified';
     const dpAmount = isDp ? (Number(ship.dpAmount) || Math.ceil((Number(norm.total) || 0) * 0.5)) : 0;
-    const remainingAmount = isDp ? (Number(ship.remainingAmount) || Math.max(0, (Number(norm.total) || 0) - dpAmount)) : 0;
-    const schemeLabel = isDp ? 'DP 50% (Uang Muka)' : 'Bayar Penuh (100%)';
+    const remainingAmount = isDp
+      ? (isLunas ? 0 : (Number(ship.remainingAmount) || Math.max(0, (Number(norm.total) || 0) - dpAmount)))
+      : 0;
+    const schemeLabel = isDp
+      ? (isLunas ? 'DP 50% (Lunas 100%)' : 'DP 50% (Uang Muka)')
+      : 'Bayar Penuh (100%)';
 
     const cleanAddress = String(norm.address || '-').replace(/\r?\n/g, ', ');
 

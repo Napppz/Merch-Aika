@@ -11,7 +11,9 @@ const testFiles = [
   'test-daily-invoice.js',
   'test-size-tags.js',
   'test-user-security.js',
-  'test-priority-1-2.js'
+  'test-priority-1-2.js',
+  'test-ui-ux-upgrades.js',
+  'test-dp-and-voucher-quota.js'
 ];
 
 // Optional server-dependent tests:

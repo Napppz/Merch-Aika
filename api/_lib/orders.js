@@ -8,6 +8,7 @@ const { resolveShippingCost } = require('./shipping-rates');
 const {
   escapeHtml,
   dispatchBackgroundTask,
+  ensureOrderPaymentColumns,
   ensureOrderHistoryTable,
   recordOrderStatusHistory,
   getOrderStatusHistory,
@@ -160,13 +161,16 @@ const ORDER_LIST_COLUMNS = `
   total,
   items,
   shipping,
+  (payment_proof IS NOT NULL AND payment_proof <> '') AS has_payment_proof,
+  (pelunasan_proof IS NOT NULL AND pelunasan_proof <> '') AS has_pelunasan_proof,
   date,
   updated_at
 `;
 
 const ORDER_DETAIL_COLUMNS = `
   ${ORDER_LIST_COLUMNS},
-  payment_proof
+  payment_proof,
+  pelunasan_proof
 `;
 
 const VALID_ORDER_STATUSES = new Set([
@@ -176,6 +180,12 @@ const VALID_ORDER_STATUSES = new Set([
   'shipped',
   'completed',
   'cancelled'
+]);
+
+const VALID_PAYMENT_ACTIONS = new Set([
+  'request_reupload_initial',
+  'verify_pelunasan',
+  'reject_pelunasan'
 ]);
 
 const SIZE_SURCHARGE_RULES = {
@@ -209,42 +219,98 @@ function getItemSizeSurcharge(prod, size) {
   return rules[key] || 0;
 }
 
-async function verifyVoucherDiscount(code, subtotal) {
-  if (!code || typeof code !== 'string') return 0;
-  try {
-    const result = await db.query("SELECT value FROM settings WHERE key = 'vouchers'");
-    if (!result.rows.length) return 0;
-    const vouchers = JSON.parse(result.rows[0].value || '[]');
-    if (!Array.isArray(vouchers)) return 0;
-
-    const normalizedCode = code.trim().toUpperCase();
-    const voucher = vouchers.find(v => (v.code || '').trim().toUpperCase() === normalizedCode);
-    if (!voucher || voucher.isActive === false) return 0;
-
-    const now = new Date();
-    if (voucher.startsAt && new Date(voucher.startsAt) > now) return 0;
-    if (voucher.expiresAt && new Date(voucher.expiresAt) < now) return 0;
-
-    const minPurchase = Math.max(0, parseInt(voucher.minPurchase, 10) || 0);
-    if (subtotal < minPurchase) return 0;
-
-    let discount = 0;
-    if (voucher.type === 'percent') {
-      discount = Math.round((subtotal * Math.min(100, Math.max(0, parseInt(voucher.value, 10) || 0))) / 100);
-    } else {
-      discount = Math.max(0, parseInt(voucher.value, 10) || 0);
-    }
-
-    if (voucher.maxDiscount != null) {
-      const maxD = Math.max(0, parseInt(voucher.maxDiscount, 10) || 0);
-      if (discount > maxD) discount = maxD;
-    }
-
-    return Math.min(discount, subtotal);
-  } catch (err) {
-    console.error('Error verifying voucher discount:', err.message);
-    return 0;
+async function evaluateVoucherInTransaction(runner, { code, subtotal, email }) {
+  if (!code || typeof code !== 'string') {
+    return { discountAmount: 0, code: null };
   }
+  const normalizedCode = code.trim().toUpperCase();
+  if (!normalizedCode) {
+    return { discountAmount: 0, code: null };
+  }
+
+  // Kunci transaksi berdasarkan kode voucher agar kuota & batas 1x/akun bebas dari race-condition
+  await runner.query("SELECT pg_advisory_xact_lock(hashtext('voucher:' || $1))", [normalizedCode]);
+
+  let vouchers = [];
+  try {
+    const result = await runner.query("SELECT value FROM settings WHERE key = 'vouchers'");
+    if (!result.rows.length) return { discountAmount: 0, code: null };
+    const parsed = JSON.parse(result.rows[0].value || '[]');
+    vouchers = Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.error('Error loading vouchers in transaction:', err.message);
+    return { discountAmount: 0, code: null };
+  }
+
+  const voucher = vouchers.find(v => (v.code || '').trim().toUpperCase() === normalizedCode);
+  if (!voucher || voucher.isActive === false) {
+    return { discountAmount: 0, code: null };
+  }
+
+  const now = new Date();
+  if (voucher.startsAt && new Date(voucher.startsAt) > now) {
+    return { discountAmount: 0, code: null };
+  }
+  if (voucher.expiresAt && new Date(voucher.expiresAt) < now) {
+    return { discountAmount: 0, code: null };
+  }
+
+  const minPurchase = Math.max(0, parseInt(voucher.minPurchase, 10) || 0);
+  if (subtotal < minPurchase) {
+    return { discountAmount: 0, code: null };
+  }
+
+  const maxUses = voucher.maxUses === '' || voucher.maxUses == null
+    ? null
+    : Math.max(1, parseInt(voucher.maxUses, 10) || 1);
+  const oncePerUser = Boolean(voucher.oncePerUser);
+
+  if (maxUses !== null || oncePerUser) {
+    const cleanEmail = String(email || '').trim().toLowerCase();
+    const usageRes = await runner.query(
+      `SELECT
+         COUNT(*)::int AS total_used,
+         COUNT(*) FILTER (WHERE $2 <> '' AND LOWER(TRIM(email)) = $2)::int AS user_used
+       FROM orders
+       WHERE status <> 'cancelled'
+         AND UPPER(TRIM(COALESCE(shipping->'discount'->>'code', ''))) = $1`,
+      [normalizedCode, cleanEmail]
+    );
+    const totalUsed = Number(usageRes.rows[0]?.total_used) || 0;
+    const userUsed = Number(usageRes.rows[0]?.user_used) || 0;
+
+    if (maxUses !== null && totalUsed >= maxUses) {
+      throw createHttpError(
+        400,
+        `Maaf, kuota pemakaian voucher "${normalizedCode}" sudah habis (${maxUses}x pemakaian).`
+      );
+    }
+
+    if (oncePerUser && cleanEmail && userUsed >= 1) {
+      throw createHttpError(
+        400,
+        `Voucher "${normalizedCode}" hanya berlaku 1x per akun dan sudah pernah digunakan oleh akun ini.`
+      );
+    }
+  }
+
+  let discount = 0;
+  if (voucher.type === 'percent') {
+    discount = Math.round((subtotal * Math.min(100, Math.max(0, parseInt(voucher.value, 10) || 0))) / 100);
+  } else {
+    discount = Math.max(0, parseInt(voucher.value, 10) || 0);
+  }
+
+  if (voucher.maxDiscount != null && voucher.maxDiscount !== '') {
+    const maxD = Math.max(0, parseInt(voucher.maxDiscount, 10) || 0);
+    if (discount > maxD) discount = maxD;
+  }
+
+  const finalDiscount = Math.min(discount, subtotal);
+  return {
+    discountAmount: finalDiscount,
+    code: finalDiscount > 0 ? normalizedCode : null
+  };
 }
 
 let invoiceSeqTableEnsured = false;
@@ -335,6 +401,7 @@ module.exports = async (req, res) => {
     if (method === 'GET') {
       if (!requireAdmin(req, res)) return;
 
+      await ensureOrderPaymentColumns(db);
       // Auto-cancel pesanan 'pending' tanpa bukti bayar yang sudah lewat 24 jam
       await expireStalePendingOrders();
 
@@ -360,6 +427,7 @@ module.exports = async (req, res) => {
     }
 
     if (method === 'POST') {
+      await ensureOrderPaymentColumns(db);
       // Bebaskan stok dari pesanan 'pending' tanpa bukti bayar yang sudah lewat 24 jam
       await expireStalePendingOrders();
 
@@ -475,33 +543,10 @@ module.exports = async (req, res) => {
       if (shippingCheck.city) shipObj.city = shippingCheck.city;
       if (shippingCheck.province) shipObj.province = shippingCheck.province;
 
-      let discountAmount = 0;
-      if (shipObj.discount && shipObj.discount.code) {
-        discountAmount = await verifyVoucherDiscount(shipObj.discount.code, subtotal);
-        if (discountAmount > 0) {
-          shipObj.discount = {
-            code: String(shipObj.discount.code).trim().toUpperCase(),
-            amount: discountAmount
-          };
-        } else {
-          shipObj.discount = null;
-        }
-      } else {
-        shipObj.discount = null;
-      }
-
-      const verifiedTotal = Math.max(0, subtotal + shippingCost + totalSizeSurcharge - discountAmount);
-      const isDp = shipObj.paymentScheme === 'dp50';
-      const dpAmount = isDp ? Math.ceil(verifiedTotal * 0.5) : verifiedTotal;
-      const remainingAmount = isDp ? Math.max(0, verifiedTotal - dpAmount) : 0;
-
-      shipObj.price = shippingCost;
-      shipObj.sizeSurcharge = totalSizeSurcharge;
-      shipObj.isDp = isDp;
-      shipObj.dpPercent = isDp ? 50 : 100;
-      shipObj.dpAmount = dpAmount;
-      shipObj.remainingAmount = remainingAmount;
-      shipObj.originalTotal = verifiedTotal;
+      const requestedVoucherCode = shipObj.discount && shipObj.discount.code
+        ? String(shipObj.discount.code).trim().toUpperCase()
+        : '';
+      const isDp = Boolean(shipObj.paymentScheme === 'dp50' || shipObj.isDp);
 
       // Status pesanan baru SELALU 'pending' untuk mencegah manipulasi status
       const initialStatus = 'pending';
@@ -509,8 +554,48 @@ module.exports = async (req, res) => {
       await ensureOrderHistoryTable(db);
       await ensureInvoiceSequenceTable();
 
-      // 3. Transaksi Atomik: Potong stok dengan WHERE stock >= qty + Buat Invoice + Simpan Order + Catat History
-      const createdOrder = await db.withTransaction(async (client) => {
+      // 3. Transaksi Atomik: Kunci & validasi kuota voucher + Potong stok + Buat Invoice + Simpan Order + Catat History
+      const {
+        createdOrder,
+        verifiedTotal,
+        dpAmount,
+        remainingAmount
+      } = await db.withTransaction(async (client) => {
+        let discountAmount = 0;
+        if (requestedVoucherCode) {
+          const voucherEval = await evaluateVoucherInTransaction(client, {
+            code: requestedVoucherCode,
+            subtotal,
+            email: cleanEmail
+          });
+          discountAmount = voucherEval.discountAmount;
+          if (discountAmount > 0 && voucherEval.code) {
+            shipObj.discount = {
+              code: voucherEval.code,
+              amount: discountAmount
+            };
+          } else {
+            shipObj.discount = null;
+          }
+        } else {
+          shipObj.discount = null;
+        }
+
+        const txVerifiedTotal = Math.max(0, subtotal + shippingCost + totalSizeSurcharge - discountAmount);
+        const txDpAmount = isDp ? Math.ceil(txVerifiedTotal * 0.5) : txVerifiedTotal;
+        const txRemainingAmount = isDp ? Math.max(0, txVerifiedTotal - txDpAmount) : 0;
+
+        shipObj.price = shippingCost;
+        shipObj.sizeSurcharge = totalSizeSurcharge;
+        shipObj.isDp = isDp;
+        shipObj.dpPercent = isDp ? 50 : 100;
+        shipObj.dpAmount = txDpAmount;
+        shipObj.remainingAmount = txRemainingAmount;
+        shipObj.originalTotal = txVerifiedTotal;
+        if (isDp) {
+          shipObj.pelunasanStatus = 'unpaid';
+        }
+
         for (const [productId, totalRequestedQty] of physicalQtyByProductId.entries()) {
           const deductRes = await client.query(
             `UPDATE products
@@ -547,7 +632,7 @@ module.exports = async (req, res) => {
             cleanEmail,
             cleanAddress,
             initialStatus,
-            verifiedTotal,
+            txVerifiedTotal,
             JSON.stringify(sanitizedItems),
             JSON.stringify(shipObj),
             buyerNotes || null,
@@ -568,7 +653,12 @@ module.exports = async (req, res) => {
           ]
         );
 
-        return insertRes.rows[0];
+        return {
+          createdOrder: insertRes.rows[0],
+          verifiedTotal: txVerifiedTotal,
+          dpAmount: txDpAmount,
+          remainingAmount: txRemainingAmount
+        };
       });
 
       if (physicalQtyByProductId.size > 0) {
@@ -694,14 +784,22 @@ module.exports = async (req, res) => {
     }
 
     if (method === 'PUT') {
-      const { id, status, resi } = req.body || {};
+      const { id, status: rawStatus, resi, paymentAction, actionNote } = req.body || {};
       if (!id) {
         return res.status(400).json({ error: 'Order ID is required' });
       }
-      if (!status || !VALID_ORDER_STATUSES.has(status)) {
+      const cleanPaymentAction = paymentAction ? String(paymentAction).trim() : '';
+      if (cleanPaymentAction && !VALID_PAYMENT_ACTIONS.has(cleanPaymentAction)) {
+        return res.status(400).json({ error: 'Aksi pembayaran tidak valid' });
+      }
+      if (!cleanPaymentAction && (!rawStatus || !VALID_ORDER_STATUSES.has(rawStatus))) {
+        return res.status(400).json({ error: 'Status pesanan tidak valid' });
+      }
+      if (cleanPaymentAction && rawStatus && !VALID_ORDER_STATUSES.has(rawStatus)) {
         return res.status(400).json({ error: 'Status pesanan tidak valid' });
       }
 
+      await ensureOrderPaymentColumns(db);
       await ensureOrderHistoryTable(db);
       const adminUser = verifyAdminToken(req);
 
@@ -712,7 +810,7 @@ module.exports = async (req, res) => {
 
       // Jika BUKAN admin, hanya perbolehkan pemilik pesanan (dengan JWT valid) mengonfirmasi pesanan yang sudah dikirim/dibayar menjadi 'completed'
       if (!adminUser) {
-        if (status !== 'completed') {
+        if (cleanPaymentAction || rawStatus !== 'completed') {
           return res.status(403).json({ error: 'Hanya admin yang dapat mengubah status ini' });
         }
 
@@ -762,9 +860,10 @@ module.exports = async (req, res) => {
 
       req.admin = adminUser;
       const cleanResi = typeof resi === 'string' ? resi.trim() : '';
+      const cleanActionNote = typeof actionNote === 'string' ? actionNote.trim().slice(0, 400) : '';
 
-      // Transaksi atomik untuk perubahan status oleh Admin (mencegah double-restore stok jika tombol diklik 2x)
-      const { updatedOrder, stockChanged, prevStatus } = await db.withTransaction(async (client) => {
+      // Transaksi atomik untuk perubahan status / aksi pembayaran oleh Admin
+      const { updatedOrder, stockChanged, prevStatus, finalStatus, appliedNote } = await db.withTransaction(async (client) => {
         const lockRes = await client.query(
           `SELECT status, items, shipping FROM orders WHERE id = $1 FOR UPDATE`,
           [id]
@@ -782,6 +881,42 @@ module.exports = async (req, res) => {
             : { ...(locked.shipping || {}) };
         } catch (_) {
           shipData = {};
+        }
+
+        const isDpOrder = Boolean(shipData.paymentScheme === 'dp50' || shipData.isDp);
+        let status = rawStatus || prevStatus;
+        let noteForAction = '';
+
+        if (cleanPaymentAction === 'request_reupload_initial') {
+          status = 'pending';
+          noteForAction = cleanActionNote || 'Bukti pembayaran kurang jelas atau nominal belum sesuai. Mohon unggah ulang bukti transfer yang benar.';
+          shipData.reuploadRequested = true;
+          shipData.reuploadNote = noteForAction;
+          shipData.reuploadRequestedAt = new Date().toISOString();
+        } else if (cleanPaymentAction === 'verify_pelunasan') {
+          if (!isDpOrder) {
+            throw createHttpError(400, 'Pesanan ini bukan skema DP 50%, tidak memiliki tagihan pelunasan.');
+          }
+          if (prevStatus === 'cancelled') {
+            throw createHttpError(400, 'Tidak dapat memverifikasi pelunasan pada pesanan yang sudah dibatalkan.');
+          }
+          shipData.pelunasanStatus = 'verified';
+          shipData.pelunasanVerifiedAt = new Date().toISOString();
+          delete shipData.pelunasanRejectNote;
+          noteForAction = cleanActionNote
+            ? `Pelunasan sisa 50% diverifikasi admin (${cleanActionNote})`
+            : 'Pelunasan sisa 50% diverifikasi admin (Lunas 100%)';
+        } else if (cleanPaymentAction === 'reject_pelunasan') {
+          if (!isDpOrder) {
+            throw createHttpError(400, 'Pesanan ini bukan skema DP 50%.');
+          }
+          noteForAction = cleanActionNote || 'Bukti pelunasan belum sesuai, mohon unggah ulang bukti transfer sisa 50%.';
+          shipData.pelunasanStatus = 'rejected';
+          shipData.pelunasanRejectNote = noteForAction;
+          shipData.pelunasanRejectedAt = new Date().toISOString();
+        } else if (status === 'paid' && shipData.reuploadRequested) {
+          shipData.reuploadRequested = false;
+          delete shipData.reuploadNote;
         }
 
         const prevResi = shipData.resi || '';
@@ -827,10 +962,28 @@ module.exports = async (req, res) => {
           [status, JSON.stringify(shipData), id]
         );
 
-        if (prevStatus !== status || (cleanResi && cleanResi !== prevResi)) {
+        const adminActor = adminUser.username || String(adminUser.adminId) || 'Admin';
+        if (cleanPaymentAction) {
+          const historyMsg = cleanPaymentAction === 'request_reupload_initial'
+            ? `Admin meminta upload ulang bukti bayar awal: ${noteForAction}`
+            : cleanPaymentAction === 'verify_pelunasan'
+              ? noteForAction
+              : `Bukti pelunasan ditolak admin (diminta upload ulang): ${noteForAction}`;
+
+          await recordOrderStatusHistory(client, {
+            orderId: id,
+            fromStatus: prevStatus,
+            toStatus: status,
+            actorType: 'admin',
+            actorName: adminActor,
+            note: historyMsg
+          });
+        } else if (prevStatus !== status || (cleanResi && cleanResi !== prevResi)) {
           let historyNote = 'Status pesanan diperbarui oleh admin';
           if (status === 'paid') {
-            historyNote = 'Pembayaran diverifikasi oleh admin (status: Dikemas)';
+            historyNote = isDpOrder
+              ? 'Pembayaran DP 50% diverifikasi oleh admin (status: Dikemas)'
+              : 'Pembayaran diverifikasi oleh admin (status: Dikemas)';
           } else if (status === 'shipped') {
             historyNote = cleanResi
               ? `Pesanan dikirim (No. Resi: ${cleanResi})`
@@ -846,37 +999,102 @@ module.exports = async (req, res) => {
             fromStatus: prevStatus,
             toStatus: status,
             actorType: 'admin',
-            actorName: adminUser.username || String(adminUser.adminId) || 'Admin',
+            actorName: adminActor,
             note: historyNote
           });
         }
 
-        return { updatedOrder: updateRes.rows[0], stockChanged: didChangeStock, prevStatus };
+        return {
+          updatedOrder: updateRes.rows[0],
+          stockChanged: didChangeStock,
+          prevStatus,
+          finalStatus: status,
+          appliedNote: noteForAction
+        };
       });
 
       order = updatedOrder;
+      const status = finalStatus;
       if (stockChanged) {
         invalidateCache('products_*');
       }
 
       const isDummyEmail = !order.email || order.email.endsWith('@example.com') || order.email.endsWith('.local') || order.email.endsWith('@test.com');
       const isTestEnv = process.env.NODE_ENV === 'test' || Boolean(req.headers && req.headers['x-test-suite']);
-      const shouldSendCompletedEmail = status === 'completed' && prevStatus !== 'completed';
+      const shouldSendCompletedEmail = !cleanPaymentAction && status === 'completed' && prevStatus !== 'completed';
+      const shouldSendPaymentActionEmail = Boolean(cleanPaymentAction);
+      const shouldSendStatusEmail = !cleanPaymentAction && (status === 'paid' || status === 'shipped' || shouldSendCompletedEmail);
 
-      if (!isDummyEmail && !isTestEnv && (status === 'paid' || status === 'shipped' || shouldSendCompletedEmail)) {
+      if (!isDummyEmail && !isTestEnv && (shouldSendPaymentActionEmail || shouldSendStatusEmail)) {
         await dispatchBackgroundTask(async () => {
           const transporter = getMailTransport();
           const emailUser = getRequiredEnv('EMAIL_USER');
           const safeCustomerName = escapeHtml(order.customerName);
           const safeOrderId = escapeHtml(order.id);
+          const baseUrl = resolveSiteBaseUrl(req);
+          const safeOrdersUrl = escapeHtml(`${baseUrl}/profile.html?tab=orders`);
+          const parsedShip = typeof order.shipping === 'string'
+            ? JSON.parse(order.shipping || '{}')
+            : (order.shipping || {});
+          const isDpMail = Boolean(parsedShip.paymentScheme === 'dp50' || parsedShip.isDp);
+          const dpAmtMail = Number(parsedShip.dpAmount) || Math.ceil((Number(order.total) || 0) * 0.5);
+          const remAmtMail = Number(parsedShip.remainingAmount) || Math.max(0, (Number(order.total) || 0) - dpAmtMail);
 
-          if (status === 'paid') {
+          if (cleanPaymentAction === 'request_reupload_initial') {
+            await transporter.sendMail({
+              from: `"Aika Sesilia" <${emailUser}>`,
+              to: order.email,
+              subject: `⚠️ Mohon Upload Ulang Bukti Pembayaran - Pesanan #${order.id}`,
+              html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                  <h2 style="color: #d97706;">⚠️ Permintaan Upload Ulang Bukti Pembayaran</h2>
+                  <p>Halo ${safeCustomerName},</p>
+                  <p>Admin kami telah memeriksa bukti pembayaran untuk pesanan <strong>#${safeOrderId}</strong> (stok pesanan Anda <strong>tetap aman &amp; tidak dibatalkan</strong>), namun kami memerlukan unggahan ulang bukti transfer:</p>
+                  <div style="background:#fffbeb; border-left:4px solid #f59e0b; padding:1rem 1.25rem; border-radius:6px; margin:1.2rem 0;">
+                    <p style="margin:0; font-weight:bold; color:#92400e;">Catatan Admin:</p>
+                    <p style="margin:0.4rem 0 0 0; color:#78350f;">${escapeHtml(appliedNote)}</p>
+                  </div>
+                  <p>Silakan buka halaman Riwayat Pesanan di bawah ini lalu klik tombol <strong>🔄 Upload Ulang Bukti Bayar</strong>:</p>
+                  <p style="margin:1.25rem 0;">
+                    <a href="${safeOrdersUrl}" target="_blank" style="display:inline-block; background:#0284c7; color:#fff; text-decoration:none; font-weight:bold; padding:12px 22px; border-radius:8px;">📤 Upload Ulang Bukti Pembayaran →</a>
+                  </p>
+                  <p>Salam hangat,<br/><strong>Aika Sesilia</strong></p>
+                </div>
+              `
+            });
+            return;
+          }
+
+          if (cleanPaymentAction === 'reject_pelunasan') {
+            await transporter.sendMail({
+              from: `"Aika Sesilia" <${emailUser}>`,
+              to: order.email,
+              subject: `⚠️ Mohon Upload Ulang Bukti Pelunasan Sisa 50% - Pesanan #${order.id}`,
+              html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                  <h2 style="color: #d97706;">⚠️ Bukti Pelunasan Sisa 50% Perlu Diunggah Ulang</h2>
+                  <p>Halo ${safeCustomerName},</p>
+                  <p>Bukti pelunasan sisa 50% (<strong>Rp ${remAmtMail.toLocaleString('id-ID')}</strong>) untuk pesanan <strong>#${safeOrderId}</strong> belum dapat diverifikasi:</p>
+                  <div style="background:#fffbeb; border-left:4px solid #f59e0b; padding:1rem 1.25rem; border-radius:6px; margin:1.2rem 0;">
+                    <p style="margin:0; font-weight:bold; color:#92400e;">Catatan Admin:</p>
+                    <p style="margin:0.4rem 0 0 0; color:#78350f;">${escapeHtml(appliedNote)}</p>
+                  </div>
+                  <p style="margin:1.25rem 0;">
+                    <a href="${safeOrdersUrl}" target="_blank" style="display:inline-block; background:#0284c7; color:#fff; text-decoration:none; font-weight:bold; padding:12px 22px; border-radius:8px;">💳 Upload Ulang Bukti Pelunasan →</a>
+                  </p>
+                  <p>Salam hangat,<br/><strong>Aika Sesilia</strong></p>
+                </div>
+              `
+            });
+            return;
+          }
+
+          if (cleanPaymentAction === 'verify_pelunasan') {
             let gdriveLinksHTML = '';
             const itemsArr = Array.isArray(order.items) ? order.items : (typeof order.items === 'string' ? JSON.parse(order.items || '[]') : []);
             const productsRes = await db.query('SELECT id, name, gdrive_link, is_photopack, category FROM products');
             const prodMap = {};
             productsRes.rows.forEach(p => { prodMap[p.id] = p; });
-
             const photopackLinks = [];
             itemsArr.forEach(item => {
               const prod = prodMap[item.id] || {};
@@ -887,12 +1105,10 @@ module.exports = async (req, res) => {
                 }
               }
             });
-
             if (photopackLinks.length > 0) {
               gdriveLinksHTML = `
                 <div style="background:#e0f2fe; padding:1.5rem; border-left: 4px solid #0284c7; border-radius:6px; margin:1.5rem 0;">
                   <h3 style="margin:0 0 0.5rem 0; color:#0369a1;">📸 Link Akses Google Drive Photopack Anda</h3>
-                  <p style="margin:0 0 1rem 0; font-size:0.9rem; color:#0c4a6e;">Selamat! Admin telah memverifikasi pembayaran Anda. Klik link di bawah ini untuk mengunduh/melihat photopack Anda:</p>
                   <ul style="margin:0; padding-left:1.2rem; color:#0369a1;">
                     ${photopackLinks.map(p => `<li style="margin-bottom:0.5rem;"><strong>${escapeHtml(p.name)}:</strong> <a href="${escapeHtml(p.link)}" target="_blank" style="color:#0284c7; font-weight:bold; text-decoration:underline;">${escapeHtml(p.link)}</a></li>`).join('')}
                   </ul>
@@ -903,19 +1119,77 @@ module.exports = async (req, res) => {
             await transporter.sendMail({
               from: `"Aika Sesilia" <${emailUser}>`,
               to: order.email,
-              subject: `✅ Pembayaran Dikonfirmasi - Pesanan #${order.id} ${photopackLinks.length > 0 ? '📸 Photopack Siap Diunduh' : 'Sedang Dikemas'} 📦`,
+              subject: `✅ Pelunasan 100% Dikonfirmasi - Pesanan #${order.id}`,
               html: `
                 <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                  <h2 style="color: #4caf50;">✅ Pembayaran Dikonfirmasi!</h2>
+                  <h2 style="color: #16a34a;">✅ Pesanan Anda Telah Lunas 100%!</h2>
                   <p>Halo ${safeCustomerName},</p>
-                  <p>Pembayaran Anda untuk pesanan <strong>#${safeOrderId}</strong> telah berhasil kami verifikasi.</p>
+                  <p>Pelunasan sisa 50% (<strong>Rp ${remAmtMail.toLocaleString('id-ID')}</strong>) untuk pesanan <strong>#${safeOrderId}</strong> telah berhasil diverifikasi oleh admin.</p>
+                  ${gdriveLinksHTML}
+                  <div style="background:#f0fdf4; padding:1.25rem; border-left: 4px solid #16a34a; border-radius:4px; margin:1.25rem 0;">
+                    <p style="margin:0; font-weight:bold; color:#15803d;">Status Pembayaran: LUNAS 100% (Total Rp ${(order.total || 0).toLocaleString('id-ID')})</p>
+                  </div>
+                  <p>Terima kasih atas kepercayaan Anda berbelanja di Aika Sesilia!</p>
+                  <p>Salam hangat,<br/><strong>Aika Sesilia</strong></p>
+                </div>
+              `
+            });
+            return;
+          }
+
+          if (status === 'paid') {
+            let gdriveLinksHTML = '';
+            if (!isDpMail || parsedShip.pelunasanStatus === 'verified') {
+              const itemsArr = Array.isArray(order.items) ? order.items : (typeof order.items === 'string' ? JSON.parse(order.items || '[]') : []);
+              const productsRes = await db.query('SELECT id, name, gdrive_link, is_photopack, category FROM products');
+              const prodMap = {};
+              productsRes.rows.forEach(p => { prodMap[p.id] = p; });
+
+              const photopackLinks = [];
+              itemsArr.forEach(item => {
+                const prod = prodMap[item.id] || {};
+                if (prod.is_photopack || prod.category === 'Photopack' || item.is_photopack) {
+                  const rawLink = String(prod.gdrive_link || item.gdrive_link || '').trim();
+                  if (/^https?:\/\//i.test(rawLink)) {
+                    photopackLinks.push({ name: item.name || prod.name, link: rawLink });
+                  }
+                }
+              });
+
+              if (photopackLinks.length > 0) {
+                gdriveLinksHTML = `
+                  <div style="background:#e0f2fe; padding:1.5rem; border-left: 4px solid #0284c7; border-radius:6px; margin:1.5rem 0;">
+                    <h3 style="margin:0 0 0.5rem 0; color:#0369a1;">📸 Link Akses Google Drive Photopack Anda</h3>
+                    <p style="margin:0 0 1rem 0; font-size:0.9rem; color:#0c4a6e;">Selamat! Admin telah memverifikasi pembayaran Anda. Klik link di bawah ini untuk mengunduh/melihat photopack Anda:</p>
+                    <ul style="margin:0; padding-left:1.2rem; color:#0369a1;">
+                      ${photopackLinks.map(p => `<li style="margin-bottom:0.5rem;"><strong>${escapeHtml(p.name)}:</strong> <a href="${escapeHtml(p.link)}" target="_blank" style="color:#0284c7; font-weight:bold; text-decoration:underline;">${escapeHtml(p.link)}</a></li>`).join('')}
+                    </ul>
+                  </div>
+                `;
+              }
+            }
+
+            await transporter.sendMail({
+              from: `"Aika Sesilia" <${emailUser}>`,
+              to: order.email,
+              subject: `✅ Pembayaran ${isDpMail ? 'DP 50% ' : ''}Dikonfirmasi - Pesanan #${order.id} ${gdriveLinksHTML ? '📸 Photopack Siap Diunduh' : 'Sedang Dikemas'} 📦`,
+              html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                  <h2 style="color: #4caf50;">✅ Pembayaran ${isDpMail ? 'DP 50% ' : ''}Dikonfirmasi!</h2>
+                  <p>Halo ${safeCustomerName},</p>
+                  <p>Pembayaran ${isDpMail ? `<strong>DP 50% (Rp ${dpAmtMail.toLocaleString('id-ID')})</strong> ` : ''}Anda untuk pesanan <strong>#${safeOrderId}</strong> telah berhasil kami verifikasi.</p>
                   ${gdriveLinksHTML}
                   <div style="background:#f0f8f0; padding:1.5rem; border-left: 4px solid #4caf50; border-radius:4px; margin:1.5rem 0;">
-                    <p style="margin:0;font-weight:bold;color:#333;">Status: Pembayaran Diverifikasi Admin</p>
+                    <p style="margin:0;font-weight:bold;color:#333;">Status: ${isDpMail ? 'DP 50% Terverifikasi (Pesanan Dikemas)' : 'Pembayaran Diverifikasi Admin'}</p>
                     <p style="margin:0.5rem 0; font-size:0.9rem; color:#666;">Terima kasih telah melakukan pembelian di Aika Sesilia Official Store.</p>
+                    ${isDpMail && parsedShip.pelunasanStatus !== 'verified' ? `
+                      <p style="margin:0.8rem 0 0 0; font-size:0.9rem; color:#0369a1;">
+                        <strong>💳 Pelunasan Sisa 50% (Rp ${remAmtMail.toLocaleString('id-ID')}):</strong> Anda kini dapat melakukan pelunasan dan mengunggah bukti transfer kedua kapan saja melalui halaman <a href="${safeOrdersUrl}" style="color:#0284c7;font-weight:bold;">Profil &gt; Riwayat Pesanan</a>.
+                      </p>
+                    ` : ''}
                   </div>
                   <p><strong>Detail Pesanan:</strong></p>
-                  <p>Total Pembayaran: <strong>Rp ${(order.total || 0).toLocaleString('id-ID')}</strong></p>
+                  <p>Total Nilai Pesanan: <strong>Rp ${(order.total || 0).toLocaleString('id-ID')}</strong></p>
                   <p style="margin-top:1.5rem;">Terima kasih telah berbelanja di Aika Sesilia! Jika ada pertanyaan, hubungi kami.</p>
                   <p>Salam hangat,<br/><strong>Aika Sesilia</strong></p>
                 </div>
@@ -943,7 +1217,7 @@ module.exports = async (req, res) => {
           } else if (shouldSendCompletedEmail) {
             await sendOrderCompletedReviewEmail(order, req);
           }
-        }, `order-status-${status}-email`);
+        }, `order-status-${cleanPaymentAction || status}-email`);
       }
 
       return res.status(200).json(order);

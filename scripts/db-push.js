@@ -34,8 +34,12 @@ CREATE TABLE IF NOT EXISTS products (
   stock INTEGER NOT NULL DEFAULT 0,
   badge TEXT,
   image TEXT,
+  images JSONB NOT NULL DEFAULT '[]'::jsonb,
   sizes TEXT,
   tag TEXT,
+  gdrive_link TEXT,
+  cosplayer_name VARCHAR(100),
+  is_photopack BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -76,6 +80,7 @@ CREATE TABLE IF NOT EXISTS orders (
   items JSONB NOT NULL DEFAULT '[]'::jsonb,
   shipping JSONB NOT NULL DEFAULT '{}'::jsonb,
   payment_proof TEXT,
+  pelunasan_proof TEXT,
   date TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -133,9 +138,10 @@ CREATE TABLE IF NOT EXISTS user_addresses (
   label VARCHAR(100),
   recipient_name VARCHAR(150) NOT NULL,
   phone VARCHAR(50),
-  full_address TEXT NOT NULL,
+  province VARCHAR(100),
   city VARCHAR(100),
   postal_code VARCHAR(20),
+  full_address TEXT NOT NULL,
   is_primary BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
@@ -170,6 +176,10 @@ CREATE TABLE IF NOT EXISTS order_status_history (
 );
 
 CREATE INDEX IF NOT EXISTS idx_order_status_history_order_id ON order_status_history (order_id, created_at ASC);
+
+ALTER TABLE products ADD COLUMN IF NOT EXISTS images JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE user_addresses ADD COLUMN IF NOT EXISTS province VARCHAR(100);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS pelunasan_proof TEXT;
 `;
 
 async function main() {

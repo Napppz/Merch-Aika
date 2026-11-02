@@ -505,6 +505,62 @@
         line-height: 1.3;
       }
     }
+
+      .saved-addr-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        margin-bottom: 0.7rem;
+        flex-wrap: wrap;
+      }
+
+      .saved-addr-manage-link {
+        color: var(--aqua);
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-decoration: none;
+        padding: 3px 10px;
+        border-radius: 50px;
+        background: rgba(41, 182, 246, 0.12);
+        border: 1px solid rgba(41, 182, 246, 0.3);
+        transition: var(--transition);
+      }
+
+      .saved-addr-manage-link:hover {
+        background: rgba(41, 182, 246, 0.25);
+        color: var(--white);
+      }
+
+      .saved-addr-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .saved-addr-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        background: rgba(3, 9, 31, 0.55);
+        padding: 0.9rem 1rem;
+        border: 1.5px solid var(--card-border);
+        border-radius: 11px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .saved-addr-card:hover {
+        border-color: rgba(41, 182, 246, 0.5);
+        background: rgba(41, 182, 246, 0.07);
+      }
+
+      .saved-addr-card.selected {
+        border-color: var(--aqua);
+        background: linear-gradient(135deg, rgba(41, 182, 246, 0.13), rgba(3, 9, 31, 0.7));
+        box-shadow: 0 0 16px rgba(41, 182, 246, 0.18);
+      }
   </style>
 
 </head>
@@ -526,6 +582,7 @@
         <span class="back-text-full">Halaman Utama</span>
         <span class="back-text-mobile">Beranda</span>
       </a>
+      <div class="user-nav" id="userNav"></div>
       <button class="cart-btn" onclick="toggleCart()">🛒 <span class="cart-count" id="cartCount">0</span></button>
     </div>
   </nav>
@@ -669,7 +726,8 @@
 
     async function loadVouchers() {
       try {
-        const res = await fetch('/api/vouchers');
+        const headers = typeof getSessionAuthHeaders === 'function' ? getSessionAuthHeaders() : {};
+        const res = await fetch('/api/vouchers?_t=' + Date.now(), { headers });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Gagal memuat voucher');
 
@@ -677,23 +735,58 @@
         (data.vouchers || []).forEach(voucher => {
           availableVouchers[normalizeVoucherCode(voucher.code)] = voucher;
         });
+
+        const summaryBox = document.getElementById('availableVoucherSummaryBox');
+        if (summaryBox) {
+          summaryBox.outerHTML = getAvailableVoucherSummary();
+        }
       } catch (err) {
         console.error('Load vouchers error:', err);
         availableVouchers = {};
       }
     }
 
+    function quickSelectVoucher(code) {
+      const codeEl = document.getElementById('discountCode');
+      if (!codeEl) return;
+      codeEl.value = code || '';
+      applyDiscount();
+    }
+
     function getAvailableVoucherSummary() {
       const vouchers = Object.values(availableVouchers);
       if (!vouchers.length) {
-        return '<div style="color:var(--text-muted);font-size:0.8rem">Belum ada voucher aktif saat ini.</div>';
+        return '<div id="availableVoucherSummaryBox" style="color:var(--text-muted);font-size:0.8rem">Belum ada voucher aktif saat ini.</div>';
       }
 
-      return vouchers.map(voucher => {
+      const itemsHtml = vouchers.map(voucher => {
         const valueLabel = voucher.type === 'percent' ? `${voucher.value}%` : formatPrice(voucher.value);
-        const minPurchase = voucher.minPurchase ? ` • Min. belanja ${formatPrice(voucher.minPurchase)}` : '';
-        return `<div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.25rem"><strong style="color:var(--aqua)">${escapeHtml(voucher.code)}</strong> • ${escapeHtml(voucher.label)} (${valueLabel})${minPurchase}</div>`;
+        const minPurchase = voucher.minPurchase ? ` • Min. ${formatPrice(voucher.minPurchase)}` : '';
+        const quotaFull = Boolean(voucher.isQuotaFull || (voucher.maxUses != null && Number(voucher.remainingQuota) <= 0));
+        const alreadyUsed = Boolean(voucher.oncePerUser && voucher.usedByCurrentUser);
+        const isDisabled = quotaFull || alreadyUsed;
+
+        let extraBadges = '';
+        if (voucher.maxUses != null) {
+          extraBadges += quotaFull
+            ? ' • <span style="color:#f87171;font-weight:700;">Kuota Habis</span>'
+            : ` • <span style="color:#4ade80;">Sisa ${voucher.remainingQuota}/${voucher.maxUses}</span>`;
+        }
+        if (voucher.oncePerUser) {
+          extraBadges += alreadyUsed
+            ? ' • <span style="color:#fbbf24;font-weight:700;">Sudah Dipakai</span>'
+            : ' • <span style="color:var(--sky-light);">1x/akun</span>';
+        }
+
+        const safeCode = escapeHtml(voucher.code);
+        return `<div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.3rem;opacity:${isDisabled ? '0.55' : '1'};">
+          <button type="button" data-vcode="${safeCode}" ${isDisabled ? 'disabled' : 'onclick="quickSelectVoucher(this.dataset.vcode)"'}
+            style="background:rgba(41,182,246,0.12);border:1px solid rgba(41,182,246,0.3);border-radius:5px;padding:1px 7px;color:var(--aqua);font-weight:700;font-size:0.75rem;cursor:${isDisabled ? 'not-allowed' : 'pointer'};margin-right:4px;">${safeCode}</button>
+          ${escapeHtml(voucher.label)} (${valueLabel})${minPurchase}${extraBadges}
+        </div>`;
       }).join('');
+
+      return `<div id="availableVoucherSummaryBox">${itemsHtml}</div>`;
     }
 
     // Simulasi Database Kota & Ongkir Standar JNE Reguler dari Jakarta Timur
@@ -871,21 +964,30 @@
       updateOrderSummary();
     }
 
-    function applyDiscount() {
+    async function applyDiscount() {
       const codeEl = document.getElementById('discountCode');
       const msgEl = document.getElementById('discountMessage');
-      const code = normalizeVoucherCode(codeEl.value);
+      const code = normalizeVoucherCode(codeEl ? codeEl.value : '');
 
       if (!code) {
         msgEl.innerHTML = '<span style="color: #ff5252;">Masukkan kode diskon!</span>';
         return;
       }
 
+      await loadVouchers();
+
       const voucher = availableVouchers[code];
       const subtotal = getCartSubtotal();
 
       if (voucher) {
-        if (voucher.minPurchase && subtotal < voucher.minPurchase) {
+        const isQuotaFull = Boolean(voucher.isQuotaFull || (voucher.maxUses != null && Number(voucher.remainingQuota) <= 0));
+        if (isQuotaFull) {
+          appliedDiscount = null;
+          msgEl.innerHTML = `<span style="color: #ff5252;">❌ Maaf, kuota pemakaian voucher ${escapeHtml(code)} sudah habis.</span>`;
+        } else if (voucher.oncePerUser && voucher.usedByCurrentUser) {
+          appliedDiscount = null;
+          msgEl.innerHTML = `<span style="color: #fbbf24;">⚠️ Voucher ${escapeHtml(code)} hanya berlaku 1x per akun dan sudah pernah Anda gunakan.</span>`;
+        } else if (voucher.minPurchase && subtotal < voucher.minPurchase) {
           appliedDiscount = null;
           msgEl.innerHTML = `<span style="color: #ff5252;">Minimal belanja untuk voucher ini adalah ${formatPrice(voucher.minPurchase)}.</span>`;
         } else {
@@ -988,8 +1090,38 @@
         return;
       }
 
+      const snap = {
+        fullName: document.getElementById('fullName')?.value || '',
+        phone: document.getElementById('phone')?.value || '',
+        address: document.getElementById('address')?.value || '',
+        note: document.getElementById('note')?.value || '',
+        provinsi: document.getElementById('provinsi')?.value || '',
+        kotaIdx: document.getElementById('kota')?.selectedIndex || 0,
+        method: currentShippingMethod
+      };
       await Cart.changeSize(item.id, item.size || '', normalizedSize);
       renderCheckout();
+      renderCheckoutSavedAddresses();
+      if (snap.method === 'cod_event') {
+        const codRadio = document.querySelector('input[name="shippingMethod"][value="cod_event"]');
+        if (codRadio) codRadio.checked = true;
+        updateShippingMethod('cod_event');
+      } else if (snap.provinsi) {
+        const provEl = document.getElementById('provinsi');
+        const kotaEl = document.getElementById('kota');
+        if (provEl) {
+          provEl.value = snap.provinsi;
+          loadCities();
+          if (kotaEl && snap.kotaIdx > 0 && snap.kotaIdx < kotaEl.options.length) {
+            kotaEl.selectedIndex = snap.kotaIdx;
+            calculateRealOngkir();
+          }
+        }
+      }
+      if (document.getElementById('fullName')) document.getElementById('fullName').value = snap.fullName;
+      if (document.getElementById('phone')) document.getElementById('phone').value = snap.phone;
+      if (document.getElementById('address')) document.getElementById('address').value = snap.address;
+      if (document.getElementById('note')) document.getElementById('note').value = snap.note;
     }
 
     function renderCheckout() {
@@ -1609,6 +1741,147 @@
 
 
 
+    let checkoutSavedAddresses = [];
+    let selectedSavedAddressIdx = -1;
+
+    function resolveAddressProvinceAndCity(addr) {
+      let prov = String(addr?.province || '').trim();
+      let city = String(addr?.city || '').trim();
+
+      if (city && (!prov || !PROVINCE_TO_CITY[prov])) {
+        const cityLower = city.toLowerCase();
+        for (const [pName, cList] of Object.entries(PROVINCE_TO_CITY)) {
+          const found = cList.find(c => c.name.toLowerCase() === cityLower);
+          if (found) {
+            prov = pName;
+            city = found.name;
+            break;
+          }
+        }
+      }
+
+      // Fallback cerdas untuk alamat lama yang hanya berupa teks bebas: deteksi nama kota resmi di dalam teks alamat
+      if (!city) {
+        const haystack = String(addr?.full_address || addr?.address || '').toLowerCase();
+        let bestMatch = null;
+        for (const [pName, cList] of Object.entries(PROVINCE_TO_CITY)) {
+          for (const c of cList) {
+            const cLower = c.name.toLowerCase();
+            if (haystack.includes(cLower)) {
+              if (!bestMatch || cLower.length > bestMatch.city.length) {
+                bestMatch = { prov: pName, city: c.name };
+              }
+            }
+          }
+        }
+        if (bestMatch) {
+          prov = bestMatch.prov;
+          city = bestMatch.city;
+        }
+      }
+
+      return { province: prov, city };
+    }
+
+    function normalizeCheckoutAddress(addr, user, idx = 0) {
+      const fullAddr = String(addr?.full_address || addr?.address || '').trim();
+      const { province, city } = resolveAddressProvinceAndCity(addr);
+      return {
+        id: addr?.id || null,
+        label: String(addr?.label || 'Rumah').trim() || 'Rumah',
+        recipient_name: String(addr?.recipient_name || user?.username || '').trim(),
+        phone: String(addr?.phone || user?.phone || '').trim(),
+        province,
+        city,
+        postal_code: String(addr?.postal_code || '').trim(),
+        full_address: fullAddr,
+        address: fullAddr,
+        is_primary: addr?.is_primary !== undefined ? Boolean(addr.is_primary) : idx === 0
+      };
+    }
+
+    function renderCheckoutSavedAddresses() {
+      const addressOptionsContainer = document.getElementById('addressOptions');
+      if (!addressOptionsContainer) return;
+
+      if (!checkoutSavedAddresses.length) {
+        addressOptionsContainer.innerHTML = `
+          <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem; padding:0.75rem 0.95rem; margin-bottom:1.1rem; border-radius:10px; background:rgba(41,182,246,0.06); border:1px dashed rgba(41,182,246,0.3); font-size:0.82rem; color:var(--text-muted);">
+            <span>💡 Simpan alamat Anda di Buku Alamat agar checkout berikutnya terisi otomatis.</span>
+            <a href="profile.html?tab=address" class="saved-addr-manage-link">📍 Kelola Buku Alamat</a>
+          </div>
+        `;
+        return;
+      }
+
+      const cardsHtml = checkoutSavedAddresses.map((addr, idx) => {
+        const isSelected = idx === selectedSavedAddressIdx;
+        const regionLabel = [addr.city, addr.province, addr.postal_code].filter(Boolean).join(', ');
+        return `
+          <label class="saved-addr-card ${isSelected ? 'selected' : ''}" id="savedAddrCard_${idx}">
+            <input type="radio" name="savedAddr" value="${idx}" ${isSelected ? 'checked' : ''} onchange="useAddress(${idx})" style="margin-top:4px; accent-color:var(--aqua);" />
+            <div style="min-width:0; flex:1;">
+              <div style="display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:3px;">
+                <strong style="color:var(--aqua); font-size:0.88rem;">📍 ${escapeHtml(addr.label)}</strong>
+                ${addr.is_primary ? '<span style="font-size:0.68rem; font-weight:800; padding:1px 8px; border-radius:50px; background:linear-gradient(135deg,#38bdf8,#7dd3fc); color:#03091f;">⭐ Utama</span>' : ''}
+                ${regionLabel ? `<span style="font-size:0.74rem; color:#7dd3fc; font-weight:700;">• ${escapeHtml(regionLabel)}</span>` : ''}
+              </div>
+              <div style="color:var(--white); font-size:0.83rem; font-weight:700; margin-bottom:2px;">
+                ${escapeHtml(addr.recipient_name || 'Penerima')}${addr.phone ? ` <span style="color:var(--text-muted); font-weight:600;">(${escapeHtml(addr.phone)})</span>` : ''}
+              </div>
+              <div style="color:var(--text-muted); font-size:0.82rem; line-height:1.4;">${escapeHtml(addr.full_address)}</div>
+            </div>
+          </label>
+        `;
+      }).join('');
+
+      addressOptionsContainer.innerHTML = `
+        <div class="saved-addr-header">
+          <label style="color:var(--white); font-weight:700; font-size:0.9rem; margin:0;">📒 Pilih dari Buku Alamat (Auto-Fill 1 Klik):</label>
+          <a href="profile.html?tab=address" class="saved-addr-manage-link">⚙️ Kelola Alamat</a>
+        </div>
+        <div class="saved-addr-list">${cardsHtml}</div>
+      `;
+    }
+
+    async function fetchAndInitSavedAddresses(user) {
+      let localList = [];
+      try {
+        localList = JSON.parse(localStorage.getItem('aika_address_' + user.email) || '[]');
+      } catch (_) {
+        localList = [];
+      }
+
+      let activeList = localList;
+      if (user.token) {
+        try {
+          const res = await fetch(`/api/address?email=${encodeURIComponent(user.email)}&_t=${Date.now()}`, {
+            headers: {
+              'x-user-email': user.email,
+              'Authorization': `Bearer ${user.token}`
+            }
+          });
+          if (res.ok) {
+            const rows = await res.json();
+            if (Array.isArray(rows) && rows.length > 0) {
+              activeList = rows;
+              localStorage.setItem('aika_address_' + user.email, JSON.stringify(rows.map((r, i) => normalizeCheckoutAddress(r, user, i))));
+            }
+          }
+        } catch (err) {
+          console.warn('Gagal memuat buku alamat dari API, menggunakan cache lokal:', err);
+        }
+      }
+
+      checkoutSavedAddresses = (activeList || []).map((a, i) => normalizeCheckoutAddress(a, user, i));
+      renderCheckoutSavedAddresses();
+
+      if (checkoutSavedAddresses.length > 0) {
+        const primaryIdx = Math.max(0, checkoutSavedAddresses.findIndex(a => a.is_primary));
+        useAddress(primaryIdx, { silent: true });
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', async () => {
       const user = ensureValidCheckoutSession();
       if (!user) return;
@@ -1617,45 +1890,68 @@
       await loadVouchers();
       renderCheckout();
 
-      // Auto-fill full name field
+      // Auto-fill default Nama & No. HP dari sesi profil user
       const fullNameInput = document.getElementById('fullName');
+      const phoneInput = document.getElementById('phone');
       if (fullNameInput && user.username) fullNameInput.value = user.username;
+      if (phoneInput && user.phone) phoneInput.value = user.phone;
 
-      // Load Addresses from LocalStorage (from dashboard/profile)
-      const userAddresses = JSON.parse(localStorage.getItem('aika_address_' + user.email) || '[]');
-      const addressOptionsContainer = document.getElementById('addressOptions');
-
-      if (userAddresses.length > 0 && addressOptionsContainer) {
-        let optionsHtml = `<label style="color:var(--white); font-weight:700; margin-bottom:10px; display:block; font-size:0.9rem;">Pilih dari Buku Alamat:</label>`;
-        optionsHtml += `<div style="display:flex; flex-direction:column; gap:0.8rem; margin-bottom:1rem;">`;
-
-        userAddresses.forEach((addr, idx) => {
-          optionsHtml += `
-          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(3,9,31,0.5); padding:1rem; border:1px solid var(--card-border); border-radius:var(--radius-sm); cursor:pointer;">
-            <input type="radio" name="savedAddr" value="${idx}" onchange="useAddress(${idx})" style="margin-top:4px; accent-color:var(--aqua);">
-            <div>
-              <strong style="color:var(--aqua); display:block; margin-bottom:5px;">${escapeHtml(addr.label)}</strong>
-              <span style="color:var(--text-muted); font-size:0.85rem; line-height:1.4;">${escapeHtml(addr.address)}</span>
-            </div>
-          </label>
-        `;
-        });
-        optionsHtml += `</div>`;
-        addressOptionsContainer.innerHTML = optionsHtml;
-      }
+      await fetchAndInitSavedAddresses(user);
     });
 
-    // Function to populate address textarea based on selection
-    function useAddress(idx) {
-      const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
-      if (!userStr) return;
-      const user = JSON.parse(userStr);
-      const addresses = JSON.parse(localStorage.getItem('aika_address_' + user.email) || '[]');
+    // Auto-fill lengkap Nama, No. HP, Provinsi, Kota, Alamat Lengkap + Hitung Ongkir JNE otomatis
+    function useAddress(idx, options = {}) {
+      const addr = checkoutSavedAddresses[idx];
+      if (!addr) return;
 
-      if (addresses[idx]) {
-        document.getElementById('address').value = addresses[idx].address;
-        document.getElementById('provinsi').focus();
-        showToast('⚠️ Lengkapi juga pilihan Provinsi dan Kota Anda untuk menghitung ongkir.');
+      selectedSavedAddressIdx = idx;
+      document.querySelectorAll('.saved-addr-card').forEach((card, i) => {
+        card.classList.toggle('selected', i === idx);
+        const radio = card.querySelector('input[type="radio"]');
+        if (radio) radio.checked = (i === idx);
+      });
+
+      const fullNameEl = document.getElementById('fullName');
+      const phoneEl = document.getElementById('phone');
+      const addressEl = document.getElementById('address');
+      const provEl = document.getElementById('provinsi');
+      const kotaEl = document.getElementById('kota');
+
+      if (fullNameEl && addr.recipient_name) fullNameEl.value = addr.recipient_name;
+      if (phoneEl && addr.phone) phoneEl.value = addr.phone;
+      if (addressEl) {
+        let addrValue = addr.full_address || addr.address || '';
+        if (addr.postal_code && !addrValue.includes(addr.postal_code)) {
+          addrValue = `${addrValue} (Kode Pos: ${addr.postal_code})`;
+        }
+        addressEl.value = addrValue;
+      }
+
+      let ongkirMatched = false;
+      if (currentShippingMethod === 'jne' && provEl && kotaEl && addr.province && PROVINCE_TO_CITY[addr.province]) {
+        provEl.value = addr.province;
+        loadCities();
+
+        if (addr.city) {
+          const targetCity = addr.city.trim().toLowerCase();
+          for (let i = 0; i < kotaEl.options.length; i++) {
+            if (kotaEl.options[i].text.trim().toLowerCase() === targetCity) {
+              kotaEl.selectedIndex = i;
+              ongkirMatched = true;
+              break;
+            }
+          }
+        }
+        calculateRealOngkir();
+      }
+
+      if (!options.silent) {
+        if (currentShippingMethod !== 'jne' || ongkirMatched) {
+          showToast(`✅ Alamat "${addr.label}" diterapkan & ongkir otomatis dihitung!`);
+        } else {
+          provEl && provEl.focus();
+          showToast('📍 Alamat terisi! Silakan pilih Provinsi & Kota untuk menghitung ongkir JNE.');
+        }
       }
     }
   </script>

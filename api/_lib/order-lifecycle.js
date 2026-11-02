@@ -5,7 +5,17 @@ const UNPAID_ORDER_EXPIRY_HOURS = 24;
 const EXPIRY_SWEEP_THROTTLE_MS = 60 * 1000; // Max 1 sweep per 60s per server instance
 
 let historyTableEnsured = false;
+let orderPaymentColsEnsured = false;
 let lastExpirySweepAt = 0;
+
+async function ensureOrderPaymentColumns(runner = db) {
+  if (orderPaymentColsEnsured) return;
+  await runner.query(`
+    ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_proof TEXT;
+    ALTER TABLE orders ADD COLUMN IF NOT EXISTS pelunasan_proof TEXT;
+  `);
+  orderPaymentColsEnsured = true;
+}
 
 function escapeHtml(value) {
   if (value === null || value === undefined) return '';
@@ -227,6 +237,7 @@ module.exports = {
   UNPAID_ORDER_EXPIRY_HOURS,
   escapeHtml,
   dispatchBackgroundTask,
+  ensureOrderPaymentColumns,
   ensureOrderHistoryTable,
   recordOrderStatusHistory,
   getOrderStatusHistory,

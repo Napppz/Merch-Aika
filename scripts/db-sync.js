@@ -30,6 +30,7 @@ async function syncDatabase() {
         stock INTEGER NOT NULL DEFAULT 0,
         badge TEXT,
         image TEXT,
+        images JSONB NOT NULL DEFAULT '[]'::jsonb,
         sizes TEXT,
         tag TEXT,
         gdrive_link TEXT,
@@ -42,6 +43,7 @@ async function syncDatabase() {
 
     // Add missing columns if table already existed without them
     await pool.query(`
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS images JSONB DEFAULT '[]'::jsonb;
       ALTER TABLE products ADD COLUMN IF NOT EXISTS tag TEXT;
       ALTER TABLE products ADD COLUMN IF NOT EXISTS gdrive_link TEXT;
       ALTER TABLE products ADD COLUMN IF NOT EXISTS cosplayer_name VARCHAR(100);
@@ -79,10 +81,12 @@ async function syncDatabase() {
         items JSONB NOT NULL DEFAULT '[]'::jsonb,
         shipping JSONB NOT NULL DEFAULT '{}'::jsonb,
         payment_proof TEXT,
+        pelunasan_proof TEXT,
         date TIMESTAMP NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_proof TEXT;
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS pelunasan_proof TEXT;
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS notes TEXT;
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS phone VARCHAR(50);
     `).catch(err => console.log('Orders columns note:', err.message));
@@ -130,13 +134,16 @@ async function syncDatabase() {
         label VARCHAR(100),
         recipient_name VARCHAR(150) NOT NULL,
         phone VARCHAR(50),
-        full_address TEXT NOT NULL,
+        province VARCHAR(100),
         city VARCHAR(100),
         postal_code VARCHAR(20),
+        full_address TEXT NOT NULL,
         is_primary BOOLEAN NOT NULL DEFAULT FALSE,
         created_at TIMESTAMP NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
+
+      ALTER TABLE user_addresses ADD COLUMN IF NOT EXISTS province VARCHAR(100);
 
       CREATE TABLE IF NOT EXISTS order_status_history (
         id BIGSERIAL PRIMARY KEY,

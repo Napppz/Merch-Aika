@@ -1,5 +1,6 @@
 const db = require('./_db');
 const { requireAdmin } = require('./admin-auth');
+const { verifyUserAuth } = require('./user-auth');
 
 const SETTINGS_KEY = 'vouchers';
 
@@ -13,6 +14,13 @@ function parseDate(value) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+function sanitizeMaxUses(raw) {
+  if (raw === '' || raw === null || raw === undefined) return null;
+  const parsed = parseInt(raw, 10);
+  if (Number.isNaN(parsed)) return 0;
+  return parsed;
+}
+
 function sanitizeVoucher(input = {}) {
   const code = normalizeCode(input.code);
   const type = input.type === 'percent' ? 'percent' : 'fixed';
@@ -23,6 +31,8 @@ function sanitizeVoucher(input = {}) {
   const maxDiscount = input.maxDiscount === '' || input.maxDiscount == null
     ? null
     : Math.max(0, parseInt(input.maxDiscount, 10) || 0);
+  const maxUses = sanitizeMaxUses(input.maxUses);
+  const oncePerUser = Boolean(input.oncePerUser);
   const startsAt = parseDate(input.startsAt)?.toISOString() || null;
   const expiresAt = parseDate(input.expiresAt)?.toISOString() || null;
   const isActive = input.isActive !== false;
@@ -35,6 +45,8 @@ function sanitizeVoucher(input = {}) {
     value,
     minPurchase,
     maxDiscount,
+    maxUses,
+    oncePerUser,
     startsAt,
     expiresAt,
     isActive,
@@ -52,6 +64,9 @@ function validateVoucher(voucher) {
   if (voucher.type === 'percent' && voucher.value > 100) {
     return 'Voucher persen maksimal 100';
   }
+  if (voucher.maxUses !== null && (!Number.isInteger(voucher.maxUses) || voucher.maxUses < 1)) {
+    return 'Kuota pemakaian voucher minimal 1 (atau kosongkan untuk tanpa batas)';
+  }
   if (voucher.startsAt && voucher.expiresAt && new Date(voucher.startsAt) > new Date(voucher.expiresAt)) {
     return 'Tanggal mulai tidak boleh melebihi tanggal berakhir';
   }
@@ -67,18 +82,77 @@ function isVoucherActive(voucher, now = new Date()) {
   return true;
 }
 
-function toPublicVoucher(voucher) {
+async function getVoucherUsageStats(userEmail = '', runner = db) {
+  const cleanEmail = String(userEmail || '').trim().toLowerCase();
+  const statsMap = new Map();
+  try {
+    const { rows } = await runner.query(
+      `SELECT
+         UPPER(TRIM(COALESCE(shipping->'discount'->>'code', ''))) AS code,
+         COUNT(*)::int AS total_used,
+         COUNT(*) FILTER (WHERE $1 <> '' AND LOWER(TRIM(email)) = $1)::int AS user_used
+       FROM orders
+       WHERE status <> 'cancelled'
+         AND COALESCE(shipping->'discount'->>'code', '') <> ''
+       GROUP BY UPPER(TRIM(COALESCE(shipping->'discount'->>'code', '')))`,
+      [cleanEmail]
+    );
+    for (const row of rows) {
+      if (row.code) {
+        statsMap.set(row.code, {
+          totalUsed: Number(row.total_used) || 0,
+          userUsed: Number(row.user_used) || 0
+        });
+      }
+    }
+  } catch (err) {
+    console.warn('getVoucherUsageStats warning:', err.message);
+  }
+  return statsMap;
+}
+
+function enrichVoucherWithUsage(voucher, statsMap, hasUserEmail = false) {
+  const code = normalizeCode(voucher.code);
+  const usage = statsMap.get(code) || { totalUsed: 0, userUsed: 0 };
+  const rawMaxUses = voucher.maxUses === '' || voucher.maxUses == null
+    ? null
+    : Math.max(1, parseInt(voucher.maxUses, 10) || 1);
+  const oncePerUser = Boolean(voucher.oncePerUser);
+  const usedCount = usage.totalUsed;
+  const remainingQuota = rawMaxUses !== null ? Math.max(0, rawMaxUses - usedCount) : null;
+  const isQuotaFull = rawMaxUses !== null ? usedCount >= rawMaxUses : false;
+  const usedByCurrentUser = hasUserEmail ? usage.userUsed > 0 : false;
+
   return {
-    code: voucher.code,
-    label: voucher.label,
-    description: voucher.description,
-    type: voucher.type,
-    value: voucher.value,
-    minPurchase: voucher.minPurchase || 0,
-    maxDiscount: voucher.maxDiscount ?? null,
-    startsAt: voucher.startsAt,
-    expiresAt: voucher.expiresAt,
-    isActive: voucher.isActive !== false
+    ...voucher,
+    code,
+    maxUses: rawMaxUses,
+    oncePerUser,
+    usedCount,
+    remainingQuota,
+    isQuotaFull,
+    usedByCurrentUser
+  };
+}
+
+function toPublicVoucher(enrichedVoucher) {
+  return {
+    code: enrichedVoucher.code,
+    label: enrichedVoucher.label,
+    description: enrichedVoucher.description,
+    type: enrichedVoucher.type,
+    value: enrichedVoucher.value,
+    minPurchase: enrichedVoucher.minPurchase || 0,
+    maxDiscount: enrichedVoucher.maxDiscount ?? null,
+    maxUses: enrichedVoucher.maxUses ?? null,
+    oncePerUser: Boolean(enrichedVoucher.oncePerUser),
+    usedCount: enrichedVoucher.usedCount || 0,
+    remainingQuota: enrichedVoucher.remainingQuota ?? null,
+    isQuotaFull: Boolean(enrichedVoucher.isQuotaFull),
+    usedByCurrentUser: Boolean(enrichedVoucher.usedByCurrentUser),
+    startsAt: enrichedVoucher.startsAt,
+    expiresAt: enrichedVoucher.expiresAt,
+    isActive: enrichedVoucher.isActive !== false
   };
 }
 
@@ -115,7 +189,7 @@ async function saveStoredVouchers(vouchers) {
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-user-email');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -126,9 +200,21 @@ module.exports = async function handler(req, res) {
       const authResult = requireAdmin(req, {
         status: () => ({ json: () => null })
       });
+      const userAuth = verifyUserAuth(req);
+      let resolvedEmail = '';
+      if (userAuth && userAuth.type === 'user' && userAuth.email) {
+        resolvedEmail = String(userAuth.email).trim().toLowerCase();
+      } else if (authResult && req.query && req.query.email) {
+        resolvedEmail = String(req.query.email).trim().toLowerCase();
+      }
 
-      const vouchers = await getStoredVouchers();
-      const sorted = vouchers.sort((a, b) => a.code.localeCompare(b.code));
+      const [vouchers, usageStats] = await Promise.all([
+        getStoredVouchers(),
+        getVoucherUsageStats(resolvedEmail)
+      ]);
+      const sorted = vouchers
+        .sort((a, b) => String(a.code || '').localeCompare(String(b.code || '')))
+        .map(v => enrichVoucherWithUsage(v, usageStats, Boolean(resolvedEmail)));
 
       if (authResult) {
         return res.status(200).json({ success: true, vouchers: sorted });

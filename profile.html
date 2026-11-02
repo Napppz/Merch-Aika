@@ -1033,65 +1033,147 @@
       border-radius: 10px;
     }
 
-    /* ── ADDRESS TAB ── */
+    /* ── ADDRESS TAB (FULL AUTO-FILL READY) ── */
     .address-list-wrap {
       display: flex;
       flex-direction: column;
-      gap: 0.85rem;
+      gap: 0.9rem;
       margin-bottom: 1.75rem;
       width: 100%;
       box-sizing: border-box;
     }
 
     .address-item-card {
-      background: rgba(3, 9, 31, 0.5);
+      background: rgba(3, 9, 31, 0.55);
       border: 1px solid var(--card-border);
-      padding: 1rem 1.1rem;
-      border-radius: var(--radius-sm);
+      padding: 1.1rem 1.2rem;
+      border-radius: 12px;
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 0.8rem;
+      gap: 1rem;
       box-sizing: border-box;
+      transition: var(--transition);
+    }
+
+    .address-item-card.is-primary {
+      border-color: rgba(41, 182, 246, 0.65);
+      background: linear-gradient(135deg, rgba(41, 182, 246, 0.09), rgba(3, 9, 31, 0.65));
+      box-shadow: 0 4px 18px rgba(41, 182, 246, 0.12);
+    }
+
+    .address-badge-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.45rem;
     }
 
     .address-badge {
       color: var(--aqua);
       font-size: 0.82rem;
+      font-weight: 800;
+      background: rgba(41, 182, 246, 0.14);
+      border: 1px solid rgba(41, 182, 246, 0.3);
+      padding: 2px 10px;
+      border-radius: 50px;
+    }
+
+    .address-primary-pill {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #03091f;
+      background: linear-gradient(135deg, #38bdf8, #7dd3fc);
+      padding: 2px 9px;
+      border-radius: 50px;
+    }
+
+    .address-recipient-line {
+      color: var(--white);
       font-weight: 700;
-      margin-bottom: 4px;
+      font-size: 0.92rem;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    .address-phone-span {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.84rem;
+    }
+
+    .address-region-line {
+      color: #7dd3fc;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
     }
 
     .address-text {
       color: var(--text-muted);
-      font-size: 0.88rem;
+      font-size: 0.86rem;
       line-height: 1.5;
+      margin: 0;
+    }
+
+    .address-card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+      justify-content: flex-end;
+      flex-shrink: 0;
+    }
+
+    .address-action-btn {
+      background: rgba(41, 182, 246, 0.1);
+      border: 1px solid rgba(41, 182, 246, 0.3);
+      color: var(--aqua);
+      padding: 0.38rem 0.7rem;
+      border-radius: 8px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font-body);
+      transition: var(--transition);
+    }
+
+    .address-action-btn:hover {
+      background: rgba(41, 182, 246, 0.22);
+      color: var(--white);
     }
 
     .address-del-btn {
-      background: transparent;
-      border: none;
-      color: #ef4444;
-      padding: 0.4rem;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+      padding: 0.38rem 0.65rem;
       cursor: pointer;
-      font-size: 1rem;
-      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border-radius: 8px;
+      transition: var(--transition);
     }
 
-    .address-del-btn:active {
-      transform: scale(0.9);
+    .address-del-btn:hover {
+      background: rgba(239, 68, 68, 0.25);
+      color: #fff;
     }
 
     .address-add-card {
-      background: rgba(3, 9, 31, 0.4);
-      padding: 1.25rem;
-      border: 1px dashed var(--card-border);
-      border-radius: var(--radius-sm);
+      background: rgba(3, 9, 31, 0.48);
+      padding: 1.35rem;
+      border: 1px dashed rgba(41, 182, 246, 0.38);
+      border-radius: 12px;
       box-sizing: border-box;
     }
 
     .address-add-title {
-      margin-bottom: 0.85rem;
+      margin-bottom: 0.35rem;
       color: var(--white);
       font-family: var(--font-display);
       font-size: 1.05rem;
@@ -1100,14 +1182,61 @@
     .address-form {
       display: flex;
       flex-direction: column;
+      gap: 0.9rem;
+    }
+
+    .address-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 0.85rem;
     }
 
+    .address-label-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 0.4rem;
+    }
+
+    .addr-preset-chip {
+      background: rgba(41, 182, 246, 0.1);
+      border: 1px solid rgba(41, 182, 246, 0.28);
+      color: var(--text-main);
+      border-radius: 50px;
+      padding: 3px 10px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font-body);
+      transition: var(--transition);
+    }
+
+    .addr-preset-chip:hover {
+      background: rgba(41, 182, 246, 0.24);
+      border-color: var(--aqua);
+      color: var(--white);
+    }
+
     .btn-save-addr {
-      align-self: flex-start;
-      padding: 0.6rem 1.2rem;
-      font-size: 0.85rem;
-      border-radius: 8px;
+      padding: 0.7rem 1.35rem;
+      font-size: 0.88rem;
+      font-weight: 700;
+      border-radius: 9px;
+    }
+
+    @media (max-width: 640px) {
+      .address-item-card {
+        flex-direction: column;
+      }
+      .address-card-actions {
+        width: 100%;
+        justify-content: flex-start;
+        padding-top: 0.55rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.07);
+      }
+      .address-form-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     /* Navbar Back Button text switch */
@@ -1764,21 +1893,81 @@
       <!-- ── SECTION: ADDRESS ── -->
       <section id="tab-address" class="content-section">
         <div class="section-header-wrap">
-          <h2 class="section-title">Buku Alamat</h2>
+          <div>
+            <h2 class="section-title" style="margin-bottom:0.2rem;">📍 Buku Alamat Pengiriman</h2>
+            <p style="color:var(--text-muted); font-size:0.82rem; margin:0;">Tersimpan aman di akun Anda &amp; otomatis mengisi Nama, No. HP, Provinsi, Kota, serta Ongkir JNE saat Checkout.</p>
+          </div>
         </div>
         <div id="addressList" class="address-list-wrap">
           <!-- Alamat akan dimuat di sini -->
         </div>
-        <div class="address-add-card">
-          <h3 class="address-add-title">➕ Tambah Alamat Baru</h3>
+        <div class="address-add-card" id="addressFormCard">
+          <h3 class="address-add-title" id="addressFormTitle">➕ Tambah Alamat Baru</h3>
+          <p style="color:var(--text-muted); font-size:0.8rem; margin:0 0 1rem 0;">Pilih Provinsi &amp; Kota sesuai tujuan agar tarif JNE langsung terhitung otomatis di halaman Checkout.</p>
           <form id="addressForm" onsubmit="saveAddress(event)" class="address-form">
+            <input type="hidden" id="addrEditId" value="" />
             <div class="form-group" style="margin:0;">
-              <input type="text" id="addrLabel" placeholder="Label (cth: Rumah, Kantor, Kos)" required />
+              <label for="addrLabel" style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Label Alamat *</label>
+              <input type="text" id="addrLabel" placeholder="Contoh: Rumah, Kantor, Kos, Apartemen" required />
+              <div class="address-label-presets">
+                <button type="button" class="addr-preset-chip" onclick="setAddrLabelPreset('Rumah')">🏠 Rumah</button>
+                <button type="button" class="addr-preset-chip" onclick="setAddrLabelPreset('Kantor')">🏢 Kantor</button>
+                <button type="button" class="addr-preset-chip" onclick="setAddrLabelPreset('Kos')">🛏️ Kos</button>
+                <button type="button" class="addr-preset-chip" onclick="setAddrLabelPreset('Hadiah')">🎁 Hadiah</button>
+              </div>
             </div>
+
+            <div class="address-form-grid">
+              <div class="form-group" style="margin:0;">
+                <label for="addrRecipient" style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Nama Penerima *</label>
+                <input type="text" id="addrRecipient" placeholder="Nama lengkap penerima paket" required />
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label for="addrPhone" style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">No. HP / WhatsApp *</label>
+                <input type="tel" id="addrPhone" placeholder="08xxxxxxxxxx" required />
+              </div>
+            </div>
+
+            <div class="address-form-grid">
+              <div class="form-group" style="margin:0;">
+                <label for="addrProvince" style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Provinsi Tujuan (JNE) *</label>
+                <select id="addrProvince" onchange="populateProfileCities()" required style="width:100%; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.75rem; font-family:var(--font-body);">
+                  <option value="">-- Pilih Provinsi --</option>
+                  <option value="DKI Jakarta">DKI Jakarta</option>
+                  <option value="Banten">Banten</option>
+                  <option value="Jawa Barat">Jawa Barat</option>
+                  <option value="Jawa Tengah">Jawa Tengah</option>
+                  <option value="Jawa Timur">Jawa Timur</option>
+                  <option value="Luar Jawa">Luar Pulau Jawa (Lainnya)</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label for="addrCity" style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Kota / Kabupaten *</label>
+                <select id="addrCity" required disabled style="width:100%; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.75rem; font-family:var(--font-body);">
+                  <option value="">-- Pilih Kota --</option>
+                </select>
+              </div>
+            </div>
+
             <div class="form-group" style="margin:0;">
-              <textarea id="addrText" rows="3" placeholder="Alamat Lengkap (Jalan, RT/RW, No., Kelurahan, Kecamatan, Kota, Kode Pos)" style="resize:none;" required></textarea>
+              <label for="addrPostalCode" style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Kode Pos <small style="color:var(--text-muted); font-weight:400;">(Opsional)</small></label>
+              <input type="text" id="addrPostalCode" placeholder="Contoh: 13410" maxlength="10" />
             </div>
-            <button type="submit" class="btn-secondary btn-save-addr">Simpan Alamat</button>
+
+            <div class="form-group" style="margin:0;">
+              <label for="addrText" style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Alamat Lengkap (Jalan, No. Rumah, RT/RW, Kecamatan, Patokan) *</label>
+              <textarea id="addrText" rows="3" placeholder="Contoh: Jl. Melati No. 12, RT 04/RW 02, Kel. Jatinegara, Kec. Cakung (Pagar hitam dekat minimarket)" style="resize:none;" required></textarea>
+            </div>
+
+            <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer; color:var(--text-main); font-size:0.85rem; user-select:none;">
+              <input type="checkbox" id="addrIsPrimary" style="width:18px; height:18px; accent-color:var(--aqua);" />
+              <span>⭐ Jadikan <strong>Alamat Utama</strong> (otomatis terisi saat membuka halaman Checkout)</span>
+            </label>
+
+            <div style="display:flex; gap:0.65rem; flex-wrap:wrap; align-items:center;">
+              <button type="submit" class="btn-primary btn-save-addr" id="btnSaveAddress">💾 Simpan ke Buku Alamat</button>
+              <button type="button" class="btn-ghost" id="btnCancelEditAddress" onclick="resetAddressForm()" style="display:none; padding:0.7rem 1.1rem; font-size:0.85rem; border-radius:9px;">Batal Edit</button>
+            </div>
           </form>
         </div>
       </section>
@@ -1794,6 +1983,53 @@
         </div>
       </section>
     </main>
+  </div>
+
+  <!-- Payment / Pelunasan DP 50% / Re-Upload Proof Modal -->
+  <div id="profilePaymentModal" class="cart-overlay" onclick="closeOrderPaymentModal(event)"
+    style="display:flex; align-items:center; justify-content:center;">
+    <div class="profile-sidebar"
+      style="position:relative; width:92%; max-width:520px; max-height:90vh; overflow-y:auto; background:linear-gradient(145deg, var(--midnight-blue), var(--deep-ocean)); border:1px solid var(--aqua); box-shadow:0 12px 42px rgba(41,182,246,0.25); text-align:left;"
+      onclick="event.stopPropagation()">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.75rem; margin-bottom:0.85rem;">
+        <div>
+          <h3 id="profPayModalTitle" style="color:var(--white); margin:0; font-family:var(--font-display); font-size:1.25rem;">💳 Pembayaran Pesanan</h3>
+          <div id="profPayModalOrderId" style="color:var(--aqua); font-family:monospace; font-size:0.85rem; margin-top:3px;"></div>
+        </div>
+        <button type="button" onclick="closeOrderPaymentModal()" style="background:rgba(255,255,255,0.06); border:1px solid var(--card-border); color:var(--text-muted); width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:1rem; line-height:1;">✕</button>
+      </div>
+
+      <div id="profPayAdminNoteBox" style="display:none; background:rgba(245,158,11,0.14); border:1px solid rgba(245,158,11,0.45); border-radius:10px; padding:0.85rem 1rem; margin-bottom:1rem; font-size:0.83rem; line-height:1.45; color:#fde68a;"></div>
+
+      <div id="profPaySummaryBox" style="background:rgba(3,9,31,0.65); border:1px solid var(--card-border); border-radius:10px; padding:0.9rem 1rem; margin-bottom:1rem; font-size:0.85rem;"></div>
+
+      <div style="background:rgba(41,182,246,0.08); border:1.5px solid rgba(41,182,246,0.45); border-radius:12px; padding:1rem; margin-bottom:1rem; text-align:center;">
+        <div style="color:var(--aqua); font-weight:700; font-size:0.88rem; margin-bottom:0.65rem;">📱 Scan QRIS Resmi Aika Sesilia</div>
+        <div style="background:#fff; padding:0.75rem; border-radius:10px; display:inline-block; max-width:240px; width:100%;">
+          <img src="images/Qris/Qris.jpeg" alt="QRIS Aika Sesilia" style="width:100%; height:auto; display:block; border-radius:4px;" />
+        </div>
+        <div style="margin-top:0.75rem; background:rgba(3,9,31,0.65); border-radius:8px; padding:0.65rem;">
+          <div id="profPayTransferLabel" style="font-size:0.78rem; color:var(--text-muted);">Nominal yang Harus Ditransfer:</div>
+          <div id="profPayTransferAmount" style="font-size:1.3rem; font-weight:800; color:#4ade80; margin-top:2px;">Rp 0</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:1.1rem;">
+        <label style="display:block; color:var(--white); font-weight:700; font-size:0.86rem; margin-bottom:0.45rem;">📸 Unggah Screenshot Bukti Transfer *</label>
+        <input type="file" id="profProofFileInput" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleProfileProofSelect(event)" />
+        <button type="button" class="btn-ghost" onclick="document.getElementById('profProofFileInput').click()" style="width:100%; padding:0.75rem; border-radius:10px; border:1px dashed var(--aqua); color:var(--aqua); font-weight:700; font-size:0.85rem; cursor:pointer;">
+          📤 Pilih Gambar Bukti Transfer (JPG / PNG / WebP)
+        </button>
+        <div id="profProofPreviewWrap" style="margin-top:0.75rem;"></div>
+      </div>
+
+      <div style="display:flex; gap:0.75rem;">
+        <button type="button" class="btn-ghost w100" onclick="closeOrderPaymentModal()" style="border-radius:10px; font-size:0.9rem;">Batal</button>
+        <button type="button" class="btn-primary w100" id="btnSubmitProfProof" onclick="submitOrderPaymentProof()" disabled style="border-radius:10px; font-size:0.9rem; opacity:0.5; cursor:not-allowed;">
+          ✅ Kirim Bukti Transfer
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Review Modal -->
@@ -2345,9 +2581,16 @@
         let shippingInfo = null;
         try { shippingInfo = typeof o.shipping === 'string' ? JSON.parse(o.shipping) : o.shipping; } catch (e) { }
 
-        const isDp = shippingInfo?.paymentScheme === 'dp50' || shippingInfo?.isDp;
+        const isDp = Boolean(shippingInfo?.paymentScheme === 'dp50' || shippingInfo?.isDp);
         const dpAmount = Number(shippingInfo?.dpAmount) || Math.ceil((Number(o.total) || 0) * 0.5);
         const remainingAmount = Number(shippingInfo?.remainingAmount) || Math.max(0, (Number(o.total) || 0) - dpAmount);
+        const pelunasanStatus = String(shippingInfo?.pelunasanStatus || 'unpaid');
+        const isPelunasanVerified = isDp && pelunasanStatus === 'verified';
+        const isPelunasanPending = isDp && pelunasanStatus === 'pending_verification';
+        const isPelunasanRejected = isDp && pelunasanStatus === 'rejected';
+        const isInitialReupload = o.status === 'pending' && Boolean(shippingInfo?.reuploadRequested);
+        const canUploadInitial = o.status === 'pending';
+        const canUploadPelunasan = isDp && remainingAmount > 0 && ['paid', 'shipped'].includes(o.status) && !isPelunasanPending && !isPelunasanVerified;
 
         allOrders[o.id] = itemsArr;
 
@@ -2358,18 +2601,54 @@
 
         const statusLower = (o.status || 'pending').toLowerCase();
         const statusClass = ['paid', 'shipped', 'completed', 'cancelled'].includes(statusLower) ? statusLower : 'pending';
-        const statusLabel = o.status === 'paid'
-          ? 'DIKEMAS'
-          : o.status === 'shipped'
-            ? 'DIKIRIM'
-            : o.status === 'completed'
-              ? 'SELESAI'
-              : o.status === 'cancelled'
-                ? 'DIBATALKAN'
-                : o.status === 'payment_pending'
-                  ? 'MENUNGGU VERIFIKASI'
-                  : (o.status?.toUpperCase() || 'MENUNGGU PEMBAYARAN');
+        const statusLabel = isInitialReupload
+          ? 'PERLU UPLOAD ULANG'
+          : o.status === 'paid'
+            ? 'DIKEMAS'
+            : o.status === 'shipped'
+              ? 'DIKIRIM'
+              : o.status === 'completed'
+                ? 'SELESAI'
+                : o.status === 'cancelled'
+                  ? 'DIBATALKAN'
+                  : o.status === 'payment_pending'
+                    ? 'MENUNGGU VERIFIKASI'
+                    : 'MENUNGGU PEMBAYARAN';
         const safeOid = escapeHtml(o.id);
+
+        let pelunasanPillHtml = '';
+        if (isDp) {
+          if (isPelunasanVerified) {
+            pelunasanPillHtml = '<span style="background:rgba(34,197,94,0.18);color:#4ade80;border:1px solid rgba(34,197,94,0.4);padding:3px 9px;border-radius:50px;font-size:0.7rem;font-weight:700;">✅ Lunas 100%</span>';
+          } else if (isPelunasanPending) {
+            pelunasanPillHtml = '<span style="background:rgba(56,189,248,0.16);color:#38bdf8;border:1px solid rgba(56,189,248,0.4);padding:3px 9px;border-radius:50px;font-size:0.7rem;font-weight:700;">⏳ Pelunasan Diverifikasi</span>';
+          } else if (isPelunasanRejected) {
+            pelunasanPillHtml = '<span style="background:rgba(251,146,60,0.18);color:#fb923c;border:1px solid rgba(251,146,60,0.45);padding:3px 9px;border-radius:50px;font-size:0.7rem;font-weight:700;">⚠️ Pelunasan Ditolak</span>';
+          }
+        }
+
+        let paymentNoticeHtml = '';
+        if (isInitialReupload) {
+          paymentNoticeHtml = `
+            <div style="margin:0.65rem 0 0.25rem; padding:0.75rem 0.9rem; background:rgba(245,158,11,0.14); border:1px solid rgba(245,158,11,0.45); border-radius:10px; font-size:0.8rem; color:#fde68a; line-height:1.45;">
+              <strong>⚠️ Admin Meminta Upload Ulang Bukti Pembayaran:</strong><br/>
+              ${escapeHtml(shippingInfo?.reuploadNote || 'Mohon unggah ulang bukti transfer yang jelas dan sesuai nominal.')}
+            </div>
+          `;
+        } else if (o.status === 'pending' && !o.has_payment_proof) {
+          paymentNoticeHtml = `
+            <div style="margin:0.65rem 0 0.25rem; padding:0.65rem 0.9rem; background:rgba(41,182,246,0.1); border:1px solid rgba(41,182,246,0.3); border-radius:10px; font-size:0.79rem; color:var(--sky-light); line-height:1.4;">
+              ⏳ Bukti pembayaran belum diunggah. Silakan unggah bukti transfer dalam 24 jam agar pesanan tidak dibatalkan otomatis.
+            </div>
+          `;
+        } else if (isPelunasanRejected) {
+          paymentNoticeHtml = `
+            <div style="margin:0.65rem 0 0.25rem; padding:0.75rem 0.9rem; background:rgba(245,158,11,0.14); border:1px solid rgba(245,158,11,0.45); border-radius:10px; font-size:0.8rem; color:#fde68a; line-height:1.45;">
+              <strong>⚠️ Bukti Pelunasan Sisa 50% Perlu Diunggah Ulang:</strong><br/>
+              ${escapeHtml(shippingInfo?.pelunasanRejectNote || 'Mohon unggah ulang bukti transfer pelunasan sisa 50%.')}
+            </div>
+          `;
+        }
 
         return `
       <div class="order-card">
@@ -2383,11 +2662,13 @@
           </div>
           <div class="order-header-right">
             ${isDp ? '<span class="badge-dp">⚡ DP 50%</span>' : ''}
+            ${pelunasanPillHtml}
             <div class="order-status ${statusClass}">
               ${escapeHtml(statusLabel)}
             </div>
           </div>
         </div>
+        ${paymentNoticeHtml}
         <div class="order-items">
           ${itemsArr.map(i => {
           const prod = catalogProductsMap[i.id] || catalogProductsMap[(i.name || '').toLowerCase().trim()] || {};
@@ -2445,12 +2726,26 @@
           <div class="order-total-block">
             ${isDp ? `
               <div class="total-label">Total: <strong style="color:var(--white)">Rp ${(Number(o.total) || 0).toLocaleString('id-ID')}</strong></div>
-              <div class="dp-label">DP 50%: Rp ${dpAmount.toLocaleString('id-ID')} <span class="dp-remain">(Sisa: Rp ${remainingAmount.toLocaleString('id-ID')})</span></div>
+              ${isPelunasanVerified ? `
+                <div class="dp-label" style="color:#4ade80;">✅ Lunas 100% (DP + Pelunasan Terverifikasi)</div>
+              ` : `
+                <div class="dp-label">DP 50%: Rp ${dpAmount.toLocaleString('id-ID')} <span class="dp-remain">(Sisa: Rp ${remainingAmount.toLocaleString('id-ID')})</span></div>
+              `}
             ` : `
               <div class="total-label">Total Bayar: <strong class="total-val">Rp ${(Number(o.total) || 0).toLocaleString('id-ID')}</strong></div>
             `}
           </div>
           <div class="order-footer-actions">
+            ${canUploadInitial ? `
+              <button class="btn-primary action-btn btn-primary-action" data-oid="${safeOid}" onclick="openOrderPaymentModal(this.dataset.oid, 'initial')" style="background:linear-gradient(135deg,#f59e0b,#d97706);border:none;">
+                ${isInitialReupload ? '🔄 Upload Ulang Bukti' : '📤 Upload Bukti Bayar'}
+              </button>
+            ` : ''}
+            ${canUploadPelunasan ? `
+              <button class="btn-primary action-btn btn-primary-action" data-oid="${safeOid}" onclick="openOrderPaymentModal(this.dataset.oid, 'pelunasan')" style="background:linear-gradient(135deg,#0284c7,#0369a1);border:none;">
+                💳 ${isPelunasanRejected ? 'Upload Ulang Pelunasan' : 'Bayar Pelunasan'} (Rp ${remainingAmount.toLocaleString('id-ID')})
+              </button>
+            ` : ''}
             <button class="btn-ghost action-btn" data-oid="${safeOid}" onclick="printOrderInvoice(this.dataset.oid)">🧾 Invoice</button>
             ${o.status === 'shipped' ? `<button class="btn-primary action-btn btn-primary-action" data-oid="${safeOid}" onclick="confirmDelivery(this.dataset.oid)">📦 Diterima</button>` : ''}
             <button class="btn-ghost action-btn" data-oid="${safeOid}" onclick="reorderItems(this.dataset.oid)">🛒 Beli Lagi</button>
@@ -2591,10 +2886,17 @@
                 <span>TAGIHAN DP 50% (DIBAYAR)</span>
                 <span>Rp ${dpAmount.toLocaleString('id-ID')}</span>
               </div>
-              <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; color: #d97706; padding-top: 5px;">
-                <span>SISA TAGIHAN PELUNASAN NANTI</span>
-                <span>Rp ${remainingAmount.toLocaleString('id-ID')}</span>
-              </div>
+              ${shippingInfo.pelunasanStatus === 'verified' ? `
+                <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; color: #16a34a; padding-top: 5px;">
+                  <span>PELUNASAN SISA 50% (LUNAS 100%)</span>
+                  <span>Rp ${remainingAmount.toLocaleString('id-ID')} ✓</span>
+                </div>
+              ` : `
+                <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; color: #d97706; padding-top: 5px;">
+                  <span>SISA TAGIHAN PELUNASAN</span>
+                  <span>Rp ${remainingAmount.toLocaleString('id-ID')}</span>
+                </div>
+              `}
             ` : ''}
 
             <div class="footer">
@@ -2611,6 +2913,266 @@
         </html>
       `);
       printWindow.document.close();
+    }
+
+    let activePaymentOrder = null;
+    let activePaymentMode = 'initial'; // 'initial' | 'pelunasan'
+    let activeProfileProofDataUrl = null;
+
+    function openOrderPaymentModal(orderId, mode = 'initial') {
+      const order = userOrdersList.find(o => o.id === orderId);
+      if (!order) {
+        alert('Pesanan tidak ditemukan.');
+        return;
+      }
+
+      let shipInfo = {};
+      try {
+        shipInfo = typeof order.shipping === 'string' ? JSON.parse(order.shipping || '{}') : (order.shipping || {});
+      } catch (_) {
+        shipInfo = {};
+      }
+
+      const isDp = Boolean(shipInfo.paymentScheme === 'dp50' || shipInfo.isDp);
+      const totalVal = Number(order.total) || 0;
+      const dpAmount = Number(shipInfo.dpAmount) || Math.ceil(totalVal * 0.5);
+      const remainingAmount = Number(shipInfo.remainingAmount) || Math.max(0, totalVal - dpAmount);
+
+      activePaymentOrder = order;
+      activePaymentMode = mode === 'pelunasan' ? 'pelunasan' : 'initial';
+      activeProfileProofDataUrl = null;
+
+      const titleEl = document.getElementById('profPayModalTitle');
+      const oidEl = document.getElementById('profPayModalOrderId');
+      const noteBox = document.getElementById('profPayAdminNoteBox');
+      const summaryBox = document.getElementById('profPaySummaryBox');
+      const transferLabel = document.getElementById('profPayTransferLabel');
+      const transferAmtEl = document.getElementById('profPayTransferAmount');
+      const previewWrap = document.getElementById('profProofPreviewWrap');
+      const fileInput = document.getElementById('profProofFileInput');
+      const submitBtn = document.getElementById('btnSubmitProfProof');
+
+      if (fileInput) fileInput.value = '';
+      if (previewWrap) previewWrap.innerHTML = '';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.5';
+        submitBtn.style.cursor = 'not-allowed';
+        submitBtn.textContent = activePaymentMode === 'pelunasan'
+          ? '✅ Kirim Bukti Pelunasan'
+          : '✅ Kirim Bukti Transfer';
+      }
+
+      oidEl.textContent = 'Pesanan #' + order.id;
+
+      if (activePaymentMode === 'pelunasan') {
+        titleEl.textContent = shipInfo.pelunasanStatus === 'rejected'
+          ? '🔄 Upload Ulang Pelunasan 50%'
+          : '💳 Pelunasan Sisa 50% (DP)';
+        if (shipInfo.pelunasanStatus === 'rejected' && shipInfo.pelunasanRejectNote) {
+          noteBox.style.display = 'block';
+          noteBox.innerHTML = '<strong>⚠️ Catatan Admin:</strong><br/>' + escapeHtml(shipInfo.pelunasanRejectNote);
+        } else {
+          noteBox.style.display = 'none';
+          noteBox.innerHTML = '';
+        }
+
+        summaryBox.innerHTML = `
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;color:var(--text-muted);">
+            <span>Total Nilai Pesanan</span>
+            <strong style="color:var(--white);">Rp ${totalVal.toLocaleString('id-ID')}</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;color:#4ade80;">
+            <span>DP 50% Pertama (Sudah Diverifikasi)</span>
+            <strong>Rp ${dpAmount.toLocaleString('id-ID')} ✓</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid rgba(255,255,255,0.1);color:var(--gold);font-weight:700;">
+            <span>Tagihan Pelunasan Sisa 50%</span>
+            <span>Rp ${remainingAmount.toLocaleString('id-ID')}</span>
+          </div>
+        `;
+        transferLabel.textContent = 'Nominal Pelunasan Sisa 50% yang Harus Ditransfer:';
+        transferAmtEl.textContent = 'Rp ' + remainingAmount.toLocaleString('id-ID');
+      } else {
+        const isReupload = Boolean(shipInfo.reuploadRequested);
+        titleEl.textContent = isReupload
+          ? '🔄 Upload Ulang Bukti Pembayaran'
+          : (isDp ? '📤 Upload Bukti DP 50%' : '📤 Upload Bukti Pembayaran');
+
+        if (isReupload && shipInfo.reuploadNote) {
+          noteBox.style.display = 'block';
+          noteBox.innerHTML = '<strong>⚠️ Catatan Admin:</strong><br/>' + escapeHtml(shipInfo.reuploadNote);
+        } else {
+          noteBox.style.display = 'none';
+          noteBox.innerHTML = '';
+        }
+
+        const payNow = isDp ? dpAmount : totalVal;
+        summaryBox.innerHTML = isDp ? `
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;color:var(--text-muted);">
+            <span>Total Nilai Pesanan</span>
+            <strong style="color:var(--white);">Rp ${totalVal.toLocaleString('id-ID')}</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;color:#4ade80;font-weight:700;">
+            <span>Tagihan DP 50% Sekarang</span>
+            <span>Rp ${dpAmount.toLocaleString('id-ID')}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;color:var(--gold);font-size:0.8rem;">
+            <span>Sisa Pelunasan Nanti</span>
+            <span>Rp ${remainingAmount.toLocaleString('id-ID')}</span>
+          </div>
+        ` : `
+          <div style="display:flex;justify-content:space-between;color:var(--white);font-weight:700;">
+            <span>Total Tagihan Pembayaran (100%)</span>
+            <span style="color:var(--aqua);">Rp ${totalVal.toLocaleString('id-ID')}</span>
+          </div>
+        `;
+        transferLabel.textContent = isDp ? 'Nominal DP 50% yang Harus Ditransfer:' : 'Total Pembayaran yang Harus Ditransfer:';
+        transferAmtEl.textContent = 'Rp ' + payNow.toLocaleString('id-ID');
+      }
+
+      document.getElementById('profilePaymentModal').classList.add('active');
+    }
+
+    function closeOrderPaymentModal(e) {
+      if (e && e.target && e.target.id !== 'profilePaymentModal') return;
+      document.getElementById('profilePaymentModal').classList.remove('active');
+      activePaymentOrder = null;
+      activeProfileProofDataUrl = null;
+    }
+
+    async function normalizeProfileProofImage(file) {
+      if (!file || !file.type || !file.type.startsWith('image/')) {
+        throw new Error('File harus berupa gambar (JPG, PNG, atau WebP).');
+      }
+      const supportedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      const maxBytes = 5 * 1024 * 1024;
+      const readDataUrl = (blob) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => resolve(ev.target.result);
+        reader.onerror = () => reject(new Error('Gagal membaca file gambar'));
+        reader.readAsDataURL(blob);
+      });
+
+      if (supportedTypes.includes(file.type) && file.size <= maxBytes) {
+        return await readDataUrl(file);
+      }
+
+      const objUrl = URL.createObjectURL(file);
+      try {
+        const img = await new Promise((resolve, reject) => {
+          const im = new Image();
+          im.onload = () => resolve(im);
+          im.onerror = () => reject(new Error('Format gambar tidak didukung. Gunakan JPG, PNG, atau WebP.'));
+          im.src = objUrl;
+        });
+        const w = img.naturalWidth || img.width || 1;
+        const h = img.naturalHeight || img.height || 1;
+        const scale = Math.min(1, 1600 / Math.max(w, h));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(w * scale));
+        canvas.height = Math.max(1, Math.round(h * scale));
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        const blob = await new Promise((resolve, reject) => {
+          canvas.toBlob((b) => b ? resolve(b) : reject(new Error('Gagal memproses gambar')), 'image/jpeg', 0.85);
+        });
+        if (blob.size > maxBytes) {
+          throw new Error('Ukuran gambar terlalu besar (maksimal 5MB).');
+        }
+        return await readDataUrl(blob);
+      } finally {
+        URL.revokeObjectURL(objUrl);
+      }
+    }
+
+    async function handleProfileProofSelect(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const previewWrap = document.getElementById('profProofPreviewWrap');
+      const submitBtn = document.getElementById('btnSubmitProfProof');
+
+      if (file.size > 10 * 1024 * 1024) {
+        alert('Ukuran file maksimal 10MB.');
+        event.target.value = '';
+        return;
+      }
+
+      previewWrap.innerHTML = '<div style="font-size:0.82rem;color:var(--text-muted);">⏳ Memproses gambar...</div>';
+      try {
+        const dataUrl = await normalizeProfileProofImage(file);
+        activeProfileProofDataUrl = dataUrl;
+        previewWrap.innerHTML = `
+          <div style="border:1px solid var(--card-border); border-radius:10px; padding:0.75rem; background:rgba(3,9,31,0.6); text-align:center;">
+            <img src="${dataUrl}" alt="Preview Bukti Transfer" style="max-height:220px; max-width:100%; border-radius:6px; object-fit:contain;" />
+            <div style="margin-top:0.45rem; font-size:0.78rem; color:#4ade80; font-weight:600;">✓ Gambar bukti transfer siap dikirim</div>
+          </div>
+        `;
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        submitBtn.style.cursor = 'pointer';
+      } catch (err) {
+        activeProfileProofDataUrl = null;
+        event.target.value = '';
+        previewWrap.innerHTML = `<div style="font-size:0.82rem;color:#fca5a5;">❌ ${escapeHtml(err.message || 'Gagal membaca gambar')}</div>`;
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.5';
+        submitBtn.style.cursor = 'not-allowed';
+      }
+    }
+
+    async function submitOrderPaymentProof() {
+      if (!activePaymentOrder || !activeProfileProofDataUrl) {
+        alert('Pilih gambar bukti transfer terlebih dahulu.');
+        return;
+      }
+      if (!currentUser || !currentUser.token || isUserTokenExpired(currentUser.token)) {
+        handleSessionExpired();
+        return;
+      }
+
+      const submitBtn = document.getElementById('btnSubmitProfProof');
+      const initialLabel = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ Mengunggah...';
+
+      try {
+        const res = await fetch('/api/payment-proof', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + currentUser.token,
+            'x-user-email': currentUser.email
+          },
+          body: JSON.stringify({
+            orderId: activePaymentOrder.id,
+            email: currentUser.email,
+            customerName: currentUser.username,
+            proofType: activePaymentMode,
+            base64Image: activeProfileProofDataUrl
+          })
+        });
+
+        if (res.status === 401) {
+          handleSessionExpired();
+          return;
+        }
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.error || 'Gagal mengunggah bukti pembayaran');
+        }
+
+        const isPelunasan = activePaymentMode === 'pelunasan';
+        closeOrderPaymentModal();
+        alert(isPelunasan
+          ? '✅ Bukti pelunasan sisa 50% berhasil dikirim! Mohon tunggu verifikasi admin.'
+          : '✅ Bukti pembayaran berhasil dikirim! Mohon tunggu verifikasi admin.');
+        await loadOrders();
+      } catch (err) {
+        alert('❌ ' + (err.message || 'Gagal mengunggah bukti pembayaran'));
+        submitBtn.disabled = false;
+        submitBtn.textContent = initialLabel;
+      }
     }
 
     async function confirmDelivery(orderId) {
@@ -2870,45 +3432,379 @@
         el.innerHTML = `<img src="${saved}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
       });
     }
-    function loadAddress() {
-      const list = document.getElementById('addressList');
-      const addresses = JSON.parse(localStorage.getItem('aika_address_' + currentUser.email) || '[]');
+    const PROFILE_PROVINCE_CITIES = {
+      "DKI Jakarta": ["Jakarta Pusat", "Jakarta Utara", "Jakarta Barat", "Jakarta Selatan", "Jakarta Timur"],
+      "Banten": ["Kota Tangerang", "Kota Tangerang Selatan", "Kab. Tangerang", "Kota Serang"],
+      "Jawa Barat": ["Kota Bekasi", "Kota Depok", "Kota Bogor", "Kota Bandung", "Kab. Bandung", "Kota Cirebon"],
+      "Jawa Tengah": ["Kota Semarang", "Kota Surakarta (Solo)", "Kab. Banyumas"],
+      "Jawa Timur": ["Kota Surabaya", "Kota Malang", "Kab. Sidoarjo"],
+      "Luar Jawa": ["Kota Medan", "Kota Denpasar", "Kota Makassar", "Kota Balikpapan"]
+    };
 
-      if (addresses.length === 0) {
-        list.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:1.5rem 0;">Belum ada alamat yang tersimpan.</p>';
+    let savedAddressesState = [];
+
+    function inferProvinceByCity(cityName) {
+      if (!cityName) return '';
+      const target = String(cityName).trim().toLowerCase();
+      for (const [prov, cities] of Object.entries(PROFILE_PROVINCE_CITIES)) {
+        if (cities.some(c => c.toLowerCase() === target)) return prov;
+      }
+      return '';
+    }
+
+    function normalizeAddressRecord(addr, idx = 0) {
+      const fullAddr = String(addr.full_address || addr.address || '').trim();
+      const city = String(addr.city || '').trim();
+      const province = String(addr.province || inferProvinceByCity(city) || '').trim();
+      return {
+        id: addr.id || null,
+        label: String(addr.label || 'Rumah').trim() || 'Rumah',
+        recipient_name: String(addr.recipient_name || currentUser?.username || '').trim(),
+        phone: String(addr.phone || currentUser?.phone || '').trim(),
+        province,
+        city,
+        postal_code: String(addr.postal_code || '').trim(),
+        full_address: fullAddr,
+        address: fullAddr, // backward-compatible alias
+        is_primary: addr.is_primary !== undefined ? Boolean(addr.is_primary) : idx === 0
+      };
+    }
+
+    function syncAddressesLocalCache(list) {
+      if (!currentUser?.email) return;
+      localStorage.setItem('aika_address_' + currentUser.email, JSON.stringify(list));
+    }
+
+    function setAddrLabelPreset(val) {
+      const el = document.getElementById('addrLabel');
+      if (el) el.value = val;
+    }
+
+    function populateProfileCities(selectedCity = '') {
+      const provEl = document.getElementById('addrProvince');
+      const cityEl = document.getElementById('addrCity');
+      if (!provEl || !cityEl) return;
+      const prov = provEl.value;
+      cityEl.innerHTML = '<option value="">-- Pilih Kota --</option>';
+      if (prov && PROFILE_PROVINCE_CITIES[prov]) {
+        cityEl.disabled = false;
+        PROFILE_PROVINCE_CITIES[prov].forEach(cityName => {
+          const opt = document.createElement('option');
+          opt.value = cityName;
+          opt.textContent = cityName;
+          if (selectedCity && cityName.toLowerCase() === String(selectedCity).trim().toLowerCase()) {
+            opt.selected = true;
+          }
+          cityEl.appendChild(opt);
+        });
+      } else {
+        cityEl.disabled = true;
+      }
+    }
+
+    function prefillDefaultRecipientFields() {
+      const recEl = document.getElementById('addrRecipient');
+      const phEl = document.getElementById('addrPhone');
+      const editId = document.getElementById('addrEditId')?.value;
+      if (editId) return;
+      if (recEl && !recEl.value.trim() && currentUser?.username) recEl.value = currentUser.username;
+      if (phEl && !phEl.value.trim() && currentUser?.phone) phEl.value = currentUser.phone;
+    }
+
+    function resetAddressForm() {
+      const form = document.getElementById('addressForm');
+      if (form) form.reset();
+      const editIdEl = document.getElementById('addrEditId');
+      if (editIdEl) editIdEl.value = '';
+      const titleEl = document.getElementById('addressFormTitle');
+      if (titleEl) titleEl.textContent = '➕ Tambah Alamat Baru';
+      const saveBtn = document.getElementById('btnSaveAddress');
+      if (saveBtn) saveBtn.textContent = '💾 Simpan ke Buku Alamat';
+      const cancelBtn = document.getElementById('btnCancelEditAddress');
+      if (cancelBtn) cancelBtn.style.display = 'none';
+      populateProfileCities('');
+      prefillDefaultRecipientFields();
+    }
+
+    function renderAddressList() {
+      const list = document.getElementById('addressList');
+      if (!list) return;
+
+      if (!savedAddressesState.length) {
+        list.innerHTML = `
+          <div style="text-align:center; padding:2rem 1rem; background:rgba(3,9,31,0.4); border:1px dashed var(--card-border); border-radius:12px; color:var(--text-muted);">
+            <div style="font-size:2.2rem; margin-bottom:0.5rem;">📭</div>
+            <div style="color:var(--white); font-weight:700; margin-bottom:0.25rem;">Belum Ada Alamat Tersimpan</div>
+            <div style="font-size:0.84rem;">Tambahkan alamat lengkap di bawah agar checkout berikutnya terisi otomatis dalam 1 klik.</div>
+          </div>
+        `;
         return;
       }
 
-      list.innerHTML = addresses.map((addr, idx) => `
-      <div class="address-item-card">
-        <div>
-          <div class="address-badge">📍 ${addr.label}</div>
-          <p class="address-text">${addr.address}</p>
+      list.innerHTML = savedAddressesState.map((addr, idx) => {
+        const regionParts = [addr.city, addr.province, addr.postal_code].filter(Boolean);
+        return `
+        <div class="address-item-card ${addr.is_primary ? 'is-primary' : ''}">
+          <div style="min-width:0; flex:1;">
+            <div class="address-badge-row">
+              <span class="address-badge">📍 ${escapeHtml(addr.label)}</span>
+              ${addr.is_primary ? '<span class="address-primary-pill">⭐ Utama</span>' : ''}
+            </div>
+            <div class="address-recipient-line">
+              <span>👤 ${escapeHtml(addr.recipient_name || currentUser?.username || 'Penerima')}</span>
+              ${addr.phone ? `<span class="address-phone-span">• 📱 ${escapeHtml(addr.phone)}</span>` : ''}
+            </div>
+            ${regionParts.length ? `<div class="address-region-line">🚚 ${escapeHtml(regionParts.join(', '))}</div>` : '<div style="font-size:0.76rem; color:#fde047; margin-bottom:0.25rem;">⚠️ Klik Edit untuk melengkapi Provinsi &amp; Kota JNE</div>'}
+            <p class="address-text">${escapeHtml(addr.full_address)}</p>
+          </div>
+          <div class="address-card-actions">
+            ${!addr.is_primary ? `<button type="button" class="address-action-btn" onclick="setPrimaryAddress(${idx})" title="Jadikan Alamat Utama">⭐ Utama</button>` : ''}
+            <button type="button" class="address-action-btn" onclick="editAddress(${idx})" title="Edit Alamat">✏️ Edit</button>
+            <button type="button" class="address-del-btn" onclick="deleteAddress(${idx})" title="Hapus Alamat">🗑️ Hapus</button>
+          </div>
         </div>
-        <button class="address-del-btn" onclick="deleteAddress(${idx})" title="Hapus Alamat">🗑️</button>
-      </div>
-    `).join('');
+        `;
+      }).join('');
     }
 
-    function saveAddress(e) {
+    async function loadAddress() {
+      if (!currentUser?.email) return;
+      prefillDefaultRecipientFields();
+
+      let localRaw = [];
+      try {
+        localRaw = JSON.parse(localStorage.getItem('aika_address_' + currentUser.email) || '[]');
+      } catch (_) {
+        localRaw = [];
+      }
+
+      // Render cache immediately if available
+      if (localRaw.length && !savedAddressesState.length) {
+        savedAddressesState = localRaw.map((a, i) => normalizeAddressRecord(a, i));
+        renderAddressList();
+      }
+
+      const token = currentUser.token || '';
+      if (!token) {
+        savedAddressesState = localRaw.map((a, i) => normalizeAddressRecord(a, i));
+        renderAddressList();
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/address?email=${encodeURIComponent(currentUser.email)}&_t=${Date.now()}`, {
+          headers: {
+            'x-user-email': currentUser.email,
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (res.ok) {
+          let serverRows = await res.json();
+
+          // One-time seamless migration if user had legacy localStorage-only addresses
+          if (Array.isArray(serverRows) && serverRows.length === 0 && localRaw.length > 0) {
+            const migrated = [];
+            for (let i = 0; i < localRaw.length; i++) {
+              const legacy = normalizeAddressRecord(localRaw[i], i);
+              if (!legacy.full_address) continue;
+              const postRes = await fetch('/api/address', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-user-email': currentUser.email,
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                  label: legacy.label,
+                  recipient_name: legacy.recipient_name || currentUser.username || 'Penerima',
+                  phone: legacy.phone || currentUser.phone || '',
+                  province: legacy.province || null,
+                  city: legacy.city || null,
+                  postal_code: legacy.postal_code || null,
+                  full_address: legacy.full_address,
+                  is_primary: i === 0
+                })
+              });
+              if (postRes.ok) {
+                const created = await postRes.json();
+                if (created?.address) migrated.push(created.address);
+              }
+            }
+            if (migrated.length) serverRows = migrated;
+          }
+
+          if (Array.isArray(serverRows)) {
+            savedAddressesState = serverRows.map((a, i) => normalizeAddressRecord(a, i));
+            syncAddressesLocalCache(savedAddressesState);
+          }
+        }
+      } catch (err) {
+        console.warn('Menggunakan cache lokal buku alamat:', err);
+      }
+
+      renderAddressList();
+      prefillDefaultRecipientFields();
+    }
+
+    function editAddress(idx) {
+      const addr = savedAddressesState[idx];
+      if (!addr) return;
+      document.getElementById('addrEditId').value = addr.id ? String(addr.id) : `local_${idx}`;
+      document.getElementById('addrLabel').value = addr.label || 'Rumah';
+      document.getElementById('addrRecipient').value = addr.recipient_name || currentUser?.username || '';
+      document.getElementById('addrPhone').value = addr.phone || currentUser?.phone || '';
+      const provEl = document.getElementById('addrProvince');
+      if (provEl) {
+        provEl.value = addr.province || inferProvinceByCity(addr.city) || '';
+      }
+      populateProfileCities(addr.city || '');
+      document.getElementById('addrPostalCode').value = addr.postal_code || '';
+      document.getElementById('addrText').value = addr.full_address || '';
+      document.getElementById('addrIsPrimary').checked = Boolean(addr.is_primary);
+
+      const titleEl = document.getElementById('addressFormTitle');
+      if (titleEl) titleEl.textContent = `✏️ Edit Alamat (${addr.label})`;
+      const saveBtn = document.getElementById('btnSaveAddress');
+      if (saveBtn) saveBtn.textContent = '💾 Simpan Perubahan Alamat';
+      const cancelBtn = document.getElementById('btnCancelEditAddress');
+      if (cancelBtn) cancelBtn.style.display = 'inline-flex';
+
+      document.getElementById('addressFormCard')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    async function setPrimaryAddress(idx) {
+      const addr = savedAddressesState[idx];
+      if (!addr) return;
+      const token = currentUser?.token || '';
+
+      if (addr.id && token) {
+        try {
+          const res = await fetch('/api/address', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-user-email': currentUser.email,
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ id: addr.id, is_primary: true })
+          });
+          if (!res.ok) throw new Error('Gagal mengatur alamat utama');
+        } catch (err) {
+          alert('❌ ' + err.message);
+          return;
+        }
+      } else {
+        savedAddressesState.forEach((a, i) => { a.is_primary = (i === idx); });
+        syncAddressesLocalCache(savedAddressesState);
+      }
+      await loadAddress();
+    }
+
+    async function saveAddress(e) {
       e.preventDefault();
-      const label = document.getElementById('addrLabel').value;
-      const text = document.getElementById('addrText').value;
+      const editId = document.getElementById('addrEditId').value.trim();
+      const label = document.getElementById('addrLabel').value.trim() || 'Rumah';
+      const recipient_name = document.getElementById('addrRecipient').value.trim();
+      const phone = document.getElementById('addrPhone').value.trim();
+      const province = document.getElementById('addrProvince').value.trim();
+      const city = document.getElementById('addrCity').value.trim();
+      const postal_code = document.getElementById('addrPostalCode').value.trim();
+      const full_address = document.getElementById('addrText').value.trim();
+      const is_primary = document.getElementById('addrIsPrimary').checked;
 
-      let addresses = JSON.parse(localStorage.getItem('aika_address_' + currentUser.email) || '[]');
-      addresses.push({ label, address: text });
-      localStorage.setItem('aika_address_' + currentUser.email, JSON.stringify(addresses));
+      if (!recipient_name || !phone || !province || !city || !full_address) {
+        alert('Mohon lengkapi Label, Nama Penerima, No. HP, Provinsi, Kota, dan Alamat Lengkap.');
+        return;
+      }
 
-      document.getElementById('addressForm').reset();
-      loadAddress();
+      const saveBtn = document.getElementById('btnSaveAddress');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Menyimpan...';
+      }
+
+      const payload = {
+        label,
+        recipient_name,
+        phone,
+        province,
+        city,
+        postal_code,
+        full_address,
+        address: full_address,
+        is_primary: savedAddressesState.length === 0 ? true : is_primary
+      };
+
+      try {
+        const token = currentUser?.token || '';
+        if (token && (!editId || !editId.startsWith('local_'))) {
+          const isEdit = Boolean(editId);
+          const res = await fetch('/api/address', {
+            method: isEdit ? 'PUT' : 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-user-email': currentUser.email,
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(isEdit ? { id: editId, ...payload } : payload)
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || 'Gagal menyimpan alamat');
+        } else {
+          if (payload.is_primary) {
+            savedAddressesState.forEach(a => { a.is_primary = false; });
+          }
+          if (editId && editId.startsWith('local_')) {
+            const localIdx = parseInt(editId.replace('local_', ''), 10);
+            if (savedAddressesState[localIdx]) {
+              savedAddressesState[localIdx] = normalizeAddressRecord(payload, localIdx);
+            }
+          } else {
+            savedAddressesState.unshift(normalizeAddressRecord(payload, 0));
+          }
+          syncAddressesLocalCache(savedAddressesState);
+        }
+
+        resetAddressForm();
+        await loadAddress();
+      } catch (err) {
+        alert('❌ ' + err.message);
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = '💾 Simpan ke Buku Alamat';
+        }
+      }
     }
 
-    function deleteAddress(idx) {
-      if (!confirm('Hapus alamat ini?')) return;
-      let addresses = JSON.parse(localStorage.getItem('aika_address_' + currentUser.email) || '[]');
-      addresses.splice(idx, 1);
-      localStorage.setItem('aika_address_' + currentUser.email, JSON.stringify(addresses));
-      loadAddress();
+    async function deleteAddress(idx) {
+      const addr = savedAddressesState[idx];
+      if (!addr) return;
+      if (!confirm(`Hapus alamat "${addr.label}"?`)) return;
+
+      const token = currentUser?.token || '';
+      if (addr.id && token) {
+        try {
+          const res = await fetch(`/api/address?id=${encodeURIComponent(addr.id)}`, {
+            method: 'DELETE',
+            headers: {
+              'x-user-email': currentUser.email,
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          if (!res.ok) throw new Error('Gagal menghapus alamat dari server');
+        } catch (err) {
+          alert('❌ ' + err.message);
+          return;
+        }
+      } else {
+        savedAddressesState.splice(idx, 1);
+        syncAddressesLocalCache(savedAddressesState);
+      }
+
+      resetAddressForm();
+      await loadAddress();
     }
 
     /* --- WISHLIST (FAVORIT SAYA) --- */

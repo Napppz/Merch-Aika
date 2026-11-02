@@ -769,6 +769,119 @@
         padding: 1.25rem 0.75rem !important;
       }
     }
+
+    /* ── ADMIN MULTI-PHOTO PRODUCT / TEASER GALLERY ── */
+    .admin-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+      gap: 0.65rem;
+      width: 100%;
+      margin-top: 0.85rem;
+    }
+
+    .admin-gallery-grid:empty {
+      display: none;
+    }
+
+    .admin-gallery-item {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1.5px solid var(--card-border);
+      background: rgba(3, 9, 31, 0.85);
+      aspect-ratio: 1 / 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .admin-gallery-item.is-cover {
+      border-color: var(--aqua);
+      box-shadow: 0 0 14px rgba(41, 182, 246, 0.3);
+    }
+
+    .admin-gallery-item img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .admin-gallery-top {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 5px;
+      gap: 4px;
+    }
+
+    .admin-gallery-badge {
+      background: rgba(3, 9, 31, 0.82);
+      border: 1px solid rgba(41, 182, 246, 0.4);
+      color: #e0f2fe;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 50px;
+      backdrop-filter: blur(4px);
+    }
+
+    .admin-gallery-item.is-cover .admin-gallery-badge {
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .admin-gallery-remove {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      background: rgba(3, 9, 31, 0.85);
+      color: #fca5a5;
+      font-size: 0.72rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .admin-gallery-remove:hover {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    .admin-gallery-controls {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      gap: 3px;
+      padding: 4px;
+      background: linear-gradient(to top, rgba(3, 9, 31, 0.92), rgba(3, 9, 31, 0.45));
+      justify-content: center;
+    }
+
+    .admin-gallery-ctrl-btn {
+      background: rgba(41, 182, 246, 0.16);
+      border: 1px solid rgba(41, 182, 246, 0.35);
+      color: var(--white);
+      border-radius: 5px;
+      padding: 2px 6px;
+      font-size: 0.66rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font-body);
+    }
+
+    .admin-gallery-ctrl-btn:hover {
+      background: rgba(41, 182, 246, 0.4);
+    }
   </style>
 </head>
 
@@ -1135,6 +1248,10 @@
               <input type="number" id="voucherMaxDiscount" placeholder="Kosongkan jika tidak dibatasi" min="0" />
             </div>
             <div class="form-group">
+              <label>Kuota Total Pemakaian</label>
+              <input type="number" id="voucherMaxUses" placeholder="Kosongkan = Tanpa Batas" min="1" />
+            </div>
+            <div class="form-group">
               <label>Mulai Berlaku</label>
               <input type="datetime-local" id="voucherStartsAt" />
             </div>
@@ -1147,11 +1264,18 @@
             <label>Deskripsi</label>
             <input type="text" id="voucherDescription" placeholder="Contoh: Berlaku untuk semua produk" />
           </div>
-          <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;color:var(--text-muted)">
-            <input type="checkbox" id="voucherIsActive" checked
-              style="width:18px;height:18px;accent-color:var(--aqua)" />
-            <label for="voucherIsActive" style="margin:0;cursor:pointer">Voucher aktif dan bisa dipakai di
-              checkout</label>
+          <div style="display:flex;flex-direction:column;gap:0.65rem;margin-bottom:1.5rem;color:var(--text-muted)">
+            <div style="display:flex;align-items:center;gap:0.75rem;">
+              <input type="checkbox" id="voucherOncePerUser" checked
+                style="width:18px;height:18px;accent-color:var(--aqua)" />
+              <label for="voucherOncePerUser" style="margin:0;cursor:pointer;color:var(--white)">🔒 Batas <strong>1x pakai per akun email</strong> (mencegah 1 akun memakai voucher ini berulang kali)</label>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.75rem;">
+              <input type="checkbox" id="voucherIsActive" checked
+                style="width:18px;height:18px;accent-color:var(--aqua)" />
+              <label for="voucherIsActive" style="margin:0;cursor:pointer">Voucher aktif dan bisa dipakai di
+                checkout</label>
+            </div>
           </div>
           <div style="display:flex;gap:0.8rem;flex-wrap:wrap;margin-bottom:1.5rem">
             <button class="btn-primary" id="saveVoucherBtn" onclick="saveVoucher()">Simpan Voucher</button>
@@ -1165,6 +1289,7 @@
                   <th>Kode</th>
                   <th>Diskon</th>
                   <th>Minimal Belanja</th>
+                  <th>Kuota &amp; Batas</th>
                   <th>Status</th>
                   <th>Berlaku</th>
                   <th>Aksi</th>
@@ -1186,18 +1311,19 @@
       <input type="hidden" id="editProductId" />
 
       <div class="form-group">
-        <label>Foto Produk</label>
+        <label id="productPhotoFieldLabel">Foto Produk / Galeri Teaser (Bisa Banyak Foto)</label>
         <div class="img-upload-area product-upload" id="productImageDropzone">
-          <input class="img-upload-input" type="file" id="productImageFile" accept="image/jpeg,image/png,image/webp"
+          <input class="img-upload-input" type="file" id="productImageFile" accept="image/jpeg,image/png,image/webp" multiple
             onchange="previewImage(this)" />
           <div class="upload-icon">📷</div>
-          <div class="upload-text">Klik atau drag foto produk di sini<br><small>JPG, PNG, WebP — Maks 5MB</small></div>
-          <img id="imagePreview" class="img-preview" alt="Preview" />
+          <div class="upload-text">Klik atau drag 1 / beberapa foto sekaligus (Maks 8 foto)<br><small>JPG, PNG, WebP — Maks 5MB/foto • Foto #1 = Sampul Utama, Foto #2 dst. = Galeri Detail / Teaser Photopack</small></div>
+          <img id="imagePreview" class="img-preview" alt="Preview" style="display:none !important;" />
           <div class="img-upload-actions">
-            <button type="button" class="btn-primary" id="productImageBrowseBtn">Pilih Foto</button>
-            <button type="button" class="btn-ghost" id="productImageResetBtn">Hapus Pilihan</button>
+            <button type="button" class="btn-primary" id="productImageBrowseBtn">+ Tambah Foto</button>
+            <button type="button" class="btn-ghost" id="productImageResetBtn">Hapus Semua Foto</button>
           </div>
-          <div class="img-upload-meta" id="productImageMeta">Belum ada file dipilih</div>
+          <div class="img-upload-meta" id="productImageMeta">Belum ada foto dipilih</div>
+          <div id="adminProductGalleryGrid" class="admin-gallery-grid" onclick="event.stopPropagation()"></div>
         </div>
         <input type="hidden" id="productImage" />
       </div>
@@ -1667,12 +1793,14 @@
         const cosplayerInfo = p.cosplayer_name ? `<div style="font-size:0.75rem;color:var(--aqua);margin-top:2px;">👤 ${escapeHtml(p.cosplayer_name)}</div>` : '';
         const safeDriveUrl = sanitizeExternalUrl(p.gdrive_link);
         const driveLinkBtn = safeDriveUrl ? `<a href="${safeDriveUrl}" target="_blank" rel="noopener noreferrer" class="btn-edit" style="text-decoration:none;display:inline-block;margin-top:3px;font-size:0.72rem;padding:2px 6px;">📂 GDrive</a>` : '';
-        const safeImgUrl = sanitizeImageUrl(p.image);
+        const galleryArr = Array.isArray(p.images) && p.images.length ? p.images : (p.image ? [p.image] : []);
+        const safeImgUrl = sanitizeImageUrl(galleryArr[0] || p.image);
+        const extraPhotoCount = Math.max(0, galleryArr.length - 1);
         const safePid = escapeHtml(p.id);
 
         return `
     <tr>
-      <td><div class="td-thumb">${safeImgUrl ? `<img src="${safeImgUrl}" style="width:48px;height:48px;object-fit:cover;border-radius:8px" onerror="this.parentElement.textContent='🛍️'">` : (isPhotopack ? '📸' : '🛍️')}</div></td>
+      <td><div class="td-thumb" style="position:relative;">${safeImgUrl ? `<img src="${safeImgUrl}" style="width:48px;height:48px;object-fit:cover;border-radius:8px" onerror="this.parentElement.textContent='🛍️'">` : (isPhotopack ? '📸' : '🛍️')}${extraPhotoCount > 0 ? `<span style="position:absolute;bottom:-4px;right:-4px;background:var(--sea-blue);border:1px solid var(--aqua);color:#fff;font-size:0.62rem;font-weight:800;padding:1px 5px;border-radius:50px;">+${extraPhotoCount}</span>` : ''}</div></td>
       <td class="td-name">
         ${escapeHtml(p.name)}
         ${cosplayerInfo}
@@ -1786,6 +1914,8 @@
 
     let pendingProductImageFile = null;
     let currentProductPreviewUrl = null;
+    let adminProductGallery = []; // Array of { uid, url, previewSrc, file }
+    const MAX_PRODUCT_GALLERY_IMAGES = 8;
     let isSavingProduct = false;
 
     function getProductImageInput() {
@@ -1799,11 +1929,89 @@
       meta.style.color = isError ? '#fca5a5' : 'var(--text-muted)';
     }
 
+    function revokeAdminGalleryBlobs() {
+      adminProductGallery.forEach(item => {
+        if (item.previewSrc && item.previewSrc.startsWith('blob:')) {
+          URL.revokeObjectURL(item.previewSrc);
+        }
+      });
+    }
+
+    function renderAdminProductGallery() {
+      const grid = document.getElementById('adminProductGalleryGrid');
+      const hiddenPrimary = document.getElementById('productImage');
+      const isPhotopackChecked = document.getElementById('productIsPhotopack')?.checked || document.getElementById('productCategory')?.value === 'Photopack';
+
+      if (hiddenPrimary) {
+        hiddenPrimary.value = adminProductGallery[0]?.url || '';
+      }
+
+      if (!grid) return;
+
+      if (!adminProductGallery.length) {
+        grid.innerHTML = '';
+        setProductImageMeta('Belum ada foto dipilih');
+        return;
+      }
+
+      const pendingCount = adminProductGallery.filter(it => !!it.file).length;
+      setProductImageMeta(
+        `${adminProductGallery.length} / ${MAX_PRODUCT_GALLERY_IMAGES} foto siap disimpan` +
+        (pendingCount > 0 ? ` (${pendingCount} file baru akan diunggah saat klik Simpan)` : '')
+      );
+
+      grid.innerHTML = adminProductGallery.map((item, idx) => {
+        const isCover = idx === 0;
+        const badgeText = isCover
+          ? '⭐ SAMPUL'
+          : (isPhotopackChecked ? `Teaser #${idx}` : `Foto #${idx + 1}`);
+        const src = sanitizeImageUrl(item.previewSrc || item.url) || (item.previewSrc?.startsWith('blob:') ? item.previewSrc : '');
+        return `
+          <div class="admin-gallery-item ${isCover ? 'is-cover' : ''}">
+            ${src ? `<img src="${src}" alt="Foto ${idx + 1}" />` : ''}
+            <div class="admin-gallery-top">
+              <span class="admin-gallery-badge">${badgeText}</span>
+              <button type="button" class="admin-gallery-remove" onclick="removeAdminGalleryPhoto(${idx})" title="Hapus foto ini">✕</button>
+            </div>
+            <div class="admin-gallery-controls">
+              ${idx > 0 ? `<button type="button" class="admin-gallery-ctrl-btn" onclick="moveAdminGalleryPhoto(${idx}, -1)" title="Geser Kiri">◀</button>` : ''}
+              ${!isCover ? `<button type="button" class="admin-gallery-ctrl-btn" onclick="promoteAdminGalleryPhoto(${idx})" title="Jadikan Sampul Utama">⭐ Utama</button>` : ''}
+              ${idx < adminProductGallery.length - 1 ? `<button type="button" class="admin-gallery-ctrl-btn" onclick="moveAdminGalleryPhoto(${idx}, 1)" title="Geser Kanan">▶</button>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function promoteAdminGalleryPhoto(idx) {
+      if (idx <= 0 || idx >= adminProductGallery.length) return;
+      const [chosen] = adminProductGallery.splice(idx, 1);
+      adminProductGallery.unshift(chosen);
+      renderAdminProductGallery();
+    }
+
+    function moveAdminGalleryPhoto(idx, delta) {
+      const targetIdx = idx + delta;
+      if (targetIdx < 0 || targetIdx >= adminProductGallery.length) return;
+      const temp = adminProductGallery[idx];
+      adminProductGallery[idx] = adminProductGallery[targetIdx];
+      adminProductGallery[targetIdx] = temp;
+      renderAdminProductGallery();
+    }
+
+    function removeAdminGalleryPhoto(idx) {
+      if (idx < 0 || idx >= adminProductGallery.length) return;
+      const [removed] = adminProductGallery.splice(idx, 1);
+      if (removed?.previewSrc && removed.previewSrc.startsWith('blob:')) {
+        URL.revokeObjectURL(removed.previewSrc);
+      }
+      renderAdminProductGallery();
+    }
+
     function resetProductImageSelection() {
       pendingProductImageFile = null;
       const fileInput = getProductImageInput();
       if (fileInput) fileInput.value = '';
-      setProductImageMeta('Belum ada file dipilih');
     }
 
     function updateTagNotice() {
@@ -1855,6 +2063,7 @@
       }
 
       details.style.display = isPhotopackCheckbox.checked ? 'flex' : 'none';
+      renderAdminProductGallery();
     }
 
     function setProductPreview(src) {
@@ -1921,7 +2130,17 @@
         document.getElementById('productCosplayer').value = p.cosplayer_name || '';
         document.getElementById('productGDriveLink').value = p.gdrive_link || '';
 
-        setProductPreview(p.image || '');
+        revokeAdminGalleryBlobs();
+        const existingImages = Array.isArray(p.images) && p.images.length
+          ? p.images
+          : (p.image ? [p.image] : []);
+        adminProductGallery = existingImages.filter(Boolean).map((imgUrl, i) => ({
+          uid: `existing_${i}_${Date.now()}`,
+          url: imgUrl,
+          previewSrc: imgUrl,
+          file: null
+        }));
+        renderAdminProductGallery();
       } else {
         title.textContent = '+ Tambah Produk Baru';
         document.getElementById('editProductId').value = '';
@@ -1937,37 +2156,54 @@
         if (tagInput) tagInput.value = 'Pakaian Kaos';
         updateTagNotice();
         document.getElementById('productIsPhotopack').checked = false;
-        setProductPreview('');
+        revokeAdminGalleryBlobs();
+        adminProductGallery = [];
+        renderAdminProductGallery();
       }
 
       toggleProductSizesField();
       modal.classList.add('show');
     };
 
-    previewImage = function (input) {
-      const file = input?.files?.[0];
-      if (!file) return;
+    function addFilesToAdminGallery(filesLike) {
+      const files = Array.from(filesLike || []);
+      if (!files.length) return;
 
       const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-      if (!allowedTypes.includes(file.type)) {
-        showToast('Format file harus JPG, PNG, atau WebP');
-        resetProductImageSelection();
-        setProductPreview('');
-        setProductImageMeta('Format file tidak didukung', true);
-        return;
+      let addedCount = 0;
+
+      for (const file of files) {
+        if (adminProductGallery.length >= MAX_PRODUCT_GALLERY_IMAGES) {
+          showToast(`Maksimal ${MAX_PRODUCT_GALLERY_IMAGES} foto per produk`);
+          break;
+        }
+        if (!allowedTypes.includes(file.type)) {
+          showToast(`Format "${file.name}" tidak didukung (gunakan JPG, PNG, WebP)`);
+          continue;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          showToast(`Ukuran "${file.name}" melebihi 5MB`);
+          continue;
+        }
+        const blobUrl = URL.createObjectURL(file);
+        adminProductGallery.push({
+          uid: `new_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          url: '',
+          previewSrc: blobUrl,
+          file
+        });
+        addedCount++;
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        showToast('File terlalu besar! Maks 5MB');
-        resetProductImageSelection();
-        setProductPreview('');
-        setProductImageMeta('Ukuran file melebihi 5MB', true);
-        return;
+      resetProductImageSelection();
+      if (addedCount > 0) {
+        renderAdminProductGallery();
       }
+    }
 
-      pendingProductImageFile = file;
-      setProductPreview(URL.createObjectURL(file));
-      setProductImageMeta(`${file.name} • ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+    previewImage = function (input) {
+      if (!input?.files?.length) return;
+      addFilesToAdminGallery(input.files);
     };
 
     saveProduct = async function () {
@@ -1986,14 +2222,22 @@
       }
 
       try {
-        let imageUrl = document.getElementById('productImage').value || '';
-        if (pendingProductImageFile) {
-          showToast('Mengunggah foto produk...');
-          const uploadResult = await uploadProductImage(pendingProductImageFile);
-          imageUrl = uploadResult.imageUrl;
-          document.getElementById('productImage').value = imageUrl;
-          setProductImageMeta('Upload selesai. Foto siap disimpan ke produk.');
+        const pendingItems = adminProductGallery.filter(it => !!it.file);
+        for (let i = 0; i < pendingItems.length; i++) {
+          const item = pendingItems[i];
+          showToast(`Mengunggah foto ${i + 1}/${pendingItems.length}...`);
+          const uploadResult = await uploadProductImage(item.file);
+          if (item.previewSrc && item.previewSrc.startsWith('blob:')) {
+            URL.revokeObjectURL(item.previewSrc);
+          }
+          item.url = uploadResult.imageUrl;
+          item.previewSrc = uploadResult.imageUrl;
+          item.file = null;
         }
+
+        const finalImages = adminProductGallery.map(it => it.url).filter(Boolean);
+        const imageUrl = finalImages[0] || '';
+        document.getElementById('productImage').value = imageUrl;
 
         const categoryVal = document.getElementById('productCategory').value;
         const isPhotopackBool = document.getElementById('productIsPhotopack').checked || categoryVal === 'Photopack';
@@ -2009,6 +2253,7 @@
           badge: document.getElementById('productBadge').value || null,
           tag: tagVal,
           image: imageUrl,
+          images: finalImages,
           sizes: categoryVal === 'Pakaian'
             ? (document.getElementById('productSizes').value || 'S, M, L, XL, XXL, XXXL').split(',').map(size => size.trim()).filter(Boolean).join(', ')
             : null,
@@ -2041,8 +2286,10 @@
     };
 
     function clearProductImageSelection() {
+      revokeAdminGalleryBlobs();
+      adminProductGallery = [];
       resetProductImageSelection();
-      setProductPreview('');
+      renderAdminProductGallery();
     }
 
     function handleProductImageDrop(event) {
@@ -2050,16 +2297,9 @@
       const dropzone = document.getElementById('productImageDropzone');
       if (dropzone) dropzone.classList.remove('dragover');
 
-      const file = event.dataTransfer?.files?.[0];
-      if (!file) return;
-
-      const input = getProductImageInput();
-      if (!input) return;
-
-      const transfer = new DataTransfer();
-      transfer.items.add(file);
-      input.files = transfer.files;
-      previewImage(input);
+      const files = event.dataTransfer?.files;
+      if (!files || !files.length) return;
+      addFilesToAdminGallery(files);
     }
 
     function initProductImageUpload() {
@@ -2234,12 +2474,21 @@
         ${isDp ? `
           <div style="font-size:0.73rem;color:#fde047;font-weight:600;margin-top:3px;">
             ⚡ DP: ${formatPrice(dpAmount)}
-            <div style="color:var(--text-muted);font-weight:normal;">Sisa: ${formatPrice(remainingAmount)}</div>
+            ${shipObj?.pelunasanStatus === 'verified'
+              ? '<div style="color:#4ade80;font-weight:700;margin-top:2px;">✅ Lunas 100%</div>'
+              : shipObj?.pelunasanStatus === 'pending_verification'
+                ? '<div style="color:#38bdf8;font-weight:700;margin-top:2px;">💳 Bukti Pelunasan Masuk!</div>'
+                : shipObj?.pelunasanStatus === 'rejected'
+                  ? '<div style="color:#fb923c;font-weight:700;margin-top:2px;">⚠️ Pelunasan Ditolak</div>'
+                  : `<div style="color:var(--text-muted);font-weight:normal;">Sisa: ${formatPrice(remainingAmount)}</div>`}
           </div>
         ` : ''}
       </td>
       <td style="font-size:0.8rem">${escapeHtml(shipObj?.name || o.shipping?.name || '-')}</td>
-      <td>${statusBadge(o.status)}</td>
+      <td>
+        ${statusBadge(o.status)}
+        ${o.status === 'pending' && shipObj?.reuploadRequested ? '<div style="margin-top:4px;font-size:0.7rem;color:#fb923c;font-weight:700;">🔄 Menunggu Upload Ulang</div>' : ''}
+      </td>
       <td style="font-size:0.75rem;color:var(--text-muted)">
         ${o.date ? new Date(o.date).toLocaleString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
       </td>
@@ -2341,26 +2590,95 @@
 
       const safeOrderId = escapeHtml(order.id);
       const safeProofUrl = sanitizeImageUrl(order.payment_proof);
+      const safePelunasanUrl = sanitizeImageUrl(order.pelunasan_proof);
+      const pelunasanSt = String(shipObj.pelunasanStatus || 'unpaid');
+      const isInitialVerified = ['paid', 'shipped', 'completed'].includes(order.status);
 
-      // Render payment proof section jika ada
+      // Render Bukti Pembayaran 1 (Awal / DP 50%)
       const paymentProofHTML = safeProofUrl ? `
-    <div style="background:rgba(76,175,80,0.1);border:2px solid #4caf50;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem">
+    <div style="background:rgba(76,175,80,0.08);border:2px solid ${shipObj.reuploadRequested && order.status === 'pending' ? '#f59e0b' : '#4caf50'};border-radius:10px;padding:1.25rem;margin-bottom:1.2rem">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;flex-wrap:wrap;gap:0.5rem;">
-        <h4 style="color:#4caf50;margin:0;font-size:0.95rem">✅ BUKTI PEMBAYARAN QRIS ${isDp ? '(DP 50%)' : ''}</h4>
-        ${isDp ? `<span style="background:rgba(234,179,8,0.2);color:#fde047;border:1px solid rgba(234,179,8,0.4);padding:3px 9px;border-radius:12px;font-size:0.75rem;font-weight:bold;">⚡ Tagihan DP: ${formatPrice(dpAmount)}</span>` : ''}
+        <h4 style="color:#4ade80;margin:0;font-size:0.93rem">📸 BUKTI PEMBAYARAN ${isDp ? '1 — DP 50% (UANG MUKA)' : 'QRIS (100%)'}</h4>
+        <div style="display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;">
+          ${isDp ? `<span style="background:rgba(234,179,8,0.2);color:#fde047;border:1px solid rgba(234,179,8,0.4);padding:3px 9px;border-radius:12px;font-size:0.74rem;font-weight:bold;">⚡ Tagihan DP: ${formatPrice(dpAmount)}</span>` : ''}
+          ${isInitialVerified ? '<span style="background:rgba(34,197,94,0.2);color:#4ade80;border:1px solid rgba(34,197,94,0.45);padding:3px 9px;border-radius:12px;font-size:0.74rem;font-weight:bold;">✅ Sudah Diverifikasi</span>' : ''}
+          ${shipObj.reuploadRequested && order.status === 'pending' ? '<span style="background:rgba(245,158,11,0.2);color:#fbbf24;border:1px solid rgba(245,158,11,0.45);padding:3px 9px;border-radius:12px;font-size:0.74rem;font-weight:bold;">🔄 Menunggu Upload Ulang Pembeli</span>' : ''}
+        </div>
       </div>
       ${isDp ? `
-        <p style="font-size:0.82rem;color:var(--text-muted);margin:0 0 1rem 0;line-height:1.4;">
-          Pembeli memilih <strong>DP 50%</strong>. Pastikan bukti transfer bernilai <strong>${formatPrice(dpAmount)}</strong>. Sisa tagihan pelunasan: <strong style="color:var(--gold);">${formatPrice(remainingAmount)}</strong>.
+        <p style="font-size:0.81rem;color:var(--text-muted);margin:0 0 0.85rem 0;line-height:1.4;">
+          Pembeli memilih <strong>DP 50%</strong>. Pastikan bukti pertama bernilai <strong>${formatPrice(dpAmount)}</strong>. Sisa tagihan pelunasan: <strong style="color:var(--gold);">${formatPrice(remainingAmount)}</strong>.
         </p>
       ` : ''}
-      <div style="background:var(--white);border-radius:8px;padding:1rem;text-align:center;margin-bottom:1rem;max-height:400px;overflow:auto">
-        <img src="${safeProofUrl}" alt="Bukti Transfer" style="max-width:100%;height:auto;border-radius:4px;" />
+      ${shipObj.reuploadRequested && shipObj.reuploadNote ? `
+        <div style="background:rgba(245,158,11,0.14);border:1px solid rgba(245,158,11,0.4);border-radius:8px;padding:0.65rem 0.85rem;margin-bottom:0.85rem;font-size:0.8rem;color:#fde68a;">
+          <strong>Catatan Upload Ulang ke Pembeli:</strong> ${escapeHtml(shipObj.reuploadNote)}
+        </div>
+      ` : ''}
+      <div style="background:var(--white);border-radius:8px;padding:0.85rem;text-align:center;margin-bottom:0.9rem;max-height:380px;overflow:auto">
+        <img src="${safeProofUrl}" alt="Bukti Transfer Awal" style="max-width:100%;height:auto;border-radius:4px;" />
       </div>
-      <div style="display:flex;gap:0.8rem">
-        <button class="btn-primary" data-oid="${safeOrderId}" onclick="verifyPayment(this.dataset.oid)" style="flex:1;background:#4caf50;padding:0.8rem">✅ Verifikasi & Ubah ke Dikemas</button>
-        <button class="btn-secondary" data-oid="${safeOrderId}" onclick="rejectPayment(this.dataset.oid)" style="flex:1;padding:0.8rem">❌ Tolak Pembayaran</button>
+      ${!isInitialVerified && order.status !== 'cancelled' ? `
+        <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+          <button class="btn-primary" data-oid="${safeOrderId}" onclick="verifyPayment(this.dataset.oid)" style="flex:1.2;min-width:170px;background:#22c55e;border-color:#22c55e;padding:0.75rem">✅ Verifikasi ${isDp ? 'DP 50%' : ''} &amp; Dikemas</button>
+          <button class="btn-secondary" data-oid="${safeOrderId}" onclick="requestReuploadInitial(this.dataset.oid)" style="flex:1;min-width:155px;border-color:#f59e0b;color:#fde047;padding:0.75rem">🔄 Minta Upload Ulang</button>
+          <button class="btn-secondary" data-oid="${safeOrderId}" onclick="rejectPayment(this.dataset.oid)" style="flex:0.9;min-width:140px;border-color:#ef4444;color:#fca5a5;padding:0.75rem">❌ Tolak &amp; Batalkan</button>
+        </div>
+      ` : `
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+          <span style="font-size:0.8rem;color:#4ade80;font-weight:600;">✓ Bukti pembayaran awal telah terverifikasi</span>
+          ${order.status !== 'cancelled' && order.status !== 'completed' ? `<button class="btn-secondary" data-oid="${safeOrderId}" onclick="requestReuploadInitial(this.dataset.oid)" style="padding:0.4rem 0.75rem;font-size:0.76rem;border-color:rgba(245,158,11,0.45);color:#fde047;">🔄 Minta Upload Ulang</button>` : ''}
+        </div>
+      `}
+    </div>
+  ` : (order.status === 'pending' ? `
+    <div style="background:rgba(245,158,11,0.1);border:1px dashed rgba(245,158,11,0.45);border-radius:10px;padding:1rem;margin-bottom:1.2rem;font-size:0.83rem;color:#fde68a;">
+      ⏳ Pembeli belum mengunggah bukti pembayaran awal. Pembeli dapat mengunggahnya melalui menu <strong>Profil &gt; Riwayat Pesanan</strong>.
+    </div>
+  ` : '');
+
+      // Render Bukti Pembayaran 2 (Pelunasan Sisa 50% untuk skema DP)
+      const pelunasanSectionHTML = isDp ? `
+    <div style="background:rgba(2,132,199,0.1);border:2px solid ${pelunasanSt === 'verified' ? '#22c55e' : pelunasanSt === 'pending_verification' ? '#38bdf8' : 'rgba(56,189,248,0.35)'};border-radius:10px;padding:1.25rem;margin-bottom:1.5rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.65rem;flex-wrap:wrap;gap:0.5rem;">
+        <h4 style="color:#38bdf8;margin:0;font-size:0.93rem">💳 BUKTI PEMBAYARAN 2 — PELUNASAN SISA 50% (${formatPrice(remainingAmount)})</h4>
+        ${pelunasanSt === 'verified'
+          ? '<span style="background:rgba(34,197,94,0.2);color:#4ade80;border:1px solid rgba(34,197,94,0.5);padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:bold;">✅ LUNAS 100%</span>'
+          : pelunasanSt === 'pending_verification'
+            ? '<span style="background:rgba(56,189,248,0.2);color:#7dd3fc;border:1px solid rgba(56,189,248,0.5);padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:bold;">⏳ Menunggu Verifikasi Pelunasan</span>'
+            : pelunasanSt === 'rejected'
+              ? '<span style="background:rgba(251,146,60,0.2);color:#fdba74;border:1px solid rgba(251,146,60,0.5);padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:bold;">⚠️ Ditolak — Menunggu Upload Ulang</span>'
+              : '<span style="background:rgba(148,163,184,0.16);color:var(--text-muted);border:1px solid rgba(148,163,184,0.35);padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:bold;">⏳ Belum Dilunasi</span>'}
       </div>
+      ${safePelunasanUrl ? `
+        <div style="background:var(--white);border-radius:8px;padding:0.85rem;text-align:center;margin-bottom:0.9rem;max-height:380px;overflow:auto">
+          <img src="${safePelunasanUrl}" alt="Bukti Pelunasan Sisa 50%" style="max-width:100%;height:auto;border-radius:4px;" />
+        </div>
+        ${pelunasanSt !== 'verified' ? `
+          <div style="display:flex;gap:0.65rem;flex-wrap:wrap">
+            <button class="btn-primary" data-oid="${safeOrderId}" onclick="verifyPelunasan(this.dataset.oid, false)" style="flex:1.2;background:#16a34a;border-color:#16a34a;padding:0.75rem">✅ Verifikasi Pelunasan 100%</button>
+            <button class="btn-secondary" data-oid="${safeOrderId}" onclick="rejectPelunasan(this.dataset.oid)" style="flex:1;border-color:#f59e0b;color:#fde047;padding:0.75rem">🔄 Minta Upload Ulang Pelunasan</button>
+          </div>
+        ` : `
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+            <span style="font-size:0.82rem;color:#4ade80;font-weight:700;">✅ Pelunasan sisa 50% telah diverifikasi — Pesanan Lunas 100%!</span>
+            <button class="btn-secondary" data-oid="${safeOrderId}" onclick="rejectPelunasan(this.dataset.oid)" style="padding:0.4rem 0.75rem;font-size:0.75rem;border-color:rgba(245,158,11,0.45);color:#fde047;">🔄 Minta Upload Ulang</button>
+          </div>
+        `}
+      ` : `
+        <p style="font-size:0.82rem;color:var(--text-muted);margin:0 0 0.75rem 0;line-height:1.45;">
+          ${pelunasanSt === 'verified'
+            ? '✅ Pesanan ini telah ditandai <strong>Lunas 100%</strong> secara manual (COD / Tunai).'
+            : isInitialVerified
+              ? 'Pembeli belum mengunggah bukti pelunasan sisa 50%. Pembeli dapat mengunggahnya di <strong>Profil &gt; Riwayat Pesanan</strong>, atau Anda dapat menandai lunas manual jika dibayar tunai saat COD Event.'
+              : 'Menunggu verifikasi DP 50% pertama sebelum pembeli dapat mengunggah bukti pelunasan sisa 50%.'}
+        </p>
+        ${isInitialVerified && pelunasanSt !== 'verified' ? `
+          <button class="btn-secondary" data-oid="${safeOrderId}" onclick="verifyPelunasan(this.dataset.oid, true)" style="border-color:#22c55e;color:#4ade80;padding:0.55rem 1rem;font-size:0.8rem;">
+            ✅ Tandai Lunas 100% Manual (COD / Tunai)
+          </button>
+        ` : ''}
+      `}
     </div>
   ` : '';
 
@@ -2368,6 +2686,7 @@
 
       content.innerHTML = `
     ${paymentProofHTML}
+    ${pelunasanSectionHTML}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
       <div class="form-group"><label>Order ID</label><input readonly value="${safeOrderId}" style="background:rgba(3,9,31,0.6)"></div>
       <div class="form-group"><label>Status</label><input readonly value="${escapeHtml(order.status)}" style="background:rgba(3,9,31,0.6)"></div>
@@ -2398,8 +2717,12 @@
       <hr style="border-color:rgba(41,182,246,0.1);margin:0.8rem 0">
       <div style="display:flex;justify-content:space-between;font-size:0.9rem;font-weight:700"><span style="color:var(--white)">Total Nilai Pesanan</span><span style="color:var(--aqua)">${formatPrice(order.total)}</span></div>
       ${isDp ? `
-        <div style="display:flex;justify-content:space-between;font-size:0.88rem;color:#4ade80;font-weight:700;margin-top:0.35rem"><span>Tagihan DP 50% (Dibayar)</span><span>${formatPrice(dpAmount)}</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--gold);font-weight:700;margin-top:0.25rem"><span>Sisa Pelunasan Nanti</span><span>${formatPrice(remainingAmount)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.88rem;color:#4ade80;font-weight:700;margin-top:0.35rem"><span>Tagihan DP 50%</span><span>${formatPrice(dpAmount)}</span></div>
+        ${pelunasanSt === 'verified' ? `
+          <div style="display:flex;justify-content:space-between;font-size:0.88rem;color:#4ade80;font-weight:700;margin-top:0.25rem"><span>Pelunasan Sisa 50% (✅ Lunas 100%)</span><span>${formatPrice(remainingAmount)}</span></div>
+        ` : `
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--gold);font-weight:700;margin-top:0.25rem"><span>Sisa Tagihan Pelunasan</span><span>${formatPrice(remainingAmount)}</span></div>
+        `}
       ` : ''}
     </div>
     ${statusHistoryHTML}
@@ -2471,7 +2794,7 @@
     }
 
     async function rejectPayment(orderId) {
-      if (!confirm('Tolak pembayaran pesanan ini?')) return;
+      if (!confirm('Tolak pembayaran dan BATALKAN pesanan ini (stok dikembalikan)? Jika hanya ingin meminta pembeli mengunggah ulang bukti transfer tanpa membatalkan pesanan, gunakan tombol "Minta Upload Ulang".')) return;
 
       try {
         const res = await adminFetch('/api/orders', {
@@ -2486,6 +2809,90 @@
           renderOrders(currentOrderFilter);
           renderDashboard();
         }
+      } catch (err) {
+        showToast('❌ Error: ' + err.message);
+      }
+    }
+
+    async function requestReuploadInitial(orderId) {
+      const note = prompt(
+        'Masukkan alasan / catatan untuk pembeli (stok pesanan tetap aman & pembeli bisa upload ulang di halaman Profil):',
+        'Bukti transfer kurang jelas atau nominal belum sesuai. Mohon unggah ulang screenshot bukti transfer yang benar.'
+      );
+      if (note === null) return;
+
+      try {
+        const res = await adminFetch('/api/orders', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: orderId,
+            status: 'pending',
+            paymentAction: 'request_reupload_initial',
+            actionNote: note.trim()
+          })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Gagal meminta upload ulang');
+
+        showToast('🔄 Permintaan upload ulang dikirim ke pembeli!');
+        await viewOrder(orderId);
+        renderOrders(currentOrderFilter);
+      } catch (err) {
+        showToast('❌ Error: ' + err.message);
+      }
+    }
+
+    async function verifyPelunasan(orderId, isManualCod = false) {
+      const msg = isManualCod
+        ? 'Tandai pesanan DP 50% ini sudah LUNAS 100% secara manual (COD / Tunai)?'
+        : 'Verifikasi bukti pelunasan sisa 50% ini dan nyatakan pesanan LUNAS 100%?';
+      if (!confirm(msg)) return;
+
+      try {
+        const res = await adminFetch('/api/orders', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: orderId,
+            paymentAction: 'verify_pelunasan',
+            actionNote: isManualCod ? 'Pelunasan COD / Tunai dikonfirmasi manual oleh admin' : ''
+          })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Gagal memverifikasi pelunasan');
+
+        showToast('✅ Pelunasan terverifikasi! Pesanan kini Lunas 100%.');
+        await viewOrder(orderId);
+        renderOrders(currentOrderFilter);
+      } catch (err) {
+        showToast('❌ Error: ' + err.message);
+      }
+    }
+
+    async function rejectPelunasan(orderId) {
+      const note = prompt(
+        'Masukkan catatan untuk pembeli agar mengunggah ulang bukti pelunasan sisa 50%:',
+        'Bukti pelunasan sisa 50% kurang jelas atau nominal belum sesuai. Mohon unggah ulang.'
+      );
+      if (note === null) return;
+
+      try {
+        const res = await adminFetch('/api/orders', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: orderId,
+            paymentAction: 'reject_pelunasan',
+            actionNote: note.trim()
+          })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Gagal menolak bukti pelunasan');
+
+        showToast('⚠️ Bukti pelunasan ditolak. Pembeli diminta upload ulang.');
+        await viewOrder(orderId);
+        renderOrders(currentOrderFilter);
       } catch (err) {
         showToast('❌ Error: ' + err.message);
       }
@@ -2554,9 +2961,11 @@
       document.getElementById('voucherValue').value = '';
       document.getElementById('voucherMinPurchase').value = '';
       document.getElementById('voucherMaxDiscount').value = '';
+      document.getElementById('voucherMaxUses').value = '';
       document.getElementById('voucherStartsAt').value = '';
       document.getElementById('voucherExpiresAt').value = '';
       document.getElementById('voucherDescription').value = '';
+      document.getElementById('voucherOncePerUser').checked = true;
       document.getElementById('voucherIsActive').checked = true;
       document.getElementById('saveVoucherBtn').textContent = 'Simpan Voucher';
       toggleVoucherTypeHint();
@@ -2582,9 +2991,11 @@
       document.getElementById('voucherValue').value = voucher.value || '';
       document.getElementById('voucherMinPurchase').value = voucher.minPurchase || '';
       document.getElementById('voucherMaxDiscount').value = voucher.maxDiscount || '';
+      document.getElementById('voucherMaxUses').value = voucher.maxUses != null ? voucher.maxUses : '';
       document.getElementById('voucherStartsAt').value = voucher.startsAt ? new Date(voucher.startsAt).toISOString().slice(0, 16) : '';
       document.getElementById('voucherExpiresAt').value = voucher.expiresAt ? new Date(voucher.expiresAt).toISOString().slice(0, 16) : '';
       document.getElementById('voucherDescription').value = voucher.description || '';
+      document.getElementById('voucherOncePerUser').checked = Boolean(voucher.oncePerUser);
       document.getElementById('voucherIsActive').checked = voucher.isActive !== false;
       document.getElementById('saveVoucherBtn').textContent = 'Update Voucher';
       toggleVoucherTypeHint();
@@ -2595,12 +3006,28 @@
       if (!tbody) return;
 
       if (!adminVouchers.length) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem">Belum ada voucher. Tambahkan voucher pertamamu!</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:2rem">Belum ada voucher. Tambahkan voucher pertamamu!</td></tr>';
         return;
       }
 
       tbody.innerHTML = adminVouchers.map(voucher => {
         const safeVCode = escapeHtml(voucher.code);
+        const usedCount = Number(voucher.usedCount) || 0;
+        const hasQuota = voucher.maxUses != null;
+        const isQuotaFull = Boolean(voucher.isQuotaFull || (hasQuota && usedCount >= Number(voucher.maxUses)));
+        const quotaHtml = hasQuota
+          ? `<div style="font-size:0.82rem;font-weight:700;color:${isQuotaFull ? '#f87171' : '#4ade80'}">${usedCount} / ${voucher.maxUses} terpakai</div>`
+          : `<div style="font-size:0.8rem;color:var(--text-muted)"><strong style="color:var(--white)">${usedCount}x</strong> terpakai (Tanpa batas)</div>`;
+        const perUserHtml = voucher.oncePerUser
+          ? '<span style="display:inline-block;margin-top:3px;font-size:0.7rem;padding:2px 7px;border-radius:10px;background:rgba(41,182,246,0.14);color:var(--aqua);border:1px solid rgba(41,182,246,0.3);">🔒 1x / Akun</span>'
+          : '<span style="display:inline-block;margin-top:3px;font-size:0.7rem;padding:2px 7px;border-radius:10px;background:rgba(148,163,184,0.12);color:var(--text-muted);">♾️ Bebas / Akun</span>';
+
+        const statusHtml = !voucherIsCurrentlyActive(voucher)
+          ? '<span class="status-badge status-pending">Nonaktif</span>'
+          : isQuotaFull
+            ? '<span class="status-badge status-cancelled">Kuota Habis</span>'
+            : '<span class="status-badge status-paid">Aktif</span>';
+
         return `
     <tr style="border-bottom:1px solid var(--card-border)">
       <td style="font-family:monospace;color:var(--aqua);font-weight:700">${safeVCode}</td>
@@ -2609,9 +3036,8 @@
         <div style="font-size:0.8rem;color:var(--text-muted)">${formatVoucherValue(voucher)}${voucher.description ? ` • ${escapeHtml(voucher.description)}` : ''}</div>
       </td>
       <td>${voucher.minPurchase ? formatPrice(voucher.minPurchase) : 'Tidak ada'}</td>
-      <td>${voucherIsCurrentlyActive(voucher)
-          ? '<span class="status-badge status-paid">Aktif</span>'
-          : '<span class="status-badge status-pending">Nonaktif</span>'}</td>
+      <td>${quotaHtml}${perUserHtml}</td>
+      <td>${statusHtml}</td>
       <td style="font-size:0.8rem">${formatVoucherDateRange(voucher)}</td>
       <td>
         <div class="action-btns">
@@ -2648,6 +3074,8 @@
         value: parseInt(document.getElementById('voucherValue').value, 10),
         minPurchase: parseInt(document.getElementById('voucherMinPurchase').value, 10) || 0,
         maxDiscount: document.getElementById('voucherMaxDiscount').value.trim(),
+        maxUses: document.getElementById('voucherMaxUses').value.trim(),
+        oncePerUser: document.getElementById('voucherOncePerUser').checked,
         startsAt: document.getElementById('voucherStartsAt').value || null,
         expiresAt: document.getElementById('voucherExpiresAt').value || null,
         description: document.getElementById('voucherDescription').value.trim(),

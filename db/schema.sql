@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS products (
   stock INTEGER NOT NULL DEFAULT 0,
   badge TEXT,
   image TEXT,
+  images JSONB NOT NULL DEFAULT '[]'::jsonb,
   sizes TEXT,
   tag TEXT,
   gdrive_link TEXT,
@@ -53,6 +54,7 @@ CREATE TABLE IF NOT EXISTS orders (
   items JSONB NOT NULL DEFAULT '[]'::jsonb,
   shipping JSONB NOT NULL DEFAULT '{}'::jsonb,
   payment_proof TEXT,
+  pelunasan_proof TEXT,
   date TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -110,9 +112,10 @@ CREATE TABLE IF NOT EXISTS user_addresses (
   label VARCHAR(100),
   recipient_name VARCHAR(150) NOT NULL,
   phone VARCHAR(50),
-  full_address TEXT NOT NULL,
+  province VARCHAR(100),
   city VARCHAR(100),
   postal_code VARCHAR(20),
+  full_address TEXT NOT NULL,
   is_primary BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
