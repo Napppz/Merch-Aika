@@ -2362,83 +2362,6 @@
       return '';
     }
 
-    function renderOrderStatusHistoryHTML(historyList) {
-      const history = Array.isArray(historyList) ? historyList : [];
-      const statusLabelMap = {
-        pending: '⏳ Menunggu Pembayaran',
-        payment_pending: '💳 Bukti Transfer Diunggah (Menunggu Verifikasi)',
-        pending_payment: '💳 Bukti Transfer Diunggah (Menunggu Verifikasi)',
-        paid: '📦 Pembayaran Diverifikasi (Dikemas)',
-        processing: '🔄 Diproses',
-        shipped: '🚚 Pesanan Dikirim',
-        completed: '✅ Pesanan Selesai',
-        cancelled: '❌ Pesanan Dibatalkan'
-      };
-      const statusColorMap = {
-        pending: '#fde047',
-        payment_pending: '#38bdf8',
-        pending_payment: '#38bdf8',
-        paid: '#4ade80',
-        processing: '#38bdf8',
-        shipped: '#60a5fa',
-        completed: '#22c55e',
-        cancelled: '#f87171'
-      };
-      const actorTypeMap = {
-        customer: '👤 Pembeli',
-        admin: '🛡️ Admin',
-        system: '⚙️ Sistem Otomatis'
-      };
-
-      const rowsHtml = history.length === 0
-        ? '<div style="color:var(--text-muted);font-size:0.83rem;">Belum ada riwayat perubahan status.</div>'
-        : history.map((entry, idx) => {
-            const toSt = entry.to_status || 'pending';
-            const fromSt = entry.from_status;
-            const dotColor = statusColorMap[toSt] || 'var(--aqua)';
-            const toLabel = statusLabelMap[toSt] || escapeHtml(toSt);
-            const fromLabel = fromSt ? (statusLabelMap[fromSt] || escapeHtml(fromSt)) : null;
-            const actorBase = actorTypeMap[entry.actor_type] || '⚙️ Sistem';
-            const actorText = entry.actor_name ? `${actorBase} (${escapeHtml(entry.actor_name)})` : actorBase;
-            const timeText = entry.created_at
-              ? new Date(entry.created_at).toLocaleString('id-ID', {
-                  day: '2-digit', month: 'short', year: 'numeric',
-                  hour: '2-digit', minute: '2-digit', second: '2-digit'
-                })
-              : '-';
-            const isLast = idx === history.length - 1;
-
-            return `
-              <div style="display:flex;gap:0.85rem;position:relative;padding-bottom:${isLast ? '0' : '0.9rem'};">
-                <div style="display:flex;flex-direction:column;align-items:center;min-width:16px;">
-                  <span style="width:11px;height:11px;border-radius:50%;background:${dotColor};box-shadow:0 0 8px ${dotColor};margin-top:4px;flex-shrink:0;"></span>
-                  ${!isLast ? '<span style="width:2px;flex:1;background:rgba(41,182,246,0.2);margin-top:4px;"></span>' : ''}
-                </div>
-                <div style="flex:1;min-width:0;">
-                  <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:0.4rem;">
-                    <div style="font-size:0.84rem;font-weight:700;color:${dotColor};">
-                      ${toLabel}
-                      ${fromLabel ? `<span style="font-weight:400;color:var(--text-muted);font-size:0.76rem;"> (dari ${fromLabel})</span>` : ''}
-                    </div>
-                    <span style="font-size:0.74rem;color:var(--text-muted);font-family:monospace;">${timeText}</span>
-                  </div>
-                  <div style="font-size:0.76rem;color:var(--aqua);margin-top:2px;">${actorText}</div>
-                  ${entry.note ? `<div style="font-size:0.8rem;color:var(--text-muted);margin-top:3px;line-height:1.4;">${escapeHtml(entry.note)}</div>` : ''}
-                </div>
-              </div>
-            `;
-          }).join('');
-
-      return `
-        <div style="background:rgba(3,9,31,0.5);border:1px solid var(--card-border);border-radius:8px;padding:1rem;margin-bottom:1rem">
-          <h4 style="color:var(--aqua);margin:0 0 0.85rem 0;font-size:0.85rem;display:flex;align-items:center;gap:6px;">
-            <span>🕒 RIWAYAT STATUS PESANAN</span>
-            <span style="font-size:0.72rem;color:var(--text-muted);font-weight:normal;">(${history.length} aktivitas)</span>
-          </h4>
-          ${rowsHtml}
-        </div>
-      `;
-    }
 
     // ── ORDERS ──
     let currentOrderFilter = 'all';
@@ -2682,8 +2605,6 @@
     </div>
   ` : '';
 
-      const statusHistoryHTML = renderOrderStatusHistoryHTML(order.status_history);
-
       content.innerHTML = `
     ${paymentProofHTML}
     ${pelunasanSectionHTML}
@@ -2725,7 +2646,6 @@
         `}
       ` : ''}
     </div>
-    ${statusHistoryHTML}
     <div class="form-group">
       <label>Update Status</label>
       <select id="updateStatus" onchange="document.getElementById('resiWrap').style.display=this.value==='shipped'?'block':'none'" style="background:rgba(3,9,31,0.6);border:1px solid var(--card-border);border-radius:8px;padding:0.8rem 1rem;color:var(--white);width:100%;font-family:var(--font-body)">
@@ -2747,27 +2667,30 @@
         excelBtn.onclick = () => downloadOrderInvoice(order.id, 'excel');
       }
       const btn = document.getElementById('markPaidBtn');
-      btn.textContent = '💾 Update Status & Kirim Notif';
+      btn.textContent = '💾 Update Status & Kirim Email';
       btn.onclick = async () => {
         const st = document.getElementById('updateStatus').value;
         const resiVal = document.getElementById('updateResi').value;
 
-        await adminFetch('/api/orders', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id, status: st, resi: resiVal })
-        });
+        try {
+          const updateRes = await adminFetch('/api/orders', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, status: st, resi: resiVal })
+          });
+          const updateData = await updateRes.json().catch(() => ({}));
+          if (!updateRes.ok) {
+            showToast('❌ ' + (updateData.error || 'Gagal memperbarui status pesanan'));
+            return;
+          }
 
-        showToast('Status & Email diupdate!');
-
-        if (st === 'shipped' && order.phone) {
-          let phone = order.phone.replace(/^0/, '62');
-          let msg = encodeURIComponent(`Halo ${order.customerName},\n\nTerima kasih telah berbelanja di Aika Sesilia Merch! Pesanan Anda dengan ID *#${order.id}* saat ini sudah kami kirimkan. 🚚\n\nNomor Resi: *${resiVal || '-'}*\n\nJangan lupa untuk memberi ulasan setelah paket sampai. Terima kasih!`);
-          window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+          showToast('✅ Status pesanan diperbarui & notifikasi email dikirim!');
+          closeOrderModal();
+          renderOrders(currentOrderFilter);
+          renderDashboard();
+        } catch (err) {
+          showToast('❌ Error: ' + err.message);
         }
-
-        closeOrderModal();
-        renderOrders(currentOrderFilter);
       };
       document.getElementById('orderModal').classList.add('show');
     }
