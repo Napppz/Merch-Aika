@@ -556,7 +556,9 @@
     const orderPayload = {
       customerName: currentUser.username,
       email: currentUser.email,
+      phone: currentUser.phone || '',
       address: 'Pengiriman Digital via Link Google Drive (Tanpa Kurir)',
+      notes: '',
       status: 'pending',
       total: finalTotal,
       items: [

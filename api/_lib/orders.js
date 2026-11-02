@@ -10,7 +10,9 @@ const ORDER_LIST_COLUMNS = `
   id,
   "customerName",
   email,
+  phone,
   address,
+  notes,
   status,
   total,
   items,
@@ -152,7 +154,9 @@ module.exports = async (req, res) => {
     }
 
     if (method === 'POST') {
-      const { id, customerName, email, address, items, shipping } = req.body || {};
+      const { id, customerName, email, address, items, shipping, note, notes, phone } = req.body || {};
+      const buyerNotes = (notes != null ? notes : (note != null ? note : '')).toString().trim();
+      const buyerPhone = (phone != null ? phone : '').toString().trim();
       let orderId = id;
       // Gunakan ID pengujian hanya jika diawali TEST-, selain itu buat nomor invoice berurutan resmi
       if (!orderId || !orderId.startsWith('TEST-')) {
@@ -253,8 +257,8 @@ module.exports = async (req, res) => {
 
       // 3. Simpan pesanan ke database
       const { rows } = await db.query(
-        `INSERT INTO orders (id, "customerName", email, address, status, total, items, shipping) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `INSERT INTO orders (id, "customerName", email, address, status, total, items, shipping, notes, phone) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          RETURNING ${ORDER_LIST_COLUMNS}`,
         [
           orderId,
@@ -264,7 +268,9 @@ module.exports = async (req, res) => {
           initialStatus,
           verifiedTotal,
           JSON.stringify(sanitizedItems),
-          JSON.stringify(shipObj)
+          JSON.stringify(shipObj),
+          buyerNotes || null,
+          buyerPhone || null
         ]
       );
 
@@ -348,8 +354,16 @@ module.exports = async (req, res) => {
                   <td style="padding:0.8rem;border:1px solid #ddd;">${email}</td>
                 </tr>
                 <tr>
+                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">No. HP / WhatsApp</td>
+                  <td style="padding:0.8rem;border:1px solid #ddd;">${buyerPhone || '-'}</td>
+                </tr>
+                <tr style="background:#e8e8e8;">
                   <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Alamat Pengiriman</td>
                   <td style="padding:0.8rem;border:1px solid #ddd;">${address}</td>
+                </tr>
+                <tr>
+                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Catatan Pembeli</td>
+                  <td style="padding:0.8rem;border:1px solid #ddd;color:#d97706;font-weight:bold;">${buyerNotes || '-'}</td>
                 </tr>
                 <tr style="background:#e8e8e8;">
                   <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Total Nilai Pesanan</td>

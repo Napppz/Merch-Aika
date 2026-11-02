@@ -5,7 +5,7 @@
 const { query } = require('./_db');
 const crypto = require('crypto');
 const { getPasswordSalt } = require('./env');
-const { generateJWT } = require('./jwt-manager');
+const { generateJWT, JWT_EXPIRY, JWT_REMEMBER_EXPIRY } = require('./jwt-manager');
 
 // ════════════════════════════════════════════════════════════════
 // RATE LIMITING (In-memory + use Redis in production)
@@ -117,7 +117,7 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { identifier, password } = req.body;
+  const { identifier, password, remember } = req.body;
   const clientIp = getClientIp(req);
 
   if (!identifier || !password) {
@@ -185,7 +185,7 @@ module.exports = async function handler(req, res) {
       email: user.email.toLowerCase(),
       username: user.username,
       type: 'user'
-    });
+    }, remember === true ? JWT_REMEMBER_EXPIRY : JWT_EXPIRY);
 
     return res.status(200).json({
       success: true,

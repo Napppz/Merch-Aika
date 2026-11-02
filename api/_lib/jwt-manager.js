@@ -6,10 +6,11 @@ const { getRequiredEnv } = require('./env');
 
 // Config JWT (gunakan secret dari env untuk production)
 const JWT_SECRET = getRequiredEnv('JWT_SECRET');
-const JWT_EXPIRY = 24 * 60 * 60 * 1000; // 24 jam dalam milliseconds
+const JWT_EXPIRY = 24 * 60 * 60 * 1000; // 24 jam dalam milliseconds (default, termasuk admin)
+const JWT_REMEMBER_EXPIRY = 30 * 24 * 60 * 60 * 1000; // 30 hari untuk user yang memilih "Ingat saya"
 
 // Simple JWT implementation (production: gunakan jsonwebtoken library)
-function generateJWT(payload) {
+function generateJWT(payload, expiryMs = JWT_EXPIRY) {
   const header = {
     alg: 'HS256',
     typ: 'JWT'
@@ -19,7 +20,7 @@ function generateJWT(payload) {
   const claims = {
     ...payload,
     iat: Math.floor(now / 1000),  // Issued at
-    exp: Math.floor((now + JWT_EXPIRY) / 1000)  // Expires in 24 hours
+    exp: Math.floor((now + expiryMs) / 1000)  // Default 24 jam, bisa diperpanjang (Ingat saya)
   };
   
   // Encode header
@@ -79,5 +80,6 @@ function verifyJWT(token) {
 module.exports = {
   generateJWT,
   verifyJWT,
-  JWT_EXPIRY
+  JWT_EXPIRY,
+  JWT_REMEMBER_EXPIRY
 };

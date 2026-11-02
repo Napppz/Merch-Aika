@@ -83,6 +83,8 @@ async function syncDatabase() {
         updated_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_proof TEXT;
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS notes TEXT;
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS phone VARCHAR(50);
     `).catch(err => console.log('Orders columns note:', err.message));
 
     // 4. Ensure other tables

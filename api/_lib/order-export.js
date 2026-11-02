@@ -5,7 +5,9 @@ const ORDER_DETAIL_COLUMNS = `
   id,
   "customerName",
   email,
+  phone,
   address,
+  notes,
   status,
   total,
   items,
@@ -96,7 +98,9 @@ function buildCsv(order) {
     ['Waktu Pesanan', formatDate(order.date)],
     ['Customer', order.customerName],
     ['Email', order.email],
+    ['No. HP', order.phone || '-'],
     ['Alamat', order.address || '-'],
+    ['Catatan Pembeli', order.notes || '-'],
     ['Pengiriman', order.shipping?.name || '-'],
     ['No. Resi Pengiriman', order.shipping?.resi || '-'],
     ['Status', formatStatus(order.status)],
@@ -193,7 +197,9 @@ function buildExcelHtml(order) {
           <tr><td>Waktu Pesanan</td><td>${escapeHtml(formatDate(order.date))}</td></tr>
           <tr><td>Customer</td><td>${escapeHtml(order.customerName)}</td></tr>
           <tr><td>Email</td><td>${escapeHtml(order.email)}</td></tr>
+          <tr><td>No. HP</td><td>${escapeHtml(order.phone || '-')}</td></tr>
           <tr><td>Alamat</td><td>${escapeHtml(order.address || '-')}</td></tr>
+          <tr><td>Catatan Pembeli</td><td>${escapeHtml(order.notes || '-')}</td></tr>
           <tr><td>Pengiriman</td><td>${escapeHtml(order.shipping?.name || '-')}</td></tr>
           <tr><td>No. Resi</td><td>${escapeHtml(order.shipping?.resi || '-')}</td></tr>
           <tr><td>Status Pesanan</td><td>${escapeHtml(formatStatus(order.status))}</td></tr>
@@ -242,7 +248,9 @@ function buildAllOrdersCsv(orders) {
     'Tanggal Pesanan',
     'Nama Customer',
     'Email Customer',
+    'No. HP Customer',
     'Alamat Pengiriman',
+    'Catatan Pembeli',
     'Status Pesanan',
     'Skema Pembayaran',
     'Daftar Produk',
@@ -291,7 +299,9 @@ function buildAllOrdersCsv(orders) {
       formatDate(norm.date),
       norm.customerName || '-',
       norm.email || '-',
+      norm.phone || '-',
       cleanAddress,
+      String(norm.notes || '-').replace(/\r?\n/g, ' '),
       formatStatus(norm.status),
       schemeLabel,
       itemsSummary || '-',

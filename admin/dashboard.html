@@ -2092,6 +2092,16 @@
       renderProducts();
     }
 
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     // ── ORDERS ──
     let currentOrderFilter = 'all';
 
@@ -2114,7 +2124,11 @@
         return `
     <tr>
       <td style="font-family:monospace;color:var(--aqua);font-size:0.8rem">${o.id}</td>
-      <td class="td-name">${o.customerName}<br><span style="font-size:0.75rem;color:var(--text-muted)">${o.email}</span></td>
+      <td class="td-name">
+        ${o.customerName}<br>
+        <span style="font-size:0.75rem;color:var(--text-muted)">${o.email}</span>
+        ${(o.notes || o.note) ? `<div style="margin-top:3px;font-size:0.73rem;color:var(--gold);display:inline-flex;align-items:center;gap:3px;" title="${escapeHtml(o.notes || o.note)}">📝 <em>Ada catatan</em></div>` : ''}
+      </td>
       <td style="font-size:0.8rem">${(o.items || []).map(i => `${i.name}${i.size ? ` (Size ${i.size})` : ''} ×${i.qty}`).join('<br>')}</td>
       <td class="td-price">
         ${formatPrice(o.total)}
@@ -2223,6 +2237,8 @@
       const isDp = shipObj.paymentScheme === 'dp50' || shipObj.isDp;
       const dpAmount = Number(shipObj.dpAmount) || Math.ceil((Number(order.total) || 0) * 0.5);
       const remainingAmount = Number(shipObj.remainingAmount) || Math.max(0, (Number(order.total) || 0) - dpAmount);
+      const buyerNote = (order.notes || order.note || (shipObj && (shipObj.notes || shipObj.note)) || '').trim();
+      const buyerPhone = (order.phone || '').trim();
 
       // Render payment proof section jika ada
       const paymentProofHTML = order.payment_proof ? `
@@ -2253,6 +2269,7 @@
       <div class="form-group"><label>Status</label><input readonly value="${order.status}" style="background:rgba(3,9,31,0.6)"></div>
       <div class="form-group"><label>Customer</label><input readonly value="${order.customerName}" style="background:rgba(3,9,31,0.6)"></div>
       <div class="form-group"><label>Email</label><input readonly value="${order.email}" style="background:rgba(3,9,31,0.6)"></div>
+      <div class="form-group"><label>No. HP / WhatsApp</label><input readonly value="${buyerPhone || '-'}" style="background:rgba(3,9,31,0.6)"></div>
       <div class="form-group"><label>Skema Pembayaran</label><input readonly value="${isDp ? '⚡ DP 50% (Uang Muka)' : '💎 Bayar Penuh (100%)'}" style="background:rgba(3,9,31,0.6); color:${isDp ? '#fde047' : 'var(--aqua)'}; font-weight:bold;"></div>
       ${isDp ? `
         <div class="form-group"><label>Nominal DP 50% (Transfer)</label><input readonly value="${formatPrice(dpAmount)}" style="background:rgba(3,9,31,0.6); color:#4ade80; font-weight:bold;"></div>
@@ -2260,6 +2277,12 @@
         <div class="form-group"><label>Nominal Pembayaran</label><input readonly value="${formatPrice(order.total)}" style="background:rgba(3,9,31,0.6); color:var(--aqua); font-weight:bold;"></div>
       `}
       <div class="form-group" style="grid-column:1/-1"><label>Alamat</label><input readonly value="${order.address || '-'}" style="background:rgba(3,9,31,0.6)"></div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label style="display:flex;align-items:center;gap:6px;color:var(--gold);font-weight:bold;">
+          <span>📝 Catatan Pesanan dari Pembeli</span>
+        </label>
+        <div style="background:rgba(3,9,31,0.7);border:1px solid ${buyerNote ? 'rgba(234,179,8,0.4)' : 'var(--card-border)'};border-radius:8px;padding:0.9rem;color:${buyerNote ? '#fff' : 'var(--text-muted)'};font-size:0.9rem;line-height:1.5;min-height:48px;white-space:pre-wrap;">${buyerNote ? escapeHtml(buyerNote) : '<em>(Tidak ada catatan dari pembeli)</em>'}</div>
+      </div>
       <div class="form-group" style="grid-column:1/-1"><label>Tanggal & Waktu Pesan</label><input readonly value="${order.date ? new Date(order.date).toLocaleString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-'}" style="background:rgba(3,9,31,0.6); color: var(--aqua);"></div>
     </div>
     <div style="background:rgba(3,9,31,0.5);border:1px solid var(--card-border);border-radius:8px;padding:1rem;margin-bottom:1rem">

@@ -1848,6 +1848,28 @@
     let currentReviewOrderId = null;
     let allOrders = {};
 
+    // Decode payload JWT (tanpa verifikasi) untuk mengecek waktu kedaluwarsa di sisi klien
+    function isUserTokenExpired(token) {
+      if (!token || typeof token !== 'string') return true;
+      try {
+        const payloadPart = token.split('.')[1];
+        if (!payloadPart) return true;
+        const base64 = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(atob(base64 + '='.repeat((4 - base64.length % 4) % 4)));
+        if (!payload.exp) return false;
+        return payload.exp * 1000 <= Date.now();
+      } catch (e) {
+        return false; // Format tidak dikenal: biarkan server yang memutuskan
+      }
+    }
+
+    function handleSessionExpired() {
+      alert('Sesi login Anda sudah berakhir. Silakan login kembali untuk melanjutkan.');
+      localStorage.removeItem('aika_session');
+      sessionStorage.removeItem('aika_session');
+      window.location.href = 'login.html';
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
       if (!userStr) {
@@ -1868,6 +1890,13 @@
         localStorage.removeItem('aika_session');
         sessionStorage.removeItem('aika_session');
         window.location.href = 'login.html';
+        return;
+      }
+
+      // Token JWT berlaku 24 jam, sedangkan sesi "Ingat Saya" di localStorage tidak kedaluwarsa.
+      // Jika token sudah habis, minta login ulang agar aksi seperti ganti foto profil tidak gagal.
+      if (currentUser && isUserTokenExpired(currentUser.token)) {
+        handleSessionExpired();
         return;
       }
 
@@ -2026,14 +2055,25 @@
         }
 
         try {
+          const token = currentUser.token || '';
           const res = await fetch('/api/avatar', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-user-email': currentUser.email },
+            headers: {
+              'Content-Type': 'application/json',
+              'x-user-email': currentUser.email,
+              ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            },
             body: JSON.stringify({ avatar: dataUrl })
           });
 
+          if (res.status === 401) {
+            await loadAvatar();
+            handleSessionExpired();
+            return;
+          }
+
           if (!res.ok) {
-            const errData = await res.json();
+            const errData = await res.json().catch(() => ({}));
             alert('Gagal menyimpan foto: ' + (errData.error || 'Unknown error'));
             await loadAvatar();
             return;

@@ -5,7 +5,7 @@
 const { query } = require('./_db');
 const crypto = require('crypto');
 const { getPasswordSalt } = require('./env');
-const { generateJWT } = require('./jwt-manager');
+const { generateJWT, JWT_REMEMBER_EXPIRY } = require('./jwt-manager');
 
 function hashPassword(password) {
   const salt = getPasswordSalt();
@@ -183,7 +183,7 @@ module.exports = async function handler(req, res) {
       email: loggedInUser.email.toLowerCase(),
       username: loggedInUser.username,
       type: 'user'
-    });
+    }, JWT_REMEMBER_EXPIRY); // Sesi Google selalu disimpan di localStorage
 
     return res.status(200).json({
       success: true,
