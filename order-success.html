@@ -133,6 +133,16 @@
 <script src="js/cart.js"></script>
 <script src="js/main.js"></script>
 <script>
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   let order = JSON.parse(sessionStorage.getItem('last_order') || localStorage.getItem('last_order') || '{}');
   const detail = document.getElementById('orderDetail');
@@ -146,10 +156,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const itemsHtml = (order.items || []).map(i => `
     <div class="item-row">
       <div>
-        <span>${i.qty}x ${i.name}${i.size ? ` • Size ${i.size}` : ''}</span>
+        <span>${parseInt(i.qty, 10) || 1}x ${escapeHtml(i.name)}${i.size ? ` • Size ${escapeHtml(i.size)}` : ''}</span>
         ${i.is_photopack ? '<span style="background:rgba(41,182,246,0.2);color:var(--aqua);padding:2px 8px;border-radius:12px;font-size:0.75rem;font-weight:bold;margin-left:6px;">📸 Photopack Digital</span>' : ''}
       </div>
-      <span>${formatPrice(i.price * i.qty)}</span>
+      <span>${formatPrice((Number(i.price) || 0) * (parseInt(i.qty, 10) || 1))}</span>
     </div>
   `).join('');
 
@@ -168,16 +178,16 @@ document.addEventListener('DOMContentLoaded', () => {
   detail.innerHTML = `
     <h3>
       <span>📄 INVOICE PESANAN</span>
-      <span style="font-size:0.9rem; color:var(--white); font-weight:700;">#${order.id}</span>
+      <span style="font-size:0.9rem; color:var(--white); font-weight:700;">#${escapeHtml(order.id)}</span>
     </h3>
     <div class="detail-row"><span>Waktu Pesanan</span><span>${formattedDate}</span></div>
-    <div class="detail-row"><span>Nama Pembeli</span><span>${order.customerName}</span></div>
-    <div class="detail-row"><span>Email Akun</span><span>${order.email}</span></div>
-    ${order.phone ? `<div class="detail-row"><span>No. Telepon / WhatsApp</span><span>${order.phone}</span></div>` : ''}
-    <div class="detail-row"><span>Alamat / Pengiriman</span><span>${order.address}</span></div>
-    ${order.note || order.notes ? `<div class="detail-row"><span>Catatan Pesanan</span><span style="color:var(--gold); font-weight:600;">${order.note || order.notes}</span></div>` : ''}
-    <div class="detail-row"><span>Metode Pengiriman</span><span>${shippingInfo.name || 'Digital Delivery'}</span></div>
-    ${shippingInfo.resi ? `<div class="detail-row"><span>No. Resi</span><span style="font-weight:700; color:var(--sky-blue); letter-spacing:1px">${shippingInfo.resi}</span></div>` : ''}
+    <div class="detail-row"><span>Nama Pembeli</span><span>${escapeHtml(order.customerName)}</span></div>
+    <div class="detail-row"><span>Email Akun</span><span>${escapeHtml(order.email)}</span></div>
+    ${order.phone ? `<div class="detail-row"><span>No. Telepon / WhatsApp</span><span>${escapeHtml(order.phone)}</span></div>` : ''}
+    <div class="detail-row"><span>Alamat / Pengiriman</span><span>${escapeHtml(order.address)}</span></div>
+    ${order.note || order.notes ? `<div class="detail-row"><span>Catatan Pesanan</span><span style="color:var(--gold); font-weight:600;">${escapeHtml(order.note || order.notes)}</span></div>` : ''}
+    <div class="detail-row"><span>Metode Pengiriman</span><span>${escapeHtml(shippingInfo.name || 'Digital Delivery')}</span></div>
+    ${shippingInfo.resi ? `<div class="detail-row"><span>No. Resi</span><span style="font-weight:700; color:var(--sky-blue); letter-spacing:1px">${escapeHtml(shippingInfo.resi)}</span></div>` : ''}
     <div class="detail-row">
       <span>Skema Pembayaran</span>
       <span>${isDp ? '<span style="background:rgba(234,179,8,0.2);color:#fde047;border:1px solid rgba(234,179,8,0.4);padding:2px 8px;border-radius:12px;font-size:0.78rem;font-weight:bold;">⚡ DP 50% (Uang Muka)</span>' : '<span style="background:rgba(41,182,246,0.15);color:var(--aqua);padding:2px 8px;border-radius:12px;font-size:0.78rem;font-weight:bold;">💎 Bayar Penuh</span>'}</span>
@@ -200,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     <div class="items-list">${itemsHtml}</div>
     <div class="detail-row"><span>Ongkos Kirim</span><span>${formatPrice(shippingInfo.price || 0)}</span></div>
-    ${shippingInfo.discount ? `<div class="detail-row"><span style="color:#4caf50">Diskon Voucher (${shippingInfo.discount.code})</span><span style="color:#4caf50">- ${formatPrice(shippingInfo.discount.amount)}</span></div>` : ''}
+    ${shippingInfo.discount ? `<div class="detail-row"><span style="color:#4caf50">Diskon Voucher (${escapeHtml(shippingInfo.discount.code)})</span><span style="color:#4caf50">- ${formatPrice(shippingInfo.discount.amount)}</span></div>` : ''}
     <div class="detail-row" style="font-weight:700; font-size:1.02rem; border-top:1px solid var(--card-border); padding-top:0.8rem; margin-top:0.5rem;"><span style="color:var(--white)">Total Nilai Pesanan</span><span style="color:var(--aqua)">${formatPrice(order.total)}</span></div>
     ${isDp ? `
       <div class="detail-row" style="font-weight:700; font-size:1.05rem;"><span style="color:#4ade80;">Tagihan DP 50% (Dibayar)</span><span style="color:#4ade80;">${formatPrice(dpAmount)}</span></div>

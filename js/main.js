@@ -34,6 +34,19 @@ function formatPrice(n) {
   return 'Rp ' + (n || 0).toLocaleString('id-ID');
 }
 
+function getSessionAuthHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  try {
+    const raw = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.token) headers['Authorization'] = 'Bearer ' + parsed.token;
+      if (parsed?.email) headers['x-user-email'] = parsed.email;
+    }
+  } catch (e) { }
+  return headers;
+}
+
 // ── ORDERS ──
 const Orders = {
   async getAll() {
@@ -43,7 +56,7 @@ const Orders = {
     delete order.id; // Pastikan nomor invoice di-generate berurutan oleh server
     order.status = 'pending';
     order.date = new Date().toISOString(); // Attach client-side real-time date explicitly as fallback
-    const response = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(order) });
+    const response = await fetch('/api/orders', { method: 'POST', headers: getSessionAuthHeaders(), body: JSON.stringify(order) });
     if (response.ok) {
       const dbOrder = await response.json();
       return dbOrder; // Return the full DB order including server-generated sequential invoice ID
@@ -53,7 +66,7 @@ const Orders = {
   },
   async update(id, data) {
     data.id = id;
-    await fetch('/api/orders', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    await fetch('/api/orders', { method: 'PUT', headers: getSessionAuthHeaders(), body: JSON.stringify(data) });
   }
 };
 

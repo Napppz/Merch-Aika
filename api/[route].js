@@ -1,5 +1,19 @@
 const { securityCheck } = require('./_lib/security-middleware');
 
+const INTERNAL_HELPER_MODULES = new Set([
+  '_db',
+  'admin-auth',
+  'cache',
+  'env',
+  'jwt-manager',
+  'multipart',
+  'order-lifecycle',
+  'r2-storage',
+  'security-middleware',
+  'shipping-rates',
+  'user-auth'
+]);
+
 module.exports = async function handler(req, res) {
   // Security checks for all endpoints
   // - Payload limit: 15MB max
@@ -27,9 +41,16 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Rute tidak lengkap' });
   }
 
+  if (route.startsWith('_') || route.includes('..') || INTERNAL_HELPER_MODULES.has(route)) {
+    return res.status(404).json({ error: `Endpoint /api/${route} tidak ditemukan di peladen` });
+  }
+
   try {
     // Import dan jalankan file dari folder _lib
     const fn = require(`./_lib/${route}.js`);
+    if (typeof fn !== 'function') {
+      return res.status(404).json({ error: `Endpoint /api/${route} tidak ditemukan di peladen` });
+    }
     return await fn(req, res);
   } catch (err) {
     if (err.code === 'MODULE_NOT_FOUND') {

@@ -1,6 +1,7 @@
 const db = require('./_db');
-const { getCache, setCache, invalidateCache, clearAllCache } = require('./cache');
+const { invalidateCache } = require('./cache');
 const { requireAdmin, verifyAdminToken } = require('./admin-auth');
+const { expireStalePendingOrders } = require('./order-lifecycle');
 
 let ensuredColumns = false;
 
@@ -23,6 +24,9 @@ module.exports = async (req, res) => {
     await ensureProductColumns();
 
     if (method === 'GET') {
+      // Pulihkan stok dari pesanan 'pending' tanpa bukti bayar yang sudah lewat 24 jam
+      await expireStalePendingOrders();
+
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       const adminUser = verifyAdminToken(req);
       const isAdminReq = req.query.admin === 'true' && !!adminUser;

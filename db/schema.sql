@@ -134,3 +134,16 @@ CREATE TABLE IF NOT EXISTS invoice_daily_sequences (
   last_seq INT NOT NULL DEFAULT 0,
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS order_status_history (
+  id BIGSERIAL PRIMARY KEY,
+  order_id TEXT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  from_status VARCHAR(50),
+  to_status VARCHAR(50) NOT NULL,
+  actor_type VARCHAR(20) NOT NULL DEFAULT 'system',
+  actor_name TEXT,
+  note TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_order_status_history_order_id ON order_status_history (order_id, created_at ASC);

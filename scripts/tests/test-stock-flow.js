@@ -24,7 +24,7 @@ async function main() {
       status: 'pending',
       total: 100000,
       items: [{ id: prod.id, name: prod.name, qty: 1, price: 100000 }],
-      shipping: { price: 10000 }
+      shipping: { method: 'jne', city: 'Jakarta Pusat', price: 10000 }
     })
   });
 

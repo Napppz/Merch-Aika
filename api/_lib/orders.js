@@ -1,6 +1,18 @@
 const db = require('./_db');
 const { requireAdmin, verifyAdminToken } = require('./admin-auth');
+const { requireUserOrAdmin } = require('./user-auth');
 const { createMailTransport, getRequiredEnv } = require('./env');
+const { invalidateCache } = require('./cache');
+const { resolveShippingCost } = require('./shipping-rates');
+const {
+  escapeHtml,
+  dispatchBackgroundTask,
+  ensureOrderHistoryTable,
+  recordOrderStatusHistory,
+  getOrderStatusHistory,
+  aggregatePhysicalItemQuantities,
+  expireStalePendingOrders
+} = require('./order-lifecycle');
 
 function getMailTransport() {
   return createMailTransport();
@@ -25,6 +37,15 @@ const ORDER_DETAIL_COLUMNS = `
   ${ORDER_LIST_COLUMNS},
   payment_proof
 `;
+
+const VALID_ORDER_STATUSES = new Set([
+  'pending',
+  'payment_pending',
+  'paid',
+  'shipped',
+  'completed',
+  'cancelled'
+]);
 
 const SIZE_SURCHARGE_RULES = {
   'Pakaian Kaos': { XL: 15000, XXL: 25000, XXXL: 30000 },
@@ -95,7 +116,22 @@ async function verifyVoucherDiscount(code, subtotal) {
   }
 }
 
-async function generateDailyInvoiceId() {
+let invoiceSeqTableEnsured = false;
+
+async function ensureInvoiceSequenceTable() {
+  if (invoiceSeqTableEnsured) return;
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS invoice_daily_sequences (
+      date_key VARCHAR(10) PRIMARY KEY,
+      last_seq INT NOT NULL DEFAULT 0,
+      updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    );
+  `);
+  invoiceSeqTableEnsured = true;
+}
+
+async function generateDailyInvoiceId(runner = db) {
+  await ensureInvoiceSequenceTable();
   const now = new Date();
   const formatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Jakarta',
@@ -106,26 +142,53 @@ async function generateDailyInvoiceId() {
   const dateKey = formatter.format(now); // e.g. "2026-09-12"
   const compactDate = dateKey.replace(/-/g, ''); // "20260912"
 
-  await db.query(`
-    CREATE TABLE IF NOT EXISTS invoice_daily_sequences (
-      date_key VARCHAR(10) PRIMARY KEY,
-      last_seq INT NOT NULL DEFAULT 0,
-      updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-    );
-  `);
-
-  const res = await db.query(`
-    INSERT INTO invoice_daily_sequences (date_key, last_seq, updated_at)
-    VALUES ($1, 1, NOW())
-    ON CONFLICT (date_key)
-    DO UPDATE SET last_seq = invoice_daily_sequences.last_seq + 1, updated_at = NOW()
-    RETURNING last_seq;
-  `, [dateKey]);
+  const res = await runner.query(
+    `INSERT INTO invoice_daily_sequences (date_key, last_seq, updated_at)
+     VALUES ($1, 1, NOW())
+     ON CONFLICT (date_key)
+     DO UPDATE SET last_seq = invoice_daily_sequences.last_seq + 1, updated_at = NOW()
+     RETURNING last_seq;`,
+    [dateKey]
+  );
 
   const seq = parseInt(res.rows[0].last_seq, 10) || 1;
   const formattedSeq = String(seq).padStart(2, '0');
 
   return `INV-${compactDate}-${formattedSeq}`;
+}
+
+function buildFallbackHistory(order) {
+  const entries = [
+    {
+      id: 0,
+      order_id: order.id,
+      from_status: null,
+      to_status: 'pending',
+      actor_type: 'customer',
+      actor_name: order.email || order.customerName || 'Pembeli',
+      note: 'Pesanan dibuat (tercatat sebelum riwayat detail diaktifkan)',
+      created_at: order.date
+    }
+  ];
+  if (order.status && order.status !== 'pending') {
+    entries.push({
+      id: 1,
+      order_id: order.id,
+      from_status: 'pending',
+      to_status: order.status,
+      actor_type: 'system',
+      actor_name: 'Sistem / Admin',
+      note: `Status terakhir tercatat: ${order.status}`,
+      created_at: order.updated_at || order.date
+    });
+  }
+  return entries;
+}
+
+function createHttpError(statusCode, message) {
+  const err = new Error(message);
+  err.statusCode = statusCode;
+  return err;
 }
 
 module.exports = async (req, res) => {
@@ -140,6 +203,10 @@ module.exports = async (req, res) => {
   try {
     if (method === 'GET') {
       if (!requireAdmin(req, res)) return;
+
+      // Auto-cancel pesanan 'pending' tanpa bukti bayar yang sudah lewat 24 jam
+      await expireStalePendingOrders();
+
       const { id } = req.query;
       const sql = id
         ? `SELECT ${ORDER_DETAIL_COLUMNS} FROM orders WHERE id = $1`
@@ -148,59 +215,75 @@ module.exports = async (req, res) => {
       const { rows } = await db.query(sql, params);
       if (id) {
         if (!rows.length) return res.status(404).json({ error: 'Order not found' });
-        return res.status(200).json(rows[0]);
+        const orderRow = rows[0];
+        let statusHistory = await getOrderStatusHistory(orderRow.id);
+        if (!statusHistory.length) {
+          statusHistory = buildFallbackHistory(orderRow);
+        }
+        return res.status(200).json({
+          ...orderRow,
+          status_history: statusHistory
+        });
       }
       return res.status(200).json(rows);
     }
 
     if (method === 'POST') {
+      // Bebaskan stok dari pesanan 'pending' tanpa bukti bayar yang sudah lewat 24 jam
+      await expireStalePendingOrders();
+
       const { id, customerName, email, address, items, shipping, note, notes, phone } = req.body || {};
+      const cleanName = String(customerName || '').trim();
+      const cleanEmail = String(email || '').trim();
+      const cleanAddress = String(address || '').trim();
       const buyerNotes = (notes != null ? notes : (note != null ? note : '')).toString().trim();
       const buyerPhone = (phone != null ? phone : '').toString().trim();
-      let orderId = id;
-      // Gunakan ID pengujian hanya jika diawali TEST-, selain itu buat nomor invoice berurutan resmi
-      if (!orderId || !orderId.startsWith('TEST-')) {
-        orderId = await generateDailyInvoiceId();
-      }
-      const parsedItems = Array.isArray(items) ? items : (typeof items === 'string' ? JSON.parse(items || '[]') : []);
 
-      if (!parsedItems.length) {
+      if (!cleanName || !cleanEmail || !cleanAddress) {
+        return res.status(400).json({ error: 'Nama pelanggan, email, dan alamat pengiriman wajib diisi.' });
+      }
+
+      let parsedItems = [];
+      try {
+        parsedItems = Array.isArray(items) ? items : (typeof items === 'string' ? JSON.parse(items || '[]') : []);
+      } catch (_) {
+        return res.status(400).json({ error: 'Format daftar item pesanan tidak valid.' });
+      }
+
+      const validRawItems = parsedItems.filter(it => it && it.id);
+      if (!validRawItems.length) {
         return res.status(400).json({ error: 'Pesanan harus memiliki setidaknya 1 item produk.' });
       }
 
-      // 1. Validasi produk & stok, serta hitung subtotal dan biaya size dari database
+      // 1. Ambil metadata produk dari database untuk hitung harga resmi, varian size, dan kategori
+      const uniqueProductIds = [...new Set(validRawItems.map(it => String(it.id)))];
+      const prodRes = await db.query(
+        'SELECT id, name, price, stock, is_photopack, tag, category FROM products WHERE id = ANY($1::text[])',
+        [uniqueProductIds]
+      );
+      const prodMap = new Map(prodRes.rows.map(p => [String(p.id), p]));
+
       let subtotal = 0;
       let totalSizeSurcharge = 0;
       let allPhotopack = true;
       const sanitizedItems = [];
+      const physicalQtyByProductId = new Map();
 
-      for (const item of parsedItems) {
-        if (!item || !item.id) continue;
-        const prodRes = await db.query(
-          'SELECT id, name, price, stock, is_photopack, tag, category FROM products WHERE id = $1',
-          [item.id]
-        );
-        if (!prodRes.rows.length) {
+      for (const item of validRawItems) {
+        const prod = prodMap.get(String(item.id));
+        if (!prod) {
           return res.status(400).json({
             error: `Produk "${item.name || item.id}" tidak ditemukan di database.`
           });
         }
-        const prod = prodRes.rows[0];
-        const requestedQty = Math.max(1, parseInt(item.qty, 10) || 1);
 
-        if (!prod.is_photopack) {
+        const requestedQty = Math.max(1, parseInt(item.qty, 10) || 1);
+        const isPhotopack = Boolean(prod.is_photopack || prod.category === 'Photopack');
+
+        if (!isPhotopack) {
           allPhotopack = false;
-          const availableStock = parseInt(prod.stock, 10) || 0;
-          if (availableStock <= 0) {
-            return res.status(400).json({
-              error: `Maaf, stok produk "${prod.name}" sudah habis (0 tersisa). Pesanan tidak dapat diproses.`
-            });
-          }
-          if (requestedQty > availableStock) {
-            return res.status(400).json({
-              error: `Stok produk "${prod.name}" tidak mencukupi (tersisa: ${availableStock}, Anda memesan: ${requestedQty}).`
-            });
-          }
+          const prevQty = physicalQtyByProductId.get(prod.id) || 0;
+          physicalQtyByProductId.set(prod.id, prevQty + requestedQty);
         }
 
         const officialPrice = Number(prod.price) || 0;
@@ -211,10 +294,11 @@ module.exports = async (req, res) => {
 
         const sanitizedItem = {
           ...item,
+          id: prod.id,
           name: prod.name,
           price: officialPrice,
           qty: requestedQty,
-          is_photopack: Boolean(prod.is_photopack)
+          is_photopack: isPhotopack
         };
         // Keamanan: buang link gdrive dari objek item yang disimpan di order
         delete sanitizedItem.gdrive_link;
@@ -222,16 +306,52 @@ module.exports = async (req, res) => {
         sanitizedItems.push(sanitizedItem);
       }
 
-      // 2. Validasi shipping, surcharge, voucher discount, dan grand total di server
-      const shipObj = typeof shipping === 'string' ? JSON.parse(shipping || '{}') : (shipping || {});
-      const isCodEvent = shipObj.method === 'cod_event' || shipObj.id === 'cod_event';
-      const shippingCost = (allPhotopack || isCodEvent) ? 0 : Math.max(0, parseInt(shipObj.price, 10) || 0);
+      // Pre-check ketersediaan stok agregat sebelum masuk transaksi
+      for (const [productId, totalRequestedQty] of physicalQtyByProductId.entries()) {
+        const prod = prodMap.get(productId);
+        const availableStock = parseInt(prod.stock, 10) || 0;
+        if (availableStock <= 0) {
+          return res.status(400).json({
+            error: `Maaf, stok produk "${prod.name}" sudah habis (0 tersisa). Pesanan tidak dapat diproses.`
+          });
+        }
+        if (totalRequestedQty > availableStock) {
+          return res.status(400).json({
+            error: `Stok produk "${prod.name}" tidak mencukupi (tersisa: ${availableStock}, Anda memesan: ${totalRequestedQty}).`
+          });
+        }
+      }
+
+      // 2. Validasi ongkos kirim JNE secara resmi di server (tidak mempercayai shipObj.price dari browser)
+      let shipObj = {};
+      try {
+        shipObj = typeof shipping === 'string' ? JSON.parse(shipping || '{}') : { ...(shipping || {}) };
+      } catch (_) {
+        shipObj = {};
+      }
+
+      const shippingCheck = resolveShippingCost({
+        shipObj,
+        address: cleanAddress,
+        allPhotopack
+      });
+
+      if (!shippingCheck.ok) {
+        return res.status(400).json({ error: shippingCheck.error });
+      }
+
+      const shippingCost = shippingCheck.cost;
+      if (shippingCheck.city) shipObj.city = shippingCheck.city;
+      if (shippingCheck.province) shipObj.province = shippingCheck.province;
 
       let discountAmount = 0;
       if (shipObj.discount && shipObj.discount.code) {
         discountAmount = await verifyVoucherDiscount(shipObj.discount.code, subtotal);
         if (discountAmount > 0) {
-          shipObj.discount.amount = discountAmount;
+          shipObj.discount = {
+            code: String(shipObj.discount.code).trim().toUpperCase(),
+            amount: discountAmount
+          };
         } else {
           shipObj.discount = null;
         }
@@ -255,53 +375,106 @@ module.exports = async (req, res) => {
       // Status pesanan baru SELALU 'pending' untuk mencegah manipulasi status
       const initialStatus = 'pending';
 
-      // 3. Simpan pesanan ke database
-      const { rows } = await db.query(
-        `INSERT INTO orders (id, "customerName", email, address, status, total, items, shipping, notes, phone) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-         RETURNING ${ORDER_LIST_COLUMNS}`,
-        [
-          orderId,
-          customerName,
-          email,
-          address,
-          initialStatus,
-          verifiedTotal,
-          JSON.stringify(sanitizedItems),
-          JSON.stringify(shipObj),
-          buyerNotes || null,
-          buyerPhone || null
-        ]
-      );
+      await ensureOrderHistoryTable(db);
+      await ensureInvoiceSequenceTable();
 
-      // 4. Potong stok otomatis untuk produk fisik
-      for (const item of sanitizedItems) {
-        if (!item || !item.id || item.is_photopack) continue;
-        const requestedQty = parseInt(item.qty, 10) || 1;
-        await db.query(
-          `UPDATE products SET stock = GREATEST(0, stock - $1), updated_at = NOW() WHERE id = $2 AND is_photopack = FALSE`,
-          [requestedQty, item.id]
+      // 3. Transaksi Atomik: Potong stok dengan WHERE stock >= qty + Buat Invoice + Simpan Order + Catat History
+      const createdOrder = await db.withTransaction(async (client) => {
+        for (const [productId, totalRequestedQty] of physicalQtyByProductId.entries()) {
+          const deductRes = await client.query(
+            `UPDATE products
+             SET stock = stock - $1, updated_at = NOW()
+             WHERE id = $2 AND COALESCE(is_photopack, FALSE) = FALSE AND stock >= $1
+             RETURNING id, stock`,
+            [totalRequestedQty, productId]
+          );
+
+          if (!deductRes.rows.length) {
+            const latestRes = await client.query('SELECT name, stock FROM products WHERE id = $1', [productId]);
+            const latestProd = latestRes.rows[0] || prodMap.get(productId) || { name: productId, stock: 0 };
+            const remaining = Math.max(0, parseInt(latestProd.stock, 10) || 0);
+            const msg = remaining <= 0
+              ? `Maaf, stok produk "${latestProd.name}" baru saja habis (0 tersisa). Pesanan dibatalkan otomatis.`
+              : `Stok produk "${latestProd.name}" tidak mencukupi (tersisa: ${remaining}, Anda memesan: ${totalRequestedQty}).`;
+            throw createHttpError(400, msg);
+          }
+        }
+
+        let orderId = id;
+        // Gunakan ID pengujian hanya jika diawali TEST-, selain itu buat nomor invoice berurutan resmi
+        if (!orderId || !String(orderId).startsWith('TEST-')) {
+          orderId = await generateDailyInvoiceId(client);
+        }
+
+        const insertRes = await client.query(
+          `INSERT INTO orders (id, "customerName", email, address, status, total, items, shipping, notes, phone)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+           RETURNING ${ORDER_LIST_COLUMNS}`,
+          [
+            orderId,
+            cleanName,
+            cleanEmail,
+            cleanAddress,
+            initialStatus,
+            verifiedTotal,
+            JSON.stringify(sanitizedItems),
+            JSON.stringify(shipObj),
+            buyerNotes || null,
+            buyerPhone || null
+          ]
         );
+
+        await client.query(
+          `INSERT INTO order_status_history (order_id, from_status, to_status, actor_type, actor_name, note)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [
+            orderId,
+            null,
+            initialStatus,
+            'customer',
+            cleanEmail || cleanName,
+            isDp ? 'Pesanan dibuat (Skema DP 50%)' : 'Pesanan dibuat (Bayar Penuh 100%)'
+          ]
+        );
+
+        return insertRes.rows[0];
+      });
+
+      if (physicalQtyByProductId.size > 0) {
+        invalidateCache('products_*');
       }
 
-      // (1/2) Kirim Notifikasi Email - Pesanan Baru ke Customer
-      const isDummyEmail = !email || email.endsWith('@example.com') || email.endsWith('.local') || email.endsWith('@test.com');
+      // 4. Kirim Notifikasi Email di Belakang Layar (Non-blocking & HTML-escaped)
+      const isDummyEmail = !cleanEmail || cleanEmail.endsWith('@example.com') || cleanEmail.endsWith('.local') || cleanEmail.endsWith('@test.com');
       const isTestEnv = process.env.NODE_ENV === 'test' || Boolean(req.headers && req.headers['x-test-suite']);
 
       if (!isDummyEmail && !isTestEnv) {
-        try {
+        const orderId = createdOrder.id;
+        const safeName = escapeHtml(cleanName);
+        const safeEmail = escapeHtml(cleanEmail);
+        const safePhone = escapeHtml(buyerPhone || '-');
+        const safeAddress = escapeHtml(cleanAddress);
+        const safeNotes = escapeHtml(buyerNotes || '-');
+        const safeOrderId = escapeHtml(orderId);
+        const itemsHTML = sanitizedItems
+          .map(item => `<li>${escapeHtml(item.name)}${item.size ? ` (Size ${escapeHtml(item.size)})` : ''} &times; ${item.qty} = Rp ${(item.price * item.qty).toLocaleString('id-ID')}</li>`)
+          .join('');
+
+        await dispatchBackgroundTask(async () => {
           const transporter = getMailTransport();
           const emailUser = getRequiredEnv('EMAIL_USER');
-          await transporter.sendMail({
+          const adminEmail = process.env.ADMIN_EMAIL || emailUser;
+
+          const sendCustomerMail = transporter.sendMail({
             from: `"Aika Sesilia" <${emailUser}>`,
-            to: email, // Email pembeli
+            to: cleanEmail,
             replyTo: emailUser,
             subject: `[Aika Sesilia] Pesanan #${orderId} Diterima ${isDp ? '(DP 50%) ' : ''}📦`,
             html: `
               <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                <h2 style="color: #29b6f6;">Halo, ${customerName}!</h2>
+                <h2 style="color: #29b6f6;">Halo, ${safeName}!</h2>
                 <p>Terima kasih telah berbelanja di Aika Sesilia Merch.</p>
-                <p>Pesanan Anda dengan nomor <strong>#${orderId}</strong> telah diterima dan sedang menunggu verifikasi pembayaran ${isDp ? '<strong>DP 50% (Uang Muka)</strong>' : ''}.</p>
+                <p>Pesanan Anda dengan nomor <strong>#${safeOrderId}</strong> telah diterima dan sedang menunggu verifikasi pembayaran ${isDp ? '<strong>DP 50% (Uang Muka)</strong>' : ''}.</p>
                 <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:1rem;margin:1rem 0;">
                   <p style="margin:0 0 0.5rem 0;"><strong>Total Nilai Pesanan: Rp ${verifiedTotal.toLocaleString('id-ID')}</strong></p>
                   ${isDp ? `
@@ -311,268 +484,342 @@ module.exports = async (req, res) => {
                     <p style="margin:0;color:#0284c7;font-size:1.1rem;"><strong>Total Pembayaran: Rp ${verifiedTotal.toLocaleString('id-ID')}</strong></p>
                   `}
                 </div>
-                <p>Silakan selesaikan pembayaran melalui aplikasi atau website untuk melanjutkan.</p>
+                <p>Silakan selesaikan pembayaran dalam waktu 24 jam melalui website untuk melanjutkan.</p>
                 <p>Terima kasih atas kepercayaan Anda!</p>
                 <br/>
                 <p>Salam hangat,<br/>Aika Sesilia</p>
               </div>
             `
-          });
-        } catch (mailErr) {
-          console.error('Gagal mengirim email ke customer:', mailErr.message);
-        }
+          }).catch(err => console.error('Gagal mengirim email ke customer:', err.message));
 
-        // (1b) Kirim Notifikasi Email ke Admin
-        try {
-          const transporter = getMailTransport();
-          const emailUser = getRequiredEnv('EMAIL_USER');
-          const adminEmail = process.env.ADMIN_EMAIL || emailUser;
-          const itemsArray = sanitizedItems;
-          const itemsHTML = itemsArray
-            .map(item => `<li>${item.name}${item.size ? ` (Size ${item.size})` : ''} &times; ${item.qty} = Rp ${(item.price * item.qty).toLocaleString('id-ID')}</li>`)
-            .join('');
-          await transporter.sendMail({
+          const sendAdminMail = transporter.sendMail({
             from: `"Aika Sesilia" <${emailUser}>`,
             to: adminEmail,
             replyTo: emailUser,
-            subject: `[ADMIN] Pesanan Baru #${orderId} ${isDp ? '(DP 50%) ' : ''}dari ${customerName}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-              <h2 style="color: #ff6b6b;">📦 Pesanan Baru Masuk! ${isDp ? '<span style="font-size:0.8em;color:#29b6f6;">(SKEMA DP 50%)</span>' : ''}</h2>
-              <p>Ada pesanan baru yang perlu diproses.</p>
-              <table style="width:100%;border-collapse:collapse;margin-bottom:1rem;">
-                <tr style="background:#e8e8e8;">
-                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">No. Pesanan</td>
-                  <td style="padding:0.8rem;border:1px solid #ddd;"><strong>#${orderId}</strong></td>
-                </tr>
-                <tr>
-                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Nama Pelanggan</td>
-                  <td style="padding:0.8rem;border:1px solid #ddd;">${customerName}</td>
-                </tr>
-                <tr style="background:#e8e8e8;">
-                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Email</td>
-                  <td style="padding:0.8rem;border:1px solid #ddd;">${email}</td>
-                </tr>
-                <tr>
-                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">No. HP / WhatsApp</td>
-                  <td style="padding:0.8rem;border:1px solid #ddd;">${buyerPhone || '-'}</td>
-                </tr>
-                <tr style="background:#e8e8e8;">
-                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Alamat Pengiriman</td>
-                  <td style="padding:0.8rem;border:1px solid #ddd;">${address}</td>
-                </tr>
-                <tr>
-                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Catatan Pembeli</td>
-                  <td style="padding:0.8rem;border:1px solid #ddd;color:#d97706;font-weight:bold;">${buyerNotes || '-'}</td>
-                </tr>
-                <tr style="background:#e8e8e8;">
-                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Total Nilai Pesanan</td>
-                  <td style="padding:0.8rem;border:1px solid #ddd;color:#ff6b6b;font-weight:bold;">Rp ${verifiedTotal.toLocaleString('id-ID')}</td>
-                </tr>
-                <tr>
-                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Skema Pembayaran</td>
-                  <td style="padding:0.8rem;border:1px solid #ddd;color:#29b6f6;font-weight:bold;">${isDp ? '⚡ DP 50% (Uang Muka)' : '💎 Full Payment (100%)'}</td>
-                </tr>
-                ${isDp ? `
-                <tr style="background:#e8e8e8;">
-                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Nominal DP 50%</td>
-                  <td style="padding:0.8rem;border:1px solid #ddd;color:#4caf50;font-weight:bold;">Rp ${dpAmount.toLocaleString('id-ID')}</td>
-                </tr>
-                <tr>
-                  <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Sisa Pelunasan Nanti</td>
-                  <td style="padding:0.8rem;border:1px solid #ddd;color:#ff9800;font-weight:bold;">Rp ${remainingAmount.toLocaleString('id-ID')}</td>
-                </tr>
-                ` : ''}
-              </table>
-              <h3 style="color:#333;">Item Pesanan:</h3>
-              <ul style="background:#fff; padding:1.5rem; border-left: 4px solid #ff6b6b; border-radius:4px;">
-                ${itemsHTML}
-              </ul>
-              <p style="color:#666;margin-top:1.5rem;">Status: <strong style="color:#ff9800;">&#9203; MENUNGGU PEMBAYARAN ${isDp ? 'DP' : ''}</strong></p>
-              <p style="font-size:0.9rem;color:#999;margin-top:2rem;">Email ini dikirim otomatis oleh sistem. Mohon segera verifikasi pembayaran pesanan ini.</p>
-            </div>
-          `
-        });
-      } catch (mailErr) {
-        console.error('Gagal mengirim email ke admin:', mailErr.message);
-      }
+            subject: `[ADMIN] Pesanan Baru #${orderId} ${isDp ? '(DP 50%) ' : ''}dari ${cleanName}`,
+            html: `
+              <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <h2 style="color: #ff6b6b;">📦 Pesanan Baru Masuk! ${isDp ? '<span style="font-size:0.8em;color:#29b6f6;">(SKEMA DP 50%)</span>' : ''}</h2>
+                <p>Ada pesanan baru yang perlu diproses.</p>
+                <table style="width:100%;border-collapse:collapse;margin-bottom:1rem;">
+                  <tr style="background:#e8e8e8;">
+                    <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">No. Pesanan</td>
+                    <td style="padding:0.8rem;border:1px solid #ddd;"><strong>#${safeOrderId}</strong></td>
+                  </tr>
+                  <tr>
+                    <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Nama Pelanggan</td>
+                    <td style="padding:0.8rem;border:1px solid #ddd;">${safeName}</td>
+                  </tr>
+                  <tr style="background:#e8e8e8;">
+                    <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Email</td>
+                    <td style="padding:0.8rem;border:1px solid #ddd;">${safeEmail}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">No. HP / WhatsApp</td>
+                    <td style="padding:0.8rem;border:1px solid #ddd;">${safePhone}</td>
+                  </tr>
+                  <tr style="background:#e8e8e8;">
+                    <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Alamat Pengiriman</td>
+                    <td style="padding:0.8rem;border:1px solid #ddd;">${safeAddress}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Catatan Pembeli</td>
+                    <td style="padding:0.8rem;border:1px solid #ddd;color:#d97706;font-weight:bold;">${safeNotes}</td>
+                  </tr>
+                  <tr style="background:#e8e8e8;">
+                    <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Total Nilai Pesanan</td>
+                    <td style="padding:0.8rem;border:1px solid #ddd;color:#ff6b6b;font-weight:bold;">Rp ${verifiedTotal.toLocaleString('id-ID')}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Skema Pembayaran</td>
+                    <td style="padding:0.8rem;border:1px solid #ddd;color:#29b6f6;font-weight:bold;">${isDp ? '⚡ DP 50% (Uang Muka)' : '💎 Full Payment (100%)'}</td>
+                  </tr>
+                  ${isDp ? `
+                  <tr style="background:#e8e8e8;">
+                    <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Nominal DP 50%</td>
+                    <td style="padding:0.8rem;border:1px solid #ddd;color:#4caf50;font-weight:bold;">Rp ${dpAmount.toLocaleString('id-ID')}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:0.8rem;border:1px solid #ddd;font-weight:bold;">Sisa Pelunasan Nanti</td>
+                    <td style="padding:0.8rem;border:1px solid #ddd;color:#ff9800;font-weight:bold;">Rp ${remainingAmount.toLocaleString('id-ID')}</td>
+                  </tr>
+                  ` : ''}
+                </table>
+                <h3 style="color:#333;">Item Pesanan:</h3>
+                <ul style="background:#fff; padding:1.5rem; border-left: 4px solid #ff6b6b; border-radius:4px;">
+                  ${itemsHTML}
+                </ul>
+                <p style="color:#666;margin-top:1.5rem;">Status: <strong style="color:#ff9800;">&#9203; MENUNGGU PEMBAYARAN ${isDp ? 'DP' : ''}</strong></p>
+                <p style="font-size:0.9rem;color:#999;margin-top:2rem;">Email ini dikirim otomatis oleh sistem. Mohon segera verifikasi pembayaran pesanan ini.</p>
+              </div>
+            `
+          }).catch(err => console.error('Gagal mengirim email ke admin:', err.message));
+
+          await Promise.allSettled([sendCustomerMail, sendAdminMail]);
+        }, 'order-created-emails');
       }
 
-      return res.status(201).json(rows[0]);
+      return res.status(201).json(createdOrder);
     }
 
     if (method === 'PUT') {
-      const { id, status, resi, userEmail } = req.body || {};
+      const { id, status, resi } = req.body || {};
       if (!id) {
         return res.status(400).json({ error: 'Order ID is required' });
       }
+      if (!status || !VALID_ORDER_STATUSES.has(status)) {
+        return res.status(400).json({ error: 'Status pesanan tidak valid' });
+      }
 
+      await ensureOrderHistoryTable(db);
       const adminUser = verifyAdminToken(req);
-      
-      // Ambil data order yg sekarang
-      const d = await db.query(`SELECT ${ ORDER_DETAIL_COLUMNS } FROM orders WHERE id = $1`, [id]);
-      if(d.rows.length === 0) return res.status(404).json({error: 'Order not found'});
+
+      // Ambil data order yang sekarang
+      const d = await db.query(`SELECT ${ORDER_DETAIL_COLUMNS} FROM orders WHERE id = $1`, [id]);
+      if (d.rows.length === 0) return res.status(404).json({ error: 'Order not found' });
       let order = d.rows[0];
 
-      // Jika BUKAN admin, perbolehkan customer mengonfirmasi pesanan yang sudah dikirim ('completed')
+      // Jika BUKAN admin, hanya perbolehkan pemilik pesanan (dengan JWT valid) mengonfirmasi pesanan yang sudah dikirim/dibayar menjadi 'completed'
       if (!adminUser) {
         if (status !== 'completed') {
           return res.status(403).json({ error: 'Hanya admin yang dapat mengubah status ini' });
         }
 
-        const reqEmail = (req.headers['x-user-email'] || userEmail || req.query?.email || '').toLowerCase().trim();
-        if (reqEmail && order.email && reqEmail !== order.email.toLowerCase().trim()) {
-          return res.status(403).json({ error: 'Tidak memiliki izin untuk mengonfirmasi pesanan ini' });
+        const userAuth = requireUserOrAdmin(req, res, order.email);
+        if (!userAuth) return;
+
+        if (order.status === 'completed') {
+          return res.status(200).json(order);
         }
 
-        const { rows } = await db.query(
-          `UPDATE orders SET status = $1 WHERE id = $2 RETURNING ${ ORDER_DETAIL_COLUMNS } `,
-          ['completed', id]
-        );
+        if (!['shipped', 'paid'].includes(order.status)) {
+          return res.status(400).json({
+            error: 'Pesanan hanya dapat dikonfirmasi selesai setelah pembayaran diverifikasi atau paket dikirim.'
+          });
+        }
 
-        return res.status(200).json(rows[0]);
+        const updatedCustomerOrder = await db.withTransaction(async (client) => {
+          const { rows } = await client.query(
+            `UPDATE orders SET status = 'completed', updated_at = NOW() WHERE id = $1 RETURNING ${ORDER_DETAIL_COLUMNS}`,
+            [id]
+          );
+          await recordOrderStatusHistory(client, {
+            orderId: id,
+            fromStatus: order.status,
+            toStatus: 'completed',
+            actorType: 'customer',
+            actorName: userAuth.email || order.email,
+            note: 'Pesanan dikonfirmasi diterima/selesai oleh pembeli'
+          });
+          return rows[0];
+        });
+
+        return res.status(200).json(updatedCustomerOrder);
       }
 
       req.admin = adminUser;
+      const cleanResi = typeof resi === 'string' ? resi.trim() : '';
 
-      // Update resi ke kolom JSON shipping
-      if(resi && order.shipping) {
-        try {
-          if (typeof order.shipping === 'string') {
-            order.shipping = JSON.parse(order.shipping);
-          }
-          order.shipping.resi = resi;
-        } catch(e) {}
-      }
-
-      const { rows } = await db.query(
-        `UPDATE orders SET status = $1, shipping = $2 WHERE id = $3 RETURNING ${ ORDER_DETAIL_COLUMNS } `,
-        [status, JSON.stringify(order.shipping), id]
-      );
-      
-      order = rows[0];
-
-      // Kembalikan stok jika pesanan dibatalkan
-      if (adminUser && status === 'cancelled' && d.rows[0].status !== 'cancelled') {
-        const orderItems = Array.isArray(order.items) ? order.items : (typeof order.items === 'string' ? JSON.parse(order.items || '[]') : []);
-        for (const it of orderItems) {
-          if (!it || !it.id) continue;
-          const q = parseInt(it.qty, 10) || 1;
-          await db.query(
-            `UPDATE products SET stock = stock + $1, updated_at = NOW() WHERE id = $2 AND is_photopack = FALSE`,
-            [q, it.id]
-          );
+      // Transaksi atomik untuk perubahan status oleh Admin (mencegah double-restore stok jika tombol diklik 2x)
+      const { updatedOrder, stockChanged } = await db.withTransaction(async (client) => {
+        const lockRes = await client.query(
+          `SELECT status, items, shipping FROM orders WHERE id = $1 FOR UPDATE`,
+          [id]
+        );
+        if (!lockRes.rows.length) {
+          throw createHttpError(404, 'Order not found');
         }
-      }
 
-      // Fetch photopack details for email if order status is paid
-      let gdriveLinksHTML = '';
-      if (status === 'paid' && order.email) {
+        const locked = lockRes.rows[0];
+        const prevStatus = locked.status;
+        let shipData = {};
         try {
-          const itemsArr = Array.isArray(order.items) ? order.items : (typeof order.items === 'string' ? JSON.parse(order.items) : []);
-          const productsRes = await db.query(`SELECT id, name, gdrive_link, is_photopack, category FROM products`);
-          const prodMap = {};
-          productsRes.rows.forEach(p => { prodMap[p.id] = p; });
+          shipData = typeof locked.shipping === 'string'
+            ? JSON.parse(locked.shipping || '{}')
+            : { ...(locked.shipping || {}) };
+        } catch (_) {
+          shipData = {};
+        }
 
-          const photopackLinks = [];
-          itemsArr.forEach(item => {
-            const prod = prodMap[item.id] || {};
-            if (prod.is_photopack || prod.category === 'Photopack' || item.is_photopack) {
-              const link = prod.gdrive_link || item.gdrive_link;
-              if (link) {
-                photopackLinks.push({ name: item.name || prod.name, link });
-              }
+        const prevResi = shipData.resi || '';
+        if (cleanResi) {
+          shipData.resi = cleanResi;
+        }
+
+        let didChangeStock = false;
+        const qtyByProduct = aggregatePhysicalItemQuantities(locked.items);
+
+        // 1. Jika baru berubah menjadi 'cancelled', kembalikan stok fisik
+        if (status === 'cancelled' && prevStatus !== 'cancelled') {
+          for (const [productId, totalQty] of qtyByProduct.entries()) {
+            await client.query(
+              `UPDATE products SET stock = stock + $1, updated_at = NOW() WHERE id = $2 AND COALESCE(is_photopack, FALSE) = FALSE`,
+              [totalQty, productId]
+            );
+            didChangeStock = true;
+          }
+        }
+        // 2. Jika pesanan yang sudah 'cancelled' diaktifkan kembali oleh admin, potong kembali stok fisik secara atomik
+        else if (prevStatus === 'cancelled' && status !== 'cancelled') {
+          for (const [productId, totalQty] of qtyByProduct.entries()) {
+            const deductRes = await client.query(
+              `UPDATE products
+               SET stock = stock - $1, updated_at = NOW()
+               WHERE id = $2 AND COALESCE(is_photopack, FALSE) = FALSE AND stock >= $1
+               RETURNING id`,
+              [totalQty, productId]
+            );
+            if (!deductRes.rows.length) {
+              throw createHttpError(400, `Tidak dapat mengaktifkan kembali pesanan yang dibatalkan karena stok produk (${productId}) sudah tidak mencukupi.`);
             }
-          });
+            didChangeStock = true;
+          }
+        }
 
-          if (photopackLinks.length > 0) {
-            gdriveLinksHTML = `
-              <div style="background:#e0f2fe; padding:1.5rem; border-left: 4px solid #0284c7; border-radius:6px; margin:1.5rem 0;">
-                <h3 style="margin:0 0 0.5rem 0; color:#0369a1;">📸 Link Akses Google Drive Photopack Anda</h3>
-                <p style="margin:0 0 1rem 0; font-size:0.9rem; color:#0c4a6e;">Selamat! Admin telah memverifikasi pembayaran Anda. Klik link di bawah ini untuk mengunduh/melihat photopack Anda:</p>
-                <ul style="margin:0; padding-left:1.2rem; color:#0369a1;">
-                  ${photopackLinks.map(p => `<li style="margin-bottom:0.5rem;"><strong>${p.name}:</strong> <a href="${p.link}" target="_blank" style="color:#0284c7; font-weight:bold; text-decoration:underline;">${p.link}</a></li>`).join('')}
-                </ul>
-              </div>
-            `;
+        const updateRes = await client.query(
+          `UPDATE orders
+           SET status = $1, shipping = $2, updated_at = NOW()
+           WHERE id = $3
+           RETURNING ${ORDER_DETAIL_COLUMNS}`,
+          [status, JSON.stringify(shipData), id]
+        );
+
+        if (prevStatus !== status || (cleanResi && cleanResi !== prevResi)) {
+          let historyNote = 'Status pesanan diperbarui oleh admin';
+          if (status === 'paid') {
+            historyNote = 'Pembayaran diverifikasi oleh admin (status: Dikemas)';
+          } else if (status === 'shipped') {
+            historyNote = cleanResi
+              ? `Pesanan dikirim (No. Resi: ${cleanResi})`
+              : 'Pesanan ditandai telah dikirim';
+          } else if (status === 'completed') {
+            historyNote = 'Pesanan ditandai selesai oleh admin';
+          } else if (status === 'cancelled') {
+            historyNote = 'Pesanan dibatalkan oleh admin (stok produk dikembalikan)';
           }
 
+          await recordOrderStatusHistory(client, {
+            orderId: id,
+            fromStatus: prevStatus,
+            toStatus: status,
+            actorType: 'admin',
+            actorName: adminUser.username || String(adminUser.adminId) || 'Admin',
+            note: historyNote
+          });
+        }
+
+        return { updatedOrder: updateRes.rows[0], stockChanged: didChangeStock };
+      });
+
+      order = updatedOrder;
+      if (stockChanged) {
+        invalidateCache('products_*');
+      }
+
+      const isDummyEmail = !order.email || order.email.endsWith('@example.com') || order.email.endsWith('.local') || order.email.endsWith('@test.com');
+      const isTestEnv = process.env.NODE_ENV === 'test' || Boolean(req.headers && req.headers['x-test-suite']);
+
+      if (!isDummyEmail && !isTestEnv && (status === 'paid' || status === 'shipped')) {
+        await dispatchBackgroundTask(async () => {
           const transporter = getMailTransport();
           const emailUser = getRequiredEnv('EMAIL_USER');
-          await transporter.sendMail({
-            from: `"Aika Sesilia" <${emailUser}>`,
-            to: order.email,
-            subject: `✅ Pembayaran Dikonfirmasi - Pesanan #${order.id} ${photopackLinks.length > 0 ? '📸 Photopack Siap Diunduh' : 'Sedang Dikemas'} 📦`,
-            html: `
-              <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                <h2 style="color: #4caf50;">✅ Pembayaran Dikonfirmasi!</h2>
-                <p>Halo ${order.customerName},</p>
-                <p>Pembayaran Anda untuk pesanan <strong>#${order.id}</strong> telah berhasil kami verifikasi.</p>
-                
-                ${gdriveLinksHTML}
+          const safeCustomerName = escapeHtml(order.customerName);
+          const safeOrderId = escapeHtml(order.id);
 
-                <div style="background:#f0f8f0; padding:1.5rem; border-left: 4px solid #4caf50; border-radius:4px; margin:1.5rem 0;">
-                  <p style="margin:0;font-weight:bold;color:#333;">Status: Pembayaran Diverifikasi Admin</p>
-                  <p style="margin:0.5rem 0; font-size:0.9rem; color:#666;">Terima kasih telah melakukan pembelian di Aika Sesilia Official Store.</p>
+          if (status === 'paid') {
+            let gdriveLinksHTML = '';
+            const itemsArr = Array.isArray(order.items) ? order.items : (typeof order.items === 'string' ? JSON.parse(order.items || '[]') : []);
+            const productsRes = await db.query('SELECT id, name, gdrive_link, is_photopack, category FROM products');
+            const prodMap = {};
+            productsRes.rows.forEach(p => { prodMap[p.id] = p; });
+
+            const photopackLinks = [];
+            itemsArr.forEach(item => {
+              const prod = prodMap[item.id] || {};
+              if (prod.is_photopack || prod.category === 'Photopack' || item.is_photopack) {
+                const rawLink = String(prod.gdrive_link || item.gdrive_link || '').trim();
+                if (/^https?:\/\//i.test(rawLink)) {
+                  photopackLinks.push({ name: item.name || prod.name, link: rawLink });
+                }
+              }
+            });
+
+            if (photopackLinks.length > 0) {
+              gdriveLinksHTML = `
+                <div style="background:#e0f2fe; padding:1.5rem; border-left: 4px solid #0284c7; border-radius:6px; margin:1.5rem 0;">
+                  <h3 style="margin:0 0 0.5rem 0; color:#0369a1;">📸 Link Akses Google Drive Photopack Anda</h3>
+                  <p style="margin:0 0 1rem 0; font-size:0.9rem; color:#0c4a6e;">Selamat! Admin telah memverifikasi pembayaran Anda. Klik link di bawah ini untuk mengunduh/melihat photopack Anda:</p>
+                  <ul style="margin:0; padding-left:1.2rem; color:#0369a1;">
+                    ${photopackLinks.map(p => `<li style="margin-bottom:0.5rem;"><strong>${escapeHtml(p.name)}:</strong> <a href="${escapeHtml(p.link)}" target="_blank" style="color:#0284c7; font-weight:bold; text-decoration:underline;">${escapeHtml(p.link)}</a></li>`).join('')}
+                  </ul>
                 </div>
-                
-                <p><strong>Detail Pesanan:</strong></p>
-                <p>Total Pembayaran: <strong>Rp ${(order.total || 0).toLocaleString('id-ID')}</strong></p>
-                
-                <p style="margin-top:1.5rem;">Terima kasih telah berbelanja di Aika Sesilia! Jika ada pertanyaan, hubungi kami.</p>
-                <p>Salam hangat,<br/><strong>Aika Sesilia</strong></p>
-              </div>
-            `
-          });
-        } catch (mailErr) {
-          console.error('Email konfirmasi pembayaran gagal:', mailErr.message);
-        }
+              `;
+            }
+
+            await transporter.sendMail({
+              from: `"Aika Sesilia" <${emailUser}>`,
+              to: order.email,
+              subject: `✅ Pembayaran Dikonfirmasi - Pesanan #${order.id} ${photopackLinks.length > 0 ? '📸 Photopack Siap Diunduh' : 'Sedang Dikemas'} 📦`,
+              html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                  <h2 style="color: #4caf50;">✅ Pembayaran Dikonfirmasi!</h2>
+                  <p>Halo ${safeCustomerName},</p>
+                  <p>Pembayaran Anda untuk pesanan <strong>#${safeOrderId}</strong> telah berhasil kami verifikasi.</p>
+                  ${gdriveLinksHTML}
+                  <div style="background:#f0f8f0; padding:1.5rem; border-left: 4px solid #4caf50; border-radius:4px; margin:1.5rem 0;">
+                    <p style="margin:0;font-weight:bold;color:#333;">Status: Pembayaran Diverifikasi Admin</p>
+                    <p style="margin:0.5rem 0; font-size:0.9rem; color:#666;">Terima kasih telah melakukan pembelian di Aika Sesilia Official Store.</p>
+                  </div>
+                  <p><strong>Detail Pesanan:</strong></p>
+                  <p>Total Pembayaran: <strong>Rp ${(order.total || 0).toLocaleString('id-ID')}</strong></p>
+                  <p style="margin-top:1.5rem;">Terima kasih telah berbelanja di Aika Sesilia! Jika ada pertanyaan, hubungi kami.</p>
+                  <p>Salam hangat,<br/><strong>Aika Sesilia</strong></p>
+                </div>
+              `
+            });
+          } else if (status === 'shipped') {
+            const rawTrackNo = cleanResi || (order.shipping && typeof order.shipping === 'object' && order.shipping.resi) || '[Menunggu Resi JNE]';
+            const safeTrackNo = escapeHtml(rawTrackNo);
+
+            await transporter.sendMail({
+              from: `"Aika Sesilia" <${emailUser}>`,
+              to: order.email,
+              subject: `Hore! Pesanan #${order.id} Telah Dikirim 🚚`,
+              html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                  <h2 style="color: #29b6f6;">Pesanan Meluncur, ${safeCustomerName}!</h2>
+                  <p>Paket Merchandise Anda telah diserahkan ke jasa kirim.</p>
+                  <p>Status: <strong>DIKIRIM</strong></p>
+                  <p>No. Resi Pengiriman: <strong style="color:#111;">${safeTrackNo}</strong></p>
+                  <p>Anda bisa melacak resi tersebut melalui website resmi JNE.</p>
+                  <p>Terima kasih atas dukungannya ke Aika Sesilia!</p>
+                </div>
+              `
+            });
+          }
+        }, `order-status-${status}-email`);
       }
 
-      // (3/3) Kirim Notifikasi Email - Pesanan Dikirim
-      if (status === 'shipped') {
-        try {
-          const transporter = getMailTransport();
-          const emailUser = getRequiredEnv('EMAIL_USER');
-          const trackNo = resi ? resi : (order.shipping && typeof order.shipping === 'object' && order.shipping.resi) ? order.shipping.resi : '[Menunggu Resi JNE]';
-
-          await transporter.sendMail({
-            from: `"Aika Sesilia" <${emailUser}>`,
-            to: order.email,
-            subject: `Hore! Pesanan #${order.id} Telah Dikirim 🚚`,
-            html: `
-              <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                <h2 style="color: #29b6f6;">Pesanan Meluncur, ${order.customerName}!</h2>
-                <p>Paket Merchandise Anda telah diserahkan ke jasa kirim.</p>
-                <p>Status: <strong>DIKIRIM</strong></p>
-                <p>No. Resi Pengiriman: <strong style="color:#111;">${trackNo}</strong></p>
-                <p>Anda bisa melacak resi tersebut melalui website resmi JNE.</p>
-                <p>Terima kasih atas dukungannya ke Aika Sesilia!</p>
-              </div>
-            `
-          });
-        } catch (mailErr) {
-          console.error('Gagal mengirim email (PUT):', mailErr.message);
-        }
-      }
-
-      return res.status(200).json(rows[0]);
+      return res.status(200).json(order);
     }
 
     if (method === 'DELETE') {
       if (!requireAdmin(req, res)) return;
       const { id } = req.query;
       if (id === 'ALL') {
-        await db.query(`DELETE FROM orders`);
+        await db.query('DELETE FROM orders');
       } else {
-        await db.query(`DELETE FROM orders WHERE id = $1`, [id]);
+        await db.query('DELETE FROM orders WHERE id = $1', [id]);
       }
       return res.status(200).json({ success: true });
     }
 
     res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
-    res.status(405).end(`Method ${ method } Not Allowed`);
+    res.status(405).end(`Method ${method} Not Allowed`);
   } catch (err) {
+    if (err && err.statusCode) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
     console.error(err);
     res.status(500).json({ error: 'Internal Server Error', details: err.message });
   }

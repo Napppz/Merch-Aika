@@ -73,7 +73,8 @@ async function testVulnerability4() {
     ],
     shipping: {
       method: 'jne',
-      price: 15000,
+      city: 'Kota Bandung',
+      price: 0, // Attacker trying to spoof Rp 0 shipping for JNE Kota Bandung (official rate: Rp 15.000)
       discount: { code: 'FAKE_DISCOUNT_999999', amount: 500000 } // Fake voucher
     }
   };

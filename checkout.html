@@ -563,6 +563,56 @@
   <script src="js/cart.js"></script>
   <script src="js/main.js"></script>
   <script>
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function isUserTokenExpired(token) {
+      if (!token || typeof token !== 'string') return true;
+      try {
+        const payloadPart = token.split('.')[1];
+        if (!payloadPart) return true;
+        const base64 = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(atob(base64 + '='.repeat((4 - base64.length % 4) % 4)));
+        if (!payload.exp) return false;
+        return payload.exp * 1000 <= Date.now();
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function ensureValidCheckoutSession() {
+      const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+      if (!userStr) {
+        alert('Silakan login terlebih dahulu untuk melanjutkan proses checkout.');
+        window.location.href = 'login.html?redirect=checkout.html';
+        return null;
+      }
+      let user = null;
+      try {
+        user = JSON.parse(userStr);
+      } catch (e) {
+        localStorage.removeItem('aika_session');
+        sessionStorage.removeItem('aika_session');
+        window.location.href = 'login.html?redirect=checkout.html';
+        return null;
+      }
+      if (!user || !user.email || !user.token || isUserTokenExpired(user.token)) {
+        alert('Sesi login Anda sudah berakhir. Silakan login kembali untuk melanjutkan checkout.');
+        localStorage.removeItem('aika_session');
+        sessionStorage.removeItem('aika_session');
+        window.location.href = 'login.html?redirect=checkout.html';
+        return null;
+      }
+      return user;
+    }
+
     const BASE_SHIPPING = 15000; // Flat shipping rate if 'Metode Pengiriman' is removed
 
     let availableVouchers = {};
@@ -642,7 +692,7 @@
       return vouchers.map(voucher => {
         const valueLabel = voucher.type === 'percent' ? `${voucher.value}%` : formatPrice(voucher.value);
         const minPurchase = voucher.minPurchase ? ` • Min. belanja ${formatPrice(voucher.minPurchase)}` : '';
-        return `<div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.25rem"><strong style="color:var(--aqua)">${voucher.code}</strong> • ${voucher.label} (${valueLabel})${minPurchase}</div>`;
+        return `<div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.25rem"><strong style="color:var(--aqua)">${escapeHtml(voucher.code)}</strong> • ${escapeHtml(voucher.label)} (${valueLabel})${minPurchase}</div>`;
       }).join('');
     }
 
@@ -840,7 +890,7 @@
           msgEl.innerHTML = `<span style="color: #ff5252;">Minimal belanja untuk voucher ini adalah ${formatPrice(voucher.minPurchase)}.</span>`;
         } else {
           appliedDiscount = { ...voucher, code };
-          msgEl.innerHTML = `<span style="color: var(--gold);">🎉 Kode ${code} berhasil diterapkan! (${appliedDiscount.label})</span>`;
+          msgEl.innerHTML = `<span style="color: var(--gold);">🎉 Kode ${escapeHtml(code)} berhasil diterapkan! (${escapeHtml(appliedDiscount.label)})</span>`;
           showToast('🎉 Kode diskon diterapkan!');
         }
       } else {
@@ -862,7 +912,7 @@
       const discountRow = document.getElementById('discountRow');
       if (discountRow) {
         if (appliedDiscount) {
-          discountRow.innerHTML = `<span>Diskon (${appliedDiscount.label})</span><span style="color: var(--gold);">- ${formatPrice(discountAmt)}</span>`;
+          discountRow.innerHTML = `<span>Diskon (${escapeHtml(appliedDiscount.label)})</span><span style="color: var(--gold);">- ${formatPrice(discountAmt)}</span>`;
           discountRow.style.display = 'flex';
         } else {
           discountRow.style.display = 'none';
@@ -1055,13 +1105,13 @@
           return `
           <div class="order-summary-item" style="${isItemOOS ? 'border-left:3px solid #ef4444; padding-left:8px;' : ''}">
             <div>
-              <div class="item-name">${item.name}</div>
+              <div class="item-name">${escapeHtml(item.name)}</div>
               <div class="item-qty">
-                × ${item.qty}${item.size ? ` • Size <strong style="color:var(--white);">${item.size}</strong>${itemSurcharge > 0 ? ` <span style="color:var(--aqua);font-weight:700;">(+${formatPrice(itemSurcharge)})</span>` : ''}` : ''}
-                ${itemTag ? `<span style="font-size:0.7rem;margin-left:6px;padding:1px 6px;border-radius:4px;background:rgba(41,182,246,0.12);color:var(--aqua);display:inline-block;">🏷️ ${itemTag}</span>` : ''}
+                × ${parseInt(item.qty, 10) || 1}${item.size ? ` • Size <strong style="color:var(--white);">${escapeHtml(item.size)}</strong>${itemSurcharge > 0 ? ` <span style="color:var(--aqua);font-weight:700;">(+${formatPrice(itemSurcharge)})</span>` : ''}` : ''}
+                ${itemTag ? `<span style="font-size:0.7rem;margin-left:6px;padding:1px 6px;border-radius:4px;background:rgba(41,182,246,0.12);color:var(--aqua);display:inline-block;">🏷️ ${escapeHtml(itemTag)}</span>` : ''}
               </div>
               ${isItemOOS ? `<div style="color:#ef4444; font-size:0.78rem; font-weight:800; margin-top:0.25rem;">⚠️ Stok Habis (0 unit tersedia)</div>` : ''}
-              ${isItemExceed ? `<div style="color:#f59e0b; font-size:0.78rem; font-weight:700; margin-top:0.25rem;">⚠️ Melebihi stok (Tersisa: ${item.stock} unit)</div>` : ''}
+              ${isItemExceed ? `<div style="color:#f59e0b; font-size:0.78rem; font-weight:700; margin-top:0.25rem;">⚠️ Melebihi stok (Tersisa: ${parseInt(item.stock, 10) || 0} unit)</div>` : ''}
               ${item.availableSizes && item.availableSizes.length ? `
                 <div style="margin-top:0.45rem">
                   <label for="checkoutSize${index}" style="display:block;color:var(--white);font-size:0.78rem;font-weight:700;margin-bottom:0.25rem;">Pilih Size</label>
@@ -1070,7 +1120,7 @@
                     ${item.availableSizes.map(size => {
                       const sc = getItemSizeSurcharge(item, size);
                       const scText = sc > 0 ? ` (+${formatPrice(sc)})` : '';
-                      return `<option value="${size}" ${item.size === size ? 'selected' : ''}>${size}${scText}</option>`;
+                      return `<option value="${escapeHtml(size)}" ${item.size === size ? 'selected' : ''}>${escapeHtml(size)}${scText}</option>`;
                     }).join('')}
                   </select>
                 </div>
@@ -1379,23 +1429,28 @@
         return;
       }
 
+      const userSession = ensureValidCheckoutSession();
+      if (!userSession) return;
+
       if (!validateForm()) return;
 
       const customerName = document.getElementById('fullName').value;
-      const userSession = JSON.parse(localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session') || '{}');
-      const email = userSession.email || 'customer@guest.com';
+      const email = userSession.email;
       const phone = document.getElementById('phone').value;
       const address = document.getElementById('address').value;
       const note = document.getElementById('note').value;
 
       let fullDest = address;
+      let selectedProvinsi = null;
+      let selectedKota = null;
 
       // For JNE shipment, add city and province info
       if (currentShippingMethod === 'jne') {
         const provEl = document.getElementById('provinsi');
         const kotaEl = document.getElementById('kota');
-        const selectedKota = kotaEl && kotaEl.selectedIndex > 0 ? kotaEl.options[kotaEl.selectedIndex].text : '';
-        fullDest = `${address}, ${selectedKota}, ${provEl?.value || ''}`;
+        selectedProvinsi = provEl?.value || '';
+        selectedKota = kotaEl && kotaEl.selectedIndex > 0 ? kotaEl.options[kotaEl.selectedIndex].text : '';
+        fullDest = `${address}, ${selectedKota}, ${selectedProvinsi}`;
       }
 
       const subtotal = getCartSubtotal();
@@ -1414,6 +1469,8 @@
           method: currentShippingMethod,
           id: currentShippingMethod === 'jne' ? 'jne_reg' : 'cod_event',
           name: currentShippingMethod === 'jne' ? 'JNE Reguler' : 'COD di Event',
+          province: selectedProvinsi,
+          city: selectedKota,
           price: getShippingTotal(),
           sizeSurcharge: sizeSurcharge,
           discount: discountAmt > 0 ? { code: discountCode, amount: discountAmt } : null,
@@ -1442,7 +1499,11 @@
       try {
         const paymentRes = await fetch('/api/payment-proof', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + userSession.token,
+            'x-user-email': email
+          },
           body: JSON.stringify({
             orderId: order.id,
             email: email,
@@ -1452,7 +1513,7 @@
         });
 
         if (!paymentRes.ok) {
-          const errData = await paymentRes.json();
+          const errData = await paymentRes.json().catch(() => ({}));
           showToast('❌ ' + (errData.error || 'Gagal mengunggah bukti'));
           return;
         }
@@ -1476,13 +1537,16 @@
           keysToRemove.forEach(key => localStorage.removeItem(key));
         } catch (e) { console.warn('Cleanup error:', e); }
 
-        // Store order in sessionStorage (without base64 images)
+        // Store order in sessionStorage (without base64 images), preserving server-validated totals
+        const serverShipping = typeof order.shipping === 'string'
+          ? JSON.parse(order.shipping || '{}')
+          : (order.shipping || orderData.shipping);
         const orderForStorage = {
           ...order,
           note: note,
           notes: note,
           phone: phone,
-          shipping: orderData.shipping, // Ensure complete shipping & DP info is preserved
+          shipping: serverShipping,
           status: 'payment_pending'
         };
         delete orderForStorage.payment_proof; // Don't store large image
@@ -1546,42 +1610,38 @@
 
 
     document.addEventListener('DOMContentLoaded', async () => {
+      const user = ensureValidCheckoutSession();
+      if (!user) return;
+
       await Cart.load();
       await loadVouchers();
       renderCheckout();
 
+      // Auto-fill full name field
+      const fullNameInput = document.getElementById('fullName');
+      if (fullNameInput && user.username) fullNameInput.value = user.username;
 
-      // Auto-fill user data & Add Address Book Options
-      const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
-      if (userStr) {
-        const user = JSON.parse(userStr);
+      // Load Addresses from LocalStorage (from dashboard/profile)
+      const userAddresses = JSON.parse(localStorage.getItem('aika_address_' + user.email) || '[]');
+      const addressOptionsContainer = document.getElementById('addressOptions');
 
-        // Auto-fill full name field
-        const fullNameInput = document.getElementById('fullName');
-        if (fullNameInput) fullNameInput.value = user.username;
+      if (userAddresses.length > 0 && addressOptionsContainer) {
+        let optionsHtml = `<label style="color:var(--white); font-weight:700; margin-bottom:10px; display:block; font-size:0.9rem;">Pilih dari Buku Alamat:</label>`;
+        optionsHtml += `<div style="display:flex; flex-direction:column; gap:0.8rem; margin-bottom:1rem;">`;
 
-        // Load Addresses from LocalStorage (from dashboard/profile)
-        const userAddresses = JSON.parse(localStorage.getItem('aika_address_' + user.email) || '[]');
-        const addressOptionsContainer = document.getElementById('addressOptions');
-
-        if (userAddresses.length > 0 && addressOptionsContainer) {
-          let optionsHtml = `<label style="color:var(--white); font-weight:700; margin-bottom:10px; display:block; font-size:0.9rem;">Pilih dari Buku Alamat:</label>`;
-          optionsHtml += `<div style="display:flex; flex-direction:column; gap:0.8rem; margin-bottom:1rem;">`;
-
-          userAddresses.forEach((addr, idx) => {
-            optionsHtml += `
+        userAddresses.forEach((addr, idx) => {
+          optionsHtml += `
           <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(3,9,31,0.5); padding:1rem; border:1px solid var(--card-border); border-radius:var(--radius-sm); cursor:pointer;">
             <input type="radio" name="savedAddr" value="${idx}" onchange="useAddress(${idx})" style="margin-top:4px; accent-color:var(--aqua);">
             <div>
-              <strong style="color:var(--aqua); display:block; margin-bottom:5px;">${addr.label}</strong>
-              <span style="color:var(--text-muted); font-size:0.85rem; line-height:1.4;">${addr.address}</span>
+              <strong style="color:var(--aqua); display:block; margin-bottom:5px;">${escapeHtml(addr.label)}</strong>
+              <span style="color:var(--text-muted); font-size:0.85rem; line-height:1.4;">${escapeHtml(addr.address)}</span>
             </div>
           </label>
         `;
-          });
-          optionsHtml += `</div>`;
-          addressOptionsContainer.innerHTML = optionsHtml;
-        }
+        });
+        optionsHtml += `</div>`;
+        addressOptionsContainer.innerHTML = optionsHtml;
       }
     });
 

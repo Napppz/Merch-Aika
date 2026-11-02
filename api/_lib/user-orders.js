@@ -1,5 +1,6 @@
 const { query } = require('./_db');
 const { requireUserOrAdmin } = require('./user-auth');
+const { expireStalePendingOrders } = require('./order-lifecycle');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -23,6 +24,8 @@ module.exports = async function handler(req, res) {
   if (!auth) return;
 
   try {
+    await expireStalePendingOrders();
+
     const result = await query(
       `SELECT
          o.id,

@@ -10,7 +10,8 @@ const fs = require('fs');
 const testFiles = [
   'test-daily-invoice.js',
   'test-size-tags.js',
-  'test-user-security.js'
+  'test-user-security.js',
+  'test-priority-1-2.js'
 ];
 
 // Optional server-dependent tests:
