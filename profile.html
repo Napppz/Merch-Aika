@@ -1890,17 +1890,22 @@
       }
     }
 
+    function getLoginRedirectUrl() {
+      const target = 'profile.html' + (window.location.search || '');
+      return 'login.html?redirect=' + encodeURIComponent(target);
+    }
+
     function handleSessionExpired() {
       alert('Sesi login Anda sudah berakhir. Silakan login kembali untuk melanjutkan.');
       localStorage.removeItem('aika_session');
       sessionStorage.removeItem('aika_session');
-      window.location.href = 'login.html';
+      window.location.href = getLoginRedirectUrl();
     }
 
     document.addEventListener('DOMContentLoaded', () => {
       const userStr = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
       if (!userStr) {
-        window.location.href = 'login.html';
+        window.location.href = getLoginRedirectUrl();
         return;
       }
 
@@ -1908,7 +1913,7 @@
         currentUser = JSON.parse(userStr);
       } catch (e) {
         console.error('Invalid user session:', e);
-        window.location.href = 'login.html';
+        window.location.href = getLoginRedirectUrl();
         return;
       }
 
@@ -1916,7 +1921,7 @@
         alert('Sistem keamanan akun telah diperbarui. Silakan login kembali untuk memperbarui sesi Anda.');
         localStorage.removeItem('aika_session');
         sessionStorage.removeItem('aika_session');
-        window.location.href = 'login.html';
+        window.location.href = getLoginRedirectUrl();
         return;
       }
 
@@ -2137,6 +2142,7 @@
     }
 
     let catalogProductsMap = {};
+    let autoOpenedReviewFromUrl = false;
 
     async function loadOrders() {
       const list = document.getElementById('ordersList');
@@ -2166,6 +2172,24 @@
         updateUserStats();
         renderUserOrders();
         renderPhotopackVault();
+
+        if (!autoOpenedReviewFromUrl) {
+          const params = new URLSearchParams(window.location.search);
+          const reviewOrderId = params.get('review');
+          if (reviewOrderId) {
+            autoOpenedReviewFromUrl = true;
+            switchTab('orders');
+            const targetOrder = userOrdersList.find(o => o.id === reviewOrderId);
+            if (targetOrder && targetOrder.status === 'completed' && !targetOrder.review_id) {
+              giveReview(targetOrder.id);
+              try {
+                params.delete('review');
+                const cleanQuery = params.toString();
+                window.history.replaceState({}, '', window.location.pathname + (cleanQuery ? '?' + cleanQuery : ''));
+              } catch (e) { }
+            }
+          }
+        }
       } catch (err) {
         console.error('Error loading orders:', err);
         if (list) list.innerHTML = '<p style="color:#fca5a5">Gagal memuat pesanan.</p>';

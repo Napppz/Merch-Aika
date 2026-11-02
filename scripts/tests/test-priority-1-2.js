@@ -24,6 +24,7 @@ r2Storage.uploadImageBuffer = async ({ fileName }) => ({
   imageUrl: `https://cdn.test.local/payment-proofs/${fileName}`
 });
 
+const envModule = require('../../api/_lib/env');
 const ordersHandler = require('../../api/_lib/orders');
 const paymentProofHandler = require('../../api/_lib/payment-proof');
 const routeDispatcher = require('../../api/[route]');
@@ -31,9 +32,9 @@ const routeDispatcher = require('../../api/[route]');
 const TINY_PNG_DATA_URL =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
 
-function invokeHandler(handler, { method = 'GET', query = {}, headers = {}, body = undefined } = {}) {
+function invokeHandler(handler, { method = 'GET', query = {}, headers = {}, body = undefined, enableEmail = false } = {}) {
   return new Promise((resolve, reject) => {
-    const normalizedHeaders = { 'x-test-suite': '1' };
+    const normalizedHeaders = enableEmail ? {} : { 'x-test-suite': '1' };
     for (const [k, v] of Object.entries(headers || {})) {
       normalizedHeaders[k.toLowerCase()] = v;
     }
@@ -430,6 +431,106 @@ async function runTests() {
     await new Promise(r => setTimeout(r, 260));
     assert.strictEqual(bgFinished, true, 'Background task must complete asynchronously');
     console.log(`✓ dispatchBackgroundTask returned in ${elapsed}ms and completed asynchronously`);
+
+    // -------------------------------------------------------------------------
+    // TEST 6: Completed Order + 5-Star Rating Email Notification (Admin & Buyer)
+    // -------------------------------------------------------------------------
+    console.log('\n--- [6] Completed Order 5-Star Rating Email Notification ---');
+
+    const sentEmails = [];
+    const origCreateMailTransport = envModule.createMailTransport;
+    envModule.createMailTransport = () => ({
+      async sendMail(mailOptions) {
+        sentEmails.push(mailOptions);
+        return { messageId: 'mock-msg-' + sentEmails.length };
+      }
+    });
+
+    try {
+      const realLikeBuyerEmail = `buyer.review.${runId}@gmail-mock-verify.id`;
+      const realLikeBuyerToken = generateJWT({
+        userId: 90003,
+        email: realLikeBuyerEmail,
+        username: 'Aika Fan <script>alert(1)</script>',
+        type: 'user'
+      });
+
+      const adminDoneOrderId = `TEST-P1P2-COMPLETE-ADMIN-${runId}`;
+      const buyerDoneOrderId = `TEST-P1P2-COMPLETE-BUYER-${runId}`;
+      createdOrderIds.push(adminDoneOrderId, buyerDoneOrderId);
+
+      // Seed 2 shipped orders directly for clean completion testing
+      await db.query(
+        `INSERT INTO orders (id, "customerName", email, address, status, total, items, shipping)
+         VALUES ($1, $2, $3, 'Jl. Test 1', 'shipped', 75000, $4::jsonb, '{"method":"cod_event","price":0}'::jsonb),
+                ($5, $2, $3, 'Jl. Test 2', 'shipped', 75000, $4::jsonb, '{"method":"cod_event","price":0}'::jsonb)`,
+        [
+          adminDoneOrderId,
+          'Aika Fan <script>alert(1)</script>',
+          realLikeBuyerEmail,
+          JSON.stringify([{ id: testProdMainId, name: 'Test Main Acrylic', qty: 1, price: 75000 }]),
+          buyerDoneOrderId
+        ]
+      );
+
+      // 6a. Admin marks order as 'completed'
+      const adminCompleteMailRes = await invokeHandler(ordersHandler, {
+        method: 'PUT',
+        enableEmail: true,
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+          host: 'localhost:3000'
+        },
+        body: { id: adminDoneOrderId, status: 'completed' }
+      });
+      assert.strictEqual(adminCompleteMailRes.status, 200);
+      await new Promise(r => setTimeout(r, 80));
+
+      assert.strictEqual(sentEmails.length, 1, `Expected 1 completed email from admin update, got ${sentEmails.length}`);
+      const mail1 = sentEmails[0];
+      assert.strictEqual(mail1.to, realLikeBuyerEmail);
+      assert(mail1.subject.includes(adminDoneOrderId) && mail1.subject.includes('Rating Bintang 5'), 'Subject must mention order ID and Rating Bintang 5');
+      assert(mail1.html.includes('⭐⭐⭐⭐⭐'), 'HTML must include 5 stars');
+      assert(!mail1.html.includes('<script>alert(1)</script>'), 'Customer name in HTML email must be XSS-escaped');
+      assert(
+        mail1.html.includes(`http://localhost:3000/profile.html?tab=orders&amp;review=${encodeURIComponent(adminDoneOrderId)}`),
+        'HTML email must include direct review deep-link'
+      );
+
+      // Re-saving an already completed order by Admin must NOT send duplicate email
+      await invokeHandler(ordersHandler, {
+        method: 'PUT',
+        enableEmail: true,
+        headers: { Authorization: `Bearer ${adminToken}`, host: 'localhost:3000' },
+        body: { id: adminDoneOrderId, status: 'completed' }
+      });
+      await new Promise(r => setTimeout(r, 80));
+      assert.strictEqual(sentEmails.length, 1, 'Duplicate admin save on already-completed order must NOT resend email');
+      console.log('✓ Admin marking order completed sends 5-star review email once (with XSS-safe HTML & review deep-link)');
+
+      // 6b. Customer confirms delivery ('completed')
+      const buyerCompleteMailRes = await invokeHandler(ordersHandler, {
+        method: 'PUT',
+        enableEmail: true,
+        headers: {
+          Authorization: `Bearer ${realLikeBuyerToken}`,
+          host: 'merch-aika.vercel.app'
+        },
+        body: { id: buyerDoneOrderId, status: 'completed' }
+      });
+      assert.strictEqual(buyerCompleteMailRes.status, 200);
+      await new Promise(r => setTimeout(r, 80));
+
+      assert.strictEqual(sentEmails.length, 2, `Expected 2nd completed email from customer confirmDelivery, got ${sentEmails.length}`);
+      const mail2 = sentEmails[1];
+      assert(
+        mail2.html.includes(`https://merch-aika.vercel.app/profile.html?tab=orders&amp;review=${encodeURIComponent(buyerDoneOrderId)}`),
+        'Production host must generate https review deep-link'
+      );
+      console.log('✓ Customer confirming delivery ("📦 Diterima") also sends 5-star review email');
+    } finally {
+      envModule.createMailTransport = origCreateMailTransport;
+    }
 
     console.log('\n🎉 ALL PRIORITY 1 & PRIORITY 2 TESTS PASSED!');
   } finally {

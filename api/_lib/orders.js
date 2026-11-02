@@ -1,7 +1,8 @@
 const db = require('./_db');
 const { requireAdmin, verifyAdminToken } = require('./admin-auth');
 const { requireUserOrAdmin } = require('./user-auth');
-const { createMailTransport, getRequiredEnv } = require('./env');
+const env = require('./env');
+const { getRequiredEnv } = env;
 const { invalidateCache } = require('./cache');
 const { resolveShippingCost } = require('./shipping-rates');
 const {
@@ -15,7 +16,137 @@ const {
 } = require('./order-lifecycle');
 
 function getMailTransport() {
-  return createMailTransport();
+  return env.createMailTransport();
+}
+
+function resolveSiteBaseUrl(req) {
+  const configured = String(process.env.PUBLIC_SITE_URL || process.env.SITE_URL || '').trim();
+  if (/^https?:\/\/[a-z0-9.-]+(?::\d+)?/i.test(configured)) {
+    return configured.replace(/\/+$/, '');
+  }
+
+  const origin = String((req && req.headers && req.headers.origin) || '').trim();
+  if (/^https?:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(origin)) {
+    return origin.replace(/\/+$/, '');
+  }
+
+  const host = String((req && req.headers && req.headers.host) || '').trim();
+  if (/^[a-z0-9.-]+(?::\d+)?$/i.test(host)) {
+    const isLocal = /^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(host);
+    return `${isLocal ? 'http' : 'https'}://${host}`;
+  }
+
+  return 'https://merch-aika.vercel.app';
+}
+
+async function sendOrderCompletedReviewEmail(order, req) {
+  const transporter = getMailTransport();
+  const emailUser = getRequiredEnv('EMAIL_USER');
+  const baseUrl = resolveSiteBaseUrl(req);
+  const reviewUrl = `${baseUrl}/profile.html?tab=orders&review=${encodeURIComponent(String(order.id || ''))}`;
+
+  const safeCustomerName = escapeHtml(order.customerName || 'Pelanggan');
+  const safeOrderId = escapeHtml(order.id);
+  const safeReviewUrl = escapeHtml(reviewUrl);
+
+  let itemsArr = [];
+  try {
+    itemsArr = Array.isArray(order.items)
+      ? order.items
+      : (typeof order.items === 'string' ? JSON.parse(order.items || '[]') : []);
+  } catch (_) {
+    itemsArr = [];
+  }
+
+  const itemsListHtml = itemsArr.length > 0
+    ? `
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px 18px; margin:18px 0;">
+        <p style="margin:0 0 8px 0; font-size:13px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.5px;">Ringkasan Pesanan #${safeOrderId}</p>
+        <ul style="margin:0; padding-left:18px; color:#1e293b; font-size:14px;">
+          ${itemsArr.map(it => {
+            const qty = Math.max(1, parseInt(it.qty, 10) || 1);
+            const sizeLabel = it.size ? ` (Size ${escapeHtml(it.size)})` : '';
+            return `<li style="margin-bottom:4px;"><strong>${escapeHtml(it.name || 'Produk')}</strong>${sizeLabel} &times; ${qty}</li>`;
+          }).join('')}
+        </ul>
+        <p style="margin:10px 0 0 0; font-size:14px; color:#0284c7; font-weight:700;">Total Pesanan: Rp ${(Number(order.total) || 0).toLocaleString('id-ID')}</p>
+      </div>
+    `
+    : '';
+
+  const plainText = [
+    `Halo ${order.customerName || 'Pelanggan'},`,
+    '',
+    `Yeay! Pesanan kamu #${order.id} di Aika Sesilia Official Store telah SELESAI.`,
+    'Terima kasih banyak sudah berbelanja dan mendukung Aika Sesilia!',
+    '',
+    'Jangan lupa berikan Rating Bintang 5 (⭐⭐⭐⭐⭐) dan ulasan terbaikmu di website kami ya:',
+    reviewUrl,
+    '',
+    'Cara memberi ulasan:',
+    `1. Buka link di atas atau masuk ke halaman Profil -> Riwayat Pesanan`,
+    `2. Cari pesanan #${order.id} lalu klik tombol "⭐ Beri Ulasan"`,
+    '3. Pilih rating Bintang 5 dan tulis kesanmu!',
+    '',
+    'Salam hangat,',
+    'Aika Sesilia Official Store'
+  ].join('\n');
+
+  await transporter.sendMail({
+    from: `"Aika Sesilia" <${emailUser}>`,
+    to: order.email,
+    replyTo: emailUser,
+    subject: `🎉 Pesanan #${order.id} Selesai! Jangan Lupa Kasih Rating Bintang 5 Ya ⭐⭐⭐⭐⭐`,
+    text: plainText,
+    html: `
+      <div style="margin:0; padding:24px 12px; background-color:#f4f7fa; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; color:#1e293b;">
+        <div style="max-width:560px; margin:0 auto; background:#ffffff; border-radius:14px; overflow:hidden; border:1px solid #e2e8f0; box-shadow:0 4px 12px rgba(15, 23, 42, 0.06);">
+          <div style="background:#0f172a; padding:26px 24px; text-align:center; border-bottom:3px solid #29b6f6;">
+            <h1 style="margin:0; color:#ffffff; font-size:21px; font-weight:800; letter-spacing:0.6px;">✦ AIKA SESILIA</h1>
+            <p style="margin:4px 0 0 0; color:#38bdf8; font-size:13px;">Official Merchandise &amp; Digital Store</p>
+          </div>
+
+          <div style="padding:28px 26px;">
+            <div style="display:inline-block; background:#dcfce7; color:#15803d; font-weight:700; font-size:12px; padding:5px 12px; border-radius:50px; margin-bottom:14px;">
+              ✅ PESANAN SELESAI
+            </div>
+
+            <h2 style="margin:0 0 12px 0; color:#0f172a; font-size:20px; line-height:1.35;">
+              Terima Kasih Banyak, ${safeCustomerName}! 💙
+            </h2>
+
+            <p style="margin:0 0 14px 0; color:#475569; font-size:15px; line-height:1.6;">
+              Pesanan kamu dengan nomor <strong>#${safeOrderId}</strong> kini telah dinyatakan <strong>Selesai</strong>. Semoga kamu suka dengan merchandise / koleksi dari <strong>Aika Sesilia</strong>!
+            </p>
+
+            ${itemsListHtml}
+
+            <div style="background:linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border:1px solid #fcd34d; border-radius:12px; padding:20px; text-align:center; margin:22px 0;">
+              <div style="font-size:26px; letter-spacing:4px; margin-bottom:6px;">⭐⭐⭐⭐⭐</div>
+              <h3 style="margin:0 0 8px 0; color:#92400e; font-size:17px; font-weight:800;">
+                Jangan Lupa Kasih Rating Bintang 5 Ya!
+              </h3>
+              <p style="margin:0 0 18px 0; color:#78350f; font-size:14px; line-height:1.55;">
+                Yuk luangkan waktu sebentar untuk memberikan <strong>Rating Bintang 5</strong> dan tulis kesanmu di website! Setiap ulasanmu sangat berarti untuk mendukung Aika Sesilia ✨
+              </p>
+              <a href="${safeReviewUrl}" target="_blank" style="display:inline-block; background:#0284c7; color:#ffffff; text-decoration:none; font-size:15px; font-weight:700; padding:13px 26px; border-radius:50px; box-shadow:0 4px 12px rgba(2, 132, 199, 0.3);">
+                ⭐ Beri Rating Bintang 5 di Website →
+              </a>
+            </div>
+
+            <p style="margin:0; color:#64748b; font-size:13px; line-height:1.6; text-align:center;">
+              Atau buka website lalu masuk ke menu <strong>Profil &gt; Riwayat Pesanan</strong> dan klik tombol <strong>⭐ Beri Ulasan</strong> pada pesanan <strong>#${safeOrderId}</strong>.
+            </p>
+          </div>
+
+          <div style="background:#f8fafc; padding:18px 24px; text-align:center; border-top:1px solid #e2e8f0; color:#94a3b8; font-size:12px;">
+            Terima kasih atas dukungan hangatmu untuk Aika Sesilia! 💙<br/>
+            &copy; ${new Date().getFullYear()} Aika Sesilia Official Store
+          </div>
+        </div>
+      </div>
+    `
+  });
 }
 
 const ORDER_LIST_COLUMNS = `
@@ -614,6 +745,18 @@ module.exports = async (req, res) => {
           return rows[0];
         });
 
+        const isDummyCustomerEmail = !updatedCustomerOrder.email
+          || updatedCustomerOrder.email.endsWith('@example.com')
+          || updatedCustomerOrder.email.endsWith('.local')
+          || updatedCustomerOrder.email.endsWith('@test.com');
+        const isCustomerTestEnv = process.env.NODE_ENV === 'test' || Boolean(req.headers && req.headers['x-test-suite']);
+
+        if (!isDummyCustomerEmail && !isCustomerTestEnv) {
+          await dispatchBackgroundTask(async () => {
+            await sendOrderCompletedReviewEmail(updatedCustomerOrder, req);
+          }, 'order-status-completed-customer-email');
+        }
+
         return res.status(200).json(updatedCustomerOrder);
       }
 
@@ -621,7 +764,7 @@ module.exports = async (req, res) => {
       const cleanResi = typeof resi === 'string' ? resi.trim() : '';
 
       // Transaksi atomik untuk perubahan status oleh Admin (mencegah double-restore stok jika tombol diklik 2x)
-      const { updatedOrder, stockChanged } = await db.withTransaction(async (client) => {
+      const { updatedOrder, stockChanged, prevStatus } = await db.withTransaction(async (client) => {
         const lockRes = await client.query(
           `SELECT status, items, shipping FROM orders WHERE id = $1 FOR UPDATE`,
           [id]
@@ -708,7 +851,7 @@ module.exports = async (req, res) => {
           });
         }
 
-        return { updatedOrder: updateRes.rows[0], stockChanged: didChangeStock };
+        return { updatedOrder: updateRes.rows[0], stockChanged: didChangeStock, prevStatus };
       });
 
       order = updatedOrder;
@@ -718,8 +861,9 @@ module.exports = async (req, res) => {
 
       const isDummyEmail = !order.email || order.email.endsWith('@example.com') || order.email.endsWith('.local') || order.email.endsWith('@test.com');
       const isTestEnv = process.env.NODE_ENV === 'test' || Boolean(req.headers && req.headers['x-test-suite']);
+      const shouldSendCompletedEmail = status === 'completed' && prevStatus !== 'completed';
 
-      if (!isDummyEmail && !isTestEnv && (status === 'paid' || status === 'shipped')) {
+      if (!isDummyEmail && !isTestEnv && (status === 'paid' || status === 'shipped' || shouldSendCompletedEmail)) {
         await dispatchBackgroundTask(async () => {
           const transporter = getMailTransport();
           const emailUser = getRequiredEnv('EMAIL_USER');
@@ -796,6 +940,8 @@ module.exports = async (req, res) => {
                 </div>
               `
             });
+          } else if (shouldSendCompletedEmail) {
+            await sendOrderCompletedReviewEmail(order, req);
           }
         }, `order-status-${status}-email`);
       }
