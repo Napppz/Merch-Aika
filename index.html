@@ -6,6 +6,50 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Aika Sesilia — Official Merch Store</title>
+  <meta name="description" content="Aika Sesilia adalah cosplayer berbasis di Indonesia yang dikenal dengan kostum detail dan penuh karakter. Koleksi eksklusif official merchandise &amp; photopack Aika Sesilia." />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <link rel="canonical" href="https://www.merch-aika.my.id/" />
+  <link rel="image_src" href="https://www.merch-aika.my.id/images/Profil/charlotta-seo.jpg" />
+  <link rel="icon" type="image/jpeg" href="images/Profil/charlotta-seo.jpg" />
+  <link rel="apple-touch-icon" href="images/Profil/charlotta-seo.jpg" />
+
+  <!-- Open Graph / Google Search Thumbnail -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Aika Sesilia — Official Merch Store" />
+  <meta property="og:title" content="Aika Sesilia — Official Merch Store" />
+  <meta property="og:description" content="Aika Sesilia adalah cosplayer berbasis di Indonesia yang dikenal dengan kostum detail dan penuh karakter. Koleksi eksklusif official merchandise &amp; photopack Aika Sesilia." />
+  <meta property="og:url" content="https://www.merch-aika.my.id/" />
+  <meta property="og:image" content="https://www.merch-aika.my.id/images/Profil/charlotta-seo.jpg" />
+  <meta property="og:image:secure_url" content="https://www.merch-aika.my.id/images/Profil/charlotta-seo.jpg" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="1200" />
+  <meta property="og:image:alt" content="Aika Sesilia — Official Merch Store" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Aika Sesilia — Official Merch Store" />
+  <meta name="twitter:description" content="Aika Sesilia adalah cosplayer berbasis di Indonesia yang dikenal dengan kostum detail dan penuh karakter. Koleksi eksklusif official merchandise &amp; photopack Aika Sesilia." />
+  <meta name="twitter:image" content="https://www.merch-aika.my.id/images/Profil/charlotta-seo.jpg" />
+
+  <!-- Structured Data (Schema.org) for Google Search Thumbnail -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "OnlineStore",
+    "name": "Aika Sesilia — Official Merch Store",
+    "url": "https://www.merch-aika.my.id/",
+    "description": "Aika Sesilia adalah cosplayer berbasis di Indonesia yang dikenal dengan kostum detail dan penuh karakter. Setiap merchandise yang dijual adalah ekspresi nyata dari passion Aika dalam dunia cosplay.",
+    "image": "https://www.merch-aika.my.id/images/Profil/charlotta-seo.jpg",
+    "logo": "https://www.merch-aika.my.id/images/Profil/charlotta-seo.jpg",
+    "primaryImageOfPage": {
+      "@type": "ImageObject",
+      "url": "https://www.merch-aika.my.id/images/Profil/charlotta-seo.jpg",
+      "width": 1200,
+      "height": 1200
+    }
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link
     href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap"
@@ -154,7 +198,7 @@
     </div>
     <div class="hero-image-wrap">
       <div class="hero-circle">
-        <img src="images/Profil/phoebe.JPG" alt="Phoebe" class="hero-img" id="mainHeroImage"
+        <img src="images/Profil/phoebe.JPG" alt="Aika Sesilia — Official Merchandise" class="hero-img" id="mainHeroImage"
           onerror="this.src='https://ui-avatars.com/api/?name=Phoebe&size=300&background=1565C0&color=fff'" />
         <div class="hero-initials" style="display: none;">PH</div>
       </div>
@@ -262,7 +306,8 @@
       </div>
       <div class="about-visual">
         <div class="about-card" style="overflow: hidden;">
-          <img src="images/Profil/Charlotta.jpg" alt="Aika Sesilia as Charlotta"
+          <img src="images/Profil/charlotta-seo.jpg" alt="Aika Sesilia — Official Merch Store"
+            width="1200" height="1200"
             style="width: 100%; height: 100%; object-fit: cover;" />
         </div>
       </div>
@@ -406,8 +451,8 @@
           const safeUsername = (user.username || 'Anonymous').replace(/</g, '&lt;');
           const firstChar = safeUsername.charAt(0).toUpperCase();
           const avatarHtml = user.avatar
-            ? `<img src="${user.avatar}" alt="${safeUsername}" class="leaderboard-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="leaderboard-avatar" style="display:none">${firstChar}</div>`
-            : `<div class="leaderboard-avatar">${firstChar}</div>`;
+            ? `<span data-nosnippet><img src="${user.avatar}" alt="" role="presentation" loading="lazy" class="leaderboard-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="leaderboard-avatar" style="display:none">${firstChar}</div></span>`
+            : `<div class="leaderboard-avatar" data-nosnippet>${firstChar}</div>`;
 
           const totalSpent = parseInt(user.total_spent) || 0;
           const totalOrders = parseInt(user.total_orders) || 0;
