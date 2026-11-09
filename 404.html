@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<!-- Halaman Error 404 Kustom — Merch Aika Sesilia -->
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>404 — Halaman Tidak Ditemukan | Aika Sesilia Store</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png?v=hiu1" />
+  <link rel="shortcut icon" href="/favicon.ico?v=hiu1" />
+  <link rel="apple-touch-icon" sizes="192x192" href="/favicon.png?v=hiu1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .error-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.5rem;
+      position: relative;
+      z-index: 2;
+    }
+    .error-card {
+      max-width: 580px;
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 3.5rem 2.5rem;
+      text-align: center;
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow-blue);
+      position: relative;
+      overflow: hidden;
+    }
+    .error-badge {
+      display: inline-block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--aqua);
+      background: rgba(0, 210, 255, 0.1);
+      border: 1px solid rgba(0, 210, 255, 0.25);
+      padding: 0.4rem 1.2rem;
+      border-radius: 50px;
+      margin-bottom: 1.2rem;
+    }
+    .error-code {
+      font-family: var(--font-display);
+      font-size: clamp(4rem, 12vw, 6.5rem);
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 0.8rem;
+      background: linear-gradient(135deg, #fff 20%, var(--aqua) 70%, var(--sea-blue) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 30px rgba(0, 210, 255, 0.3);
+    }
+    .error-card h1 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      color: var(--white);
+      margin-bottom: 0.8rem;
+    }
+    .error-card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+    .error-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .error-actions .btn-primary,
+    .error-actions .btn-secondary {
+      padding: 0.75rem 1.6rem;
+      font-size: 0.9rem;
+      border-radius: 50px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      font-family: var(--font-body);
+      font-weight: 600;
+    }
+    .error-actions .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--white);
+      transition: var(--transition);
+    }
+    .error-actions .btn-secondary:hover {
+      border-color: var(--aqua);
+      color: var(--aqua);
+      background: rgba(0, 210, 255, 0.08);
+    }
+  </style>
+</head>
+<body class="has-bottom-nav">
+  <div class="cursor-glow"></div>
+
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand" title="Aika Sesilia Merch Store">
+      <span class="brand-logo">✦</span>
+      <span class="brand-name">Aika Sesilia</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="shop.html">Shop</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="index.html" class="nav-back-btn" title="Kembali ke Beranda">
+        <span class="back-arrow">←</span>
+        <span>Beranda</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="error-wrap">
+    <div class="error-card">
+      <div class="error-badge">✦ 404 NOT FOUND ✦</div>
+      <div class="error-code">404</div>
+      <h1>Halaman Tidak Ditemukan</h1>
+      <p>Ups! Halaman yang kamu tuju sepertinya sudah dipindahkan, dihapus, atau tautan yang kamu buka kurang tepat.</p>
+      <div class="error-actions">
+        <a href="index.html" class="btn-primary">
+          <span>← Kembali ke Beranda</span>
+        </a>
+        <a href="shop.html" class="btn-secondary">
+          <span>🛒 Lihat Katalog Produk</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOBILE BOTTOM NAVIGATION -->
+  <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Navigasi Bawah">
+    <a href="index.html" class="bottom-nav-item" id="bnav-home">
+      <span class="bnav-icon">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </span>
+      <span class="bnav-label">Beranda</span>
+    </a>
+    <a href="shop.html" class="bottom-nav-item" id="bnav-shop">
+      <span class="bnav-icon">
+        <svg viewBox="0 0 24 24"><path d="M19 6h-2c0-2.76-2.24-5-5-5S7 3.24 7 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-3c1.66 0 3 1.34 3 3H9c0-1.66 1.34-3 3-3zm7 17H5V8h14v12z"/></svg>
+      </span>
+      <span class="bnav-label">Katalog</span>
+    </a>
+  </nav>
+</body>
+</html>
+

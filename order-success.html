@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <!-- Halaman Konfirmasi Invoice Pesanan Digital & Merchandise -->
 <html lang="id">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Invoice Pesanan — Aika Sesilia Store</title>
+  <meta name="robots" content="noindex, nofollow" />
   <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png?v=hiu1" />
   <link rel="shortcut icon" href="/favicon.ico?v=hiu1" />
   <link rel="apple-touch-icon" sizes="192x192" href="/favicon.png?v=hiu1" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
   <style>
     .success-wrap {
@@ -19,6 +23,7 @@
       justify-content: center;
       padding: 3rem 1.5rem;
     }
+
     .success-card {
       max-width: 650px;
       width: 100%;
@@ -30,27 +35,46 @@
       backdrop-filter: blur(12px);
       box-shadow: var(--shadow-blue);
     }
+
     .success-icon {
       font-size: 4rem;
       margin-bottom: 1rem;
       animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
     }
-    @keyframes pop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    @keyframes pop {
+      from {
+        transform: scale(0);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
     .success-card h1 {
       font-family: var(--font-display);
       font-size: 2rem;
       color: var(--aqua);
       margin-bottom: 0.5rem;
     }
-    .success-card p { color: var(--text-muted); margin-bottom: 0.5rem; }
+
+    .success-card p {
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
     .order-detail {
-      background: rgba(3,9,31,0.6);
+      background: rgba(3, 9, 31, 0.6);
       border: 1px solid var(--card-border);
       border-radius: var(--radius);
       padding: 1.8rem;
       margin: 2rem 0;
       text-align: left;
     }
+
     .order-detail h3 {
       font-family: var(--font-display);
       font-size: 1.1rem;
@@ -62,17 +86,32 @@
       border-bottom: 1px solid var(--card-border);
       padding-bottom: 0.8rem;
     }
+
     .detail-row {
       display: flex;
       justify-content: space-between;
       font-size: 0.88rem;
       padding: 0.45rem 0;
-      border-bottom: 1px solid rgba(41,182,246,0.08);
+      border-bottom: 1px solid rgba(41, 182, 246, 0.08);
     }
-    .detail-row:last-child { border: none; }
-    .detail-row span:first-child { color: var(--text-muted); }
-    .detail-row span:last-child { color: var(--white); font-weight: 600; }
-    .items-list { margin: 1.2rem 0; }
+
+    .detail-row:last-child {
+      border: none;
+    }
+
+    .detail-row span:first-child {
+      color: var(--text-muted);
+    }
+
+    .detail-row span:last-child {
+      color: var(--white);
+      font-weight: 600;
+    }
+
+    .items-list {
+      margin: 1.2rem 0;
+    }
+
     .item-row {
       display: flex;
       justify-content: space-between;
@@ -80,10 +119,22 @@
       padding: 0.4rem 0;
       color: var(--text-muted);
     }
-    .item-row span:last-child { color: var(--aqua); font-weight: 700; }
-    .cta-buttons { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem; }
+
+    .item-row span:last-child {
+      color: var(--aqua);
+      font-weight: 700;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 0.8rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+    }
+
     .btn-print {
-      background: rgba(41,182,246,0.15);
+      background: rgba(41, 182, 246, 0.15);
       border: 1px solid var(--aqua);
       color: var(--aqua);
       padding: 0.75rem 1.4rem;
@@ -95,68 +146,108 @@
       gap: 6px;
       transition: var(--transition);
     }
+
     .btn-print:hover {
       background: var(--aqua);
       color: var(--deep-ocean);
     }
 
     @media print {
-      body { background: #fff !important; color: #000 !important; }
-      .success-wrap { padding: 0; min-height: auto; }
-      .success-card { border: none; box-shadow: none; background: #fff; color: #000; width: 100%; max-width: 100%; padding: 1rem; }
-      .cta-buttons, .navbar, nav { display: none !important; }
-      .order-detail { background: #f8fafc; border: 1px solid #ccc; color: #000; }
-      .detail-row span:first-child { color: #555; }
-      .detail-row span:last-child { color: #000; }
-      .success-card h1 { color: #000; }
+      body {
+        background: #fff !important;
+        color: #000 !important;
+      }
+
+      .success-wrap {
+        padding: 0;
+        min-height: auto;
+      }
+
+      .success-card {
+        border: none;
+        box-shadow: none;
+        background: #fff;
+        color: #000;
+        width: 100%;
+        max-width: 100%;
+        padding: 1rem;
+      }
+
+      .cta-buttons,
+      .navbar,
+      nav {
+        display: none !important;
+      }
+
+      .order-detail {
+        background: #f8fafc;
+        border: 1px solid #ccc;
+        color: #000;
+      }
+
+      .detail-row span:first-child {
+        color: #555;
+      }
+
+      .detail-row span:last-child {
+        color: #000;
+      }
+
+      .success-card h1 {
+        color: #000;
+      }
     }
   </style>
 </head>
-<body>
-<div class="success-wrap">
-  <div class="success-card" id="successCard">
-    <div class="success-icon">🎉</div>
-    <h1>Pesanan & Invoice Berhasil!</h1>
-    <p>Terima kasih telah melakukan transaksi di Aika Sesilia Store! 💙</p>
-    
-    <div class="order-detail" id="orderDetail">
-      <h3>INVOICE PESANAN</h3>
-      <!-- Filled by JS -->
-    </div>
 
-    <div class="cta-buttons">
-      <a href="profile.html?tab=orders" class="btn-primary" style="padding:0.75rem 1.4rem; border-radius:50px;">📂 Lihat Status & GDrive di Profil</a>
-      <button onclick="window.print()" class="btn-print">🖨️ Cetak / Simpan Invoice (PDF)</button>
-      <a href="shop.html" class="btn-ghost" style="padding:0.75rem 1.4rem; border-radius:50px;">🛍️ Lanjut Belanja</a>
-      <a href="index.html" class="btn-ghost" style="padding:0.75rem 1.4rem; border-radius:50px; border-color:rgba(41,182,246,0.5);">🏠 Kembali ke Halaman Utama</a>
+<body>
+  <div class="success-wrap">
+    <div class="success-card" id="successCard">
+      <div class="success-icon">🎉</div>
+      <h1>Pesanan & Invoice Berhasil!</h1>
+      <p>Terima kasih telah melakukan transaksi di Aika Sesilia Store! 💙</p>
+
+      <div class="order-detail" id="orderDetail">
+        <h3>INVOICE PESANAN</h3>
+        <!-- Filled by JS -->
+      </div>
+
+      <div class="cta-buttons">
+        <a href="profile.html?tab=orders" class="btn-primary" style="padding:0.75rem 1.4rem; border-radius:50px;">📂
+          Lihat Status & GDrive di Profil</a>
+        <button onclick="window.print()" class="btn-print">🖨️ Cetak / Simpan Invoice (PDF)</button>
+        <a href="shop.html" class="btn-ghost" style="padding:0.75rem 1.4rem; border-radius:50px;">🛍️ Lanjut Belanja</a>
+        <a href="index.html" class="btn-ghost"
+          style="padding:0.75rem 1.4rem; border-radius:50px; border-color:rgba(41,182,246,0.5);">🏠 Kembali ke Halaman
+          Utama</a>
+      </div>
     </div>
   </div>
-</div>
 
-<script src="js/cart.js"></script>
-<script src="js/main.js"></script>
-<script>
-function escapeHtml(str) {
-  if (str === null || str === undefined) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
+  <script src="js/cart.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
 
-document.addEventListener('DOMContentLoaded', () => {
-  let order = JSON.parse(sessionStorage.getItem('last_order') || localStorage.getItem('last_order') || '{}');
-  const detail = document.getElementById('orderDetail');
-  if (!order.id) {
-    detail.innerHTML = '<p style="color:var(--text-muted);text-align:center">Tidak ada data pesanan.</p>';
-    return;
-  }
+    document.addEventListener('DOMContentLoaded', () => {
+      let order = JSON.parse(sessionStorage.getItem('last_order') || localStorage.getItem('last_order') || '{}');
+      const detail = document.getElementById('orderDetail');
+      if (!order.id) {
+        detail.innerHTML = '<p style="color:var(--text-muted);text-align:center">Tidak ada data pesanan.</p>';
+        return;
+      }
 
-  const hasPhotopack = (order.items || []).some(i => i.is_photopack || i.category === 'Photopack');
+      const hasPhotopack = (order.items || []).some(i => i.is_photopack || i.category === 'Photopack');
 
-  const itemsHtml = (order.items || []).map(i => `
+      const itemsHtml = (order.items || []).map(i => `
     <div class="item-row">
       <div>
         <span>${parseInt(i.qty, 10) || 1}x ${escapeHtml(i.name)}${i.size ? ` • Size ${escapeHtml(i.size)}` : ''}</span>
@@ -166,19 +257,19 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
   `).join('');
 
-  const formattedDate = order.date 
-    ? new Date(order.date).toLocaleString('id-ID', {
-        day: '2-digit', month: 'short', year: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-      }) + ' WIB'
-    : '-';
+      const formattedDate = order.date
+        ? new Date(order.date).toLocaleString('id-ID', {
+          day: '2-digit', month: 'short', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        }) + ' WIB'
+        : '-';
 
-  const shippingInfo = typeof order.shipping === 'string' ? JSON.parse(order.shipping || '{}') : (order.shipping || {});
-  const isDp = shippingInfo.paymentScheme === 'dp50' || shippingInfo.isDp;
-  const dpAmount = Number(shippingInfo.dpAmount) || Math.ceil((Number(order.total) || 0) * 0.5);
-  const remainingAmount = Number(shippingInfo.remainingAmount) || Math.max(0, (Number(order.total) || 0) - dpAmount);
+      const shippingInfo = typeof order.shipping === 'string' ? JSON.parse(order.shipping || '{}') : (order.shipping || {});
+      const isDp = shippingInfo.paymentScheme === 'dp50' || shippingInfo.isDp;
+      const dpAmount = Number(shippingInfo.dpAmount) || Math.ceil((Number(order.total) || 0) * 0.5);
+      const remainingAmount = Number(shippingInfo.remainingAmount) || Math.max(0, (Number(order.total) || 0) - dpAmount);
 
-  detail.innerHTML = `
+      detail.innerHTML = `
     <h3>
       <span>📄 INVOICE PESANAN</span>
       <span style="font-size:0.9rem; color:var(--white); font-weight:700;">#${escapeHtml(order.id)}</span>
@@ -220,12 +311,13 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="detail-row" style="font-weight:700; font-size:0.95rem;"><span style="color:var(--gold);">Sisa Pelunasan Nanti</span><span style="color:var(--gold);">${formatPrice(remainingAmount)}</span></div>
     ` : ''}
   `;
-});
-</script>
-<!-- Floating Back to Home Button for Mobile (Android & iOS) -->
-<a href="index.html" class="mobile-floating-home-btn" id="successMobileHomeFab" aria-label="Kembali ke Halaman Utama">
-  <span class="fab-icon">🏠</span>
-  <span>Halaman Utama</span>
-</a>
+    });
+  </script>
+  <!-- Floating Back to Home Button for Mobile (Android & iOS) -->
+  <a href="index.html" class="mobile-floating-home-btn" id="successMobileHomeFab" aria-label="Kembali ke Halaman Utama">
+    <span class="fab-icon">🏠</span>
+    <span>Halaman Utama</span>
+  </a>
 </body>
+
 </html>

@@ -6,6 +6,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Dashboard Admin — Aika Sesilia</title>
+  <meta name="robots" content="noindex, nofollow" />
   <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png?v=hiu1" />
   <link rel="shortcut icon" href="/favicon.ico?v=hiu1" />
   <link rel="apple-touch-icon" sizes="192x192" href="/favicon.png?v=hiu1" />
@@ -604,7 +605,9 @@
 
     /* ── MOBILE & iOS RESPONSIVENESS (MAX 900PX) ── */
     @media (max-width: 900px) {
-      html, body {
+
+      html,
+      body {
         overflow-x: hidden !important;
         max-width: 100vw;
       }
@@ -695,18 +698,18 @@
         gap: 0.75rem;
       }
 
-      .admin-toolbar > div {
+      .admin-toolbar>div {
         display: flex;
         flex-wrap: wrap;
         gap: 0.6rem;
         width: 100%;
       }
 
-      .admin-toolbar > div > input,
-      .admin-toolbar > div > select,
-      .admin-toolbar > div > button,
-      .admin-toolbar > select,
-      .admin-toolbar > button {
+      .admin-toolbar>div>input,
+      .admin-toolbar>div>select,
+      .admin-toolbar>div>button,
+      .admin-toolbar>select,
+      .admin-toolbar>button {
         width: 100% !important;
         min-height: 42px !important;
         box-sizing: border-box;
@@ -751,11 +754,14 @@
       }
 
       /* Prevent iOS Safari Auto-Zoom on form fields */
-      input, select, textarea {
+      input,
+      select,
+      textarea {
         font-size: 16px !important;
       }
 
-      .btn-edit, .btn-del {
+      .btn-edit,
+      .btn-del {
         padding: 8px 14px !important;
         min-height: 36px !important;
         display: inline-flex;
@@ -768,6 +774,7 @@
       .admin-header h1 {
         font-size: 1.35rem !important;
       }
+
       .admin-main {
         padding: 1.25rem 0.75rem !important;
       }
@@ -987,13 +994,15 @@
 
     <!-- ── PRODUCTS ── -->
     <section class="admin-section" id="tab-products">
-      <div class="admin-toolbar" style="margin-bottom: 1.2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+      <div class="admin-toolbar"
+        style="margin-bottom: 1.2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
         <div>
           <h2>🛍️ Manajemen Produk</h2>
           <p style="color:var(--text-muted);font-size:0.85rem;margin-top:0.2rem" id="productCountLabel"></p>
         </div>
         <div style="display:flex; gap:0.8rem; align-items:center;">
-          <input type="text" id="adminProductSearch" oninput="filterAdminProducts()" placeholder="🔍 Cari..." style="background:rgba(3,9,31,0.8); border:1px solid var(--card-border); border-radius:50px; padding:0.5rem 1rem; color:var(--white); font-family:var(--font-body); font-size:0.82rem; width:180px; outline:none;" />
+          <input type="text" id="adminProductSearch" oninput="filterAdminProducts()" placeholder="🔍 Cari..."
+            style="background:rgba(3,9,31,0.8); border:1px solid var(--card-border); border-radius:50px; padding:0.5rem 1rem; color:var(--white); font-family:var(--font-body); font-size:0.82rem; width:180px; outline:none;" />
           <button class="btn-primary" onclick="openProductModal()">+ Tambah Produk</button>
         </div>
       </div>
@@ -1003,13 +1012,15 @@
           <thead>
             <tr>
               <th style="width:65px;">FOTO</th>
-              <th onclick="toggleProductSort('name')" style="cursor:pointer; user-select:none;" title="Klik untuk mengurutkan Nama Produk">
+              <th onclick="toggleProductSort('name')" style="cursor:pointer; user-select:none;"
+                title="Klik untuk mengurutkan Nama Produk">
                 NAMA PRODUK <span id="sortIconName" style="font-size:0.75rem; opacity:0.6;">↕</span>
               </th>
               <th style="min-width:180px;">
                 <div style="display:flex; align-items:center; gap:0.4rem;">
                   <span>KATEGORI</span>
-                  <select id="adminCategorySelect" onchange="filterAdminCategory(this.value)" style="background:rgba(3,9,31,0.9); border:1px solid var(--aqua); color:var(--white); border-radius:8px; padding:0.3rem 0.6rem; font-family:var(--font-body); font-size:0.82rem; font-weight:700; cursor:pointer; outline:none; box-shadow:0 0 10px rgba(41,182,246,0.2);">
+                  <select id="adminCategorySelect" onchange="filterAdminCategory(this.value)"
+                    style="background:rgba(3,9,31,0.9); border:1px solid var(--aqua); color:var(--white); border-radius:8px; padding:0.3rem 0.6rem; font-family:var(--font-body); font-size:0.82rem; font-weight:700; cursor:pointer; outline:none; box-shadow:0 0 10px rgba(41,182,246,0.2);">
                     <option value="Semua" style="background:#03091f; color:#fff;">Semua Kategori</option>
                     <option value="Photopack" style="background:#03091f; color:#fff;">📸 Photopack</option>
                     <option value="Pakaian" style="background:#03091f; color:#fff;">👕 Pakaian</option>
@@ -1019,10 +1030,12 @@
                   </select>
                 </div>
               </th>
-              <th onclick="toggleProductSort('price')" style="cursor:pointer; user-select:none;" title="Klik untuk mengurutkan Harga">
+              <th onclick="toggleProductSort('price')" style="cursor:pointer; user-select:none;"
+                title="Klik untuk mengurutkan Harga">
                 HARGA <span id="sortIconPrice" style="font-size:0.75rem; opacity:0.6;">↕</span>
               </th>
-              <th onclick="toggleProductSort('stock')" style="cursor:pointer; user-select:none;" title="Klik untuk mengurutkan Stok">
+              <th onclick="toggleProductSort('stock')" style="cursor:pointer; user-select:none;"
+                title="Klik untuk mengurutkan Stok">
                 STOK <span id="sortIconStock" style="font-size:0.75rem; opacity:0.6;">↕</span>
               </th>
               <th>BADGE</th>
@@ -1042,7 +1055,8 @@
           <p style="color:var(--text-muted);font-size:0.85rem;margin-top:0.2rem" id="orderCountLabel"></p>
         </div>
         <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
-          <button class="btn-primary" onclick="exportAllOrdersCSV()" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.6rem 1.2rem;border-radius:8px;font-size:0.85rem;font-weight:700;background:linear-gradient(135deg,var(--aqua),var(--sea-blue));color:#fff;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(41,182,246,0.3);">
+          <button class="btn-primary" onclick="exportAllOrdersCSV()"
+            style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.6rem 1.2rem;border-radius:8px;font-size:0.85rem;font-weight:700;background:linear-gradient(135deg,var(--aqua),var(--sea-blue));color:#fff;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(41,182,246,0.3);">
             📥 Export CSV Semua Order
           </button>
           <select onchange="filterOrders(this.value)"
@@ -1271,7 +1285,8 @@
             <div style="display:flex;align-items:center;gap:0.75rem;">
               <input type="checkbox" id="voucherOncePerUser" checked
                 style="width:18px;height:18px;accent-color:var(--aqua)" />
-              <label for="voucherOncePerUser" style="margin:0;cursor:pointer;color:var(--white)">🔒 Batas <strong>1x pakai per akun email</strong> (mencegah 1 akun memakai voucher ini berulang kali)</label>
+              <label for="voucherOncePerUser" style="margin:0;cursor:pointer;color:var(--white)">🔒 Batas <strong>1x
+                  pakai per akun email</strong> (mencegah 1 akun memakai voucher ini berulang kali)</label>
             </div>
             <div style="display:flex;align-items:center;gap:0.75rem;">
               <input type="checkbox" id="voucherIsActive" checked
@@ -1316,10 +1331,11 @@
       <div class="form-group">
         <label id="productPhotoFieldLabel">Foto Produk / Galeri Teaser (Bisa Banyak Foto)</label>
         <div class="img-upload-area product-upload" id="productImageDropzone">
-          <input class="img-upload-input" type="file" id="productImageFile" accept="image/jpeg,image/png,image/webp" multiple
-            onchange="previewImage(this)" />
+          <input class="img-upload-input" type="file" id="productImageFile" accept="image/jpeg,image/png,image/webp"
+            multiple onchange="previewImage(this)" />
           <div class="upload-icon">📷</div>
-          <div class="upload-text">Klik atau drag 1 / beberapa foto sekaligus (Maks 8 foto)<br><small>JPG, PNG, WebP — Maks 5MB/foto • Foto #1 = Sampul Utama, Foto #2 dst. = Galeri Detail / Teaser Photopack</small></div>
+          <div class="upload-text">Klik atau drag 1 / beberapa foto sekaligus (Maks 8 foto)<br><small>JPG, PNG, WebP —
+              Maks 5MB/foto • Foto #1 = Sampul Utama, Foto #2 dst. = Galeri Detail / Teaser Photopack</small></div>
           <img id="imagePreview" class="img-preview" alt="Preview" style="display:none !important;" />
           <div class="img-upload-actions">
             <button type="button" class="btn-primary" id="productImageBrowseBtn">+ Tambah Foto</button>
@@ -1367,24 +1383,32 @@
           <option value="Pakaian Kaos">👕 Pakaian Kaos (XL +15k, XXL +25k, XXXL +30k)</option>
           <option value="Haori">👘 Haori (XL, XXL, XXXL +50k)</option>
         </select>
-        <div id="productTagNotice" style="display:none; font-size:0.8rem; margin-top:0.45rem; padding:0.55rem 0.85rem; border-radius:8px; background:rgba(41,182,246,0.12); color:var(--aqua); border:1px solid rgba(41,182,246,0.25); line-height:1.4;"></div>
+        <div id="productTagNotice"
+          style="display:none; font-size:0.8rem; margin-top:0.45rem; padding:0.55rem 0.85rem; border-radius:8px; background:rgba(41,182,246,0.12); color:var(--aqua); border:1px solid rgba(41,182,246,0.25); line-height:1.4;">
+        </div>
       </div>
 
       <!-- ── PHOTOPACK DIGITAL GROUP ── -->
-      <div class="form-group" id="productPhotopackGroup" style="margin-top: 1rem; padding: 1rem; background: rgba(41,182,246,0.06); border: 1px dashed var(--aqua); border-radius: 10px;">
+      <div class="form-group" id="productPhotopackGroup"
+        style="margin-top: 1rem; padding: 1rem; background: rgba(41,182,246,0.06); border: 1px dashed var(--aqua); border-radius: 10px;">
         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-          <input type="checkbox" id="productIsPhotopack" style="width:18px; height:18px; accent-color:var(--aqua)" onchange="togglePhotopackFields()" />
-          <label for="productIsPhotopack" style="margin:0; font-weight:700; color:var(--aqua); cursor:pointer;">📸 Produk Photopack Digital (Google Drive)</label>
+          <input type="checkbox" id="productIsPhotopack" style="width:18px; height:18px; accent-color:var(--aqua)"
+            onchange="togglePhotopackFields()" />
+          <label for="productIsPhotopack" style="margin:0; font-weight:700; color:var(--aqua); cursor:pointer;">📸
+            Produk Photopack Digital (Google Drive)</label>
         </div>
         <div id="photopackDetails" style="display:none; flex-direction:column; gap:0.8rem; margin-top:0.8rem;">
           <div>
-            <label style="display:block; color:var(--white); font-size:0.85rem; margin-bottom:0.3rem;">Nama Cosplayer</label>
+            <label style="display:block; color:var(--white); font-size:0.85rem; margin-bottom:0.3rem;">Nama
+              Cosplayer</label>
             <input type="text" id="productCosplayer" placeholder="Contoh: Aika Sesilia" />
           </div>
           <div>
-            <label style="display:block; color:var(--white); font-size:0.85rem; margin-bottom:0.3rem;">Link Google Drive Photopack 🔒</label>
+            <label style="display:block; color:var(--white); font-size:0.85rem; margin-bottom:0.3rem;">Link Google Drive
+              Photopack 🔒</label>
             <input type="url" id="productGDriveLink" placeholder="https://drive.google.com/drive/folders/..." />
-            <small style="color:var(--text-muted); display:block; margin-top:0.3rem;">Link ini HANYA akan dibuka untuk pembeli setelah status pembayaran DIVERIFIKASI oleh Admin.</small>
+            <small style="color:var(--text-muted); display:block; margin-top:0.3rem;">Link ini HANYA akan dibuka untuk
+              pembeli setelah status pembayaran DIVERIFIKASI oleh Admin.</small>
           </div>
         </div>
       </div>
@@ -2117,7 +2141,7 @@
         document.getElementById('productBadge').value = p.badge || '';
         document.getElementById('productImage').value = p.image || '';
         document.getElementById('productSizes').value = p.sizes || 'S, M, L, XL, XXL, XXXL';
-        
+
         let initialTag = p.tag || '';
         if (!initialTag && p.name) {
           const nm = p.name.toLowerCase();
@@ -2380,7 +2404,7 @@
       const el = document.getElementById('orderTableBody');
       el.innerHTML = orders.map(o => {
         let shipObj = {};
-        try { shipObj = typeof o.shipping === 'string' ? JSON.parse(o.shipping) : (o.shipping || {}); } catch(e) {}
+        try { shipObj = typeof o.shipping === 'string' ? JSON.parse(o.shipping) : (o.shipping || {}); } catch (e) { }
         const isDp = shipObj.paymentScheme === 'dp50' || shipObj.isDp;
         const dpAmount = Number(shipObj.dpAmount) || Math.ceil((Number(o.total) || 0) * 0.5);
         const remainingAmount = Number(shipObj.remainingAmount) || Math.max(0, (Number(o.total) || 0) - dpAmount);
@@ -2454,8 +2478,8 @@
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
         const dateStr = new Date().toISOString().slice(0, 10);
-        const downloadName = status === 'all' 
-          ? `semua-pesanan-aika-${dateStr}.csv` 
+        const downloadName = status === 'all'
+          ? `semua-pesanan-aika-${dateStr}.csv`
           : `pesanan-${status}-aika-${dateStr}.csv`;
 
         const link = document.createElement('a');
@@ -2507,7 +2531,7 @@
       const content = document.getElementById('orderDetailContent');
 
       let shipObj = {};
-      try { shipObj = typeof order.shipping === 'string' ? JSON.parse(order.shipping) : (order.shipping || {}); } catch(e) {}
+      try { shipObj = typeof order.shipping === 'string' ? JSON.parse(order.shipping) : (order.shipping || {}); } catch (e) { }
       const isDp = shipObj.paymentScheme === 'dp50' || shipObj.isDp;
       const dpAmount = Number(shipObj.dpAmount) || Math.ceil((Number(order.total) || 0) * 0.5);
       const remainingAmount = Number(shipObj.remainingAmount) || Math.max(0, (Number(order.total) || 0) - dpAmount);
@@ -2594,10 +2618,10 @@
       ` : `
         <p style="font-size:0.82rem;color:var(--text-muted);margin:0 0 0.75rem 0;line-height:1.45;">
           ${pelunasanSt === 'verified'
-            ? '✅ Pesanan ini telah ditandai <strong>Lunas 100%</strong> secara manual (COD / Tunai).'
-            : isInitialVerified
-              ? 'Pembeli belum mengunggah bukti pelunasan sisa 50%. Pembeli dapat mengunggahnya di <strong>Profil &gt; Riwayat Pesanan</strong>, atau Anda dapat menandai lunas manual jika dibayar tunai saat COD Event.'
-              : 'Menunggu verifikasi DP 50% pertama sebelum pembeli dapat mengunggah bukti pelunasan sisa 50%.'}
+          ? '✅ Pesanan ini telah ditandai <strong>Lunas 100%</strong> secara manual (COD / Tunai).'
+          : isInitialVerified
+            ? 'Pembeli belum mengunggah bukti pelunasan sisa 50%. Pembeli dapat mengunggahnya di <strong>Profil &gt; Riwayat Pesanan</strong>, atau Anda dapat menandai lunas manual jika dibayar tunai saat COD Event.'
+            : 'Menunggu verifikasi DP 50% pertama sebelum pembeli dapat mengunggah bukti pelunasan sisa 50%.'}
         </p>
         ${isInitialVerified && pelunasanSt !== 'verified' ? `
           <button class="btn-secondary" data-oid="${safeOrderId}" onclick="verifyPelunasan(this.dataset.oid, true)" style="border-color:#22c55e;color:#4ade80;padding:0.55rem 1rem;font-size:0.8rem;">

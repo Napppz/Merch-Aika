@@ -6,6 +6,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Profil Saya — Aika Sesilia</title>
+  <meta name="robots" content="noindex, nofollow" />
   <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png?v=hiu1" />
   <link rel="shortcut icon" href="/favicon.ico?v=hiu1" />
   <link rel="apple-touch-icon" sizes="192x192" href="/favicon.png?v=hiu1" />
@@ -17,7 +18,8 @@
     /* ============================================================
        PROFILE DASHBOARD — ULTRA-CLEAN MOBILE & iOS DESIGN SYSTEM
        ============================================================ */
-    html, body {
+    html,
+    body {
       overflow-x: hidden;
       max-width: 100vw;
     }
@@ -147,7 +149,8 @@
     }
 
     .btn-quick-logout {
-      display: none; /* Visible on mobile header */
+      display: none;
+      /* Visible on mobile header */
     }
 
     /* ── NAVIGATION TABS ── */
@@ -212,8 +215,15 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .content-section.active {
@@ -1231,12 +1241,14 @@
       .address-item-card {
         flex-direction: column;
       }
+
       .address-card-actions {
         width: 100%;
         justify-content: flex-start;
         padding-top: 0.55rem;
         border-top: 1px solid rgba(255, 255, 255, 0.07);
       }
+
       .address-form-grid {
         grid-template-columns: 1fr;
       }
@@ -1476,7 +1488,8 @@
       }
 
       .stat-card-icon {
-        display: none !important; /* Save vertical height on mobile */
+        display: none !important;
+        /* Save vertical height on mobile */
       }
 
       .stat-card-value {
@@ -1661,7 +1674,9 @@
       }
 
       /* Prevent iOS Safari auto-zoom on inputs */
-      input, select, textarea {
+      input,
+      select,
+      textarea {
         font-size: 16px !important;
       }
     }
@@ -1744,12 +1759,14 @@
   <div class="profile-container">
     <aside class="profile-sidebar">
       <div class="profile-header-card">
-        <div class="profile-avatar-wrap" onclick="document.getElementById('avatarUpload').click()" title="Ketuk untuk ganti foto">
+        <div class="profile-avatar-wrap" onclick="document.getElementById('avatarUpload').click()"
+          title="Ketuk untuk ganti foto">
           <div class="profile-avatar" id="profAvatarContainer">
             <div id="profAvatarText">?</div>
           </div>
           <div class="avatar-edit-badge" title="Ubah Foto">📷</div>
-          <input type="file" id="avatarUpload" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
+          <input type="file" id="avatarUpload" accept="image/*" style="display:none;"
+            onchange="handleAvatarUpload(event)">
         </div>
 
         <div class="profile-info-wrap">
@@ -1773,9 +1790,11 @@
         <button onclick="switchTab('photopack', this)">
           <span>📸 Photopack</span>
         </button>
-        <button onclick="switchTab('wishlist', this)" id="btnTabWishlist" style="display:flex; align-items:center; justify-content:space-between;">
+        <button onclick="switchTab('wishlist', this)" id="btnTabWishlist"
+          style="display:flex; align-items:center; justify-content:space-between;">
           <span>❤️ Favorit</span>
-          <span id="navWishlistBadge" style="background:rgba(239,68,68,0.25); color:#ef4444; border-radius:12px; padding:2px 8px; font-size:0.75rem; display:none; font-weight:700;">0</span>
+          <span id="navWishlistBadge"
+            style="background:rgba(239,68,68,0.25); color:#ef4444; border-radius:12px; padding:2px 8px; font-size:0.75rem; display:none; font-weight:700;">0</span>
         </button>
         <button onclick="switchTab('address', this)">
           <span>📍 Alamat</span>
@@ -1862,7 +1881,8 @@
               <input type="text" id="settingName" required placeholder="Nama Anda" />
             </div>
             <div class="form-group" style="margin:0;">
-              <label for="settingEmail">Email <small style="color:var(--text-muted);">(Tidak dapat diubah)</small></label>
+              <label for="settingEmail">Email <small style="color:var(--text-muted);">(Tidak dapat
+                  diubah)</small></label>
               <input type="email" id="settingEmail" readonly style="opacity:0.6; cursor:not-allowed;" />
             </div>
             <div class="form-group" style="margin:0;">
@@ -1871,7 +1891,8 @@
                 <span class="phone-status-pill" id="phoneStatusBadge">Bisa Diubah</span>
               </label>
               <input type="tel" id="settingPhone" placeholder="Contoh: 08123456789" />
-              <small class="form-help-text">Nomor ini digunakan untuk notifikasi pesanan dan koordinasi pengiriman kurir.</small>
+              <small class="form-help-text">Nomor ini digunakan untuk notifikasi pesanan dan koordinasi pengiriman
+                kurir.</small>
             </div>
           </div>
 
@@ -1880,16 +1901,20 @@
               <span>🔒</span> <span>Keamanan Akun</span>
             </div>
             <div class="form-group" style="margin:0 0 0.8rem 0;">
-              <label for="settingCurrentPassword">Password Saat Ini <small style="color:var(--text-muted);">(Wajib jika ingin mengubah password)</small></label>
-              <input type="password" id="settingCurrentPassword" placeholder="Masukkan password saat ini" autocomplete="current-password" />
+              <label for="settingCurrentPassword">Password Saat Ini <small style="color:var(--text-muted);">(Wajib jika
+                  ingin mengubah password)</small></label>
+              <input type="password" id="settingCurrentPassword" placeholder="Masukkan password saat ini"
+                autocomplete="current-password" />
             </div>
             <div class="form-group" style="margin:0;">
-              <label for="settingPassword">Password Baru <small style="color:var(--text-muted);">(Minimal 6 karakter, kosongkan jika tidak diubah)</small></label>
+              <label for="settingPassword">Password Baru <small style="color:var(--text-muted);">(Minimal 6 karakter,
+                  kosongkan jika tidak diubah)</small></label>
               <input type="password" id="settingPassword" placeholder="••••••••" autocomplete="new-password" />
             </div>
           </div>
 
-          <button type="submit" class="btn-primary btn-save-settings" id="btnSaveSettings">Simpan Perubahan Profil</button>
+          <button type="submit" class="btn-primary btn-save-settings" id="btnSaveSettings">Simpan Perubahan
+            Profil</button>
         </form>
       </section>
 
@@ -1898,7 +1923,8 @@
         <div class="section-header-wrap">
           <div>
             <h2 class="section-title" style="margin-bottom:0.2rem;">📍 Buku Alamat Pengiriman</h2>
-            <p style="color:var(--text-muted); font-size:0.82rem; margin:0;">Tersimpan aman di akun Anda &amp; otomatis mengisi Nama, No. HP, Provinsi, Kota, serta Ongkir JNE saat Checkout.</p>
+            <p style="color:var(--text-muted); font-size:0.82rem; margin:0;">Tersimpan aman di akun Anda &amp; otomatis
+              mengisi Nama, No. HP, Provinsi, Kota, serta Ongkir JNE saat Checkout.</p>
           </div>
         </div>
         <div id="addressList" class="address-list-wrap">
@@ -1906,11 +1932,14 @@
         </div>
         <div class="address-add-card" id="addressFormCard">
           <h3 class="address-add-title" id="addressFormTitle">➕ Tambah Alamat Baru</h3>
-          <p style="color:var(--text-muted); font-size:0.8rem; margin:0 0 1rem 0;">Pilih Provinsi &amp; Kota sesuai tujuan agar tarif JNE langsung terhitung otomatis di halaman Checkout.</p>
+          <p style="color:var(--text-muted); font-size:0.8rem; margin:0 0 1rem 0;">Pilih Provinsi &amp; Kota sesuai
+            tujuan agar tarif JNE langsung terhitung otomatis di halaman Checkout.</p>
           <form id="addressForm" onsubmit="saveAddress(event)" class="address-form">
             <input type="hidden" id="addrEditId" value="" />
             <div class="form-group" style="margin:0;">
-              <label for="addrLabel" style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Label Alamat *</label>
+              <label for="addrLabel"
+                style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Label
+                Alamat *</label>
               <input type="text" id="addrLabel" placeholder="Contoh: Rumah, Kantor, Kos, Apartemen" required />
               <div class="address-label-presets">
                 <button type="button" class="addr-preset-chip" onclick="setAddrLabelPreset('Rumah')">🏠 Rumah</button>
@@ -1922,19 +1951,26 @@
 
             <div class="address-form-grid">
               <div class="form-group" style="margin:0;">
-                <label for="addrRecipient" style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Nama Penerima *</label>
+                <label for="addrRecipient"
+                  style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Nama
+                  Penerima *</label>
                 <input type="text" id="addrRecipient" placeholder="Nama lengkap penerima paket" required />
               </div>
               <div class="form-group" style="margin:0;">
-                <label for="addrPhone" style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">No. HP / WhatsApp *</label>
+                <label for="addrPhone"
+                  style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">No.
+                  HP / WhatsApp *</label>
                 <input type="tel" id="addrPhone" placeholder="08xxxxxxxxxx" required />
               </div>
             </div>
 
             <div class="address-form-grid">
               <div class="form-group" style="margin:0;">
-                <label for="addrProvince" style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Provinsi Tujuan (JNE) *</label>
-                <select id="addrProvince" onchange="populateProfileCities()" required style="width:100%; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.75rem; font-family:var(--font-body);">
+                <label for="addrProvince"
+                  style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Provinsi
+                  Tujuan (JNE) *</label>
+                <select id="addrProvince" onchange="populateProfileCities()" required
+                  style="width:100%; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.75rem; font-family:var(--font-body);">
                   <option value="">-- Pilih Provinsi --</option>
                   <option value="DKI Jakarta">DKI Jakarta</option>
                   <option value="Banten">Banten</option>
@@ -1945,31 +1981,43 @@
                 </select>
               </div>
               <div class="form-group" style="margin:0;">
-                <label for="addrCity" style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Kota / Kabupaten *</label>
-                <select id="addrCity" required disabled style="width:100%; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.75rem; font-family:var(--font-body);">
+                <label for="addrCity"
+                  style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Kota
+                  / Kabupaten *</label>
+                <select id="addrCity" required disabled
+                  style="width:100%; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.75rem; font-family:var(--font-body);">
                   <option value="">-- Pilih Kota --</option>
                 </select>
               </div>
             </div>
 
             <div class="form-group" style="margin:0;">
-              <label for="addrPostalCode" style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Kode Pos <small style="color:var(--text-muted); font-weight:400;">(Opsional)</small></label>
+              <label for="addrPostalCode"
+                style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Kode
+                Pos <small style="color:var(--text-muted); font-weight:400;">(Opsional)</small></label>
               <input type="text" id="addrPostalCode" placeholder="Contoh: 13410" maxlength="10" />
             </div>
 
             <div class="form-group" style="margin:0;">
-              <label for="addrText" style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Alamat Lengkap (Jalan, No. Rumah, RT/RW, Kecamatan, Patokan) *</label>
-              <textarea id="addrText" rows="3" placeholder="Contoh: Jl. Melati No. 12, RT 04/RW 02, Kel. Jatinegara, Kec. Cakung (Pagar hitam dekat minimarket)" style="resize:none;" required></textarea>
+              <label for="addrText"
+                style="font-size:0.82rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Alamat
+                Lengkap (Jalan, No. Rumah, RT/RW, Kecamatan, Patokan) *</label>
+              <textarea id="addrText" rows="3"
+                placeholder="Contoh: Jl. Melati No. 12, RT 04/RW 02, Kel. Jatinegara, Kec. Cakung (Pagar hitam dekat minimarket)"
+                style="resize:none;" required></textarea>
             </div>
 
-            <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer; color:var(--text-main); font-size:0.85rem; user-select:none;">
+            <label
+              style="display:flex; align-items:center; gap:0.6rem; cursor:pointer; color:var(--text-main); font-size:0.85rem; user-select:none;">
               <input type="checkbox" id="addrIsPrimary" style="width:18px; height:18px; accent-color:var(--aqua);" />
               <span>⭐ Jadikan <strong>Alamat Utama</strong> (otomatis terisi saat membuka halaman Checkout)</span>
             </label>
 
             <div style="display:flex; gap:0.65rem; flex-wrap:wrap; align-items:center;">
-              <button type="submit" class="btn-primary btn-save-addr" id="btnSaveAddress">💾 Simpan ke Buku Alamat</button>
-              <button type="button" class="btn-ghost" id="btnCancelEditAddress" onclick="resetAddressForm()" style="display:none; padding:0.7rem 1.1rem; font-size:0.85rem; border-radius:9px;">Batal Edit</button>
+              <button type="submit" class="btn-primary btn-save-addr" id="btnSaveAddress">💾 Simpan ke Buku
+                Alamat</button>
+              <button type="button" class="btn-ghost" id="btnCancelEditAddress" onclick="resetAddressForm()"
+                style="display:none; padding:0.7rem 1.1rem; font-size:0.85rem; border-radius:9px;">Batal Edit</button>
             </div>
           </form>
         </div>
@@ -1994,41 +2042,61 @@
     <div class="profile-sidebar"
       style="position:relative; width:92%; max-width:520px; max-height:90vh; overflow-y:auto; background:linear-gradient(145deg, var(--midnight-blue), var(--deep-ocean)); border:1px solid var(--aqua); box-shadow:0 12px 42px rgba(41,182,246,0.25); text-align:left;"
       onclick="event.stopPropagation()">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.75rem; margin-bottom:0.85rem;">
+      <div
+        style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.75rem; margin-bottom:0.85rem;">
         <div>
-          <h3 id="profPayModalTitle" style="color:var(--white); margin:0; font-family:var(--font-display); font-size:1.25rem;">💳 Pembayaran Pesanan</h3>
-          <div id="profPayModalOrderId" style="color:var(--aqua); font-family:monospace; font-size:0.85rem; margin-top:3px;"></div>
+          <h3 id="profPayModalTitle"
+            style="color:var(--white); margin:0; font-family:var(--font-display); font-size:1.25rem;">💳 Pembayaran
+            Pesanan</h3>
+          <div id="profPayModalOrderId"
+            style="color:var(--aqua); font-family:monospace; font-size:0.85rem; margin-top:3px;"></div>
         </div>
-        <button type="button" onclick="closeOrderPaymentModal()" style="background:rgba(255,255,255,0.06); border:1px solid var(--card-border); color:var(--text-muted); width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:1rem; line-height:1;">✕</button>
+        <button type="button" onclick="closeOrderPaymentModal()"
+          style="background:rgba(255,255,255,0.06); border:1px solid var(--card-border); color:var(--text-muted); width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:1rem; line-height:1;">✕</button>
       </div>
 
-      <div id="profPayAdminNoteBox" style="display:none; background:rgba(245,158,11,0.14); border:1px solid rgba(245,158,11,0.45); border-radius:10px; padding:0.85rem 1rem; margin-bottom:1rem; font-size:0.83rem; line-height:1.45; color:#fde68a;"></div>
+      <div id="profPayAdminNoteBox"
+        style="display:none; background:rgba(245,158,11,0.14); border:1px solid rgba(245,158,11,0.45); border-radius:10px; padding:0.85rem 1rem; margin-bottom:1rem; font-size:0.83rem; line-height:1.45; color:#fde68a;">
+      </div>
 
-      <div id="profPaySummaryBox" style="background:rgba(3,9,31,0.65); border:1px solid var(--card-border); border-radius:10px; padding:0.9rem 1rem; margin-bottom:1rem; font-size:0.85rem;"></div>
+      <div id="profPaySummaryBox"
+        style="background:rgba(3,9,31,0.65); border:1px solid var(--card-border); border-radius:10px; padding:0.9rem 1rem; margin-bottom:1rem; font-size:0.85rem;">
+      </div>
 
-      <div style="background:rgba(41,182,246,0.08); border:1.5px solid rgba(41,182,246,0.45); border-radius:12px; padding:1rem; margin-bottom:1rem; text-align:center;">
-        <div style="color:var(--aqua); font-weight:700; font-size:0.88rem; margin-bottom:0.65rem;">📱 Scan QRIS Resmi Aika Sesilia</div>
-        <div style="background:#fff; padding:0.75rem; border-radius:10px; display:inline-block; max-width:240px; width:100%;">
-          <img src="images/Qris/Qris.jpeg" alt="QRIS Aika Sesilia" style="width:100%; height:auto; display:block; border-radius:4px;" />
+      <div
+        style="background:rgba(41,182,246,0.08); border:1.5px solid rgba(41,182,246,0.45); border-radius:12px; padding:1rem; margin-bottom:1rem; text-align:center;">
+        <div style="color:var(--aqua); font-weight:700; font-size:0.88rem; margin-bottom:0.65rem;">📱 Scan QRIS Resmi
+          Aika Sesilia</div>
+        <div
+          style="background:#fff; padding:0.75rem; border-radius:10px; display:inline-block; max-width:240px; width:100%;">
+          <img src="images/Qris/Qris.jpeg" alt="QRIS Aika Sesilia"
+            style="width:100%; height:auto; display:block; border-radius:4px;" />
         </div>
         <div style="margin-top:0.75rem; background:rgba(3,9,31,0.65); border-radius:8px; padding:0.65rem;">
-          <div id="profPayTransferLabel" style="font-size:0.78rem; color:var(--text-muted);">Nominal yang Harus Ditransfer:</div>
-          <div id="profPayTransferAmount" style="font-size:1.3rem; font-weight:800; color:#4ade80; margin-top:2px;">Rp 0</div>
+          <div id="profPayTransferLabel" style="font-size:0.78rem; color:var(--text-muted);">Nominal yang Harus
+            Ditransfer:</div>
+          <div id="profPayTransferAmount" style="font-size:1.3rem; font-weight:800; color:#4ade80; margin-top:2px;">Rp 0
+          </div>
         </div>
       </div>
 
       <div style="margin-bottom:1.1rem;">
-        <label style="display:block; color:var(--white); font-weight:700; font-size:0.86rem; margin-bottom:0.45rem;">📸 Unggah Screenshot Bukti Transfer *</label>
-        <input type="file" id="profProofFileInput" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleProfileProofSelect(event)" />
-        <button type="button" class="btn-ghost" onclick="document.getElementById('profProofFileInput').click()" style="width:100%; padding:0.75rem; border-radius:10px; border:1px dashed var(--aqua); color:var(--aqua); font-weight:700; font-size:0.85rem; cursor:pointer;">
+        <label style="display:block; color:var(--white); font-weight:700; font-size:0.86rem; margin-bottom:0.45rem;">📸
+          Unggah Screenshot Bukti Transfer *</label>
+        <input type="file" id="profProofFileInput" accept="image/jpeg,image/png,image/webp" style="display:none;"
+          onchange="handleProfileProofSelect(event)" />
+        <button type="button" class="btn-ghost" onclick="document.getElementById('profProofFileInput').click()"
+          style="width:100%; padding:0.75rem; border-radius:10px; border:1px dashed var(--aqua); color:var(--aqua); font-weight:700; font-size:0.85rem; cursor:pointer;">
           📤 Pilih Gambar Bukti Transfer (JPG / PNG / WebP)
         </button>
         <div id="profProofPreviewWrap" style="margin-top:0.75rem;"></div>
       </div>
 
       <div style="display:flex; gap:0.75rem;">
-        <button type="button" class="btn-ghost w100" onclick="closeOrderPaymentModal()" style="border-radius:10px; font-size:0.9rem;">Batal</button>
-        <button type="button" class="btn-primary w100" id="btnSubmitProfProof" onclick="submitOrderPaymentProof()" disabled style="border-radius:10px; font-size:0.9rem; opacity:0.5; cursor:not-allowed;">
+        <button type="button" class="btn-ghost w100" onclick="closeOrderPaymentModal()"
+          style="border-radius:10px; font-size:0.9rem;">Batal</button>
+        <button type="button" class="btn-primary w100" id="btnSubmitProfProof" onclick="submitOrderPaymentProof()"
+          disabled style="border-radius:10px; font-size:0.9rem; opacity:0.5; cursor:not-allowed;">
           ✅ Kirim Bukti Transfer
         </button>
       </div>
@@ -2065,7 +2133,9 @@
       </div>
 
       <div class="form-group" style="text-align:left;">
-        <label for="reviewComment" style="color:var(--aqua); font-size:0.9rem; margin-bottom:0.5rem; display:block;">Pesan &amp; Kesan <span style="color:#f87171;" title="Wajib diisi">*</span></label>
+        <label for="reviewComment"
+          style="color:var(--aqua); font-size:0.9rem; margin-bottom:0.5rem; display:block;">Pesan &amp; Kesan <span
+            style="color:#f87171;" title="Wajib diisi">*</span></label>
         <textarea id="reviewComment" rows="4" maxlength="600" required
           placeholder="Ceritakan pengalaman Anda dengan produk kami... (wajib diisi)"
           style="width:100%; resize:none; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.8rem; font-family:var(--font-body); transition:var(--transition); outline:none;"
@@ -2498,7 +2568,7 @@
         const coverImg = p.item.image || prod.image || '';
         const isVerified = ['paid', 'shipped', 'completed'].includes(p.orderStatus) && (p.item.gdrive_link || prod.gdrive_link);
         const gdriveUrl = p.item.gdrive_link || prod.gdrive_link || '#';
-        
+
         const d = new Date(p.date || Date.now());
         const dateStr = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
         const timeStr = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
@@ -2506,9 +2576,9 @@
         return `
           <div class="photopack-card-box" ${isVerified ? `onclick="window.open('${gdriveUrl}', '_blank')"` : ''}>
             <div class="photopack-cover-frame">
-              ${coverImg 
-                ? `<img src="${coverImg}" alt="${p.item.name}" loading="lazy" />` 
-                : `<div style="font-size:3rem;">📸</div>`}
+              ${coverImg
+            ? `<img src="${coverImg}" alt="${p.item.name}" loading="lazy" />`
+            : `<div style="font-size:3rem;">📸</div>`}
               <div class="photopack-watermark">@aika_sesilia</div>
               <div class="photopack-status-tag" style="${isVerified ? 'background:rgba(34,197,94,0.9); color:#fff;' : 'background:rgba(234,179,8,0.9); color:#000;'}">
                 ${isVerified ? '✓ Ready' : '⏳ Pending'}
@@ -2758,10 +2828,10 @@
             ${o.status === 'shipped' ? `<button class="btn-primary action-btn btn-primary-action" data-oid="${safeOid}" onclick="confirmDelivery(this.dataset.oid)">📦 Diterima</button>` : ''}
             <button class="btn-ghost action-btn" data-oid="${safeOid}" onclick="reorderItems(this.dataset.oid)">🛒 Beli Lagi</button>
             ${o.status === 'completed' ? (
-              o.review_id
-                ? '<span class="reviewed-pill">⭐ Ulasan Terkirim</span>'
-                : `<button class="review-btn action-btn" data-oid="${safeOid}" onclick="giveReview(this.dataset.oid)">⭐ Beri Ulasan</button>`
-            ) : ''}
+            o.review_id
+              ? '<span class="reviewed-pill">⭐ Ulasan Terkirim</span>'
+              : `<button class="review-btn action-btn" data-oid="${safeOid}" onclick="giveReview(this.dataset.oid)">⭐ Beri Ulasan</button>`
+          ) : ''}
           </div>
         </div>
       </div>
@@ -3867,7 +3937,7 @@
       if (userStr) {
         try {
           userEmail = JSON.parse(userStr)?.email;
-        } catch (e) {}
+        } catch (e) { }
       }
 
       // Tampilkan state loading jika kontainer masih kosong
@@ -4004,7 +4074,7 @@
       if (userStr) {
         try {
           userEmail = JSON.parse(userStr)?.email;
-        } catch (e) {}
+        } catch (e) { }
       }
 
       currentWishlist = currentWishlist.filter(w => String(w.id || w.product_id) !== String(productId));
@@ -4042,7 +4112,7 @@
       if (userStr) {
         try {
           userEmail = JSON.parse(userStr)?.email;
-        } catch (e) {}
+        } catch (e) { }
       }
 
       // 1. Sync to server /api/cart
@@ -4109,7 +4179,7 @@
     <a href="index.html" class="bottom-nav-item" id="bnav-home">
       <span class="bnav-icon">
         <svg viewBox="0 0 24 24">
-          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
         </svg>
       </span>
       <span class="bnav-label">Beranda</span>
@@ -4118,16 +4188,19 @@
     <a href="shop.html" class="bottom-nav-item" id="bnav-shop">
       <span class="bnav-icon">
         <svg viewBox="0 0 24 24">
-          <path d="M19 6h-2c0-2.76-2.24-5-5-5S7 3.24 7 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-3c1.66 0 3 1.34 3 3H9c0-1.66 1.34-3 3-3zm7 17H5V8h14v12zm-7-8c-1.66 0-3-1.34-3-3H7c0 2.76 2.24 5 5 5s5-2.24 5-5h-2c0 1.66-1.34 3-3 3z"/>
+          <path
+            d="M19 6h-2c0-2.76-2.24-5-5-5S7 3.24 7 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-3c1.66 0 3 1.34 3 3H9c0-1.66 1.34-3 3-3zm7 17H5V8h14v12zm-7-8c-1.66 0-3-1.34-3-3H7c0 2.76 2.24 5 5 5s5-2.24 5-5h-2c0 1.66-1.34 3-3 3z" />
         </svg>
       </span>
       <span class="bnav-label">Katalog</span>
     </a>
 
-    <button type="button" class="bottom-nav-item bnav-cart-btn" onclick="toggleCart()" id="bnav-cart" aria-label="Buka Keranjang">
+    <button type="button" class="bottom-nav-item bnav-cart-btn" onclick="toggleCart()" id="bnav-cart"
+      aria-label="Buka Keranjang">
       <span class="bnav-icon">
         <svg viewBox="0 0 24 24">
-          <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+          <path
+            d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z" />
         </svg>
         <span class="bnav-badge" id="mobileBottomCartCount" style="display:none">0</span>
       </span>
@@ -4137,7 +4210,8 @@
     <a href="javascript:void(0)" onclick="switchTab('wishlist')" class="bottom-nav-item" id="bnav-wishlist">
       <span class="bnav-icon">
         <svg viewBox="0 0 24 24">
-          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          <path
+            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
         </svg>
       </span>
       <span class="bnav-label">Favorit</span>
@@ -4146,7 +4220,8 @@
     <a href="javascript:void(0)" onclick="switchTab('orders')" class="bottom-nav-item active" id="bnav-account">
       <span class="bnav-icon">
         <svg viewBox="0 0 24 24">
-          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          <path
+            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
         </svg>
       </span>
       <span class="bnav-label">Akun</span>

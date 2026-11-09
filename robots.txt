@@ -1,0 +1,23 @@
+# robots.txt for merch-aika.my.id
+User-agent: *
+Allow: /
+Allow: /shop.html
+Allow: /images/
+Allow: /css/
+Allow: /js/
+
+# Disallow private, auth, and transactional endpoints
+Disallow: /admin/
+Disallow: /api/
+Disallow: /checkout.html
+Disallow: /checkout
+Disallow: /checkout-photopack.html
+Disallow: /checkout-photopack
+Disallow: /order-success.html
+Disallow: /order-success
+Disallow: /profile.html
+Disallow: /profile
+
+# Sitemap
+Sitemap: https://www.merch-aika.my.id/sitemap.xml
+
