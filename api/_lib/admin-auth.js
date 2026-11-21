@@ -37,9 +37,23 @@ function requireAdmin(req, res) {
   return payload;
 }
 
+function requireFullAdmin(req, res) {
+  const payload = requireAdmin(req, res);
+  if (!payload) return null;
+  if (payload.role === 'nobar_admin') {
+    res.status(403).json({
+      success: false,
+      error: 'Akses ditolak: Akun admin khusus Nobar hanya memiliki akses ke data Nobar Bioskop'
+    });
+    return null;
+  }
+  return payload;
+}
+
 module.exports = {
   getAdminToken,
   verifyAdminToken,
-  requireAdmin
+  requireAdmin,
+  requireFullAdmin
 };
 

@@ -55,7 +55,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=3" />
 </head>
 
 <body class="has-bottom-nav">
@@ -70,6 +70,7 @@
     <ul class="nav-links">
       <li><a href="index.html" class="active">Home</a></li>
       <li><a href="shop.html">Shop</a></li>
+      <li><a href="nobar.html">Nobar Bioskop</a></li>
       <li><a href="#about">About</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
@@ -208,6 +209,24 @@
     </div>
   </section>
 
+  <!-- NOBAR BIOSKOP PROMO BANNER -->
+  <section id="nobarPromoBanner" style="max-width:1300px; margin: 2.5rem auto 0; padding: 0 3rem;">
+    <div style="background:linear-gradient(135deg, rgba(21,101,192,0.35), rgba(3,9,31,0.9)); border:1px solid rgba(41,182,246,0.45); border-radius:20px; padding:1.75rem 2.2rem; display:flex; align-items:center; justify-content:space-between; gap:1.5rem; flex-wrap:wrap; box-shadow:var(--shadow-blue);">
+      <div style="flex:1; min-width:260px;">
+        <div style="display:inline-flex; align-items:center; gap:0.45rem; background:rgba(234,179,8,0.18); color:#fde047; border:1px solid rgba(234,179,8,0.45); padding:3px 11px; border-radius:50px; font-size:0.74rem; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:0.55rem;">
+          <svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg> Event Spesial Nobar Bioskop
+        </div>
+        <h2 style="font-family:var(--font-display); font-size:1.35rem; color:var(--white); margin-bottom:0.35rem;">Nobar Bioskop Bersama Kak Aika Sesilia</h2>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin:0; line-height:1.5;">
+          Tersedia <strong style="color:var(--gold);">Tiket VIP (Kuota 2 Orang Duduk di Samping Kak Aika)</strong>, <strong style="color:var(--white);">Tiket Biasa</strong>, dan <strong style="color:var(--aqua);">Tiket Biasa + Merch (Photocard &amp; Poster)</strong>.
+        </p>
+      </div>
+      <a href="nobar.html" class="btn-primary" style="display:inline-flex; align-items:center; gap:0.5rem; white-space:nowrap; padding:0.9rem 1.7rem; font-weight:800;">
+        <svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg> Beli Tiket Nobar →
+      </a>
+    </div>
+  </section>
+
   <!-- LEADERBOARD - TOP BUYERS -->
   <section class="leaderboard" id="leaderboard">
     <div class="section-header">
@@ -317,14 +336,13 @@
 
   <!-- REVIEWS -->
   <section class="reviews" id="reviews"
-    style="padding: 6rem 3rem; background: var(--midnight-blue); position:relative;">
-    <div class="section-header">
+    style="padding: 6rem 0; background: var(--midnight-blue); position:relative; overflow:hidden;">
+    <div class="section-header" style="padding: 0 2rem;">
       <p class="section-eyebrow">✦ Testimoni Pelanggan ✦</p>
       <h2>Apa Kata Mereka?</h2>
     </div>
-    <div id="reviewsGrid" class="reviews-grid"
-      style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:2rem; max-width:1300px; margin:0 auto;">
-      <p style="text-align:center; color:var(--text-muted); grid-column:1/-1">Belum ada ulasan.</p>
+    <div id="reviewsGrid" class="reviews-marquee-viewport">
+      <p style="text-align:center; color:var(--text-muted); padding: 2rem;">Belum ada ulasan.</p>
     </div>
   </section>
 
@@ -390,7 +408,7 @@
   </aside>
 
   <script src="js/cart.js"></script>
-  <script src="js/main.js"></script>
+  <script src="js/main.js?v=4"></script>
   <script>
     loadFeaturedProducts();
     loadLeaderboard();

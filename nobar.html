@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<!-- Presentasi: Halaman pembelian Tiket Nobar Bioskop (VIP, Tiket Biasa, Tiket Biasa + Merch Photocard & Poster). -->
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Tiket Nobar Bioskop — Aika Sesilia Official Store</title>
+  <meta name="description" content="Pembelian tiket resmi Nobar Bioskop bersama Aika Sesilia. Tersedia opsi VIP (Duduk di samping Kak Aika), Tiket Biasa, dan Tiket Biasa + Merch (Photocard &amp; Poster)." />
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png?v=hiu1" />
+  <link rel="shortcut icon" href="/favicon.ico?v=hiu1" />
+  <link rel="apple-touch-icon" sizes="192x192" href="/favicon.png?v=hiu1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700;800&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css?v=2" />
+  <style>
+    .nobar-page-wrap {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 6.5rem 2rem 6rem;
+    }
+
+    .nobar-hero-card {
+      background: linear-gradient(145deg, rgba(10, 56, 114, 0.72), rgba(3, 9, 31, 0.92));
+      border: 1px solid rgba(41, 182, 246, 0.35);
+      border-radius: 22px;
+      padding: 2.2rem;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 2.2rem;
+      align-items: center;
+      box-shadow: var(--shadow-blue);
+      margin-bottom: 2.2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nobar-poster-wrap {
+      width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 2px solid rgba(41, 182, 246, 0.4);
+      background: rgba(3, 9, 31, 0.85);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nobar-poster-wrap img {
+      width: 100%;
+      height: auto;
+      max-height: 420px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .nobar-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.35rem 0.9rem;
+      border-radius: 50px;
+      margin-bottom: 0.85rem;
+    }
+
+    .nobar-status-pill.open {
+      background: rgba(34, 197, 94, 0.16);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.45);
+    }
+
+    .nobar-status-pill.closed {
+      background: rgba(239, 68, 68, 0.16);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.45);
+    }
+
+    .nobar-hero-title {
+      font-family: var(--font-display);
+      font-size: 1.85rem;
+      color: var(--white);
+      line-height: 1.25;
+      margin-bottom: 0.9rem;
+    }
+
+    .nobar-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .nobar-meta-item {
+      background: rgba(3, 9, 31, 0.65);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+    }
+
+    .nobar-meta-label {
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .nobar-meta-val {
+      font-size: 0.93rem;
+      font-weight: 700;
+      color: var(--white);
+    }
+
+    .nobar-quota-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .nobar-quota-box {
+      background: rgba(3, 9, 31, 0.75);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 0.9rem 1.1rem;
+    }
+
+    .nobar-quota-box.vip {
+      border-color: rgba(255, 213, 79, 0.45);
+      background: linear-gradient(135deg, rgba(234, 179, 8, 0.12), rgba(3, 9, 31, 0.85));
+    }
+
+    .nobar-quota-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .nobar-quota-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--white);
+    }
+
+    .nobar-quota-count {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--aqua);
+    }
+
+    .nobar-quota-box.vip .nobar-quota-count {
+      color: var(--gold);
+    }
+
+    .nobar-progress-track {
+      height: 7px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 50px;
+      overflow: hidden;
+      margin-bottom: 0.4rem;
+    }
+
+    .nobar-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--sea-blue), var(--aqua));
+      border-radius: 50px;
+      transition: width 0.35s ease;
+    }
+
+    .nobar-quota-box.vip .nobar-progress-fill {
+      background: linear-gradient(90deg, #f59e0b, #fde047);
+    }
+
+    .nobar-quota-sub {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .nobar-main-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      max-width: 880px;
+      margin: 0 auto;
+    }
+
+    .nobar-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 1.8rem;
+      backdrop-filter: blur(14px);
+    }
+
+    .nobar-panel-title {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      color: var(--aqua);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.8rem;
+    }
+
+    .tier-cards-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.6rem;
+    }
+
+    .tier-option-card {
+      position: relative;
+      background: rgba(3, 9, 31, 0.7);
+      border: 2px solid var(--card-border);
+      border-radius: 14px;
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .tier-option-card:hover:not(.disabled) {
+      border-color: rgba(41, 182, 246, 0.65);
+      transform: translateY(-2px);
+    }
+
+    .tier-option-card.selected {
+      border-color: var(--aqua);
+      background: rgba(21, 101, 192, 0.25);
+      box-shadow: 0 0 25px rgba(41, 182, 246, 0.22);
+    }
+
+    .tier-option-card.vip-card.selected {
+      border-color: var(--gold);
+      background: rgba(234, 179, 8, 0.14);
+      box-shadow: 0 0 28px rgba(234, 179, 8, 0.22);
+    }
+
+    .tier-option-card.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .tier-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .tier-name {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tier-badge {
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 2px 9px;
+      border-radius: 50px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tier-badge.vip {
+      background: rgba(234, 179, 8, 0.22);
+      color: #fde047;
+      border: 1px solid rgba(234, 179, 8, 0.5);
+    }
+
+    .tier-badge.merch {
+      background: rgba(41, 182, 246, 0.2);
+      color: var(--aqua);
+      border: 1px solid rgba(41, 182, 246, 0.45);
+    }
+
+    .tier-badge.soldout {
+      background: rgba(239, 68, 68, 0.22);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.45);
+    }
+
+    .tier-price {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--aqua);
+      white-space: nowrap;
+    }
+
+    .tier-option-card.vip-card .tier-price {
+      color: var(--gold);
+    }
+
+    .tier-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 0.65rem;
+    }
+
+    .tier-rules-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    .tier-rule-chip {
+      font-size: 0.74rem;
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 3px 9px;
+      border-radius: 6px;
+    }
+
+    .participant-inputs-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      margin-top: 0.5rem;
+    }
+
+    .qris-box {
+      background: rgba(3, 9, 31, 0.8);
+      border: 1.5px solid rgba(41, 182, 246, 0.4);
+      border-radius: 14px;
+      padding: 1.25rem;
+      text-align: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .qris-img-card {
+      background: #fff;
+      padding: 0.75rem;
+      border-radius: 12px;
+      display: inline-block;
+      max-width: 250px;
+      width: 100%;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .qris-img-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 6px;
+    }
+
+    @media (max-width: 920px) {
+      .nobar-hero-card {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .nobar-poster-wrap {
+        max-width: 240px;
+        margin: 0 auto;
+      }
+      .nobar-quota-grid,
+      .nobar-main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body class="has-bottom-nav">
+  <div class="cursor-glow"></div>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-brand" title="Aika Sesilia Merch Store">
+      <img src="/images/logo-hiu.png" alt="Aika Sesilia" class="brand-logo-img" width="32" height="32" style="width:32px;height:32px;object-fit:contain;vertical-align:middle;" />
+      <span class="brand-name">Aika Sesilia</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="shop.html">Shop</a></li>
+      <li><a href="nobar.html" class="active">Nobar Bioskop</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <div class="nav-actions">
+      <div class="user-nav" id="userNav"></div>
+      <button class="cart-btn" onclick="toggleCart()">
+        <svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span class="cart-count" id="cartCount">0</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="nobar-page-wrap">
+    <!-- EVENT HERO HEADER -->
+    <section class="nobar-hero-card">
+      <div class="nobar-poster-wrap" style="cursor:zoom-in;" title="Klik untuk memperbesar poster film" onclick="if(typeof openImageLightbox==='function') openImageLightbox([document.getElementById('nobarBannerImg').src], 0, (nobarConfig && (nobarConfig.movieTitle || nobarConfig.eventTitle)) || 'Poster Film Nobar')">
+        <img id="nobarBannerImg" src="/images/Profil/charlotta-seo.jpg" alt="Poster Nobar Aika Sesilia" />
+      </div>
+      <div>
+        <div id="nobarStatusPill" class="nobar-status-pill open">
+          <svg class="ui-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="nobarStatusText">PENJUALAN TIKET DIBUKA</span>
+        </div>
+        <h1 class="nobar-hero-title" id="nobarEventTitle">Nobar Spesial Bioskop Bersama Aika Sesilia</h1>
+
+        <div class="nobar-meta-grid">
+          <div class="nobar-meta-item">
+            <div class="nobar-meta-label">
+              <svg class="ui-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" viewBox="0 0 24 24"><rect width="20" height="15" x="2" y="3" rx="2"/><polyline points="8 21 12 17 16 21"/></svg>
+              Film
+            </div>
+            <div class="nobar-meta-val" id="nobarMovieTitle">Memuat...</div>
+          </div>
+          <div class="nobar-meta-item">
+            <div class="nobar-meta-label">
+              <svg class="ui-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+              Tanggal &amp; Waktu
+            </div>
+            <div class="nobar-meta-val" id="nobarDateTime">Memuat...</div>
+          </div>
+          <div class="nobar-meta-item">
+            <div class="nobar-meta-label">
+              <svg class="ui-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              Lokasi Bioskop
+            </div>
+            <div class="nobar-meta-val" id="nobarCinemaLocation">Memuat...</div>
+          </div>
+        </div>
+
+        <p id="nobarEventNotes" style="font-size:0.86rem; color:var(--text-muted); line-height:1.55; margin-bottom:0.8rem;"></p>
+
+        <!-- LIVE SEAT QUOTA BARS -->
+        <div class="nobar-quota-grid">
+          <div class="nobar-quota-box vip">
+            <div class="nobar-quota-top">
+              <span class="nobar-quota-title">Tiket VIP</span>
+              <span class="nobar-quota-count" id="vipQuotaText">Sisa 2 / 2 Kursi</span>
+            </div>
+            <div class="nobar-progress-track">
+              <div class="nobar-progress-fill" id="vipQuotaBar" style="width:0%"></div>
+            </div>
+            <div class="nobar-quota-sub" id="vipQuotaSub">
+              Siapa cepat dia dapat: 2 pembeli pertama yang pembayarannya diverifikasi Admin.
+            </div>
+          </div>
+
+          <div class="nobar-quota-box">
+            <div class="nobar-quota-top">
+              <span class="nobar-quota-title">Tiket Reguler</span>
+              <span class="nobar-quota-count" id="regQuotaText">Sisa 40 / 40 Kursi</span>
+            </div>
+            <div class="nobar-progress-track">
+              <div class="nobar-progress-fill" id="regQuotaBar" style="width:0%"></div>
+            </div>
+            <div class="nobar-quota-sub" id="regQuotaSub">
+              Kuota gabungan Tiket Biasa &amp; Tiket + Merch. Nomor kursi diambil saat event berlangsung.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLOSED BANNER (IF ADMIN CLOSED SALES) -->
+    <div id="nobarClosedAlert" style="display:none; background:rgba(239,68,68,0.14); border:1px solid rgba(239,68,68,0.45); border-radius:14px; padding:1.25rem 1.5rem; margin-bottom:2rem; color:#fca5a5; text-align:center; font-weight:700;">
+      Penjualan Tiket Nobar Bioskop saat ini sedang ditutup oleh Admin. Jika Anda sudah membeli tiket, silakan cek status verifikasi dan bukti pembayaran Anda di menu <a href="profile.html?tab=orders" style="color:var(--aqua);text-decoration:underline;">Profil &gt; Riwayat Pesanan</a>.
+    </div>
+
+    <div class="nobar-main-grid">
+      <!-- LEFT COLUMN: 3 TICKET TIERS & PARTICIPANT FORM -->
+      <main class="nobar-panel">
+        <h2 class="nobar-panel-title">
+          <svg class="ui-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" viewBox="0 0 24 24"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>
+          1. Pilih Kategori Tiket Nobar
+        </h2>
+
+        <div class="tier-cards-stack" id="tierCardsContainer">
+          <!-- Tier 1: VIP -->
+          <div class="tier-option-card vip-card" id="tierCard-vip" onclick="selectNobarTier('vip')">
+            <div class="tier-header-row">
+              <div class="tier-name">
+                <span>1. Tiket VIP</span>
+                <span class="tier-badge vip" id="tierBadge-vip">Kuota 2 Orang • Duduk di Samping Kak Aika</span>
+              </div>
+              <div class="tier-price" id="tierPrice-vip">Rp 250.000</div>
+            </div>
+            <div class="tier-desc" id="tierDesc-vip">
+              Duduk eksklusif tepat di samping Kak Aika (2 pembeli pertama yang pembayarannya diverifikasi Admin).
+            </div>
+            <div class="tier-rules-list">
+              <span class="tier-rule-chip">Maks 1 Tiket / Akun</span>
+              <span class="tier-rule-chip">Kursi Spesial Samping Kak Aika</span>
+            </div>
+          </div>
+
+          <!-- Tier 2: Tiket Biasa -->
+          <div class="tier-option-card selected" id="tierCard-regular" onclick="selectNobarTier('regular')">
+            <div class="tier-header-row">
+              <div class="tier-name">
+                <span>2. Tiket Biasa</span>
+                <span class="tier-badge merch" id="tierBadge-regular">Tiket Masuk Nobar</span>
+              </div>
+              <div class="tier-price" id="tierPrice-regular">Rp 75.000</div>
+            </div>
+            <div class="tier-desc" id="tierDesc-regular">
+              1x Tiket Masuk Nobar Bioskop. Pengambilan kursi dilakukan saat event berlangsung di lokasi (siapa cepat dia dapat).
+            </div>
+            <div class="tier-rules-list">
+              <span class="tier-rule-chip" id="regMaxRuleChip1">Maks 5 Tiket / Pembelian</span>
+              <span class="tier-rule-chip">Ambil Tiket di Lokasi Bioskop</span>
+            </div>
+          </div>
+
+          <!-- Tier 3: Tiket Biasa + Merch -->
+          <div class="tier-option-card" id="tierCard-regular_merch" onclick="selectNobarTier('regular_merch')">
+            <div class="tier-header-row">
+              <div class="tier-name">
+                <span>3. Tiket Biasa + Merch</span>
+                <span class="tier-badge merch" id="tierBadge-regular_merch">Bundel Photocard &amp; Poster</span>
+              </div>
+              <div class="tier-price" id="tierPrice-regular_merch">Rp 135.000</div>
+            </div>
+            <div class="tier-desc" id="tierDesc-regular_merch">
+              1x Tiket Masuk Nobar Bioskop + Paket Merch Bundel Tetap (Photocard &amp; Poster Eksklusif, tanpa ukuran baju). Diambil langsung di lokasi bioskop tanpa ongkir.
+            </div>
+            <div class="tier-rules-list">
+              <span class="tier-rule-chip">Termasuk Photocard &amp; Poster</span>
+              <span class="tier-rule-chip">Ambil di Lokasi (Tanpa Ongkir)</span>
+              <span class="tier-rule-chip" id="regMaxRuleChip2">Maks 5 Tiket / Pembelian</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- PARTICIPANT DETAILS FORM -->
+        <h2 class="nobar-panel-title" style="margin-top:1.8rem;">
+          <svg class="ui-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          2. Jumlah Tiket &amp; Nama Peserta
+        </h2>
+
+        <div id="guestLoginNotice" style="display:none; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.4); border-radius:12px; padding:1rem; margin-bottom:1.2rem; font-size:0.86rem; color:#fde68a;">
+          Anda belum login. Silakan <a href="login.html?redirect=nobar.html" style="color:var(--aqua); font-weight:800; text-decoration:underline;">Masuk ke Akun</a> terlebih dahulu agar bukti pembelian tiket nobar tersimpan di halaman Profil Anda.
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-bottom:1rem;">
+          <div class="form-group" style="margin:0;">
+            <label for="nobarQtySelect" style="font-size:0.84rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Jumlah Tiket *</label>
+            <select id="nobarQtySelect" onchange="handleNobarQtyChange()" style="width:100%; border-radius:10px; background:rgba(3,9,31,0.85); border:1px solid var(--card-border); color:var(--white); padding:0.78rem; font-family:var(--font-body); font-weight:700;">
+              <option value="1">1 Tiket</option>
+              <option value="2">2 Tiket</option>
+              <option value="3">3 Tiket</option>
+              <option value="4">4 Tiket</option>
+              <option value="5">5 Tiket</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label for="nobarPhone" style="font-size:0.84rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">No. HP / WhatsApp Aktif *</label>
+            <input type="tel" id="nobarPhone" placeholder="Contoh: 08123456789" required style="width:100%; border-radius:10px; background:rgba(3,9,31,0.85); border:1px solid var(--card-border); color:var(--white); padding:0.78rem;" />
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label style="font-size:0.84rem; color:var(--white); font-weight:700; margin-bottom:0.25rem; display:block;">
+            Daftar Nama Peserta * <small style="color:var(--text-muted); font-weight:400;">(Wajib diisi untuk pencocokan daftar hadir di bioskop)</small>
+          </label>
+          <div id="participantInputsContainer" class="participant-inputs-grid"></div>
+        </div>
+
+        <div class="form-group" style="margin:0 0 1.4rem 0;">
+          <label for="nobarBuyerNote" style="font-size:0.84rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Catatan Tambahan <small style="color:var(--text-muted); font-weight:400;">(Opsional)</small></label>
+          <input type="text" id="nobarBuyerNote" placeholder="Catatan untuk panitia nobar (opsional)" maxlength="250" style="width:100%; border-radius:10px; background:rgba(3,9,31,0.85); border:1px solid var(--card-border); color:var(--white); padding:0.78rem;" />
+        </div>
+
+        <!-- STEP 1 CONFIRMATION BAR -->
+        <div id="step1ConfirmBar" style="background:rgba(3,9,31,0.75); border:1px solid rgba(41,182,246,0.35); border-radius:14px; padding:1.1rem 1.3rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+          <div>
+            <div style="font-size:0.78rem; color:var(--text-muted);">Pilihan Tiket Saat Ini: <span id="step1TimeoutHint" style="color:#fde047; font-weight:700;">⏱️ Kunci kursi 45 menit</span></div>
+            <div style="font-size:1rem; font-weight:800; color:var(--white);" id="step1PreviewLabel">Tiket Biasa (1 Tiket) — <span style="color:var(--aqua);" id="step1PreviewTotal">Rp 75.000</span></div>
+          </div>
+          <button type="button" id="btnConfirmTicketStep" class="btn-primary" onclick="confirmNobarTicketSelection()" style="padding:0.85rem 1.6rem; font-size:0.95rem; font-weight:800; border-radius:50px;">
+            Konfirmasi Pilihan &amp; Kunci Kursi →
+          </button>
+        </div>
+      </main>
+
+      <!-- ACTIVE RESERVATION RESUME NOTICE (IF USER RELOADED WHILE UNPAID) -->
+      <div id="activeReservationResumeBanner" style="display:none; background:rgba(245,158,11,0.12); border:1.5px solid rgba(245,158,11,0.5); border-radius:14px; padding:1rem 1.25rem; color:#fde68a; font-size:0.86rem; line-height:1.5;">
+      </div>
+
+      <!-- STEP 3: DIRECT QRIS PAYMENT & PROOF UPLOAD (HIDDEN UNTIL TICKET CONFIRMED) -->
+      <aside class="nobar-panel" id="nobarPaymentPanel" style="display:none; border-color:var(--aqua); box-shadow:0 0 35px rgba(41,182,246,0.2);">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; border-bottom:1px solid var(--card-border); padding-bottom:0.8rem; margin-bottom:1rem;">
+          <h2 class="nobar-panel-title" style="border:none; padding:0; margin:0;">
+            <svg class="ui-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+            3. Pembayaran Langsung QRIS
+          </h2>
+          <button type="button" id="btnCancelReservation" class="btn-ghost" onclick="cancelNobarReservation()" style="padding:0.42rem 0.95rem; font-size:0.8rem; border-radius:50px; border-color:rgba(239,68,68,0.45); color:#fca5a5;">
+            ✕ Batalkan Reservasi &amp; Ubah Pilihan
+          </button>
+        </div>
+
+        <!-- LIVE COUNTDOWN TIMER BANNER -->
+        <div id="nobarPaymentCountdownBox" style="background:linear-gradient(135deg, rgba(245,158,11,0.16), rgba(3,9,31,0.88)); border:1.5px solid rgba(245,158,11,0.55); border-radius:12px; padding:0.9rem 1.1rem; margin-bottom:1.1rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
+          <div>
+            <div style="font-size:0.76rem; color:#fde68a; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">
+              ⏱️ Kursi Telah Dikunci Sementara (<span id="reservationInvoiceBadge" style="color:var(--white); font-family:monospace;">#INV-...</span>)
+            </div>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">
+              Selesaikan transfer QRIS &amp; unggah bukti sebelum <strong id="reservationDeadlineText" style="color:var(--white);">-</strong> agar kuota kursi tidak dilepas otomatis.
+            </div>
+          </div>
+          <div id="reservationCountdownClock" style="background:rgba(3,9,31,0.85); border:1px solid rgba(245,158,11,0.6); color:#fde047; font-family:monospace; font-size:1.35rem; font-weight:900; padding:0.4rem 0.95rem; border-radius:10px; min-width:96px; text-align:center;">
+            45:00
+          </div>
+        </div>
+
+        <div style="background:rgba(3,9,31,0.65); border:1px solid var(--card-border); border-radius:12px; padding:1rem; margin-bottom:1.15rem; font-size:0.86rem;">
+          <div style="display:flex; justify-content:space-between; padding:0.3rem 0; color:var(--text-muted);">
+            <span>Kategori Tiket</span>
+            <strong id="summaryTierLabel" style="color:var(--white); text-align:right;">Tiket Biasa</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:0.3rem 0; color:var(--text-muted);">
+            <span>Daftar Nama Peserta</span>
+            <strong id="summaryParticipantsList" style="color:var(--aqua); text-align:right;">-</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:0.3rem 0; color:var(--text-muted);">
+            <span>Harga per Tiket</span>
+            <span id="summaryUnitPrice" style="color:var(--white);">Rp 75.000</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:0.3rem 0; color:var(--text-muted);">
+            <span>Jumlah Tiket</span>
+            <span id="summaryQty" style="color:var(--white);">1 Tiket</span>
+          </div>
+          <div id="summaryMerchRow" style="display:none; justify-content:space-between; padding:0.3rem 0; color:var(--aqua);">
+            <span>Paket Merch Bundel</span>
+            <strong id="summaryMerchDesc" style="text-align:right;">Photocard &amp; Poster (Ambil di Lokasi)</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:0.3rem 0; color:var(--text-muted);">
+            <span>Pengambilan Tiket &amp; Merch</span>
+            <span style="color:#4ade80; font-weight:700;">Di Lokasi Bioskop (Rp 0)</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:0.65rem 0 0.2rem; margin-top:0.4rem; border-top:1px solid var(--card-border); font-size:1.05rem; font-weight:800;">
+            <span style="color:var(--white);">Total Bayar (100%)</span>
+            <span id="summaryTotalAmount" style="color:var(--aqua); font-size:1.25rem;">Rp 75.000</span>
+          </div>
+        </div>
+
+        <div class="qris-box">
+          <div style="color:var(--aqua); font-weight:700; font-size:0.88rem; margin-bottom:0.65rem; display:flex; align-items:center; justify-content:center; gap:0.4rem;">
+            <svg class="ui-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg>
+            Scan QRIS Resmi Aika Sesilia (Bayar Penuh)
+          </div>
+          <div class="qris-img-card">
+            <img src="images/Qris/Qris.jpeg" alt="QRIS Aika Sesilia" />
+          </div>
+          <div style="margin-top:0.75rem; font-size:0.78rem; color:var(--text-muted); line-height:1.45;">
+            Pembelian tiket nobar wajib langsung dibayar penuh (tanpa DP). Saat acara berlangsung, Anda cukup menunjukkan bukti pembayaran tiket ini di website kepada panitia.
+          </div>
+        </div>
+
+        <!-- PROOF UPLOAD -->
+        <div style="margin-bottom:1.2rem;">
+          <label style="display:block; color:var(--white); font-weight:700; font-size:0.86rem; margin-bottom:0.45rem;">
+            Unggah Screenshot Bukti Transfer QRIS *
+          </label>
+          <input type="file" id="nobarProofInput" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleNobarProofChange(event)" />
+          <button type="button" class="btn-ghost" onclick="document.getElementById('nobarProofInput').click()" style="width:100%; padding:0.85rem; border-radius:12px; border:1.5px dashed var(--aqua); color:var(--aqua); font-weight:700; font-size:0.86rem; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:0.5rem;">
+            <svg class="ui-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            <span id="nobarProofBtnText">Pilih Gambar Bukti Transfer (JPG / PNG / WebP)</span>
+          </button>
+          <div id="nobarProofPreview" style="margin-top:0.75rem;"></div>
+        </div>
+
+        <button type="button" id="btnSubmitNobar" class="btn-primary w100" onclick="submitNobarBooking()" style="padding:1rem; font-size:1rem; font-weight:800; border-radius:50px;">
+          Kirim Pembelian &amp; Bukti Pembayaran Tiket
+        </button>
+      </aside>
+    </div>
+  </div>
+
+  <!-- CART SIDEBAR -->
+  <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+  <aside class="cart-sidebar" id="cartSidebar">
+    <div class="cart-header">
+      <h3>
+        <svg class="ui-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        Keranjang
+      </h3>
+      <button onclick="toggleCart()" class="cart-close">✕</button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-footer">
+      <div class="cart-total">Total: <strong id="cartTotal">Rp 0</strong></div>
+      <button class="btn-primary w100" onclick="goToCheckout()">Checkout →</button>
+    </div>
+  </aside>
+
+  <script src="js/cart.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    let nobarConfig = null;
+    let nobarStats = null;
+    let nobarUserStats = null;
+    let selectedTier = 'regular';
+    let compressedProofDataUrl = '';
+    let currentSessionUser = null;
+    let activeReservation = null;
+    let nobarCountdownTimerId = null;
+
+    function getLoggedUser() {
+      try {
+        const raw = localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session');
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || !parsed.loggedIn || !parsed.email) return null;
+        return parsed;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    async function compressProofImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Gagal membaca file gambar'));
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onerror = () => reject(new Error('Format gambar tidak didukung'));
+          img.onload = () => {
+            const maxDim = 1400;
+            let w = img.width;
+            let h = img.height;
+            if (w > maxDim || h > maxDim) {
+              if (w >= h) {
+                h = Math.round((h * maxDim) / w);
+                w = maxDim;
+              } else {
+                w = Math.round((w * maxDim) / h);
+                h = maxDim;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', 0.84));
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handleNobarProofChange(e) {
+      const file = e.target.files && e.target.files[0];
+      const previewEl = document.getElementById('nobarProofPreview');
+      const btnText = document.getElementById('nobarProofBtnText');
+      if (!file) return;
+
+      try {
+        btnText.textContent = 'Memproses gambar...';
+        compressedProofDataUrl = await compressProofImage(file);
+        btnText.textContent = 'Ganti Gambar Bukti Transfer (' + file.name.slice(0, 28) + ')';
+        previewEl.innerHTML = `
+          <div style="background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.35); border-radius:10px; padding:0.75rem; text-align:center;">
+            <div style="font-size:0.78rem; color:#4ade80; font-weight:700; margin-bottom:0.4rem;">Bukti transfer siap dikirim</div>
+            <img src="${compressedProofDataUrl}" alt="Preview Bukti Transfer" style="max-height:200px; max-width:100%; border-radius:6px;" />
+          </div>
+        `;
+      } catch (err) {
+        compressedProofDataUrl = '';
+        btnText.textContent = 'Pilih Gambar Bukti Transfer (JPG / PNG / WebP)';
+        alert(err.message || 'Gagal memuat bukti transfer');
+      }
+    }
+
+    function renderParticipantInputs() {
+      const qtySelect = document.getElementById('nobarQtySelect');
+      const qty = Math.max(1, parseInt(qtySelect.value, 10) || 1);
+      const container = document.getElementById('participantInputsContainer');
+
+      const existingVals = Array.from(container.querySelectorAll('input.participant-name-input')).map(el => el.value);
+      if (existingVals.length === 0 && currentSessionUser && currentSessionUser.username) {
+        existingVals[0] = currentSessionUser.username;
+      }
+
+      let html = '';
+      for (let i = 0; i < qty; i++) {
+        const val = escapeStoreHtml(existingVals[i] || '');
+        const label = selectedTier === 'vip'
+          ? 'Nama Lengkap Peserta VIP (Duduk di Samping Kak Aika)'
+          : `Nama Lengkap Peserta #${i + 1}`;
+        html += `
+          <div>
+            <input
+              type="text"
+              class="participant-name-input"
+              data-idx="${i}"
+              value="${val}"
+              placeholder="${label} *"
+              maxlength="100"
+              required
+              style="width:100%; border-radius:10px; background:rgba(3,9,31,0.85); border:1px solid var(--card-border); color:var(--white); padding:0.75rem 0.9rem; font-family:var(--font-body);"
+            />
+          </div>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    function updateQtyOptionsForTier() {
+      const qtySelect = document.getElementById('nobarQtySelect');
+      if (!nobarConfig || !nobarStats) return;
+
+      if (selectedTier === 'vip') {
+        qtySelect.innerHTML = '<option value="1">1 Tiket VIP (Maks 1 / Akun)</option>';
+        qtySelect.value = '1';
+        qtySelect.disabled = true;
+      } else {
+        qtySelect.disabled = false;
+        const maxAllowed = Math.min(
+          nobarConfig.maxRegularPerOrder || 5,
+          Math.max(1, nobarStats.regularRemaining || 1)
+        );
+        const prevVal = parseInt(qtySelect.value, 10) || 1;
+        let opts = '';
+        for (let i = 1; i <= maxAllowed; i++) {
+          opts += `<option value="${i}">${i} Tiket</option>`;
+        }
+        qtySelect.innerHTML = opts;
+        qtySelect.value = String(Math.min(prevVal, maxAllowed));
+      }
+      renderParticipantInputs();
+      updateNobarSummary();
+    }
+
+    function selectNobarTier(tier) {
+      if (!nobarConfig || !nobarStats) return;
+
+      if (activeReservation && (activeReservation.orderId || activeReservation.id)) {
+        if (tier !== activeReservation.tier) {
+          alert(`Anda memiliki reservasi kursi aktif (#${activeReservation.orderId || activeReservation.id}). Klik "✕ Batalkan Reservasi & Ubah Pilihan" pada panel pembayaran jika ingin mengganti kategori tiket.`);
+        }
+        const payPanel = document.getElementById('nobarPaymentPanel');
+        if (payPanel) payPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+
+      if (tier === 'vip') {
+        if (nobarStats.isVipSoldOut) {
+          alert('Maaf, kuota 2 kursi Tiket VIP (Duduk di Samping Kak Aika) sudah habis terisi.');
+          return;
+        }
+        if (nobarUserStats && nobarUserStats.hasVipTicket) {
+          alert('Akun Anda sudah memiliki pesanan Tiket VIP. Pembelian VIP dibatasi maksimal 1 tiket per akun.');
+          return;
+        }
+      } else {
+        if (nobarStats.isRegularSoldOut) {
+          alert('Maaf, kuota kursi Tiket Reguler sudah habis.');
+          return;
+        }
+      }
+
+      selectedTier = tier;
+      ['vip', 'regular', 'regular_merch'].forEach(t => {
+        const el = document.getElementById('tierCard-' + t);
+        if (el) el.classList.toggle('selected', t === tier);
+      });
+
+      hideNobarPaymentStep();
+      updateQtyOptionsForTier();
+    }
+
+    function handleNobarQtyChange() {
+      if (activeReservation && (activeReservation.orderId || activeReservation.id)) {
+        return;
+      }
+      hideNobarPaymentStep();
+      renderParticipantInputs();
+      updateNobarSummary();
+    }
+
+    function hideNobarPaymentStep() {
+      const payPanel = document.getElementById('nobarPaymentPanel');
+      if (payPanel) payPanel.style.display = 'none';
+      if (nobarCountdownTimerId) {
+        clearInterval(nobarCountdownTimerId);
+        nobarCountdownTimerId = null;
+      }
+    }
+
+    function stopNobarCountdown() {
+      if (nobarCountdownTimerId) {
+        clearInterval(nobarCountdownTimerId);
+        nobarCountdownTimerId = null;
+      }
+    }
+
+    function startNobarCountdown(expiresAtIso, orderId) {
+      stopNobarCountdown();
+      const badgeEl = document.getElementById('reservationInvoiceBadge');
+      const deadlineEl = document.getElementById('reservationDeadlineText');
+      const clockEl = document.getElementById('reservationCountdownClock');
+      const boxEl = document.getElementById('nobarPaymentCountdownBox');
+      const submitBtn = document.getElementById('btnSubmitNobar');
+
+      if (badgeEl) badgeEl.textContent = '#' + (orderId || '-');
+      const expMs = Date.parse(expiresAtIso);
+      if (!Number.isFinite(expMs)) return;
+
+      if (deadlineEl) {
+        deadlineEl.textContent = new Date(expMs).toLocaleTimeString('id-ID', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        }) + ' WIB';
+      }
+
+      const tick = () => {
+        const diffSec = Math.max(0, Math.floor((expMs - Date.now()) / 1000));
+        const mins = Math.floor(diffSec / 60);
+        const secs = diffSec % 60;
+        const hrs = Math.floor(mins / 60);
+        const remMins = mins % 60;
+
+        if (clockEl) {
+          clockEl.textContent = hrs > 0
+            ? `${String(hrs).padStart(2, '0')}:${String(remMins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+            : `${String(remMins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+          if (diffSec <= 300) {
+            clockEl.style.color = '#f87171';
+            clockEl.style.borderColor = 'rgba(239,68,68,0.65)';
+          } else {
+            clockEl.style.color = '#fde047';
+            clockEl.style.borderColor = 'rgba(245,158,11,0.6)';
+          }
+        }
+
+        if (diffSec <= 0) {
+          stopNobarCountdown();
+          if (boxEl) {
+            boxEl.style.borderColor = 'rgba(239,68,68,0.7)';
+            boxEl.style.background = 'rgba(239,68,68,0.14)';
+          }
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Waktu Pembayaran Habis — Kursi Dilepas';
+          }
+          activeReservation = null;
+          setTimeout(() => {
+            alert('⏱️ Batas waktu pembayaran tiket telah habis. Kursi dikembalikan ke kuota publik. Silakan pesan ulang jika kuota masih tersedia.');
+            hideNobarPaymentStep();
+            loadNobarPageData();
+          }, 300);
+        }
+      };
+
+      tick();
+      nobarCountdownTimerId = setInterval(tick, 1000);
+    }
+
+    function openPaymentPanelForReservation(reservation) {
+      if (!reservation) return;
+      activeReservation = reservation;
+      selectedTier = reservation.tier || selectedTier;
+
+      const labelMap = {
+        vip: 'Tiket VIP (Duduk di Samping Kak Aika)',
+        regular: 'Tiket Biasa',
+        regular_merch: 'Tiket Biasa + Merch (Photocard & Poster)'
+      };
+
+      const partListEl = document.getElementById('summaryParticipantsList');
+      if (partListEl) {
+        partListEl.textContent = (reservation.participants || []).join(', ');
+      }
+      document.getElementById('summaryTierLabel').textContent = labelMap[reservation.tier] || reservation.tierLabel || 'Tiket Nobar';
+      document.getElementById('summaryUnitPrice').textContent = formatPrice(reservation.unitPrice || 0);
+      document.getElementById('summaryQty').textContent = `${reservation.qty || 1} Tiket`;
+      document.getElementById('summaryTotalAmount').textContent = formatPrice(reservation.total || 0);
+
+      const merchRow = document.getElementById('summaryMerchRow');
+      if (reservation.includesMerch || reservation.tier === 'vip' || reservation.tier === 'regular_merch') {
+        merchRow.style.display = 'flex';
+        document.getElementById('summaryMerchDesc').textContent = reservation.merchBundle || (nobarConfig && nobarConfig.merchBundleDesc) || 'Photocard & Poster';
+      } else {
+        merchRow.style.display = 'none';
+      }
+
+      const submitBtn = document.getElementById('btnSubmitNobar');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        submitBtn.style.cursor = 'pointer';
+        submitBtn.textContent = 'Kirim Pembelian & Bukti Pembayaran Tiket';
+      }
+
+      const payPanel = document.getElementById('nobarPaymentPanel');
+      if (payPanel) {
+        payPanel.style.display = 'block';
+      }
+
+      startNobarCountdown(reservation.paymentExpiresAt, reservation.orderId || reservation.id);
+    }
+
+    async function cancelNobarReservation() {
+      if (!activeReservation || !(activeReservation.orderId || activeReservation.id)) {
+        hideNobarPaymentStep();
+        return;
+      }
+      const oid = activeReservation.orderId || activeReservation.id;
+      if (!confirm(`Batalkan kunci kursi sementara untuk reservasi #${oid} agar Anda dapat mengubah pilihan tiket?`)) {
+        return;
+      }
+      const cancelBtn = document.getElementById('btnCancelReservation');
+      if (cancelBtn) cancelBtn.disabled = true;
+      try {
+        const res = await fetch('/api/nobar', {
+          method: 'POST',
+          headers: getSessionAuthHeaders(),
+          body: JSON.stringify({ action: 'cancel_reservation', orderId: oid })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal membatalkan reservasi');
+
+        activeReservation = null;
+        compressedProofDataUrl = '';
+        const prevEl = document.getElementById('nobarProofPreview');
+        if (prevEl) prevEl.innerHTML = '';
+        const btnText = document.getElementById('nobarProofBtnText');
+        if (btnText) btnText.textContent = 'Pilih Gambar Bukti Transfer (JPG / PNG / WebP)';
+        const resumeBanner = document.getElementById('activeReservationResumeBanner');
+        if (resumeBanner) resumeBanner.style.display = 'none';
+
+        hideNobarPaymentStep();
+        await loadNobarPageData();
+        const tierContainer = document.getElementById('tierCardsContainer');
+        if (tierContainer) {
+          tierContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        if (cancelBtn) cancelBtn.disabled = false;
+      }
+    }
+
+    async function confirmNobarTicketSelection() {
+      currentSessionUser = getLoggedUser();
+      if (!currentSessionUser) {
+        alert('Silakan login ke akun Anda terlebih dahulu untuk membeli Tiket Nobar Bioskop.');
+        window.location.href = 'login.html?redirect=nobar.html';
+        return;
+      }
+
+      if (!nobarConfig || !nobarConfig.isOpen) {
+        alert('Penjualan tiket saat ini sedang ditutup.');
+        return;
+      }
+
+      if (activeReservation && (activeReservation.orderId || activeReservation.id)) {
+        openPaymentPanelForReservation(activeReservation);
+        const payPanel = document.getElementById('nobarPaymentPanel');
+        if (payPanel) payPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+
+      const participantInputs = Array.from(document.querySelectorAll('input.participant-name-input'));
+      const participants = [];
+      for (let i = 0; i < participantInputs.length; i++) {
+        const val = participantInputs[i].value.trim();
+        if (!val) {
+          alert(`Mohon isi Nama Lengkap Peserta #${i + 1} terlebih dahulu sebelum lanjut ke pembayaran QRIS.`);
+          participantInputs[i].focus();
+          return;
+        }
+        participants.push(val);
+      }
+
+      const phone = document.getElementById('nobarPhone').value.trim();
+      if (!phone || phone.replace(/\D/g, '').length < 8) {
+        alert('Mohon isi Nomor HP / WhatsApp aktif terlebih dahulu sebelum lanjut ke pembayaran QRIS.');
+        document.getElementById('nobarPhone').focus();
+        return;
+      }
+
+      const qty = Math.max(1, parseInt(document.getElementById('nobarQtySelect').value, 10) || 1);
+      const notes = document.getElementById('nobarBuyerNote').value.trim();
+
+      const confirmBtn = document.getElementById('btnConfirmTicketStep');
+      const origText = confirmBtn ? confirmBtn.textContent : 'Konfirmasi Pilihan & Kunci Kursi →';
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Mengunci Kursi Sementara...';
+      }
+
+      try {
+        const res = await fetch('/api/nobar', {
+          method: 'POST',
+          headers: getSessionAuthHeaders(),
+          body: JSON.stringify({
+            action: 'reserve',
+            tier: selectedTier,
+            qty,
+            participants,
+            phone,
+            notes
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Gagal mengunci kursi tiket');
+        }
+
+        const unitPrice = selectedTier === 'vip'
+          ? nobarConfig.priceVip
+          : selectedTier === 'regular_merch'
+            ? nobarConfig.priceRegularMerch
+            : nobarConfig.priceRegular;
+
+        const reservationObj = {
+          orderId: data.id,
+          id: data.id,
+          tier: selectedTier,
+          qty,
+          unitPrice,
+          total: Number(data.total) || unitPrice * qty,
+          participants,
+          phone,
+          notes,
+          includesMerch: selectedTier === 'vip' || selectedTier === 'regular_merch',
+          merchBundle: nobarConfig.merchBundleDesc || '',
+          paymentExpiresAt: data.paymentExpiresAt,
+          paymentTimeoutMinutes: data.paymentTimeoutMinutes || nobarConfig.paymentTimeoutMinutes || 45
+        };
+
+        await loadNobarPageData();
+        openPaymentPanelForReservation(reservationObj);
+        const payPanel = document.getElementById('nobarPaymentPanel');
+        if (payPanel) {
+          setTimeout(() => {
+            payPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 60);
+        }
+      } catch (err) {
+        alert(err.message);
+        loadNobarPageData();
+      } finally {
+        if (confirmBtn) {
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = origText;
+        }
+      }
+    }
+
+    function updateNobarSummary() {
+      if (!nobarConfig) return;
+      const qty = Math.max(1, parseInt(document.getElementById('nobarQtySelect').value, 10) || 1);
+      const unitPrice = selectedTier === 'vip'
+        ? nobarConfig.priceVip
+        : selectedTier === 'regular_merch'
+          ? nobarConfig.priceRegularMerch
+          : nobarConfig.priceRegular;
+      const total = unitPrice * qty;
+
+      const labelMap = {
+        vip: 'Tiket VIP (Duduk di Samping Kak Aika)',
+        regular: 'Tiket Biasa',
+        regular_merch: 'Tiket Biasa + Merch (Photocard & Poster)'
+      };
+
+      const step1LabelEl = document.getElementById('step1PreviewLabel');
+      if (step1LabelEl) {
+        step1LabelEl.innerHTML = `${escapeStoreHtml(labelMap[selectedTier] || 'Tiket Nobar')} (${qty} Tiket) — <span style="color:var(--aqua);" id="step1PreviewTotal">${formatPrice(total)}</span>`;
+      }
+
+      document.getElementById('summaryTierLabel').textContent = labelMap[selectedTier] || 'Tiket Nobar';
+      document.getElementById('summaryUnitPrice').textContent = formatPrice(unitPrice);
+      document.getElementById('summaryQty').textContent = `${qty} Tiket`;
+      document.getElementById('summaryTotalAmount').textContent = formatPrice(total);
+
+      const merchRow = document.getElementById('summaryMerchRow');
+      if (selectedTier === 'regular_merch' || selectedTier === 'vip') {
+        merchRow.style.display = 'flex';
+        document.getElementById('summaryMerchDesc').textContent = nobarConfig.merchBundleDesc || 'Photocard & Poster';
+      } else {
+        merchRow.style.display = 'none';
+      }
+    }
+
+    async function loadNobarPageData() {
+      currentSessionUser = getLoggedUser();
+      const guestNotice = document.getElementById('guestLoginNotice');
+      if (guestNotice) {
+        guestNotice.style.display = currentSessionUser ? 'none' : 'block';
+      }
+
+      if (currentSessionUser) {
+        fetch('/api/user-profile?email=' + encodeURIComponent(currentSessionUser.email), {
+          headers: getSessionAuthHeaders()
+        })
+          .then(r => r.ok ? r.json() : null)
+          .then(prof => {
+            const phoneEl = document.getElementById('nobarPhone');
+            if (prof && prof.phone && phoneEl && !phoneEl.value) {
+              phoneEl.value = prof.phone;
+            }
+          })
+          .catch(() => {});
+      }
+
+      try {
+        const res = await fetch('/api/nobar?t=' + Date.now(), {
+          headers: getSessionAuthHeaders()
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal memuat info event nobar');
+
+        nobarConfig = data.config;
+        nobarStats = data.stats;
+        nobarUserStats = data.userStats || {};
+
+        const timeoutHintEl = document.getElementById('step1TimeoutHint');
+        if (timeoutHintEl) {
+          const mins = nobarConfig.paymentTimeoutMinutes || 45;
+          timeoutHintEl.textContent = `⏱️ Batas bayar ${mins} menit`;
+        }
+
+        // Jika akun memiliki reservasi kursi yang belum dibayar & belum kedaluwarsa, pulihkan otomatis
+        const resumeBanner = document.getElementById('activeReservationResumeBanner');
+        if (nobarUserStats.activePendingReservation) {
+          const resv = nobarUserStats.activePendingReservation;
+          activeReservation = resv;
+          selectedTier = resv.tier || selectedTier;
+          if (resumeBanner) {
+            resumeBanner.style.display = 'block';
+            resumeBanner.innerHTML = `
+              ⏱️ Anda memiliki reservasi tiket yang sedang dikunci sementara (<strong>#${escapeStoreHtml(resv.orderId)}</strong> — ${escapeStoreHtml(resv.tierLabel)} &times;${resv.qty}).
+              Silakan selesaikan pembayaran QRIS &amp; upload bukti sebelum batas waktu habis, atau klik <strong>Batalkan Reservasi</strong> di bawah untuk memesan ulang.
+            `;
+          }
+          openPaymentPanelForReservation(resv);
+        } else {
+          activeReservation = null;
+          if (resumeBanner) resumeBanner.style.display = 'none';
+        }
+
+        // Populate Event Header
+        document.getElementById('nobarEventTitle').textContent = nobarConfig.eventTitle;
+        document.getElementById('nobarMovieTitle').textContent = nobarConfig.movieTitle;
+        document.getElementById('nobarDateTime').textContent = `${nobarConfig.eventDate} • ${nobarConfig.eventTime}`;
+        document.getElementById('nobarCinemaLocation').textContent = nobarConfig.cinemaLocation;
+        document.getElementById('nobarEventNotes').textContent = nobarConfig.eventNotes;
+
+        const bannerEl = document.getElementById('nobarBannerImg');
+        if (bannerEl && nobarConfig.bannerImage) {
+          bannerEl.src = sanitizeStoreImageUrl(nobarConfig.bannerImage) || '/images/Profil/charlotta-seo.jpg';
+        }
+
+        const pill = document.getElementById('nobarStatusPill');
+        const pillText = document.getElementById('nobarStatusText');
+        const closedAlert = document.getElementById('nobarClosedAlert');
+        const submitBtn = document.getElementById('btnSubmitNobar');
+        const confirmBtn = document.getElementById('btnConfirmTicketStep');
+
+        const isAllSoldOut = nobarStats.isVipSoldOut && nobarStats.isRegularSoldOut;
+        if (!nobarConfig.isOpen || (isAllSoldOut && !activeReservation)) {
+          pill.className = 'nobar-status-pill closed';
+          pillText.textContent = isAllSoldOut ? 'TIKET HABIS TERJUAL (SOLD OUT)' : 'PENJUALAN TIKET DITUTUP';
+          closedAlert.style.display = 'block';
+          submitBtn.disabled = true;
+          submitBtn.style.opacity = '0.45';
+          submitBtn.style.cursor = 'not-allowed';
+          submitBtn.textContent = isAllSoldOut ? 'Tiket Sudah Habis Terjual' : 'Penjualan Tiket Ditutup';
+          if (confirmBtn && !activeReservation) {
+            confirmBtn.disabled = true;
+            confirmBtn.style.opacity = '0.45';
+            confirmBtn.style.cursor = 'not-allowed';
+          }
+        } else {
+          pill.className = 'nobar-status-pill open';
+          pillText.textContent = 'PENJUALAN TIKET DIBUKA';
+          closedAlert.style.display = 'none';
+          submitBtn.disabled = false;
+          submitBtn.style.opacity = '1';
+          submitBtn.style.cursor = 'pointer';
+          submitBtn.textContent = 'Kirim Pembelian & Bukti Pembayaran Tiket';
+          if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.style.opacity = '1';
+            confirmBtn.style.cursor = 'pointer';
+            confirmBtn.textContent = activeReservation
+              ? 'Lanjutkan ke Pembayaran QRIS Reservasi Aktif →'
+              : 'Konfirmasi Pilihan & Kunci Kursi →';
+          }
+        }
+
+        // Quota Bars
+        const vipPct = Math.min(100, Math.round((nobarStats.vipTaken / nobarConfig.vipQuota) * 100));
+        document.getElementById('vipQuotaBar').style.width = `${vipPct}%`;
+        document.getElementById('vipQuotaText').textContent =
+          nobarStats.vipRemaining <= 0
+            ? `PENUH (0 / ${nobarConfig.vipQuota} Kursi)`
+            : `Sisa ${nobarStats.vipRemaining} / ${nobarConfig.vipQuota} Kursi`;
+        document.getElementById('vipQuotaSub').textContent =
+          `Terverifikasi: ${nobarStats.vipVerified}/${nobarConfig.vipQuota}` +
+          (nobarStats.vipPending > 0 ? ` • Menunggu Verifikasi: ${nobarStats.vipPending}` : '') +
+          ' • 2 pembeli pertama yang diverifikasi Admin duduk di samping Kak Aika.';
+
+        const regPct = Math.min(100, Math.round((nobarStats.regularTaken / nobarConfig.regularQuota) * 100));
+        document.getElementById('regQuotaBar').style.width = `${regPct}%`;
+        document.getElementById('regQuotaText').textContent =
+          nobarStats.regularRemaining <= 0
+            ? `PENUH (0 / ${nobarConfig.regularQuota} Kursi)`
+            : `Sisa ${nobarStats.regularRemaining} / ${nobarConfig.regularQuota} Kursi`;
+        document.getElementById('regQuotaSub').textContent =
+          `Terpakai: ${nobarStats.regularTaken}/${nobarConfig.regularQuota} kursi • Gabungan Tiket Biasa & Tiket + Merch • Kursi diambil saat event berlangsung.`;
+
+        // Tier Prices & Descriptions
+        document.getElementById('tierPrice-vip').textContent = formatPrice(nobarConfig.priceVip);
+        document.getElementById('tierPrice-regular').textContent = formatPrice(nobarConfig.priceRegular);
+        document.getElementById('tierPrice-regular_merch').textContent = formatPrice(nobarConfig.priceRegularMerch);
+        document.getElementById('tierDesc-vip').textContent = nobarConfig.vipPerk;
+        document.getElementById('tierDesc-regular').textContent = nobarConfig.regularPerk;
+        document.getElementById('tierDesc-regular_merch').textContent =
+          `1x Tiket Masuk Nobar Bioskop + Paket Merch (${nobarConfig.merchBundleDesc}). Diambil langsung di lokasi bioskop tanpa ongkir.`;
+
+        document.getElementById('regMaxRuleChip1').textContent = `Maks ${nobarConfig.maxRegularPerOrder} Tiket / Pembelian`;
+        document.getElementById('regMaxRuleChip2').textContent = `Maks ${nobarConfig.maxRegularPerOrder} Tiket / Pembelian`;
+
+        // Tier Card Availability States
+        const vipCard = document.getElementById('tierCard-vip');
+        const vipBadge = document.getElementById('tierBadge-vip');
+        if (nobarStats.isVipSoldOut) {
+          vipCard.classList.add('disabled');
+          vipBadge.className = 'tier-badge soldout';
+          vipBadge.textContent = 'Kuota VIP Penuh';
+        } else if (nobarUserStats.hasVipTicket) {
+          vipCard.classList.add('disabled');
+          vipBadge.className = 'tier-badge merch';
+          vipBadge.textContent = 'Sudah Dibeli Akun Ini (Maks 1)';
+        } else {
+          vipCard.classList.remove('disabled');
+          vipBadge.className = 'tier-badge vip';
+          vipBadge.textContent = `Sisa ${nobarStats.vipRemaining} Kursi • Duduk di Samping Kak Aika`;
+        }
+
+        ['regular', 'regular_merch'].forEach(t => {
+          const card = document.getElementById('tierCard-' + t);
+          const badge = document.getElementById('tierBadge-' + t);
+          if (nobarStats.isRegularSoldOut) {
+            card.classList.add('disabled');
+            badge.className = 'tier-badge soldout';
+            badge.textContent = 'Kuota Reguler Habis';
+          } else {
+            card.classList.remove('disabled');
+          }
+        });
+
+        // Auto-select valid initial tier
+        if (selectedTier === 'vip' && (nobarStats.isVipSoldOut || nobarUserStats.hasVipTicket)) {
+          selectedTier = 'regular';
+        }
+        if ((selectedTier === 'regular' || selectedTier === 'regular_merch') && nobarStats.isRegularSoldOut && !nobarStats.isVipSoldOut && !nobarUserStats.hasVipTicket) {
+          selectedTier = 'vip';
+        }
+
+        ['vip', 'regular', 'regular_merch'].forEach(t => {
+          const el = document.getElementById('tierCard-' + t);
+          if (el) el.classList.toggle('selected', t === selectedTier);
+        });
+
+        updateQtyOptionsForTier();
+      } catch (err) {
+        console.error('Error loading nobar data:', err);
+      }
+    }
+
+    async function submitNobarBooking() {
+      currentSessionUser = getLoggedUser();
+      if (!currentSessionUser) {
+        alert('Silakan login ke akun Anda terlebih dahulu untuk membeli Tiket Nobar Bioskop.');
+        window.location.href = 'login.html?redirect=nobar.html';
+        return;
+      }
+
+      if (!nobarConfig || !nobarConfig.isOpen) {
+        alert('Penjualan tiket saat ini sedang ditutup.');
+        return;
+      }
+
+      const qty = Math.max(1, parseInt(document.getElementById('nobarQtySelect').value, 10) || 1);
+      const phone = document.getElementById('nobarPhone').value.trim();
+      const notes = document.getElementById('nobarBuyerNote').value.trim();
+
+      const participantInputs = Array.from(document.querySelectorAll('input.participant-name-input'));
+      const participants = [];
+      for (let i = 0; i < participantInputs.length; i++) {
+        const val = participantInputs[i].value.trim();
+        if (!val) {
+          alert(`Mohon isi Nama Lengkap Peserta #${i + 1} terlebih dahulu.`);
+          participantInputs[i].focus();
+          return;
+        }
+        participants.push(val);
+      }
+
+      if (!phone || phone.replace(/\D/g, '').length < 8) {
+        alert('Mohon isi Nomor HP / WhatsApp aktif terlebih dahulu.');
+        document.getElementById('nobarPhone').focus();
+        return;
+      }
+
+      if (!compressedProofDataUrl) {
+        alert('Pembelian tiket nobar harus langsung dibayar. Mohon unggah screenshot bukti transfer QRIS Anda terlebih dahulu.');
+        document.getElementById('nobarProofInput').click();
+        return;
+      }
+
+      const btn = document.getElementById('btnSubmitNobar');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Memproses Tiket & Mengunggah Bukti Bayar...';
+
+      try {
+        let savedOrder = null;
+
+        if (activeReservation && (activeReservation.orderId || activeReservation.id)) {
+          const oid = activeReservation.orderId || activeReservation.id;
+          const res = await fetch('/api/payment-proof', {
+            method: 'POST',
+            headers: getSessionAuthHeaders(),
+            body: JSON.stringify({
+              orderId: oid,
+              base64Image: compressedProofDataUrl,
+              email: currentSessionUser.email,
+              customerName: participants[0] || currentSessionUser.username || currentSessionUser.email,
+              proofType: 'initial'
+            })
+          });
+          const proofData = await res.json();
+          if (!res.ok) {
+            throw new Error(proofData.error || 'Gagal mengunggah bukti pembayaran tiket');
+          }
+          savedOrder = proofData.order || { id: oid };
+        } else {
+          const res = await fetch('/api/nobar', {
+            method: 'POST',
+            headers: getSessionAuthHeaders(),
+            body: JSON.stringify({
+              tier: selectedTier,
+              qty,
+              participants,
+              phone,
+              notes,
+              paymentProof: compressedProofDataUrl
+            })
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || 'Gagal memproses pembelian tiket nobar');
+          }
+          savedOrder = data;
+        }
+
+        stopNobarCountdown();
+        activeReservation = null;
+
+        // Simpan ke sessionStorage dan localStorage agar order-success.html langsung menampilkan Bukti Tiket Nobar
+        const orderForStorage = { ...savedOrder };
+        delete orderForStorage.payment_proof;
+        try {
+          sessionStorage.setItem('last_order', JSON.stringify(orderForStorage));
+          localStorage.setItem('last_order', JSON.stringify(orderForStorage));
+          sessionStorage.setItem('last_order_id', orderForStorage.id);
+        } catch (_) {}
+
+        window.location.href = 'order-success.html?id=' + encodeURIComponent(orderForStorage.id || '');
+      } catch (err) {
+        alert(err.message);
+        btn.disabled = false;
+        btn.textContent = originalText;
+        loadNobarPageData();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadNobarPageData);
+  </script>
+
+  <!-- MOBILE BOTTOM NAVIGATION BAR -->
+  <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Navigasi Bawah">
+    <a href="index.html" class="bottom-nav-item" id="bnav-home">
+      <span class="bnav-icon">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </span>
+      <span class="bnav-label">Beranda</span>
+    </a>
+    <a href="shop.html" class="bottom-nav-item" id="bnav-shop">
+      <span class="bnav-icon">
+        <svg viewBox="0 0 24 24"><path d="M19 6h-2c0-2.76-2.24-5-5-5S7 3.24 7 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-3c1.66 0 3 1.34 3 3H9c0-1.66 1.34-3 3-3zm7 17H5V8h14v12zm-7-8c-1.66 0-3-1.34-3-3H7c0 2.76 2.24 5 5 5s5-2.24 5-5h-2c0 1.66-1.34 3-3 3z"/></svg>
+      </span>
+      <span class="bnav-label">Katalog</span>
+    </a>
+    <a href="nobar.html" class="bottom-nav-item active" id="bnav-nobar">
+      <span class="bnav-icon">
+        <svg viewBox="0 0 24 24"><path d="M20 12c0-1.1.9-2 2-2V6c0-1.1-.9-2-2-2H4c-1.1 0-1.99.9-1.99 2v4c1.1 0 1.99.9 1.99 2s-.89 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2z"/></svg>
+      </span>
+      <span class="bnav-label">Nobar</span>
+    </a>
+    <a href="profile.html?tab=orders" class="bottom-nav-item" id="bnav-orders">
+      <span class="bnav-icon">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+      </span>
+      <span class="bnav-label">Tiketku</span>
+    </a>
+    <a href="profile.html" class="bottom-nav-item" id="bnav-account">
+      <span class="bnav-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      </span>
+      <span class="bnav-label">Akun</span>
+    </a>
+  </nav>
+</body>
+
+</html>

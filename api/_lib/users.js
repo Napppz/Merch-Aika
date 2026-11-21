@@ -1,5 +1,5 @@
 const { query } = require('./_db');
-const { requireAdmin } = require('./admin-auth');
+const { requireFullAdmin } = require('./admin-auth');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -12,7 +12,7 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  if (!requireAdmin(req, res)) {
+  if (!requireFullAdmin(req, res)) {
     return;
   }
 

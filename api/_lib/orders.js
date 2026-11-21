@@ -5,6 +5,7 @@ const env = require('./env');
 const { getRequiredEnv } = env;
 const { invalidateCache } = require('./cache');
 const { resolveShippingCost } = require('./shipping-rates');
+const { generateNobarQrToken, generateNobarQrPngBuffer } = require('./nobar-qr');
 const {
   escapeHtml,
   dispatchBackgroundTask,
@@ -338,19 +339,38 @@ async function generateDailyInvoiceId(runner = db) {
   });
   const dateKey = formatter.format(now); // e.g. "2026-09-12"
   const compactDate = dateKey.replace(/-/g, ''); // "20260912"
+  const prefix = `INV-${compactDate}-`;
 
-  const res = await runner.query(
+  await runner.query(
     `INSERT INTO invoice_daily_sequences (date_key, last_seq, updated_at)
-     VALUES ($1, 1, NOW())
+     VALUES ($1, 0, NOW())
      ON CONFLICT (date_key)
-     DO UPDATE SET last_seq = invoice_daily_sequences.last_seq + 1, updated_at = NOW()
-     RETURNING last_seq;`,
+     DO UPDATE SET updated_at = NOW();`,
     [dateKey]
   );
 
-  const seq = parseInt(res.rows[0].last_seq, 10) || 1;
-  const formattedSeq = String(seq).padStart(2, '0');
+  const existingRes = await runner.query(
+    `SELECT id FROM orders WHERE id LIKE $1`,
+    [`${prefix}%`]
+  );
+  let maxExistingSeq = 0;
+  for (const row of existingRes.rows) {
+    const suffix = String(row.id || '').slice(prefix.length);
+    const num = parseInt(suffix, 10);
+    if (!Number.isNaN(num) && num > maxExistingSeq) {
+      maxExistingSeq = num;
+    }
+  }
 
+  const nextSeq = maxExistingSeq + 1;
+  await runner.query(
+    `UPDATE invoice_daily_sequences
+     SET last_seq = $2, updated_at = NOW()
+     WHERE date_key = $1`,
+    [dateKey, nextSeq]
+  );
+
+  const formattedSeq = String(nextSeq).padStart(2, '0');
   return `INV-${compactDate}-${formattedSeq}`;
 }
 
@@ -865,7 +885,7 @@ module.exports = async (req, res) => {
       // Transaksi atomik untuk perubahan status / aksi pembayaran oleh Admin
       const { updatedOrder, stockChanged, prevStatus, finalStatus, appliedNote } = await db.withTransaction(async (client) => {
         const lockRes = await client.query(
-          `SELECT status, items, shipping FROM orders WHERE id = $1 FOR UPDATE`,
+          `SELECT status, items, shipping, email FROM orders WHERE id = $1 FOR UPDATE`,
           [id]
         );
         if (!lockRes.rows.length) {
@@ -884,7 +904,25 @@ module.exports = async (req, res) => {
         }
 
         const isDpOrder = Boolean(shipData.paymentScheme === 'dp50' || shipData.isDp);
+        const isNobarOrder = Boolean(shipData.isNobar);
         let status = rawStatus || prevStatus;
+        if (isNobarOrder && status === 'shipped') {
+          throw createHttpError(400, 'Pesanan tiket Nobar Bioskop tidak memiliki status pengiriman ekspedisi / resi.');
+        }
+        if (isNobarOrder && shipData.nobarTicket) {
+          if (!shipData.nobarTicket.ticketToken && (status === 'paid' || status === 'completed')) {
+            shipData.nobarTicket.ticketToken = generateNobarQrToken(id, locked.email || '');
+          }
+          if (status === 'completed' && !shipData.nobarTicket.checkedIn) {
+            shipData.nobarTicket.checkedIn = true;
+            shipData.nobarTicket.checkedInAt = new Date().toISOString();
+            shipData.nobarTicket.checkedInBy = adminUser.username || String(adminUser.adminId) || 'Admin';
+          } else if (status === 'paid' && shipData.nobarTicket.checkedIn) {
+            shipData.nobarTicket.checkedIn = false;
+            shipData.nobarTicket.checkedInAt = null;
+            shipData.nobarTicket.checkedInBy = null;
+          }
+        }
         let noteForAction = '';
 
         if (cleanPaymentAction === 'request_reupload_initial') {
@@ -981,17 +1019,25 @@ module.exports = async (req, res) => {
         } else if (prevStatus !== status || (cleanResi && cleanResi !== prevResi)) {
           let historyNote = 'Status pesanan diperbarui oleh admin';
           if (status === 'paid') {
-            historyNote = isDpOrder
-              ? 'Pembayaran DP 50% diverifikasi oleh admin (status: Dikemas)'
-              : 'Pembayaran diverifikasi oleh admin (status: Dikemas)';
+            if (isNobarOrder) {
+              historyNote = 'Pembayaran tiket Nobar diverifikasi oleh admin (Tiket Resmi Aktif)';
+            } else {
+              historyNote = isDpOrder
+                ? 'Pembayaran DP 50% diverifikasi oleh admin (status: Dikemas)'
+                : 'Pembayaran diverifikasi oleh admin (status: Dikemas)';
+            }
           } else if (status === 'shipped') {
             historyNote = cleanResi
               ? `Pesanan dikirim (No. Resi: ${cleanResi})`
               : 'Pesanan ditandai telah dikirim';
           } else if (status === 'completed') {
-            historyNote = 'Pesanan ditandai selesai oleh admin';
+            historyNote = isNobarOrder
+              ? 'Pesanan tiket Nobar selesai (Penonton hadir di bioskop)'
+              : 'Pesanan ditandai selesai oleh admin';
           } else if (status === 'cancelled') {
-            historyNote = 'Pesanan dibatalkan oleh admin (stok produk dikembalikan)';
+            historyNote = isNobarOrder
+              ? 'Pesanan tiket Nobar dibatalkan oleh admin (kuota kursi dikembalikan)'
+              : 'Pesanan dibatalkan oleh admin (stok produk dikembalikan)';
           }
 
           await recordOrderStatusHistory(client, {
@@ -1138,6 +1184,75 @@ module.exports = async (req, res) => {
           }
 
           if (status === 'paid') {
+            if (parsedShip && parsedShip.isNobar) {
+              const nbTicket = parsedShip.nobarTicket || {};
+              const ticketToken = nbTicket.ticketToken || generateNobarQrToken(order.id, order.email);
+              let qrPngBuffer = null;
+              try {
+                qrPngBuffer = await generateNobarQrPngBuffer(ticketToken);
+              } catch (qrErr) {
+                console.warn('Nobar email QR generation error:', qrErr.message);
+              }
+
+              const participantsList = Array.isArray(nbTicket.participants) && nbTicket.participants.length > 0
+                ? `<ol style="margin:0.5rem 0 0 1.2rem;padding:0;color:#0369a1;">${nbTicket.participants.map(p => `<li><strong>${escapeHtml(p)}</strong></li>`).join('')}</ol>`
+                : '<p style="margin:0;color:#0369a1;"><em>Data peserta sesuai nama pemesan.</em></p>';
+
+              const mailPayload = {
+                from: `"Aika Sesilia" <${emailUser}>`,
+                to: order.email,
+                subject: `🎟️ Tiket Nobar Bioskop Terverifikasi & Resmi Aktif - Pesanan #${order.id} 🎬`,
+                html: `
+                  <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                    <h2 style="color: #0284c7;">🎟️ Pembayaran Tiket Nobar Berhasil Diverifikasi!</h2>
+                    <p>Halo ${safeCustomerName},</p>
+                    <p>Pembayaran tiket Nobar Spesial Bioskop bersama Aika Sesilia untuk pesanan <strong>#${safeOrderId}</strong> telah berhasil diverifikasi oleh admin. Tiket Anda kini telah <strong>Resmi Aktif</strong>!</p>
+                    <div style="background:#f0f9ff; padding:1.25rem 1.5rem; border-left: 4px solid #0284c7; border-radius:6px; margin:1.25rem 0;">
+                      <p style="margin:0;font-weight:bold;color:#0369a1;font-size:1.05rem;">🎬 Kategori: ${escapeHtml(nbTicket.tierLabel || nbTicket.tier || 'Tiket Nobar')}</p>
+                      <p style="margin:0.35rem 0 0.5rem 0;color:#0284c7;">Jumlah: <strong>${parseInt(nbTicket.qty, 10) || 1} Kursi</strong></p>
+                      <p style="margin:0.6rem 0 0.2rem 0;font-weight:bold;color:#0369a1;">Daftar Peserta:</p>
+                      ${participantsList}
+                      ${nbTicket.includesMerch ? '<p style="margin:0.6rem 0 0 0;color:#b45309;font-weight:bold;">🎁 Termasuk Photocard &amp; Poster Eksklusif (diambil langsung di bioskop)</p>' : ''}
+                    </div>
+                    ${qrPngBuffer ? `
+                    <div style="background:#f8fafc; border:2px dashed #0284c7; border-radius:12px; padding:1.4rem; text-align:center; margin:1.25rem 0;">
+                      <h3 style="margin:0 0 0.5rem 0; color:#0f172a; font-size:1rem;">📱 QR CODE E-TIKET CHECK-IN</h3>
+                      <p style="margin:0 0 0.9rem 0; font-size:0.86rem; color:#475569;">Tunjukkan QR Code ini (atau buka di menu <strong>Profil &gt; Riwayat Pesanan</strong>) kepada panitia untuk di-scan di pintu masuk bioskop:</p>
+                      <img src="cid:nobar-ticket-qr" alt="QR E-Tiket ${safeOrderId}" width="210" height="210" style="display:inline-block; border-radius:8px; border:6px solid #ffffff; box-shadow:0 4px 14px rgba(2,132,199,0.2);" />
+                      <div style="margin-top:0.65rem; font-family:monospace; font-size:0.78rem; color:#64748b;">Kode: ${escapeHtml(ticketToken)}</div>
+                    </div>
+                    ` : ''}
+                    <div style="background:#fffbeb; padding:1.2rem 1.4rem; border-left: 4px solid #f59e0b; border-radius:6px; margin:1.2rem 0;">
+                      <h4 style="margin:0 0 0.4rem 0; color:#b45309;">ℹ️ Panduan Hari H di Bioskop:</h4>
+                      <p style="margin:0;font-size:0.9rem;color:#78350f;">
+                        1. Tunjukkan QR Code E-Tiket ini kepada panitia saat check-in di bioskop.<br/>
+                        2. Pengambilan tiket fisik &amp; penentuan kursi dilakukan di meja registrasi.<br/>
+                        3. Datang tepat waktu sebelum penayangan film dimulai!
+                      </p>
+                    </div>
+                    <p style="margin:1.5rem 0;">
+                      <a href="${safeOrdersUrl}" target="_blank" style="display:inline-block; background:#0284c7; color:#fff; text-decoration:none; font-weight:bold; padding:12px 24px; border-radius:8px;">🎟️ Buka E-Tiket QR di Riwayat Pesanan →</a>
+                    </p>
+                    <p>Sampai jumpa di bioskop bersama Aika Sesilia! 🍿✨</p>
+                    <p>Salam hangat,<br/><strong>Aika Sesilia</strong></p>
+                  </div>
+                `
+              };
+
+              if (qrPngBuffer) {
+                mailPayload.attachments = [
+                  {
+                    filename: `etiket-nobar-${order.id}.png`,
+                    content: qrPngBuffer,
+                    cid: 'nobar-ticket-qr'
+                  }
+                ];
+              }
+
+              await transporter.sendMail(mailPayload);
+              return;
+            }
+
             let gdriveLinksHTML = '';
             if (!isDpMail || parsedShip.pelunasanStatus === 'verified') {
               const itemsArr = Array.isArray(order.items) ? order.items : (typeof order.items === 'string' ? JSON.parse(order.items || '[]') : []);
@@ -1224,11 +1339,38 @@ module.exports = async (req, res) => {
     }
 
     if (method === 'DELETE') {
-      if (!requireAdmin(req, res)) return;
+      const adminUser = requireAdmin(req, res);
+      if (!adminUser) return;
       const { id } = req.query;
       if (id === 'ALL') {
+        if (adminUser.role === 'nobar_admin') {
+          return res.status(403).json({ error: 'Admin Nobar tidak diizinkan menghapus seluruh pesanan toko.' });
+        }
+        await db.query('DELETE FROM order_status_history').catch(() => {});
         await db.query('DELETE FROM orders');
+      } else if (id === 'ALL_NOBAR') {
+        await db.query(
+          `DELETE FROM order_status_history
+           WHERE order_id IN (SELECT id FROM orders WHERE shipping::text LIKE '%"isNobar"%')`
+        ).catch(() => {});
+        await db.query(`DELETE FROM orders WHERE shipping::text LIKE '%"isNobar"%'`);
       } else {
+        if (adminUser.role === 'nobar_admin') {
+          const checkRes = await db.query('SELECT shipping FROM orders WHERE id = $1', [id]);
+          if (!checkRes.rows.length) {
+            return res.status(404).json({ error: 'Pesanan tidak ditemukan' });
+          }
+          let shipObj = {};
+          try {
+            shipObj = typeof checkRes.rows[0].shipping === 'string'
+              ? JSON.parse(checkRes.rows[0].shipping || '{}')
+              : (checkRes.rows[0].shipping || {});
+          } catch (_) {}
+          if (!shipObj.isNobar) {
+            return res.status(403).json({ error: 'Admin Nobar hanya dapat menghapus pesanan tiket Nobar.' });
+          }
+        }
+        await db.query('DELETE FROM order_status_history WHERE order_id = $1', [id]).catch(() => {});
         await db.query('DELETE FROM orders WHERE id = $1', [id]);
       }
       return res.status(200).json({ success: true });

@@ -14,7 +14,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=2" />
   <style>
     .success-wrap {
       min-height: 100vh;
@@ -237,81 +237,204 @@
         .replace(/'/g, '&#039;');
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      let order = JSON.parse(sessionStorage.getItem('last_order') || localStorage.getItem('last_order') || '{}');
+    async function loadOrderData() {
       const detail = document.getElementById('orderDetail');
-      if (!order.id) {
-        detail.innerHTML = '<p style="color:var(--text-muted);text-align:center">Tidak ada data pesanan.</p>';
+      let order = null;
+
+      // 1. Ambil dari sessionStorage atau localStorage
+      try {
+        const stored = sessionStorage.getItem('last_order') || localStorage.getItem('last_order');
+        if (stored) order = JSON.parse(stored);
+      } catch (_) {}
+
+      // 2. Selalu coba ambil data terbaru dari API jika queryId ada & user login (agar status verifikasi + QR E-Tiket langsung update)
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryId = urlParams.get('id') || urlParams.get('order_id') || sessionStorage.getItem('last_order_id');
+
+      if (queryId) {
+        try {
+          const userSession = JSON.parse(localStorage.getItem('aika_session') || sessionStorage.getItem('aika_session') || '{}');
+          const userEmail = userSession.email;
+          const userToken = userSession.token || localStorage.getItem('aika_token') || '';
+          if (userEmail) {
+            const res = await fetch('/api/user-orders?email=' + encodeURIComponent(userEmail), {
+              headers: userToken ? { Authorization: 'Bearer ' + userToken } : {}
+            });
+            if (res.ok) {
+              const resData = await res.json();
+              const ordersList = Array.isArray(resData) ? resData : (resData.orders || []);
+              const found = ordersList.find(o => String(o.id) === String(queryId));
+              if (found) {
+                order = found;
+                try { sessionStorage.setItem('last_order', JSON.stringify(found)); } catch (_) {}
+              }
+            }
+          }
+        } catch (_) {}
+      }
+
+      if (!order || !order.id) {
+        detail.innerHTML = `
+          <div style="text-align:center; padding:2rem 1rem;">
+            <div style="font-size:2rem; margin-bottom:0.5rem;">📄</div>
+            <p style="color:var(--text-muted); font-size:0.95rem; margin-bottom:0.8rem;">Data invoice tidak ditemukan di sesi browser ini.</p>
+            <p style="font-size:0.85rem; color:var(--text-muted);">Jika Anda telah melakukan pembayaran, invoice dan bukti tiket Anda tersimpan aman di menu Profil.</p>
+            <a href="profile.html?tab=orders" class="btn-primary" style="display:inline-block; margin-top:1.2rem; padding:0.65rem 1.4rem; border-radius:50px;">Buka Riwayat Pesanan Saya</a>
+          </div>
+        `;
         return;
       }
 
-      const hasPhotopack = (order.items || []).some(i => i.is_photopack || i.category === 'Photopack');
+      // Parsing daftar item secara aman (bisa berupa Array atau JSON string)
+      let itemsList = [];
+      try {
+        if (Array.isArray(order.items)) {
+          itemsList = order.items;
+        } else if (typeof order.items === 'string') {
+          itemsList = JSON.parse(order.items || '[]');
+        }
+      } catch (_) {
+        itemsList = [];
+      }
+      if (!Array.isArray(itemsList)) itemsList = [];
 
-      const itemsHtml = (order.items || []).map(i => `
-    <div class="item-row">
-      <div>
-        <span>${parseInt(i.qty, 10) || 1}x ${escapeHtml(i.name)}${i.size ? ` • Size ${escapeHtml(i.size)}` : ''}</span>
-        ${i.is_photopack ? '<span style="background:rgba(41,182,246,0.2);color:var(--aqua);padding:2px 8px;border-radius:12px;font-size:0.75rem;font-weight:bold;margin-left:6px;">📸 Photopack Digital</span>' : ''}
-      </div>
-      <span>${formatPrice((Number(i.price) || 0) * (parseInt(i.qty, 10) || 1))}</span>
-    </div>
-  `).join('');
+      // Parsing info shipping secara aman
+      let shippingInfo = {};
+      try {
+        if (typeof order.shipping === 'string') {
+          shippingInfo = JSON.parse(order.shipping || '{}');
+        } else if (order.shipping && typeof order.shipping === 'object') {
+          shippingInfo = order.shipping;
+        }
+      } catch (_) {
+        shippingInfo = {};
+      }
+
+      // Deteksi tiket Nobar Bioskop
+      const isNobar = Boolean(shippingInfo && (shippingInfo.isNobar || shippingInfo.nobarTicket));
+      const nobarTicket = (shippingInfo && shippingInfo.nobarTicket) || (isNobar ? shippingInfo : null);
+
+      // Deteksi DP & Photopack
+      const isDp = Boolean(shippingInfo.paymentScheme === 'dp50' || shippingInfo.isDp);
+      const dpAmount = Number(shippingInfo.dpAmount) || Math.ceil((Number(order.total) || 0) * 0.5);
+      const remainingAmount = Number(shippingInfo.remainingAmount) || Math.max(0, (Number(order.total) || 0) - dpAmount);
+      const hasPhotopack = itemsList.some(i => i && (i.is_photopack || i.category === 'Photopack'));
 
       const formattedDate = order.date
         ? new Date(order.date).toLocaleString('id-ID', {
-          day: '2-digit', month: 'short', year: 'numeric',
-          hour: '2-digit', minute: '2-digit'
-        }) + ' WIB'
-        : '-';
+            day: '2-digit', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+          }) + ' WIB'
+        : new Date().toLocaleString('id-ID', {
+            day: '2-digit', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+          }) + ' WIB';
 
-      const shippingInfo = typeof order.shipping === 'string' ? JSON.parse(order.shipping || '{}') : (order.shipping || {});
-      const isDp = shippingInfo.paymentScheme === 'dp50' || shippingInfo.isDp;
-      const dpAmount = Number(shippingInfo.dpAmount) || Math.ceil((Number(order.total) || 0) * 0.5);
-      const remainingAmount = Number(shippingInfo.remainingAmount) || Math.max(0, (Number(order.total) || 0) - dpAmount);
+      const itemsHtml = itemsList.map(i => {
+        const qty = parseInt(i.qty, 10) || 1;
+        const price = Number(i.price) || 0;
+        return `
+          <div class="item-row">
+            <div>
+              <span>${qty}x ${escapeHtml(i.name || 'Item Pesanan')}${i.size ? ` • Size ${escapeHtml(i.size)}` : ''}</span>
+              ${i.is_photopack ? '<span style="background:rgba(41,182,246,0.2);color:var(--aqua);padding:2px 8px;border-radius:12px;font-size:0.75rem;font-weight:bold;margin-left:6px;">📸 Photopack Digital</span>' : ''}
+            </div>
+            <span>${formatPrice(price * qty)}</span>
+          </div>
+        `;
+      }).join('');
+
+      let tierBadgeText = 'Tiket Reguler';
+      if (nobarTicket) {
+        tierBadgeText = nobarTicket.tier === 'vip' ? 'Tiket VIP' : 'Tiket Reguler';
+      }
+
+      const orderStatusLower = String(order.status || '').toLowerCase();
+      const isNobarVerified = isNobar && ['paid', 'shipped', 'completed'].includes(orderStatusLower);
+      const isNobarCheckedIn = isNobar && (orderStatusLower === 'completed' || Boolean(nobarTicket && nobarTicket.checkedIn));
+      const safeQrUrl = isNobarVerified && typeof order.nobar_qr_data_url === 'string' && order.nobar_qr_data_url.startsWith('data:image/')
+        ? order.nobar_qr_data_url
+        : '';
+      const statusHtmlBadge = orderStatusLower === 'completed'
+        ? '<span style="color:#4ade80; font-weight:700;">✅ Selesai / Sudah Check-in</span>'
+        : orderStatusLower === 'paid'
+          ? `<span style="color:#4ade80; font-weight:700;">${isNobar ? '🎟️ Terverifikasi (Tiket Resmi Aktif)' : '📦 Terverifikasi (Dikemas)'}</span>`
+          : orderStatusLower === 'cancelled'
+            ? '<span style="color:#f87171; font-weight:700;">❌ Dibatalkan</span>'
+            : '<span style="color:#fde047; font-weight:700;">⏳ Menunggu Verifikasi Admin</span>';
 
       detail.innerHTML = `
-    <h3>
-      <span>📄 INVOICE PESANAN</span>
-      <span style="font-size:0.9rem; color:var(--white); font-weight:700;">#${escapeHtml(order.id)}</span>
-    </h3>
-    <div class="detail-row"><span>Waktu Pesanan</span><span>${formattedDate}</span></div>
-    <div class="detail-row"><span>Nama Pembeli</span><span>${escapeHtml(order.customerName)}</span></div>
-    <div class="detail-row"><span>Email Akun</span><span>${escapeHtml(order.email)}</span></div>
-    ${order.phone ? `<div class="detail-row"><span>No. Telepon / WhatsApp</span><span>${escapeHtml(order.phone)}</span></div>` : ''}
-    <div class="detail-row"><span>Alamat / Pengiriman</span><span>${escapeHtml(order.address)}</span></div>
-    ${order.note || order.notes ? `<div class="detail-row"><span>Catatan Pesanan</span><span style="color:var(--gold); font-weight:600;">${escapeHtml(order.note || order.notes)}</span></div>` : ''}
-    <div class="detail-row"><span>Metode Pengiriman</span><span>${escapeHtml(shippingInfo.name || 'Digital Delivery')}</span></div>
-    ${shippingInfo.resi ? `<div class="detail-row"><span>No. Resi</span><span style="font-weight:700; color:var(--sky-blue); letter-spacing:1px">${escapeHtml(shippingInfo.resi)}</span></div>` : ''}
-    <div class="detail-row">
-      <span>Skema Pembayaran</span>
-      <span>${isDp ? '<span style="background:rgba(234,179,8,0.2);color:#fde047;border:1px solid rgba(234,179,8,0.4);padding:2px 8px;border-radius:12px;font-size:0.78rem;font-weight:bold;">⚡ DP 50% (Uang Muka)</span>' : '<span style="background:rgba(41,182,246,0.15);color:var(--aqua);padding:2px 8px;border-radius:12px;font-size:0.78rem;font-weight:bold;">💎 Bayar Penuh</span>'}</span>
-    </div>
-    <div class="detail-row"><span>Status Pembayaran</span><span style="color:#fde047; font-weight:700;">⏳ Menunggu Verifikasi ${isDp ? 'DP' : 'Admin'}</span></div>
-    
-    ${isDp ? `
-      <div style="margin:1rem 0; padding:1rem; background:rgba(234,179,8,0.1); border:1px solid rgba(234,179,8,0.3); border-radius:10px; font-size:0.85rem; color:var(--white);">
-        <strong style="color:#fde047; display:block; margin-bottom:0.25rem;">⚡ Informasi Pembayaran DP 50%:</strong>
-        Anda telah membayar uang muka DP 50% sebesar <strong style="color:#4ade80;">${formatPrice(dpAmount)}</strong>. Sisa tagihan pelunasan sebesar <strong style="color:var(--gold);">${formatPrice(remainingAmount)}</strong> akan diinformasikan saat pesanan siap dikirim / COD.
-      </div>
-    ` : ''}
+        <h3>
+          <span>📄 INVOICE PESANAN</span>
+          <span style="font-size:0.95rem; color:var(--white); font-weight:700;">#${escapeHtml(order.id)}</span>
+        </h3>
+        <div class="detail-row"><span>Waktu Pesanan</span><span>${formattedDate}</span></div>
+        <div class="detail-row"><span>Nama Pembeli</span><span>${escapeHtml(order.customerName || '-')}</span></div>
+        <div class="detail-row"><span>Email Akun</span><span>${escapeHtml(order.email || '-')}</span></div>
+        ${order.phone ? `<div class="detail-row"><span>No. Telepon / WhatsApp</span><span>${escapeHtml(order.phone)}</span></div>` : ''}
+        <div class="detail-row"><span>Alamat / Lokasi</span><span>${escapeHtml(order.address || '-')}</span></div>
+        ${order.note || order.notes ? `<div class="detail-row"><span>Catatan Pesanan</span><span style="color:var(--gold); font-weight:600;">${escapeHtml(order.note || order.notes)}</span></div>` : ''}
+        <div class="detail-row"><span>Metode Pengiriman</span><span>${isNobar ? 'Tiket Masuk Nobar Bioskop (Ambil di Lokasi)' : escapeHtml(shippingInfo.name || 'Digital Delivery')}</span></div>
+        ${shippingInfo.resi ? `<div class="detail-row"><span>No. Resi</span><span style="font-weight:700; color:var(--sky-blue); letter-spacing:1px">${escapeHtml(shippingInfo.resi)}</span></div>` : ''}
+        <div class="detail-row">
+          <span>Skema Pembayaran</span>
+          <span>${isDp ? '<span style="background:rgba(234,179,8,0.2);color:#fde047;border:1px solid rgba(234,179,8,0.4);padding:2px 8px;border-radius:12px;font-size:0.78rem;font-weight:bold;">⚡ DP 50% (Uang Muka)</span>' : '<span style="background:rgba(41,182,246,0.15);color:var(--aqua);padding:2px 8px;border-radius:12px;font-size:0.78rem;font-weight:bold;">💎 Bayar Penuh QRIS</span>'}</span>
+        </div>
+        <div class="detail-row">
+          <span>Status Pembayaran</span>
+          ${statusHtmlBadge}
+        </div>
 
-    ${hasPhotopack ? `
-      <div style="margin:1rem 0; padding:0.9rem; background:rgba(41,182,246,0.1); border:1px solid var(--aqua); border-radius:10px; font-size:0.85rem; color:var(--white);">
-        <strong style="color:var(--aqua); display:block; margin-bottom:0.2rem;">⚡ Informasi Akses Google Drive:</strong>
-        Setelah pembayaran Anda diverifikasi oleh Admin, tombol aktif <strong>📂 Buka Google Drive</strong> akan langsung muncul di halaman <strong>Profil > Riwayat Pesanan</strong> Anda.
-      </div>
-    ` : ''}
+        ${isNobar && nobarTicket ? `
+          <div style="margin:1rem 0; padding:1.15rem; background:linear-gradient(135deg, ${nobarTicket.tier === 'vip' ? 'rgba(234,179,8,0.16), rgba(3,9,31,0.9)' : 'rgba(2,132,199,0.16), rgba(3,9,31,0.9)'}); border:1.5px solid ${isNobarVerified ? '#22c55e' : (nobarTicket.tier === 'vip' ? 'rgba(234,179,8,0.5)' : 'var(--aqua)')}; border-radius:12px; font-size:0.86rem; color:var(--white); line-height:1.55;">
+            <div style="font-weight:800; color:${nobarTicket.tier === 'vip' ? '#fde047' : 'var(--aqua)'}; font-size:0.95rem; margin-bottom:0.45rem;">
+              🎟️ BUKTI TIKET NOBAR BIOSKOP — ${escapeHtml(tierBadgeText)}
+            </div>
+            <div><strong>Jumlah Tiket:</strong> ${parseInt(nobarTicket.qty, 10) || 1} Kursi</div>
+            <div><strong>Daftar Nama Peserta:</strong> ${(nobarTicket.participants || []).map((p, idx) => `${idx + 1}. ${escapeHtml(p)}`).join(' • ')}</div>
+            ${nobarTicket.includesMerch ? `<div><strong>Paket Merch:</strong> <span style="color:var(--gold);">${escapeHtml(nobarTicket.merchBundle || 'Photocard & Poster')} (Diambil langsung di lokasi bioskop)</span></div>` : ''}
+            ${safeQrUrl ? `
+              <div style="margin:0.9rem 0 0.4rem; padding:1rem; background:#ffffff; border-radius:12px; text-align:center; color:#0f172a;">
+                <div style="font-weight:800; color:#0284c7; font-size:0.86rem; margin-bottom:0.5rem;">
+                  ${isNobarCheckedIn ? '✅ SUDAH CHECK-IN DI BIOSKOP' : '📱 QR CODE E-TIKET RESMI (SIAP SCAN)'}
+                </div>
+                <img src="${safeQrUrl}" alt="QR E-Tiket" style="width:190px; height:190px; display:inline-block;" />
+                ${order.nobar_ticket_token ? `<div style="font-family:monospace; font-size:0.72rem; color:#64748b; margin-top:4px;">${escapeHtml(order.nobar_ticket_token)}</div>` : ''}
+              </div>
+            ` : `
+              <div style="margin-top:0.6rem; padding-top:0.5rem; border-top:1px solid rgba(255,255,255,0.12); color:var(--text-muted); font-size:0.8rem;">
+                Bukti transfer QRIS telah berhasil diunggah. Setelah diverifikasi Admin, <strong>QR Code E-Tiket</strong> untuk scan check-in di pintu bioskop akan otomatis muncul di halaman <strong>Profil &gt; Riwayat Pesanan</strong> dan dikirim ke email Anda.
+              </div>
+            `}
+          </div>
+        ` : ''}
 
-    <div class="items-list">${itemsHtml}</div>
-    <div class="detail-row"><span>Ongkos Kirim</span><span>${formatPrice(shippingInfo.price || 0)}</span></div>
-    ${shippingInfo.discount ? `<div class="detail-row"><span style="color:#4caf50">Diskon Voucher (${escapeHtml(shippingInfo.discount.code)})</span><span style="color:#4caf50">- ${formatPrice(shippingInfo.discount.amount)}</span></div>` : ''}
-    <div class="detail-row" style="font-weight:700; font-size:1.02rem; border-top:1px solid var(--card-border); padding-top:0.8rem; margin-top:0.5rem;"><span style="color:var(--white)">Total Nilai Pesanan</span><span style="color:var(--aqua)">${formatPrice(order.total)}</span></div>
-    ${isDp ? `
-      <div class="detail-row" style="font-weight:700; font-size:1.05rem;"><span style="color:#4ade80;">Tagihan DP 50% (Dibayar)</span><span style="color:#4ade80;">${formatPrice(dpAmount)}</span></div>
-      <div class="detail-row" style="font-weight:700; font-size:0.95rem;"><span style="color:var(--gold);">Sisa Pelunasan Nanti</span><span style="color:var(--gold);">${formatPrice(remainingAmount)}</span></div>
-    ` : ''}
-  `;
-    });
+        ${isDp ? `
+          <div style="margin:1rem 0; padding:1rem; background:rgba(234,179,8,0.1); border:1px solid rgba(234,179,8,0.3); border-radius:10px; font-size:0.85rem; color:var(--white);">
+            <strong style="color:#fde047; display:block; margin-bottom:0.25rem;">⚡ Informasi Pembayaran DP 50%:</strong>
+            Anda telah membayar uang muka DP 50% sebesar <strong style="color:#4ade80;">${formatPrice(dpAmount)}</strong>. Sisa tagihan pelunasan sebesar <strong style="color:var(--gold);">${formatPrice(remainingAmount)}</strong> akan diinformasikan saat pesanan siap dikirim / COD.
+          </div>
+        ` : ''}
+
+        ${hasPhotopack ? `
+          <div style="margin:1rem 0; padding:0.9rem; background:rgba(41,182,246,0.1); border:1px solid var(--aqua); border-radius:10px; font-size:0.85rem; color:var(--white);">
+            <strong style="color:var(--aqua); display:block; margin-bottom:0.2rem;">⚡ Informasi Akses Google Drive:</strong>
+            Setelah pembayaran Anda diverifikasi oleh Admin, tombol aktif <strong>📂 Buka Google Drive</strong> akan langsung muncul di halaman <strong>Profil > Riwayat Pesanan</strong> Anda.
+          </div>
+        ` : ''}
+
+        <div class="items-list">${itemsHtml}</div>
+        <div class="detail-row"><span>Ongkos Kirim</span><span>${isNobar ? 'Rp 0 (Ambil di Lokasi)' : formatPrice(shippingInfo.price || 0)}</span></div>
+        ${shippingInfo.discount ? `<div class="detail-row"><span style="color:#4caf50">Diskon Voucher (${escapeHtml(shippingInfo.discount.code)})</span><span style="color:#4caf50">- ${formatPrice(shippingInfo.discount.amount)}</span></div>` : ''}
+        <div class="detail-row" style="font-weight:700; font-size:1.02rem; border-top:1px solid var(--card-border); padding-top:0.8rem; margin-top:0.5rem;"><span style="color:var(--white)">Total Nilai Pesanan</span><span style="color:var(--aqua)">${formatPrice(order.total)}</span></div>
+        ${isDp ? `
+          <div class="detail-row" style="font-weight:700; font-size:1.05rem;"><span style="color:#4ade80;">Tagihan DP 50% (Dibayar)</span><span style="color:#4ade80;">${formatPrice(dpAmount)}</span></div>
+          <div class="detail-row" style="font-weight:700; font-size:0.95rem;"><span style="color:var(--gold);">Sisa Pelunasan Nanti</span><span style="color:var(--gold);">${formatPrice(remainingAmount)}</span></div>
+        ` : ''}
+      `;
+    }
+
+    document.addEventListener('DOMContentLoaded', loadOrderData);
   </script>
   <!-- Floating Back to Home Button for Mobile (Android & iOS) -->
   <a href="index.html" class="mobile-floating-home-btn" id="successMobileHomeFab" aria-label="Kembali ke Halaman Utama">

@@ -31,6 +31,9 @@
       try {
         const user = JSON.parse(userStr);
         console.log('[DASHBOARD] Session OK for user: ' + user.username);
+        if (user && user.role === 'nobar_admin') {
+          document.documentElement.classList.add('is-nobar-admin');
+        }
       } catch (e) {
         console.log('[DASHBOARD] Session data corrupted, redirecting');
         localStorage.removeItem('aika_admin_logged');
@@ -50,7 +53,25 @@
   <link rel="stylesheet" href="../css/style.css" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+  <script src="/js/vendor/jsQR.js" defer></script>
   <style>
+    /* ── KHUSUS NOBAR ADMIN: HANYA TAMPILKAN NOBAR BIOSKOP ── */
+    html.is-nobar-admin #nav-dashboard,
+    html.is-nobar-admin #nav-users,
+    html.is-nobar-admin #nav-products,
+    html.is-nobar-admin #nav-orders,
+    html.is-nobar-admin #nav-sales-report,
+    html.is-nobar-admin #nav-settings,
+    html.is-nobar-admin #tab-dashboard,
+    html.is-nobar-admin #tab-users,
+    html.is-nobar-admin #tab-products,
+    html.is-nobar-admin #tab-orders,
+    html.is-nobar-admin #tab-sales-report,
+    html.is-nobar-admin #tab-settings,
+    html.is-nobar-admin .superadmin-only {
+      display: none !important;
+    }
+
     body {
       display: flex;
       min-height: 100vh;
@@ -915,6 +936,9 @@
       <a href="#" onclick="showTab('products')" id="nav-products">
         <span class="nav-icon">🛍️</span> Produk
       </a>
+      <a href="#" onclick="showTab('nobar')" id="nav-nobar">
+        <span class="nav-icon"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg></span> Nobar Bioskop
+      </a>
       <a href="#" onclick="showTab('orders')" id="nav-orders">
         <span class="nav-icon">📦</span> Pesanan
       </a>
@@ -1044,6 +1068,190 @@
           </thead>
           <tbody id="productTableBody"></tbody>
         </table>
+      </div>
+    </section>
+
+    <!-- ── NOBAR BIOSKOP MANAGEMENT ── -->
+    <section class="admin-section" id="tab-nobar">
+      <div class="admin-header">
+        <div>
+          <h1><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg> Manajemen Event Nobar Bioskop</h1>
+          <p>Atur kuota kursi VIP (2 orang di samping Kak Aika), kuota kursi reguler gabungan, harga 3 opsi tiket, dan daftar hadir peserta.</p>
+        </div>
+        <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+          <button type="button" class="btn-primary" onclick="openNobarQrScanner()" style="padding:0.65rem 1.25rem; border-radius:8px; font-size:0.86rem; font-weight:800; background:linear-gradient(135deg,#10b981,#0284c7); border:none; box-shadow:0 4px 16px rgba(16,185,129,0.35);">
+            📷 Scan QR Check-in Tiket
+          </button>
+          <button type="button" class="btn-secondary superadmin-only" onclick="openNobarAccountsSettings()" style="padding:0.6rem 1.05rem; border-radius:8px; font-size:0.84rem; font-weight:700; border-color:rgba(253,224,71,0.45); color:#fde047;">
+            🔑 Kelola Akun Panitia
+          </button>
+          <a href="../nobar.html" target="_blank" class="btn-secondary" style="text-decoration:none; padding:0.6rem 1.1rem; border-radius:8px; font-size:0.84rem; font-weight:700;">Lihat Halaman Nobar ↗</a>
+          <button class="btn-primary" onclick="exportNobarAttendeesCSV()" style="padding:0.6rem 1.1rem; border-radius:8px; font-size:0.84rem; font-weight:700;">Export CSV Daftar Peserta</button>
+        </div>
+      </div>
+
+      <!-- NOBAR QUOTA STATS -->
+      <div class="stats-grid" id="nobarStatsGrid" style="margin-bottom:1.8rem;"></div>
+
+      <!-- NOBAR CONFIGURATION FORM -->
+      <div class="stat-card" style="margin-bottom:2rem;">
+        <div class="admin-toolbar" style="margin-bottom:1rem;">
+          <h2>Pengaturan Event, Harga &amp; Kuota Tiket Nobar</h2>
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <label style="display:inline-flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:800; color:var(--white); background:rgba(3,9,31,0.7); border:1px solid var(--card-border); padding:0.5rem 0.95rem; border-radius:50px;">
+              <input type="checkbox" id="nobarIsOpen" checked style="width:18px; height:18px; accent-color:#22c55e;" />
+              <span id="nobarOpenStatusLabel">Penjualan Tiket: DIBUKA</span>
+            </label>
+            <button class="btn-primary" id="saveNobarConfigBtn" onclick="saveAdminNobarConfig()">Simpan Pengaturan Nobar</button>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; margin-bottom:1rem;">
+          <div class="form-group">
+            <label>Judul Event Nobar *</label>
+            <input type="text" id="nobarEventTitleInput" placeholder="Nobar Spesial Bioskop Bersama Aika Sesilia" />
+          </div>
+          <div class="form-group">
+            <label>Judul Film *</label>
+            <input type="text" id="nobarMovieTitleInput" placeholder="Contoh: Anime Movie / TBA" />
+          </div>
+          <div class="form-group">
+            <label>Tanggal Event *</label>
+            <input type="text" id="nobarDateInput" placeholder="Contoh: Minggu, 14 Desember 2026" />
+          </div>
+          <div class="form-group">
+            <label>Jam Acara *</label>
+            <input type="text" id="nobarTimeInput" placeholder="Contoh: 14:00 WIB - Selesai" />
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label>Lokasi Bioskop &amp; Studio *</label>
+            <input type="text" id="nobarLocationInput" placeholder="Contoh: CGV Grand Indonesia Jakarta, Audi 3" />
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1; background:rgba(3,9,31,0.55); border:1px solid var(--card-border); border-radius:12px; padding:1rem;">
+            <label style="color:var(--aqua); font-weight:800; margin-bottom:0.6rem; display:block;">Foto Poster Film / Banner Event Nobar</label>
+            <div style="display:flex; gap:1.25rem; align-items:center; flex-wrap:wrap;">
+              <div style="width:115px; border-radius:12px; overflow:hidden; border:2px solid rgba(41,182,246,0.4); background:rgba(3,9,31,0.9); flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+                <img id="nobarBannerPreviewImg" src="/images/Profil/charlotta-seo.jpg" alt="Preview Poster Nobar" style="width:100%; height:auto; max-height:170px; object-fit:contain; display:block;" />
+              </div>
+              <div style="flex:1; min-width:240px;">
+                <input type="file" id="nobarBannerFileInput" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleAdminNobarBannerChange(event)" />
+                <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin-bottom:0.6rem;">
+                  <button type="button" class="btn-primary" onclick="document.getElementById('nobarBannerFileInput').click()" style="padding:0.55rem 1.1rem; font-size:0.83rem;">
+                    Upload Foto Poster Film
+                  </button>
+                  <button type="button" class="btn-secondary" onclick="resetAdminNobarBanner()" style="padding:0.55rem 0.95rem; font-size:0.82rem; border-color:var(--card-border); color:var(--text-muted);">
+                    Reset Default
+                  </button>
+                </div>
+                <input type="text" id="nobarBannerUrlInput" placeholder="Atau tempel URL gambar poster (otomatis terisi saat upload)" oninput="if(this.value.trim()) document.getElementById('nobarBannerPreviewImg').src = this.value.trim();" style="font-size:0.82rem; padding:0.55rem 0.8rem;" />
+                <div id="nobarBannerUploadStatus" style="font-size:0.76rem; color:var(--text-muted); margin-top:0.35rem;">
+                  Pilih foto poster dari komputer/HP Anda lalu klik tombol <strong>Simpan Pengaturan Nobar</strong> di kanan atas.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(185px, 1fr)); gap:1rem; margin-bottom:1.15rem; padding-top:1rem; border-top:1px solid var(--card-border); align-items:stretch;">
+          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+            <label style="color:var(--gold); line-height:1.35; margin-bottom:0.45rem;">1. Harga Tiket VIP (Rp) *</label>
+            <input type="number" id="nobarPriceVipInput" min="1000" placeholder="250000" />
+          </div>
+          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+            <label style="color:var(--aqua); line-height:1.35; margin-bottom:0.45rem;">2. Harga Tiket Biasa (Rp) *</label>
+            <input type="number" id="nobarPriceRegInput" min="1000" placeholder="75000" />
+          </div>
+          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+            <label style="color:#38bdf8; line-height:1.35; margin-bottom:0.45rem;">3. Harga Tiket Biasa + Merch (Rp) *</label>
+            <input type="number" id="nobarPriceMerchInput" min="1000" placeholder="135000" />
+          </div>
+          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+            <label style="color:var(--gold); line-height:1.35; margin-bottom:0.45rem;">Kuota Kursi VIP (Samping Aika) *</label>
+            <input type="number" id="nobarVipQuotaInput" min="1" max="20" value="2" />
+          </div>
+          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+            <label style="color:var(--aqua); line-height:1.35; margin-bottom:0.45rem;">Kuota Kursi Reguler Gabungan *</label>
+            <input type="number" id="nobarRegQuotaInput" min="1" max="1000" value="40" title="Gabungan kuota kursi Tiket Biasa dan Tiket Biasa + Merch" />
+          </div>
+          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+            <label style="line-height:1.35; margin-bottom:0.45rem;">Maks Tiket Reguler / Transaksi *</label>
+            <input type="number" id="nobarMaxRegInput" min="1" max="20" value="5" />
+          </div>
+          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+            <label style="color:#fde047; line-height:1.35; margin-bottom:0.45rem;">⏱️ Batas Bayar Tiket (Menit) *</label>
+            <input type="number" id="nobarPaymentTimeoutInput" min="10" max="1440" value="45" title="Kursi dilepas otomatis jika bukti bayar QRIS belum diunggah lewat batas waktu ini (disarankan 30–60 menit)" />
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:1rem; padding-top:0.9rem; border-top:1px dashed rgba(41,182,246,0.2); align-items:stretch;">
+          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+            <label style="line-height:1.35; margin-bottom:0.45rem;">Isi Paket Merch Bundel (Tanpa Ukuran Baju)</label>
+            <input type="text" id="nobarMerchDescInput" placeholder="Photocard Eksklusif + Poster Nobar Aika Sesilia (Ambil di Lokasi)" />
+          </div>
+          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+            <label style="line-height:1.35; margin-bottom:0.45rem;">Benefit Tiket VIP</label>
+            <input type="text" id="nobarVipPerkInput" placeholder="Duduk eksklusif tepat di samping Kak Aika (Kuota 2 Orang) + Photocard & Poster" />
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1; margin-bottom:0;">
+            <label style="line-height:1.35; margin-bottom:0.45rem;">Catatan / Ketentuan Event (Ditampilkan di Halaman Pembelian)</label>
+            <input type="text" id="nobarNotesInput" placeholder="Kursi diambil saat event berlangsung (siapa cepat dia dapat). Merch diambil langsung di lokasi tanpa ongkir." />
+          </div>
+        </div>
+      </div>
+
+      <!-- NOBAR ATTENDEES TABLE -->
+      <div class="stat-card">
+        <div class="admin-toolbar" style="margin-bottom:1rem; flex-wrap:wrap; gap:0.85rem;">
+          <div>
+            <h2>Daftar Peserta &amp; Pembeli Tiket Nobar</h2>
+            <p style="color:var(--text-muted); font-size:0.83rem; margin-top:2px;" id="nobarAttendeeCountLabel">0 pesanan tiket</p>
+          </div>
+          <div style="display:flex; gap:0.65rem; align-items:center; flex-wrap:wrap;">
+            <div style="position:relative; min-width:250px;">
+              <input
+                type="text"
+                id="nobarParticipantSearch"
+                oninput="renderAdminNobarTable()"
+                placeholder="🔍 Cari nama peserta, pembeli, HP, Invoice..."
+                style="width:100%; background:rgba(3,9,31,0.75); border:1px solid var(--card-border); color:var(--white); padding:0.55rem 2rem 0.55rem 0.85rem; border-radius:8px; font-family:var(--font-body); font-size:0.84rem;"
+              />
+              <button
+                type="button"
+                id="clearNobarSearchBtn"
+                onclick="const el=document.getElementById('nobarParticipantSearch'); if(el){el.value=''; renderAdminNobarTable(); el.focus();}"
+                title="Bersihkan pencarian"
+                style="display:none; position:absolute; right:7px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.88rem; padding:2px 5px;"
+              >✕</button>
+            </div>
+            <select id="nobarTierFilter" onchange="renderAdminNobarTable()" style="background:var(--card-bg); border:1px solid var(--card-border); color:var(--white); padding:0.55rem 0.9rem; border-radius:8px; font-family:var(--font-body);">
+              <option value="all">Semua Kategori Tiket</option>
+              <option value="vip">1. Tiket VIP</option>
+              <option value="regular">2. Tiket Biasa</option>
+              <option value="regular_merch">3. Tiket Biasa + Merch</option>
+            </select>
+            <button type="button" class="btn-del" onclick="deleteAllNobarOrders()" style="padding:0.55rem 0.9rem; border-radius:8px; font-size:0.82rem; font-weight:700; white-space:nowrap;">
+              🗑 Hapus Semua Tiket
+            </button>
+          </div>
+        </div>
+
+        <div class="products-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Invoice ID</th>
+                <th>Kategori Tiket</th>
+                <th>Daftar Nama Peserta</th>
+                <th>Kursi</th>
+                <th>Akun Pembeli &amp; HP</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Aksi / Verifikasi</th>
+              </tr>
+            </thead>
+            <tbody id="nobarAttendeesTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -1229,6 +1437,54 @@
               Simpan</button>
           </div>
         </div>
+
+        <!-- KELOLA AKUN ADMIN NOBAR (SUPERADMIN ONLY) -->
+        <div class="stat-card" id="nobarAdminAccountsCard" style="grid-column:1/-1">
+          <div class="admin-toolbar" style="margin-bottom:0.75rem">
+            <div>
+              <h2>🎫 Akun Panitia / Admin Nobar Bioskop</h2>
+              <p style="font-size:0.84rem; color:var(--text-muted); margin-top:0.25rem;">Buat akun login khusus untuk panitia Nobar di lokasi. Panitia hanya dapat mengakses tab <strong>Nobar Bioskop</strong> (verifikasi bayar tiket &amp; scan QR check-in), tidak bisa membuka data toko/produk/keuangan.</p>
+            </div>
+            <button type="button" class="btn-secondary" onclick="loadNobarAdminAccounts()" style="border-color:var(--card-border); color:var(--text-muted)">🔄 Refresh</button>
+          </div>
+
+          <form onsubmit="event.preventDefault(); createNobarAdminAccount();" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:1rem; align-items:end; background:rgba(3,9,31,0.45); border:1px solid var(--card-border); border-radius:12px; padding:1rem; margin-bottom:1.2rem;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label for="newNobarAdminUsername">Username Panitia *</label>
+              <input type="text" id="newNobarAdminUsername" placeholder="Contoh: panitia_nobar1" autocomplete="off" />
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label for="newNobarAdminPassword">Password Login *</label>
+              <input type="password" id="newNobarAdminPassword" placeholder="Minimal 8 karakter" autocomplete="new-password" />
+            </div>
+            <div>
+              <button type="submit" class="btn-primary" id="createNobarAdminBtn" style="width:100%; padding:0.75rem 1rem; font-weight:700;">
+                + Tambah Akun Panitia
+              </button>
+            </div>
+          </form>
+
+          <div class="products-table-wrap" style="margin-bottom:0.75rem;">
+            <table>
+              <thead>
+                <tr style="background:rgba(41,182,246,0.1);border-bottom:2px solid var(--card-border)">
+                  <th>Username Login</th>
+                  <th>Hak Akses</th>
+                  <th>Status</th>
+                  <th>Login Terakhir</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="nobarAdminAccountsTableBody">
+                <tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:1rem;">Memuat daftar akun panitia...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">
+            💡 Panitia login menggunakan halaman admin yang sama (<code style="color:var(--aqua);">/login.html?role=admin</code>). Username bersifat sensitif huruf besar/kecil sesuai yang Anda daftarkan di atas.
+          </p>
+        </div>
+
         <div class="stat-card" style="grid-column:1/-1">
           <div class="admin-toolbar" style="margin-bottom:1rem">
             <h2>🎟️ Manajemen Voucher</h2>
@@ -1452,12 +1708,71 @@
   <!-- ORDER DETAIL MODAL -->
   <div class="modal-overlay" id="orderModal">
     <div class="modal">
-      <h2>📦 Detail Pesanan</h2>
+      <h2 id="orderModalTitle">📦 Detail Pesanan</h2>
       <div id="orderDetailContent"></div>
-      <div class="modal-footer">
+      <div class="modal-footer" style="flex-wrap:wrap;gap:0.5rem;">
+        <button class="btn-del" id="deleteOrderModalBtn" style="display:none;margin-right:auto;">🗑 Hapus Pesanan</button>
         <button class="btn-edit" id="downloadOrderExcelBtn" style="display:none">Excel Invoice</button>
         <button class="btn-ghost" onclick="closeOrderModal()">Tutup</button>
         <button class="btn-primary" id="markPaidBtn">💾 Update Status</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOBAR QR CODE CHECK-IN SCANNER MODAL -->
+  <div class="modal-overlay" id="nobarQrScannerModal">
+    <div class="modal" style="max-width:620px; width:95%;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; margin-bottom:0.85rem;">
+        <div>
+          <h2 style="margin:0; font-size:1.2rem; color:var(--aqua);">📷 Scan QR Check-in Nobar Bioskop</h2>
+          <p style="margin:3px 0 0; font-size:0.78rem; color:var(--text-muted);">Arahkan kamera ke QR Code E-Tiket peserta atau cari manual lewat nomor Invoice.</p>
+        </div>
+        <button type="button" class="btn-ghost" onclick="closeNobarQrScanner()" style="padding:0.35rem 0.7rem; border-radius:50%;">✕</button>
+      </div>
+
+      <!-- AUTO CHECK-IN & CAMERA CONTROLS -->
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.6rem; background:rgba(3,9,31,0.65); border:1px solid var(--card-border); border-radius:10px; padding:0.7rem 0.9rem; margin-bottom:0.9rem;">
+        <label style="display:inline-flex; align-items:center; gap:0.5rem; font-size:0.82rem; font-weight:700; color:var(--white); cursor:pointer;">
+          <input type="checkbox" id="qrAutoCheckInToggle" style="width:16px; height:16px; accent-color:#22c55e;" />
+          <span>⚡ Auto Check-in otomatis saat QR valid</span>
+        </label>
+        <div style="display:flex; gap:0.45rem; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" onclick="switchNobarScannerCamera()" style="padding:0.35rem 0.75rem; font-size:0.76rem; border-radius:8px;">
+            🔄 Ganti Kamera
+          </button>
+          <input type="file" id="qrUploadImageInput" accept="image/*" style="display:none;" onchange="scanQrFromUploadedImage(event)" />
+          <button type="button" class="btn-secondary" onclick="document.getElementById('qrUploadImageInput').click()" style="padding:0.35rem 0.75rem; font-size:0.76rem; border-radius:8px; border-color:rgba(41,182,246,0.45); color:var(--aqua);">
+            🖼 Scan Foto QR
+          </button>
+        </div>
+      </div>
+
+      <!-- CAMERA VIEWPORT -->
+      <div id="qrCameraBox" style="position:relative; width:100%; background:#020617; border:2px solid rgba(41,182,246,0.45); border-radius:14px; overflow:hidden; margin-bottom:0.9rem; min-height:240px; display:flex; align-items:center; justify-content:center;">
+        <video id="qrScannerVideo" playsinline muted style="width:100%; max-height:320px; object-fit:cover; display:block;"></video>
+        <canvas id="qrScannerCanvas" style="display:none;"></canvas>
+        <!-- Viewfinder Guide Box -->
+        <div style="position:absolute; inset:0; pointer-events:none; display:flex; align-items:center; justify-content:center;">
+          <div style="width:190px; height:190px; border:2.5px dashed rgba(41,182,246,0.85); border-radius:16px; box-shadow:0 0 0 9999px rgba(2,6,23,0.42);"></div>
+        </div>
+        <div id="qrCameraStatusMsg" style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); background:rgba(3,9,31,0.85); color:var(--aqua); font-size:0.76rem; font-weight:700; padding:4px 12px; border-radius:50px; border:1px solid rgba(41,182,246,0.35); white-space:nowrap;">
+          Mengaktifkan kamera...
+        </div>
+      </div>
+
+      <!-- MANUAL INPUT / FALLBACK -->
+      <form onsubmit="event.preventDefault(); verifyManualNobarQr();" style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+        <input type="text" id="qrManualCodeInput" placeholder="Atau ketik Invoice ID (misal: INV-20261121-01) / kode AIKANOBAR..." style="flex:1; background:rgba(3,9,31,0.75); border:1px solid var(--card-border); color:var(--white); padding:0.65rem 0.9rem; border-radius:8px; font-family:monospace; font-size:0.84rem;" />
+        <button type="submit" class="btn-primary" style="padding:0.65rem 1.1rem; border-radius:8px; font-size:0.84rem; font-weight:700; white-space:nowrap;">
+          Cek Tiket
+        </button>
+      </form>
+
+      <!-- RESULT CARD -->
+      <div id="qrScanResultCard" style="display:none; border-radius:14px; padding:1.1rem; margin-bottom:0.5rem;"></div>
+
+      <div class="modal-footer" style="margin-top:0.75rem;">
+        <button type="button" class="btn-ghost" onclick="closeNobarQrScanner()">Tutup Scanner</button>
       </div>
     </div>
   </div>
@@ -1474,6 +1789,31 @@
         <button class="btn-ghost" onclick="closeCropperModal()">Batal</button>
         <button class="btn-primary" onclick="applyCrop()">✅ Terapkan Potongan</button>
       </div>
+    </div>
+  </div>
+
+  <!-- NOBAR ADMIN PASSWORD RESET MODAL -->
+  <div class="modal-overlay" id="nobarAdminPwdModal">
+    <div class="modal" style="max-width:440px;">
+      <h2>🔑 Ganti Password Panitia Nobar</h2>
+      <p style="font-size:0.84rem; color:var(--text-muted); margin-bottom:1.1rem;">
+        Atur password baru untuk akun <strong id="nobarPwdTargetUsername" style="color:var(--aqua);">-</strong>:
+      </p>
+      <input type="hidden" id="nobarPwdTargetId" />
+      <form onsubmit="event.preventDefault(); submitNobarAdminPasswordReset();">
+        <div class="form-group">
+          <label for="nobarResetNewPassword">Password Baru *</label>
+          <input type="password" id="nobarResetNewPassword" placeholder="Minimal 8 karakter" autocomplete="new-password" />
+        </div>
+        <div class="form-group">
+          <label for="nobarResetConfirmPassword">Konfirmasi Password Baru *</label>
+          <input type="password" id="nobarResetConfirmPassword" placeholder="Ulangi password baru" autocomplete="new-password" />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" onclick="closeNobarAdminPwdModal()">Batal</button>
+          <button type="submit" class="btn-primary" id="saveNobarAdminPwdBtn">Simpan Password</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -1591,6 +1931,19 @@
     }
 
     // ── TABS ──
+    function checkNobarAdmin() {
+      try {
+        const u = JSON.parse(localStorage.getItem('aika_admin_user') || '{}');
+        return Boolean(u && u.role === 'nobar_admin');
+      } catch (_) {
+        return false;
+      }
+    }
+    const isNobarAdmin = checkNobarAdmin();
+    if (isNobarAdmin) {
+      document.documentElement.classList.add('is-nobar-admin');
+    }
+
     function clearAdminSession() {
       localStorage.removeItem('aika_admin_logged');
       localStorage.removeItem('aika_admin_user');
@@ -1626,19 +1979,24 @@
     }
 
     async function showTab(tab) {
+      if (isNobarAdmin && tab !== 'nobar') {
+        tab = 'nobar';
+      }
       document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
       document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
-      document.getElementById('tab-' + tab).classList.add('active');
-      document.getElementById('nav-' + tab).classList.add('active');
+      const targetTab = document.getElementById('tab-' + tab);
+      const targetNav = document.getElementById('nav-' + tab);
+      if (targetTab) targetTab.classList.add('active');
+      if (targetNav) targetNav.classList.add('active');
 
-      // Show loading state temporarily
-      const section = document.getElementById('tab-' + tab);
-
-      if (tab === 'dashboard') await renderDashboard();
-      if (tab === 'users') await renderUsers();
-      if (tab === 'products') await renderProducts();
-      if (tab === 'orders') await renderOrders('all');
-      if (tab === 'settings') await loadSettings();
+      if (!isNobarAdmin) {
+        if (tab === 'dashboard') await renderDashboard();
+        if (tab === 'users') await renderUsers();
+        if (tab === 'products') await renderProducts();
+        if (tab === 'orders') await renderOrders('all');
+        if (tab === 'settings') await loadSettings();
+      }
+      if (tab === 'nobar') await loadAdminNobar();
 
       const sidebar = document.getElementById('adminSidebar');
       if (sidebar && sidebar.classList.contains('open')) toggleMobileMenu();
@@ -1646,6 +2004,7 @@
 
     // ── DASHBOARD ──
     async function renderDashboard() {
+      if (isNobarAdmin) return;
       const orders = await Orders.getAll();
       const products = await Products.getAll();
       const revenueStatuses = new Set(['paid', 'shipped', 'completed']);
@@ -1684,6 +2043,7 @@
 
     // ── USERS ──
     async function renderUsers() {
+      if (isNobarAdmin) return;
       try {
         const res = await adminFetch('/api/users');
         const data = await res.json();
@@ -1852,6 +2212,7 @@
     }
 
     async function renderProducts() {
+      if (isNobarAdmin) return;
       allAdminProducts = await Products.getAll();
       filterAdminProducts();
     }
@@ -2390,10 +2751,350 @@
     }
 
 
+    
+    // ── NOBAR BIOSKOP ADMIN MANAGEMENT ──
+    let adminNobarData = { config: null, stats: null, attendees: [] };
+    let pendingNobarBannerDataUrl = null;
+
+    async function handleAdminNobarBannerChange(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const statusEl = document.getElementById('nobarBannerUploadStatus');
+      const previewEl = document.getElementById('nobarBannerPreviewImg');
+      try {
+        if (statusEl) {
+          statusEl.style.color = 'var(--aqua)';
+          statusEl.textContent = 'Memproses gambar poster...';
+        }
+        const dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onerror = () => reject(new Error('Gagal membaca file gambar'));
+          reader.onload = (ev) => {
+            const img = new Image();
+            img.onerror = () => reject(new Error('Format gambar tidak valid'));
+            img.onload = () => {
+              const maxDim = 1400;
+              let w = img.width;
+              let h = img.height;
+              if (w > maxDim || h > maxDim) {
+                if (w >= h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                else { w = Math.round((w * maxDim) / h); h = maxDim; }
+              }
+              const canvas = document.createElement('canvas');
+              canvas.width = w;
+              canvas.height = h;
+              canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+              resolve(canvas.toDataURL('image/jpeg', 0.88));
+            };
+            img.src = ev.target.result;
+          };
+          reader.readAsDataURL(file);
+        });
+
+        pendingNobarBannerDataUrl = dataUrl;
+        if (previewEl) previewEl.src = dataUrl;
+        if (statusEl) {
+          statusEl.style.color = '#4ade80';
+          statusEl.innerHTML = 'Foto poster siap disimpan (<strong>' + escapeHtml(file.name) + '</strong>). Klik <strong>Simpan Pengaturan Nobar</strong> untuk menerapkan.';
+        }
+      } catch (err) {
+        pendingNobarBannerDataUrl = null;
+        showToast('Gagal memuat foto poster: ' + err.message);
+      }
+    }
+
+    function resetAdminNobarBanner() {
+      pendingNobarBannerDataUrl = null;
+      const defaultUrl = '/images/Profil/charlotta-seo.jpg';
+      const urlInput = document.getElementById('nobarBannerUrlInput');
+      const previewEl = document.getElementById('nobarBannerPreviewImg');
+      const fileInput = document.getElementById('nobarBannerFileInput');
+      const statusEl = document.getElementById('nobarBannerUploadStatus');
+      if (urlInput) urlInput.value = defaultUrl;
+      if (previewEl) previewEl.src = defaultUrl;
+      if (fileInput) fileInput.value = '';
+      if (statusEl) {
+        statusEl.style.color = 'var(--text-muted)';
+        statusEl.textContent = 'Poster direset ke gambar default. Klik Simpan Pengaturan Nobar untuk menyimpan.';
+      }
+    }
+
+    async function loadAdminNobar() {
+      try {
+        const res = await adminFetch('/api/nobar?admin=true&t=' + Date.now());
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal memuat data Nobar');
+
+        adminNobarData = data;
+        const cfg = data.config || {};
+        const st = data.stats || {};
+
+        const isOpenEl = document.getElementById('nobarIsOpen');
+        const openLbl = document.getElementById('nobarOpenStatusLabel');
+        if (isOpenEl) {
+          isOpenEl.checked = Boolean(cfg.isOpen);
+          isOpenEl.onchange = () => {
+            if (openLbl) openLbl.textContent = isOpenEl.checked ? 'Penjualan Tiket: DIBUKA' : 'Penjualan Tiket: DITUTUP';
+          };
+        }
+        if (openLbl) openLbl.textContent = cfg.isOpen ? 'Penjualan Tiket: DIBUKA' : 'Penjualan Tiket: DITUTUP';
+
+        document.getElementById('nobarEventTitleInput').value = cfg.eventTitle || '';
+        document.getElementById('nobarMovieTitleInput').value = cfg.movieTitle || '';
+        document.getElementById('nobarDateInput').value = cfg.eventDate || '';
+        document.getElementById('nobarTimeInput').value = cfg.eventTime || '';
+        document.getElementById('nobarLocationInput').value = cfg.cinemaLocation || '';
+        document.getElementById('nobarPriceVipInput').value = cfg.priceVip || 250000;
+        document.getElementById('nobarPriceRegInput').value = cfg.priceRegular || 75000;
+        document.getElementById('nobarPriceMerchInput').value = cfg.priceRegularMerch || 135000;
+        document.getElementById('nobarVipQuotaInput').value = cfg.vipQuota || 2;
+        document.getElementById('nobarRegQuotaInput').value = cfg.regularQuota || 40;
+        document.getElementById('nobarMaxRegInput').value = cfg.maxRegularPerOrder || 5;
+        const timeoutEl = document.getElementById('nobarPaymentTimeoutInput');
+        if (timeoutEl) timeoutEl.value = cfg.paymentTimeoutMinutes || 45;
+        document.getElementById('nobarMerchDescInput').value = cfg.merchBundleDesc || '';
+        document.getElementById('nobarVipPerkInput').value = cfg.vipPerk || '';
+        document.getElementById('nobarNotesInput').value = cfg.eventNotes || '';
+        pendingNobarBannerDataUrl = null;
+        const bannerUrl = cfg.bannerImage || '/images/Profil/charlotta-seo.jpg';
+        const bannerInputEl = document.getElementById('nobarBannerUrlInput');
+        const bannerPrevEl = document.getElementById('nobarBannerPreviewImg');
+        const bannerStatusEl = document.getElementById('nobarBannerUploadStatus');
+        if (bannerInputEl) bannerInputEl.value = bannerUrl.startsWith('data:') ? '' : bannerUrl;
+        if (bannerPrevEl) bannerPrevEl.src = sanitizeImageUrl(bannerUrl) || '/images/Profil/charlotta-seo.jpg';
+        if (bannerStatusEl) {
+          bannerStatusEl.style.color = 'var(--text-muted)';
+          bannerStatusEl.innerHTML = 'Pilih foto poster dari komputer/HP Anda lalu klik tombol <strong>Simpan Pengaturan Nobar</strong>.';
+        }
+
+        const verifiedRevenue = (data.attendees || [])
+          .filter(a => ['paid', 'shipped', 'completed'].includes(String(a.status || '').toLowerCase()))
+          .reduce((sum, a) => sum + (Number(a.total) || 0), 0);
+
+        const statsEl = document.getElementById('nobarStatsGrid');
+        if (statsEl) {
+          statsEl.innerHTML = `
+            <div class="stat-card" style="border-color:rgba(234,179,8,0.45);">
+              <div class="stat-label">Tiket VIP</div>
+              <div class="stat-value" style="color:var(--gold);">${st.vipVerified || 0} / ${cfg.vipQuota || 2}</div>
+              <div style="font-size:0.76rem;color:var(--text-muted);margin-top:4px;">Antrean Verifikasi: ${st.vipPending || 0} • Sisa: ${st.vipRemaining || 0}</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Tiket Reguler</div>
+              <div class="stat-value" style="color:var(--aqua);">${st.regularTaken || 0} / ${cfg.regularQuota || 40}</div>
+              <div style="font-size:0.76rem;color:var(--text-muted);margin-top:4px;">Terverifikasi: ${st.regularVerified || 0} • Sisa Kursi: ${st.regularRemaining || 0}</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Rincian Kategori Aktif</div>
+              <div class="stat-value" style="font-size:1.15rem;">VIP: ${st.tierBreakdown?.vip?.total || 0} | Biasa: ${st.tierBreakdown?.regular?.total || 0} | +Merch: ${st.tierBreakdown?.regular_merch?.total || 0}</div>
+              <div style="font-size:0.76rem;color:var(--text-muted);margin-top:4px;">Total Kursi Dipesan: ${(st.vipTaken || 0) + (st.regularTaken || 0)} kursi</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Kehadiran &amp; Check-in QR</div>
+              <div class="stat-value" style="color:#4ade80;">${st.checkedInSeats || 0} / ${st.verifiedSeats || 0} Kursi</div>
+              <div style="font-size:0.76rem;color:var(--text-muted);margin-top:4px;">${st.checkedInOrders || 0} dari ${st.verifiedOrders || 0} transaksi terverifikasi sudah Check-in</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Pendapatan Tiket Terverifikasi</div>
+              <div class="stat-value" style="color:#4ade80;">${formatPrice(verifiedRevenue)}</div>
+              <div style="font-size:0.76rem;color:var(--text-muted);margin-top:4px;">Penjualan: <strong>${cfg.isOpen ? 'DIBUKA' : 'DITUTUP'}</strong> • Kunci Kursi: <strong>${cfg.paymentTimeoutMinutes || 45} mnt</strong></div>
+            </div>
+          `;
+        }
+
+        renderAdminNobarTable();
+      } catch (err) {
+        showToast('Gagal memuat data Nobar: ' + err.message);
+      }
+    }
+
+    async function saveAdminNobarConfig() {
+      const btn = document.getElementById('saveNobarConfigBtn');
+      const origText = btn ? btn.textContent : 'Simpan Pengaturan Nobar';
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Menyimpan...';
+      }
+
+      try {
+        const payload = {
+          isOpen: document.getElementById('nobarIsOpen').checked,
+          eventTitle: document.getElementById('nobarEventTitleInput').value.trim(),
+          movieTitle: document.getElementById('nobarMovieTitleInput').value.trim(),
+          eventDate: document.getElementById('nobarDateInput').value.trim(),
+          eventTime: document.getElementById('nobarTimeInput').value.trim(),
+          cinemaLocation: document.getElementById('nobarLocationInput').value.trim(),
+          priceVip: parseInt(document.getElementById('nobarPriceVipInput').value, 10) || 250000,
+          priceRegular: parseInt(document.getElementById('nobarPriceRegInput').value, 10) || 75000,
+          priceRegularMerch: parseInt(document.getElementById('nobarPriceMerchInput').value, 10) || 135000,
+          vipQuota: parseInt(document.getElementById('nobarVipQuotaInput').value, 10) || 2,
+          regularQuota: parseInt(document.getElementById('nobarRegQuotaInput').value, 10) || 40,
+          maxRegularPerOrder: parseInt(document.getElementById('nobarMaxRegInput').value, 10) || 5,
+          paymentTimeoutMinutes: parseInt(document.getElementById('nobarPaymentTimeoutInput')?.value, 10) || 45,
+          merchBundleDesc: document.getElementById('nobarMerchDescInput').value.trim(),
+          vipPerk: document.getElementById('nobarVipPerkInput').value.trim(),
+          eventNotes: document.getElementById('nobarNotesInput').value.trim(),
+          bannerImage: pendingNobarBannerDataUrl || document.getElementById('nobarBannerUrlInput').value.trim() || '/images/Profil/charlotta-seo.jpg'
+        };
+
+        const res = await adminFetch('/api/nobar', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal menyimpan pengaturan Nobar');
+
+        showToast('Pengaturan Event Nobar Bioskop berhasil disimpan!');
+        await loadAdminNobar();
+      } catch (err) {
+        showToast('Error: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = origText;
+        }
+      }
+    }
+
+    function renderAdminNobarTable() {
+      const tbody = document.getElementById('nobarAttendeesTableBody');
+      if (!tbody) return;
+      const filter = document.getElementById('nobarTierFilter')?.value || 'all';
+      const searchInput = document.getElementById('nobarParticipantSearch');
+      const searchQuery = (searchInput ? searchInput.value : '').trim().toLowerCase();
+      const clearBtn = document.getElementById('clearNobarSearchBtn');
+      if (clearBtn) {
+        clearBtn.style.display = searchQuery ? 'block' : 'none';
+      }
+
+      let list = [...(adminNobarData.attendees || [])].reverse();
+      if (filter !== 'all') {
+        list = list.filter(a => a.tier === filter);
+      }
+      if (searchQuery) {
+        list = list.filter(a => {
+          const matchParticipant = (a.participants || []).some(p => String(p || '').toLowerCase().includes(searchQuery));
+          const matchCustomer = String(a.customerName || '').toLowerCase().includes(searchQuery);
+          const matchEmail = String(a.email || '').toLowerCase().includes(searchQuery);
+          const matchPhone = String(a.phone || '').toLowerCase().includes(searchQuery);
+          const matchOrderId = String(a.orderId || '').toLowerCase().includes(searchQuery);
+          return matchParticipant || matchCustomer || matchEmail || matchPhone || matchOrderId;
+        });
+      }
+
+      const countLbl = document.getElementById('nobarAttendeeCountLabel');
+      const totalSeats = list.filter(a => a.status !== 'cancelled').reduce((s, a) => s + (a.qty || 1), 0);
+      if (countLbl) {
+        countLbl.textContent = searchQuery
+          ? `Hasil pencarian "${searchInput.value.trim()}": ${list.length} transaksi tiket (${totalSeats} kursi aktif)`
+          : `${list.length} transaksi tiket (${totalSeats} kursi aktif)`;
+      }
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem;">${searchQuery ? `Tidak ditemukan peserta atau pesanan tiket dengan kata kunci "<strong>${escapeHtml(searchInput.value.trim())}</strong>".` : 'Belum ada peserta tiket nobar untuk filter ini.'}</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map(a => {
+        const safeOid = escapeHtml(a.orderId);
+        const tierBadge = a.tier === 'vip'
+          ? '<span style="background:rgba(234,179,8,0.2);color:#fde047;border:1px solid rgba(234,179,8,0.45);padding:3px 9px;border-radius:50px;font-size:0.73rem;font-weight:800;">1. Tiket VIP</span>'
+          : a.tier === 'regular_merch'
+            ? '<span style="background:rgba(41,182,246,0.2);color:var(--aqua);border:1px solid rgba(41,182,246,0.45);padding:3px 9px;border-radius:50px;font-size:0.73rem;font-weight:800;">3. Biasa + Merch</span>'
+            : '<span style="background:rgba(148,163,184,0.18);color:var(--white);border:1px solid rgba(148,163,184,0.35);padding:3px 9px;border-radius:50px;font-size:0.73rem;font-weight:700;">2. Tiket Biasa</span>';
+
+        const participantsHtml = (a.participants || []).map((p, idx) => {
+          const isMatch = searchQuery && String(p || '').toLowerCase().includes(searchQuery);
+          return `<div style="${isMatch ? 'background:rgba(234,179,8,0.22);color:#fde047;padding:1px 6px;border-radius:4px;display:inline-block;' : ''}"><strong>#${idx + 1}:</strong> ${escapeHtml(p)}</div>`;
+        }).join('<br>');
+
+        return `
+          <tr>
+            <td style="font-family:monospace;color:var(--aqua);font-size:0.8rem">${safeOid}</td>
+            <td>
+              ${tierBadge}
+              ${a.includesMerch ? '<div style="font-size:0.72rem;color:var(--gold);margin-top:3px;">+ Photocard &amp; Poster</div>' : ''}
+            </td>
+            <td style="font-size:0.82rem;color:var(--white);line-height:1.45;">${participantsHtml}</td>
+            <td style="font-weight:800;color:var(--aqua);">${a.qty} Kursi</td>
+            <td style="font-size:0.8rem;">
+              <div style="color:var(--white);font-weight:700;">${escapeHtml(a.customerName)}</div>
+              <div style="color:var(--text-muted);font-size:0.74rem;">${escapeHtml(a.email)}</div>
+              <div style="color:var(--aqua);font-size:0.74rem;">${escapeHtml(a.phone || '-')}</div>
+            </td>
+            <td class="td-price">${formatPrice(a.total)}</td>
+            <td>
+              ${statusBadge(a.status, true)}
+              ${a.status === 'pending' && !a.hasPaymentProof && a.paymentExpiresAt
+                ? `<div style="margin-top:4px;font-size:0.7rem;color:#fde047;">⏱️ Batas bayar s/d ${new Date(a.paymentExpiresAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</div>`
+                : ''}
+              ${a.checkedIn && a.checkedInAt
+                ? `<div style="margin-top:4px;font-size:0.7rem;color:#4ade80;">✓ Check-in ${new Date(a.checkedInAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</div>`
+                : ''}
+              ${a.includesMerch && (a.status === 'paid' || a.status === 'completed')
+                ? `<div style="margin-top:2px;font-size:0.69rem;color:${a.merchClaimed ? '#4ade80' : '#fbbf24'};">${a.merchClaimed ? '🎁 Merch Diambil ✓' : '🎁 Merch Belum Diambil'}</div>`
+                : ''}
+            </td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-edit" data-oid="${safeOid}" onclick="viewOrder(this.dataset.oid)">Detail &amp; Verifikasi</button>
+                <button class="btn-del" data-oid="${safeOid}" onclick="deleteOrder(this.dataset.oid)" title="Hapus pesanan tiket ini">🗑 Hapus</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function exportNobarAttendeesCSV() {
+      const list = (adminNobarData.attendees || []).filter(a => a.status !== 'cancelled');
+      if (list.length === 0) {
+        showToast('Belum ada data peserta nobar untuk diekspor');
+        return;
+      }
+
+      const headers = ['No', 'Order ID', 'Kategori Tiket', 'Nama Peserta', 'Urutan Kursi di Pesanan', 'Termasuk Merch (Photocard & Poster)', 'Status Pembayaran', 'Email Akun', 'No HP', 'Total Pesanan (Rp)', 'Tanggal Pesan'];
+      const rows = [headers.join(',')];
+      let counter = 1;
+
+      for (const a of list) {
+        const parts = Array.isArray(a.participants) && a.participants.length ? a.participants : [a.customerName];
+        parts.forEach((pName, idx) => {
+          const cols = [
+            counter++,
+            a.orderId,
+            a.tierLabel,
+            pName,
+            `${idx + 1} dari ${a.qty}`,
+            a.includesMerch ? 'Ya (Photocard & Poster)' : 'Tidak',
+            a.status,
+            a.email,
+            a.phone || '-',
+            a.total,
+            a.date ? new Date(a.date).toLocaleString('id-ID') : '-'
+          ].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`);
+          rows.push(cols.join(','));
+        });
+      }
+
+      const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `daftar-peserta-nobar-aika-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast('Daftar peserta Nobar berhasil diunduh (CSV)');
+    }
+
     // ── ORDERS ──
     let currentOrderFilter = 'all';
 
     async function renderOrders(filter = 'all') {
+      if (isNobarAdmin) return;
       currentOrderFilter = filter;
       let orders = await Orders.getAll();
       if (filter !== 'all') orders = orders.filter(o => o.status === filter);
@@ -2405,7 +3106,9 @@
       el.innerHTML = orders.map(o => {
         let shipObj = {};
         try { shipObj = typeof o.shipping === 'string' ? JSON.parse(o.shipping) : (o.shipping || {}); } catch (e) { }
-        const isDp = shipObj.paymentScheme === 'dp50' || shipObj.isDp;
+        const isNobarOrder = Boolean(shipObj.isNobar);
+      const nbTicket = shipObj.nobarTicket || null;
+      const isDp = !isNobarOrder && (shipObj.paymentScheme === 'dp50' || shipObj.isDp);
         const dpAmount = Number(shipObj.dpAmount) || Math.ceil((Number(o.total) || 0) * 0.5);
         const remainingAmount = Number(shipObj.remainingAmount) || Math.max(0, (Number(o.total) || 0) - dpAmount);
         const safeOid = escapeHtml(o.id);
@@ -2436,7 +3139,7 @@
       </td>
       <td style="font-size:0.8rem">${escapeHtml(shipObj?.name || o.shipping?.name || '-')}</td>
       <td>
-        ${statusBadge(o.status)}
+        ${statusBadge(o.status, Boolean(shipObj?.isNobar))}
         ${o.status === 'pending' && shipObj?.reuploadRequested ? '<div style="margin-top:4px;font-size:0.7rem;color:#fb923c;font-weight:700;">🔄 Menunggu Upload Ulang</div>' : ''}
       </td>
       <td style="font-size:0.75rem;color:var(--text-muted)">
@@ -2456,10 +3159,12 @@
 
     function filterOrders(val) { renderOrders(val); }
 
-    function statusBadge(status) {
+    function statusBadge(status, isNobar = false) {
       const map = { paid: 'status-paid', pending: 'status-pending', cancelled: 'status-cancelled', processing: 'status-processing', payment_pending: 'status-pending', pending_payment: 'status-pending', shipped: 'status-shipped', completed: 'status-completed' };
       const label = { paid: '📦 Dikemas', pending: '⏳ Menunggu Pembayaran', cancelled: '❌ Dibatalkan', processing: '🔄 Diproses', payment_pending: '💳 Belum Verifikasi', pending_payment: '💳 Belum Verifikasi', shipped: '🚚 Dikirim', completed: '✅ Selesai' };
-      return `<span class="status-badge ${map[status] || 'status-pending'}">${label[status] || escapeHtml(status)}</span>`;
+      const nobarLabel = { paid: '🎟️ Terverifikasi', pending: '⏳ Menunggu Verifikasi', cancelled: '❌ Dibatalkan', processing: '🔄 Diproses', payment_pending: '⏳ Menunggu Verifikasi', pending_payment: '⏳ Menunggu Verifikasi', shipped: '🎟️ Terverifikasi', completed: '✅ Selesai (Check-in)' };
+      const lbl = isNobar ? (nobarLabel[status] || label[status] || status) : (label[status] || status);
+      return `<span class="status-badge ${map[status] || 'status-pending'}">${lbl}</span>`;
     }
 
     async function exportAllOrdersCSV() {
@@ -2521,18 +3226,21 @@
     }
 
     async function viewOrder(id) {
-      const res = await adminFetch('/api/orders?id=' + encodeURIComponent(id));
-      const order = await res.json();
-      if (!res.ok) {
-        showToast(order.error || 'Gagal memuat detail pesanan');
-        return;
-      }
+      try {
+        const res = await adminFetch('/api/orders?id=' + encodeURIComponent(id));
+        const order = await res.json();
+        if (!res.ok) {
+          showToast(order.error || 'Gagal memuat detail pesanan');
+          return;
+        }
       if (!order) return;
       const content = document.getElementById('orderDetailContent');
 
       let shipObj = {};
       try { shipObj = typeof order.shipping === 'string' ? JSON.parse(order.shipping) : (order.shipping || {}); } catch (e) { }
-      const isDp = shipObj.paymentScheme === 'dp50' || shipObj.isDp;
+      const isNobarOrder = Boolean(shipObj.isNobar);
+      const nbTicket = shipObj.nobarTicket || null;
+      const isDp = !isNobarOrder && (shipObj.paymentScheme === 'dp50' || shipObj.isDp);
       const dpAmount = Number(shipObj.dpAmount) || Math.ceil((Number(order.total) || 0) * 0.5);
       const remainingAmount = Number(shipObj.remainingAmount) || Math.max(0, (Number(order.total) || 0) - dpAmount);
       const buyerNote = (order.notes || order.note || (shipObj && (shipObj.notes || shipObj.note)) || '').trim();
@@ -2548,7 +3256,7 @@
       const paymentProofHTML = safeProofUrl ? `
     <div style="background:rgba(76,175,80,0.08);border:2px solid ${shipObj.reuploadRequested && order.status === 'pending' ? '#f59e0b' : '#4caf50'};border-radius:10px;padding:1.25rem;margin-bottom:1.2rem">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;flex-wrap:wrap;gap:0.5rem;">
-        <h4 style="color:#4ade80;margin:0;font-size:0.93rem">📸 BUKTI PEMBAYARAN ${isDp ? '1 — DP 50% (UANG MUKA)' : 'QRIS (100%)'}</h4>
+        <h4 style="color:#4ade80;margin:0;font-size:0.93rem">📸 BUKTI PEMBAYARAN ${isNobarOrder ? 'QRIS TIKET NOBAR' : (isDp ? '1 — DP 50% (UANG MUKA)' : 'QRIS (100%)')}</h4>
         <div style="display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;">
           ${isDp ? `<span style="background:rgba(234,179,8,0.2);color:#fde047;border:1px solid rgba(234,179,8,0.4);padding:3px 9px;border-radius:12px;font-size:0.74rem;font-weight:bold;">⚡ Tagihan DP: ${formatPrice(dpAmount)}</span>` : ''}
           ${isInitialVerified ? '<span style="background:rgba(34,197,94,0.2);color:#4ade80;border:1px solid rgba(34,197,94,0.45);padding:3px 9px;border-radius:12px;font-size:0.74rem;font-weight:bold;">✅ Sudah Diverifikasi</span>' : ''}
@@ -2570,7 +3278,9 @@
       </div>
       ${!isInitialVerified && order.status !== 'cancelled' ? `
         <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
-          <button class="btn-primary" data-oid="${safeOrderId}" onclick="verifyPayment(this.dataset.oid)" style="flex:1.2;min-width:170px;background:#22c55e;border-color:#22c55e;padding:0.75rem">✅ Verifikasi ${isDp ? 'DP 50%' : ''} &amp; Dikemas</button>
+          <button class="btn-primary" data-oid="${safeOrderId}" onclick="verifyPayment(this.dataset.oid)" style="flex:1.2;min-width:170px;background:#22c55e;border-color:#22c55e;padding:0.75rem">
+    ${isNobarOrder ? '🎟️ Verifikasi Pembayaran &amp; Terbitkan Tiket Resmi' : (`✅ Verifikasi ${isDp ? 'DP 50%' : ''} &amp; Dikemas`)}
+  </button>
           <button class="btn-secondary" data-oid="${safeOrderId}" onclick="requestReuploadInitial(this.dataset.oid)" style="flex:1;min-width:155px;border-color:#f59e0b;color:#fde047;padding:0.75rem">🔄 Minta Upload Ulang</button>
           <button class="btn-secondary" data-oid="${safeOrderId}" onclick="rejectPayment(this.dataset.oid)" style="flex:0.9;min-width:140px;border-color:#ef4444;color:#fca5a5;padding:0.75rem">❌ Tolak &amp; Batalkan</button>
         </div>
@@ -2632,9 +3342,50 @@
     </div>
   ` : '';
 
+      // isNobarOrder & nbTicket declared at top of viewOrder
+      const nobarDetailSectionHTML = isNobarOrder && nbTicket ? `
+    <div style="background:rgba(2,132,199,0.12);border:1.5px solid ${nbTicket.tier === 'vip' ? '#fde047' : 'var(--aqua)'};border-radius:10px;padding:1.15rem;margin-bottom:1.25rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.6rem;">
+        <h4 style="color:${nbTicket.tier === 'vip' ? '#fde047' : 'var(--aqua)'};margin:0;font-size:0.93rem">TIKET NOBAR BIOSKOP — ${escapeHtml(nbTicket.tierLabel || nbTicket.tier)}</h4>
+        <span style="background:rgba(41,182,246,0.2);color:var(--white);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:800;">${parseInt(nbTicket.qty, 10) || 1} Kursi</span>
+      </div>
+      <div style="font-size:0.85rem;color:var(--white);line-height:1.6;">
+        <div><strong>Daftar Nama Peserta (${(nbTicket.participants || []).length} orang):</strong></div>
+        <ol style="margin:0.3rem 0 0.6rem 1.25rem;padding:0;color:var(--aqua);font-weight:700;">
+          ${(nbTicket.participants || []).map(p => `<li>${escapeHtml(p)}</li>`).join('')}
+        </ol>
+        <div><strong>Aturan Kursi:</strong> ${escapeHtml(nbTicket.seatRule || '-')}</div>
+        ${nbTicket.includesMerch ? `
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-top:0.35rem;">
+            <div>
+              <strong>Paket Merch Bundel:</strong> <span style="color:var(--gold);">${escapeHtml(nbTicket.merchBundle || 'Photocard & Poster')}</span>
+              ${nbTicket.merchClaimed ? '<span style="color:#4ade80;font-weight:700;"> (Sudah Diambil ✓)</span>' : '<span style="color:#fde68a;"> (Diambil di lokasi bioskop)</span>'}
+            </div>
+            ${['paid', 'completed'].includes(String(order.status || '').toLowerCase()) ? `
+              <button type="button" class="btn-secondary" onclick="toggleNobarMerchClaimed('${safeOrderId}', ${!nbTicket.merchClaimed})" style="padding:0.25rem 0.7rem;font-size:0.74rem;border-color:${nbTicket.merchClaimed ? 'rgba(148,163,184,0.4)' : 'rgba(234,179,8,0.5)'};color:${nbTicket.merchClaimed ? 'var(--text-muted)' : '#fde047'};">
+                ${nbTicket.merchClaimed ? 'Reset Status Merch' : '🎁 Tandai Merch Diambil'}
+              </button>
+            ` : ''}
+          </div>
+        ` : ''}
+        ${nbTicket.checkedIn || order.status === 'completed' ? `
+          <div style="margin-top:0.5rem;padding:0.45rem 0.75rem;background:rgba(34,197,94,0.16);border:1px solid rgba(34,197,94,0.4);border-radius:8px;color:#4ade80;font-size:0.8rem;font-weight:700;">
+            ✅ SUDAH CHECK-IN DI BIOSKOP ${nbTicket.checkedInAt ? `(${new Date(nbTicket.checkedInAt).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })} WIB${nbTicket.checkedInBy ? ' • oleh ' + escapeHtml(nbTicket.checkedInBy) : ''})` : ''}
+          </div>
+        ` : ''}
+        ${order.status === 'pending' && !order.payment_proof && nbTicket.paymentExpiresAt ? `
+          <div style="margin-top:0.5rem;padding:0.45rem 0.75rem;background:rgba(245,158,11,0.14);border:1px solid rgba(245,158,11,0.4);border-radius:8px;color:#fde68a;font-size:0.8rem;">
+            ⏱️ Kursi dikunci sementara hingga <strong>${new Date(nbTicket.paymentExpiresAt).toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</strong> (otomatis batal jika belum bayar).
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  ` : '';
+
       content.innerHTML = `
     ${paymentProofHTML}
     ${pelunasanSectionHTML}
+    ${nobarDetailSectionHTML}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
       <div class="form-group"><label>Order ID</label><input readonly value="${safeOrderId}" style="background:rgba(3,9,31,0.6)"></div>
       <div class="form-group"><label>Status</label><input readonly value="${escapeHtml(order.status)}" style="background:rgba(3,9,31,0.6)"></div>
@@ -2673,31 +3424,58 @@
         `}
       ` : ''}
     </div>
-    <div class="form-group">
-      <label>Update Status</label>
-      <select id="updateStatus" onchange="document.getElementById('resiWrap').style.display=this.value==='shipped'?'block':'none'" style="background:rgba(3,9,31,0.6);border:1px solid var(--card-border);border-radius:8px;padding:0.8rem 1rem;color:var(--white);width:100%;font-family:var(--font-body)">
-        <option value="pending" ${order.status === 'pending' || order.status === 'payment_pending' ? 'selected' : ''}>⏳ Menunggu Pembayaran</option>
-        <option value="paid" ${order.status === 'paid' ? 'selected' : ''}>📦 Dikemas</option>
-        <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>🚚 Dikirim</option>
-        <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>✅ Selesai</option>
-        <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>❌ Dibatalkan</option>
-      </select>
-    </div>
-    <div class="form-group" id="resiWrap" style="display:${order.status === 'shipped' ? 'block' : 'none'}">
-      <label>Nomor Resi (Jika Dikirim)</label>
-      <input type="text" id="updateResi" value="${escapeHtml(shipObj?.resi || (order.shipping && order.shipping.resi) || '')}" placeholder="Contoh: JNE..." style="background:rgba(3,9,31,0.6)">
-    </div>
+    ${isNobarOrder ? `
+      <div class="form-group" style="background:rgba(2,132,199,0.08);border:1.5px solid rgba(2,132,199,0.35);border-radius:8px;padding:0.95rem;margin-bottom:1rem;">
+        <label style="color:var(--aqua);font-weight:700;display:flex;align-items:center;gap:6px;margin-bottom:0.55rem;font-size:0.88rem;">
+          <span>🎟️ Update Status Tiket Nobar Bioskop</span>
+          <span style="font-size:0.75rem;font-weight:normal;color:var(--text-muted);">(Tanpa status Dikemas / Dikirim ekspedisi)</span>
+        </label>
+        <select id="updateStatus" style="background:rgba(3,9,31,0.85);border:1px solid var(--card-border);border-radius:8px;padding:0.8rem 1rem;color:var(--white);width:100%;font-family:var(--font-body);font-size:0.9rem;">
+          <option value="pending" ${order.status === 'pending' || order.status === 'payment_pending' ? 'selected' : ''}>⏳ Menunggu Verifikasi Pembayaran</option>
+          <option value="paid" ${order.status === 'paid' ? 'selected' : ''}>🎟️ Terverifikasi (Tiket Resmi Aktif)</option>
+          <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>✅ Selesai (Check-in / Hadir di Bioskop)</option>
+          <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>❌ Dibatalkan / Pembayaran Ditolak</option>
+        </select>
+        <input type="hidden" id="updateResi" value="">
+      </div>
+    ` : `
+      <div class="form-group">
+        <label>Update Status</label>
+        <select id="updateStatus" onchange="const rw=document.getElementById('resiWrap');if(rw)rw.style.display=this.value==='shipped'?'block':'none'" style="background:rgba(3,9,31,0.6);border:1px solid var(--card-border);border-radius:8px;padding:0.8rem 1rem;color:var(--white);width:100%;font-family:var(--font-body)">
+          <option value="pending" ${order.status === 'pending' || order.status === 'payment_pending' ? 'selected' : ''}>⏳ Menunggu Pembayaran</option>
+          <option value="paid" ${order.status === 'paid' ? 'selected' : ''}>📦 Dikemas</option>
+          <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>🚚 Dikirim</option>
+          <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>✅ Selesai</option>
+          <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>❌ Dibatalkan</option>
+        </select>
+      </div>
+      <div class="form-group" id="resiWrap" style="display:${order.status === 'shipped' ? 'block' : 'none'}">
+        <label>Nomor Resi (Jika Dikirim)</label>
+        <input type="text" id="updateResi" value="${escapeHtml(shipObj?.resi || (order.shipping && order.shipping.resi) || '')}" placeholder="Contoh: JNE..." style="background:rgba(3,9,31,0.6)">
+      </div>
+    `}
   `;
+      const modalTitleEl = document.getElementById('orderModalTitle');
+      if (modalTitleEl) {
+        modalTitleEl.textContent = isNobarOrder ? '🎟️ Detail Pesanan Tiket Nobar' : '📦 Detail Pesanan';
+      }
+      const delModalBtn = document.getElementById('deleteOrderModalBtn');
+      if (delModalBtn) {
+        delModalBtn.style.display = 'inline-flex';
+        delModalBtn.textContent = isNobarOrder ? '🗑 Hapus Tiket' : '🗑 Hapus Pesanan';
+        delModalBtn.onclick = () => deleteOrder(order.id, true);
+      }
       const excelBtn = document.getElementById('downloadOrderExcelBtn');
       if (excelBtn) {
         excelBtn.style.display = 'inline-flex';
         excelBtn.onclick = () => downloadOrderInvoice(order.id, 'excel');
       }
       const btn = document.getElementById('markPaidBtn');
-      btn.textContent = '💾 Update Status & Kirim Email';
+      btn.textContent = isNobarOrder ? '💾 Simpan Status Tiket & Kirim Email' : '💾 Update Status & Kirim Email';
       btn.onclick = async () => {
         const st = document.getElementById('updateStatus').value;
-        const resiVal = document.getElementById('updateResi').value;
+        const resiEl = document.getElementById('updateResi');
+        const resiVal = resiEl ? resiEl.value : '';
 
         try {
           const updateRes = await adminFetch('/api/orders', {
@@ -2715,15 +3493,24 @@
           closeOrderModal();
           renderOrders(currentOrderFilter);
           renderDashboard();
+          if (document.getElementById('tab-nobar')?.classList.contains('active')) loadAdminNobar();
         } catch (err) {
           showToast('❌ Error: ' + err.message);
         }
       };
-      document.getElementById('orderModal').classList.add('show');
+        document.getElementById('orderModal').classList.add('show');
+      } catch (err) {
+        console.error('viewOrder error:', err);
+        showToast('❌ Gagal membuka detail pesanan: ' + err.message);
+      }
     }
 
     async function verifyPayment(orderId) {
-      if (!confirm('Verifikasi pembayaran pesanan ini dan ubah status ke "Dikemas"?')) return;
+      const isNobar = Boolean(document.getElementById('tab-nobar')?.classList.contains('active') || isNobarAdmin || (adminNobarData && adminNobarData.attendees?.some(a => a.orderId === orderId)));
+      const confirmMsg = isNobar
+        ? 'Verifikasi bukti transfer QRIS pesanan tiket #' + orderId + ' dan aktifkan tiket resmi?'
+        : 'Verifikasi pembayaran pesanan ini dan ubah status ke "Dikemas"?';
+      if (!confirm(confirmMsg)) return;
 
       try {
         const res = await adminFetch('/api/orders', {
@@ -2733,10 +3520,13 @@
         });
 
         if (res.ok) {
-          showToast('✅ Pembayaran terverifikasi! Status berubah ke Dikemas.');
+          showToast(isNobar ? '✅ Pembayaran tiket terverifikasi! Tiket resmi aktif.' : '✅ Pembayaran terverifikasi! Status berubah ke Dikemas.');
           closeOrderModal();
           renderOrders(currentOrderFilter);
           renderDashboard();
+          if (document.getElementById('tab-nobar')?.classList.contains('active') || isNobarAdmin) {
+            loadAdminNobar();
+          }
         }
       } catch (err) {
         showToast('❌ Error: ' + err.message);
@@ -2744,7 +3534,11 @@
     }
 
     async function rejectPayment(orderId) {
-      if (!confirm('Tolak pembayaran dan BATALKAN pesanan ini (stok dikembalikan)? Jika hanya ingin meminta pembeli mengunggah ulang bukti transfer tanpa membatalkan pesanan, gunakan tombol "Minta Upload Ulang".')) return;
+      const isNobar = Boolean(document.getElementById('tab-nobar')?.classList.contains('active') || isNobarAdmin || (adminNobarData && adminNobarData.attendees?.some(a => a.orderId === orderId)));
+      const confirmMsg = isNobar
+        ? 'Tolak pembayaran dan BATALKAN pesanan tiket ini (kuota kursi dikembalikan)?'
+        : 'Tolak pembayaran dan BATALKAN pesanan ini (stok dikembalikan)? Jika hanya ingin meminta pembeli mengunggah ulang bukti transfer tanpa membatalkan pesanan, gunakan tombol "Minta Upload Ulang".';
+      if (!confirm(confirmMsg)) return;
 
       try {
         const res = await adminFetch('/api/orders', {
@@ -2754,10 +3548,13 @@
         });
 
         if (res.ok) {
-          showToast('❌ Pembayaran ditolak. Pesanan dibatalkan.');
+          showToast(isNobar ? '❌ Pembayaran tiket ditolak. Pesanan tiket dibatalkan.' : '❌ Pembayaran ditolak. Pesanan dibatalkan.');
           closeOrderModal();
           renderOrders(currentOrderFilter);
           renderDashboard();
+          if (document.getElementById('tab-nobar')?.classList.contains('active') || isNobarAdmin) {
+            loadAdminNobar();
+          }
         }
       } catch (err) {
         showToast('❌ Error: ' + err.message);
@@ -2855,17 +3652,54 @@
         excelBtn.style.display = 'none';
         excelBtn.onclick = null;
       }
+      const delModalBtn = document.getElementById('deleteOrderModalBtn');
+      if (delModalBtn) {
+        delModalBtn.style.display = 'none';
+        delModalBtn.onclick = null;
+      }
     }
 
-    async function deleteOrder(id) {
-      if (!confirm('Apakah Anda yakin ingin menghapus pesanan ' + id + ' secara permanen?')) return;
+    async function deleteOrder(id, fromModal = false) {
+      const isNobar = Boolean(document.getElementById('tab-nobar')?.classList.contains('active') || isNobarAdmin || (adminNobarData && adminNobarData.attendees?.some(a => a.orderId === id)));
+      const msg = isNobar
+        ? `Apakah Anda yakin ingin MENGHAPUS pesanan tiket ${id} secara permanen? (Kuota kursi akan dikembalikan & urutan invoice disinkronkan)`
+        : `Apakah Anda yakin ingin menghapus pesanan ${id} secara permanen?`;
+      if (!confirm(msg)) return;
       try {
         await Orders.delete(id);
         showToast('🗑 Pesanan ' + id + ' berhasil dihapus');
-        renderOrders(currentOrderFilter);
-        renderDashboard(); // Update count
+        if (fromModal) closeOrderModal();
+        if (!isNobarAdmin) {
+          renderOrders(currentOrderFilter);
+          renderDashboard();
+        }
+        if (document.getElementById('tab-nobar')?.classList.contains('active') || isNobarAdmin) {
+          await loadAdminNobar();
+        }
       } catch (e) {
         showToast('⚠ Gagal menghapus: ' + e.message);
+      }
+    }
+
+    async function deleteAllNobarOrders() {
+      const count = (adminNobarData && Array.isArray(adminNobarData.attendees)) ? adminNobarData.attendees.length : 0;
+      if (count === 0) {
+        showToast('ℹ️ Belum ada pesanan tiket Nobar untuk dihapus.');
+        return;
+      }
+      if (!confirm(`⚠️ Yakin ingin MENGHAPUS SEMUA (${count}) pesanan tiket Nobar secara permanen?\n\nKuota kursi VIP & Reguler akan kembali penuh dan urutan Invoice hari ini akan di-reset kembali mulai dari 01.`)) {
+        return;
+      }
+      try {
+        await Orders.delete('ALL_NOBAR');
+        showToast('🗑 Semua pesanan tiket Nobar berhasil dihapus!');
+        if (!isNobarAdmin) {
+          renderOrders(currentOrderFilter);
+          renderDashboard();
+        }
+        await loadAdminNobar();
+      } catch (e) {
+        showToast('⚠ Gagal menghapus semua tiket: ' + e.message);
       }
     }
 
@@ -3134,6 +3968,7 @@
     }
 
     async function loadSettings() {
+      if (isNobarAdmin) return;
       try {
         const res = await fetch('/api/settings');
         const data = await res.json();
@@ -3142,9 +3977,201 @@
           document.getElementById('heroImagePreview').src = data.hero_image;
           document.getElementById('heroImagePreview').style.display = 'block';
         }
-        await loadVouchers();
+        await Promise.all([loadVouchers(), loadNobarAdminAccounts()]);
       } catch (err) {
         console.error('Gagal load settings:', err);
+      }
+    }
+
+    // ── KELOLA AKUN ADMIN NOBAR (SUPERADMIN ONLY) ──
+    let nobarAdminAccountsCache = [];
+
+    function openNobarAccountsSettings() {
+      if (isNobarAdmin) return;
+      showTab('settings').then(() => {
+        const el = document.getElementById('nobarAdminAccountsCard');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+
+    async function loadNobarAdminAccounts() {
+      if (isNobarAdmin) return;
+      const tbody = document.getElementById('nobarAdminAccountsTableBody');
+      if (!tbody) return;
+      try {
+        const res = await adminFetch('/api/admin-accounts?t=' + Date.now());
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Gagal memuat akun panitia');
+        nobarAdminAccountsCache = Array.isArray(data.accounts) ? data.accounts : [];
+        renderNobarAdminAccountsTable(nobarAdminAccountsCache);
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#f87171;padding:1rem;">${escapeHtml(err.message)}</td></tr>`;
+      }
+    }
+
+    function renderNobarAdminAccountsTable(accounts) {
+      const tbody = document.getElementById('nobarAdminAccountsTableBody');
+      if (!tbody) return;
+      if (!accounts.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:1.25rem;">Belum ada akun Panitia / Admin Nobar. Tambahkan lewat formulir di atas bila diperlukan.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = accounts.map(acc => {
+        const isActive = String(acc.status || '').toLowerCase() === 'active';
+        const lastLoginText = acc.last_login
+          ? new Date(acc.last_login).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+          : 'Belum pernah login';
+        return `
+          <tr>
+            <td><strong style="color:var(--white);">${escapeHtml(acc.username)}</strong></td>
+            <td><span style="display:inline-block;padding:3px 10px;border-radius:12px;background:rgba(41,182,246,0.14);border:1px solid rgba(41,182,246,0.35);color:var(--aqua);font-size:0.76rem;font-weight:700;">Nobar Only</span></td>
+            <td>
+              ${isActive
+                ? '<span style="display:inline-block;padding:3px 10px;border-radius:12px;background:rgba(34,197,94,0.16);border:1px solid rgba(34,197,94,0.4);color:#4ade80;font-size:0.76rem;font-weight:700;">● Aktif</span>'
+                : '<span style="display:inline-block;padding:3px 10px;border-radius:12px;background:rgba(248,113,113,0.15);border:1px solid rgba(248,113,113,0.4);color:#f87171;font-size:0.76rem;font-weight:700;">⏸ Nonaktif</span>'}
+            </td>
+            <td style="font-size:0.82rem;color:var(--text-muted);">${escapeHtml(lastLoginText)}</td>
+            <td>
+              <div style="display:flex;gap:0.45rem;flex-wrap:wrap;">
+                <button type="button" class="btn-secondary" data-id="${acc.id}" onclick="openNobarAdminPwdModal(this.dataset.id)" style="padding:0.35rem 0.7rem;font-size:0.78rem;border-color:rgba(41,182,246,0.45);color:var(--aqua);">🔑 Ganti Password</button>
+                <button type="button" class="btn-secondary" data-id="${acc.id}" data-next="${isActive ? 'inactive' : 'active'}" onclick="toggleNobarAdminStatus(this.dataset.id, this.dataset.next)" style="padding:0.35rem 0.7rem;font-size:0.78rem;border-color:${isActive ? 'rgba(250,204,21,0.45)' : 'rgba(34,197,94,0.45)'};color:${isActive ? '#fde047' : '#4ade80'};">${isActive ? '⏸ Nonaktifkan' : '▶ Aktifkan'}</button>
+                <button type="button" class="btn-secondary" data-id="${acc.id}" onclick="deleteNobarAdminAccount(this.dataset.id)" style="padding:0.35rem 0.7rem;font-size:0.78rem;border-color:rgba(248,113,113,0.45);color:#f87171;">🗑 Hapus</button>
+              </div>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+
+    async function createNobarAdminAccount() {
+      const usernameEl = document.getElementById('newNobarAdminUsername');
+      const passwordEl = document.getElementById('newNobarAdminPassword');
+      const btn = document.getElementById('createNobarAdminBtn');
+      const username = (usernameEl.value || '').trim();
+      const password = passwordEl.value || '';
+
+      if (!username || username.length < 3) {
+        showToast('⚠ Username panitia minimal 3 karakter');
+        return;
+      }
+      if (!/^[a-zA-Z0-9._-]+$/.test(username)) {
+        showToast('⚠ Username hanya boleh huruf, angka, titik, _ atau -');
+        return;
+      }
+      if (password.length < 8) {
+        showToast('⚠ Password minimal 8 karakter');
+        return;
+      }
+
+      const orig = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+      try {
+        const res = await adminFetch('/api/admin-accounts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Gagal menambah akun panitia');
+        usernameEl.value = '';
+        passwordEl.value = '';
+        showToast('✅ ' + (data.message || 'Akun Admin Nobar ditambahkan'));
+        await loadNobarAdminAccounts();
+      } catch (err) {
+        showToast('❌ ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = orig;
+      }
+    }
+
+    function openNobarAdminPwdModal(id) {
+      const acc = nobarAdminAccountsCache.find(a => String(a.id) === String(id));
+      if (!acc) return;
+      document.getElementById('nobarPwdTargetId').value = acc.id;
+      document.getElementById('nobarPwdTargetUsername').textContent = acc.username;
+      document.getElementById('nobarResetNewPassword').value = '';
+      document.getElementById('nobarResetConfirmPassword').value = '';
+      document.getElementById('nobarAdminPwdModal').classList.add('show');
+    }
+
+    function closeNobarAdminPwdModal() {
+      document.getElementById('nobarAdminPwdModal').classList.remove('show');
+    }
+
+    async function submitNobarAdminPasswordReset() {
+      const id = document.getElementById('nobarPwdTargetId').value;
+      const newPassword = document.getElementById('nobarResetNewPassword').value || '';
+      const confirmPassword = document.getElementById('nobarResetConfirmPassword').value || '';
+      const btn = document.getElementById('saveNobarAdminPwdBtn');
+
+      if (newPassword.length < 8) {
+        showToast('⚠ Password baru minimal 8 karakter');
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        showToast('⚠ Konfirmasi password tidak cocok');
+        return;
+      }
+
+      const orig = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+      try {
+        const res = await adminFetch('/api/admin-accounts', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, newPassword })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Gagal memperbarui password');
+        closeNobarAdminPwdModal();
+        showToast('✅ ' + (data.message || 'Password panitia diperbarui'));
+        await loadNobarAdminAccounts();
+      } catch (err) {
+        showToast('❌ ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = orig;
+      }
+    }
+
+    async function toggleNobarAdminStatus(id, nextStatus) {
+      const acc = nobarAdminAccountsCache.find(a => String(a.id) === String(id));
+      const label = acc ? acc.username : id;
+      const verb = nextStatus === 'active' ? 'mengaktifkan' : 'menonaktifkan';
+      if (!confirm(`Yakin ingin ${verb} akun Panitia "${label}"?`)) return;
+
+      try {
+        const res = await adminFetch('/api/admin-accounts', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, status: nextStatus })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Gagal mengubah status akun');
+        showToast('✅ ' + (data.message || 'Status akun diperbarui'));
+        await loadNobarAdminAccounts();
+      } catch (err) {
+        showToast('❌ ' + err.message);
+      }
+    }
+
+    async function deleteNobarAdminAccount(id) {
+      const acc = nobarAdminAccountsCache.find(a => String(a.id) === String(id));
+      const label = acc ? acc.username : id;
+      if (!confirm(`Hapus permanen akun Panitia "${label}"? Akun ini tidak akan bisa login lagi.`)) return;
+
+      try {
+        const res = await adminFetch('/api/admin-accounts?id=' + encodeURIComponent(id), {
+          method: 'DELETE'
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Gagal menghapus akun');
+        showToast('🗑 ' + (data.message || 'Akun panitia dihapus'));
+        await loadNobarAdminAccounts();
+      } catch (err) {
+        showToast('❌ ' + err.message);
       }
     }
 
@@ -3378,13 +4405,395 @@
     // ── CLOSE MODAL ON OVERLAY CLICK ──
     document.getElementById('productModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
     document.getElementById('orderModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeOrderModal(); });
+    document.getElementById('nobarQrScannerModal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeNobarQrScanner(); });
+
+    // ── NOBAR QR SCANNER & MERCH HANDOVER ──
+    let qrVideoStream = null;
+    let qrScanRafId = null;
+    let qrFacingMode = 'environment';
+    let lastQrScannedCode = '';
+    let lastQrScannedAt = 0;
+    let qrScanBusy = false;
+
+    function playCheckinBeep(kind = 'success') {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        if (kind === 'success') {
+          osc.frequency.setValueAtTime(880, ctx.currentTime);
+          osc.frequency.setValueAtTime(1174, ctx.currentTime + 0.08);
+          gain.gain.setValueAtTime(0.14, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.25);
+        } else if (kind === 'warn') {
+          osc.frequency.setValueAtTime(440, ctx.currentTime);
+          gain.gain.setValueAtTime(0.14, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.3);
+        } else {
+          osc.frequency.setValueAtTime(240, ctx.currentTime);
+          gain.gain.setValueAtTime(0.16, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.35);
+        }
+      } catch (_) {}
+    }
+
+    async function toggleNobarMerchClaimed(orderId, nextClaimed) {
+      try {
+        const res = await adminFetch('/api/nobar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'toggle_merch_claimed', orderId, claimed: nextClaimed })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal memperbarui status merch');
+        showToast('🎁 ' + data.message);
+        await loadAdminNobar();
+        if (document.getElementById('orderModal')?.classList.contains('show')) {
+          viewOrder(orderId);
+        }
+        if (data.order && document.getElementById('qrScanResultCard')?.style.display !== 'none') {
+          renderQrScanResult({
+            valid: true,
+            checkInStatus: data.order.checkedIn ? 'already_checked_in' : 'ready',
+            canCheckIn: !data.order.checkedIn && data.order.status === 'paid',
+            message: data.order.merchClaimed ? 'Merch ditandai sudah diserahkan ke peserta!' : 'Status merch direset.',
+            order: data.order
+          }, orderId);
+        }
+      } catch (err) {
+        showToast('❌ ' + err.message);
+      }
+    }
+
+    async function openNobarQrScanner() {
+      const modal = document.getElementById('nobarQrScannerModal');
+      if (!modal) return;
+      modal.classList.add('show');
+      lastQrScannedCode = '';
+      lastQrScannedAt = 0;
+      const resultEl = document.getElementById('qrScanResultCard');
+      if (resultEl) {
+        resultEl.style.display = 'none';
+        resultEl.innerHTML = '';
+      }
+      await startNobarCamera();
+    }
+
+    function stopNobarCamera() {
+      if (qrScanRafId) {
+        cancelAnimationFrame(qrScanRafId);
+        qrScanRafId = null;
+      }
+      if (qrVideoStream) {
+        qrVideoStream.getTracks().forEach(t => {
+          try { t.stop(); } catch (_) {}
+        });
+        qrVideoStream = null;
+      }
+      const video = document.getElementById('qrScannerVideo');
+      if (video) video.srcObject = null;
+    }
+
+    function closeNobarQrScanner() {
+      stopNobarCamera();
+      const modal = document.getElementById('nobarQrScannerModal');
+      if (modal) modal.classList.remove('show');
+    }
+
+    async function switchNobarScannerCamera() {
+      qrFacingMode = qrFacingMode === 'environment' ? 'user' : 'environment';
+      await startNobarCamera();
+    }
+
+    async function startNobarCamera() {
+      stopNobarCamera();
+      const video = document.getElementById('qrScannerVideo');
+      const statusMsg = document.getElementById('qrCameraStatusMsg');
+      if (!video) return;
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        if (statusMsg) statusMsg.textContent = 'Kamera tidak didukung di browser/HTTP ini — gunakan Upload Foto QR atau Input Manual.';
+        return;
+      }
+
+      try {
+        if (statusMsg) statusMsg.textContent = 'Mengaktifkan kamera...';
+        qrVideoStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: qrFacingMode }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+        video.srcObject = qrVideoStream;
+        await video.play();
+        if (statusMsg) statusMsg.textContent = 'Kamera aktif — arahkan ke QR Code E-Tiket';
+        qrScanRafId = requestAnimationFrame(tickNobarQrScan);
+      } catch (err) {
+        if (statusMsg) {
+          statusMsg.textContent = 'Kamera tidak dapat diakses (' + (err.name || 'izin ditolak') + '). Gunakan Upload Foto QR / Input Manual.';
+        }
+      }
+    }
+
+    function tickNobarQrScan() {
+      const modal = document.getElementById('nobarQrScannerModal');
+      if (!modal || !modal.classList.contains('show')) return;
+
+      const video = document.getElementById('qrScannerVideo');
+      const canvas = document.getElementById('qrScannerCanvas');
+      if (video && canvas && video.readyState === video.HAVE_ENOUGH_DATA && typeof window.jsQR === 'function') {
+        const w = video.videoWidth || 640;
+        const h = video.videoHeight || 480;
+        if (w > 0 && h > 0) {
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+          ctx.drawImage(video, 0, 0, w, h);
+          const imageData = ctx.getImageData(0, 0, w, h);
+          const code = window.jsQR(imageData.data, w, h, { inversionAttempts: 'dontInvert' });
+          if (code && code.data) {
+            const now = Date.now();
+            if (!qrScanBusy && (code.data !== lastQrScannedCode || now - lastQrScannedAt > 3000)) {
+              lastQrScannedCode = code.data;
+              lastQrScannedAt = now;
+              handleScannedQrPayload(code.data);
+            }
+          }
+        }
+      }
+      qrScanRafId = requestAnimationFrame(tickNobarQrScan);
+    }
+
+    function scanQrFromUploadedImage(event) {
+      const file = event.target.files && event.target.files[0];
+      event.target.value = '';
+      if (!file) return;
+      if (typeof window.jsQR !== 'function') {
+        showToast('❌ Library pembaca QR belum siap, coba beberapa detik lagi.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.getElementById('qrScannerCanvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+          ctx.drawImage(img, 0, 0);
+          const imageData = ctx.getImageData(0, 0, img.width, img.height);
+          const code = window.jsQR(imageData.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
+          if (code && code.data) {
+            handleScannedQrPayload(code.data);
+          } else {
+            playCheckinBeep('error');
+            renderQrScanResult({
+              valid: false,
+              checkInStatus: 'not_found',
+              message: 'QR Code tidak terdeteksi di dalam gambar yang dipilih. Pastikan gambar QR terlihat jelas.'
+            });
+          }
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function verifyManualNobarQr() {
+      const inp = document.getElementById('qrManualCodeInput');
+      const val = inp ? inp.value.trim() : '';
+      if (!val) {
+        showToast('Masukkan nomor Invoice (INV-...) atau kode QR terlebih dahulu');
+        return;
+      }
+      handleScannedQrPayload(val);
+    }
+
+    async function handleScannedQrPayload(rawCode) {
+      if (qrScanBusy) return;
+      qrScanBusy = true;
+      const resultEl = document.getElementById('qrScanResultCard');
+      if (resultEl) {
+        resultEl.style.display = 'block';
+        resultEl.style.background = 'rgba(3,9,31,0.85)';
+        resultEl.style.border = '1px solid var(--aqua)';
+        resultEl.innerHTML = '<div style="text-align:center; padding:0.75rem; color:var(--aqua); font-weight:700;">⏳ Memeriksa keaslian tiket...</div>';
+      }
+
+      try {
+        const res = await adminFetch('/api/nobar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'verify_qr', qrData: rawCode })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal memeriksa QR');
+
+        const autoMode = document.getElementById('qrAutoCheckInToggle')?.checked;
+        if (autoMode && data.canCheckIn && data.order) {
+          await confirmQrCheckIn(rawCode, Boolean(data.order.includesMerch));
+          return;
+        }
+
+        if (data.checkInStatus === 'ready') {
+          playCheckinBeep('success');
+        } else if (data.checkInStatus === 'already_checked_in' || data.checkInStatus === 'unverified_payment') {
+          playCheckinBeep('warn');
+        } else {
+          playCheckinBeep('error');
+        }
+
+        renderQrScanResult(data, rawCode);
+      } catch (err) {
+        playCheckinBeep('error');
+        renderQrScanResult({ valid: false, checkInStatus: 'error', message: err.message }, rawCode);
+      } finally {
+        qrScanBusy = false;
+      }
+    }
+
+    async function confirmQrCheckIn(rawCodeOrId, markMerch = false) {
+      try {
+        const res = await adminFetch('/api/nobar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'checkin', qrData: rawCodeOrId, markMerchClaimed: markMerch })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal melakukan check-in');
+
+        if (data.alreadyCheckedIn) {
+          playCheckinBeep('warn');
+        } else {
+          playCheckinBeep('success');
+        }
+        renderQrScanResult(data, rawCodeOrId);
+        await loadAdminNobar();
+      } catch (err) {
+        playCheckinBeep('error');
+        showToast('❌ ' + err.message);
+      }
+    }
+
+    function renderQrScanResult(data, rawCode) {
+      const card = document.getElementById('qrScanResultCard');
+      if (!card) return;
+      const o = data.order || null;
+      const st = data.checkInStatus || '';
+
+      let bg = 'rgba(239,68,68,0.12)';
+      let border = '#ef4444';
+      let titleColor = '#fca5a5';
+      let icon = '🚫';
+
+      if (st === 'checked_in' || st === 'ready') {
+        bg = 'rgba(34,197,94,0.12)';
+        border = '#22c55e';
+        titleColor = '#4ade80';
+        icon = st === 'checked_in' ? '🎉' : '🎟️';
+      } else if (st === 'already_checked_in' || st === 'unverified_payment') {
+        bg = 'rgba(245,158,11,0.14)';
+        border = '#f59e0b';
+        titleColor = '#fde047';
+        icon = '⚠️';
+      }
+
+      card.style.display = 'block';
+      card.style.background = bg;
+      card.style.border = `2px solid ${border}`;
+
+      const participantsList = o && Array.isArray(o.participants)
+        ? `<ol style="margin:0.25rem 0 0.5rem 1.2rem; padding:0; color:var(--white); font-weight:700;">${o.participants.map(p => `<li>${escapeHtml(p)}</li>`).join('')}</ol>`
+        : '';
+
+      const encodedRaw = escapeHtml(rawCode || (o ? o.id : ''));
+      const encodedOid = o ? escapeHtml(o.id) : '';
+
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem; margin-bottom:0.55rem;">
+          <div style="font-size:1rem; font-weight:800; color:${titleColor};">
+            ${icon} ${escapeHtml(data.message || 'Hasil Scan')}
+          </div>
+          ${o ? `<span style="font-family:monospace; background:rgba(3,9,31,0.7); color:var(--aqua); padding:3px 9px; border-radius:6px; font-size:0.78rem;">#${encodedOid}</span>` : ''}
+        </div>
+        ${o ? `
+          <div style="font-size:0.84rem; color:var(--text-main); line-height:1.55; background:rgba(3,9,31,0.55); border-radius:10px; padding:0.8rem 0.95rem; margin-bottom:0.8rem;">
+            <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:0.4rem; margin-bottom:0.35rem;">
+              <span>Kategori: <strong style="color:${o.tier === 'vip' ? '#fde047' : 'var(--aqua)'};">${escapeHtml(o.shortLabel || o.tierLabel)}</strong></span>
+              <span>Jumlah: <strong>${parseInt(o.qty, 10) || 1} Kursi</strong></span>
+            </div>
+            <div><strong>Daftar Nama Peserta:</strong></div>
+            ${participantsList}
+            <div style="font-size:0.78rem; color:var(--text-muted);">Pemesan: ${escapeHtml(o.customerName)} (${escapeHtml(o.phone || o.email)})</div>
+            ${o.includesMerch ? `
+              <div style="margin-top:0.5rem; padding-top:0.45rem; border-top:1px dashed rgba(255,255,255,0.15); color:${o.merchClaimed ? '#4ade80' : '#fde047'}; font-weight:700;">
+                🎁 Paket Merch (Photocard &amp; Poster): ${o.merchClaimed ? 'SUDAH DIAMBIL ✓' : 'BELUM DIAMBIL — Serahkan sekarang!'}
+              </div>
+            ` : ''}
+            ${o.checkedInAt ? `
+              <div style="margin-top:0.45rem; font-size:0.78rem; color:#4ade80;">
+                ✓ Waktu Check-in: ${new Date(o.checkedInAt).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' })} WIB ${o.checkedInBy ? `(oleh ${escapeHtml(o.checkedInBy)})` : ''}
+              </div>
+            ` : ''}
+          </div>
+          <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+            ${data.canCheckIn ? `
+              <button type="button" class="btn-primary" data-code="${encodedRaw}" onclick="confirmQrCheckIn(this.dataset.code, false)" style="flex:1.4; min-width:170px; background:#22c55e; border-color:#22c55e; padding:0.75rem; font-weight:800;">
+                ✅ KONFIRMASI CHECK-IN MASUK
+              </button>
+              ${o.includesMerch && !o.merchClaimed ? `
+                <button type="button" class="btn-primary" data-code="${encodedRaw}" onclick="confirmQrCheckIn(this.dataset.code, true)" style="flex:1.4; min-width:185px; background:linear-gradient(135deg,#f59e0b,#16a34a); border:none; padding:0.75rem; font-weight:800;">
+                  🎟️🎁 Check-in + Serahkan Merch
+                </button>
+              ` : ''}
+            ` : ''}
+            ${o.includesMerch && !data.canCheckIn && (o.status === 'paid' || o.status === 'completed') ? `
+              <button type="button" class="btn-secondary" data-oid="${encodedOid}" data-next="${!o.merchClaimed}" onclick="toggleNobarMerchClaimed(this.dataset.oid, this.dataset.next === 'true')" style="flex:1; min-width:160px; border-color:rgba(234,179,8,0.55); color:#fde047; padding:0.65rem;">
+                ${o.merchClaimed ? 'Reset Status Merch' : '🎁 Tandai Merch Diambil'}
+              </button>
+            ` : ''}
+            ${st === 'unverified_payment' ? `
+              <button type="button" class="btn-primary" data-oid="${encodedOid}" onclick="closeNobarQrScanner(); viewOrder(this.dataset.oid);" style="flex:1; padding:0.65rem;">
+                👁 Buka Detail &amp; Verifikasi Bayar
+              </button>
+            ` : ''}
+            <button type="button" class="btn-ghost" onclick="lastQrScannedCode=''; document.getElementById('qrScanResultCard').style.display='none'; document.getElementById('qrManualCodeInput').value='';" style="padding:0.65rem 1rem;">
+              🔄 Scan Berikutnya
+            </button>
+          </div>
+        ` : ''}
+      `;
+    }
 
     // ── INIT ──
-    document.getElementById('productCategory').addEventListener('change', toggleProductSizesField);
-    toggleProductSizesField();
-    initProductImageUpload();
-    renderDashboard();
-    loadSettings();
+    if (isNobarAdmin) {
+      document.documentElement.classList.add('is-nobar-admin');
+      const brandP = document.querySelector('.sidebar-brand p');
+      if (brandP) {
+        brandP.innerHTML = 'Admin Nobar Bioskop <span style="display:inline-block;margin-top:4px;padding:2px 8px;border-radius:12px;background:rgba(41,182,246,0.18);border:1px solid rgba(41,182,246,0.4);color:var(--aqua);font-size:0.72rem;font-weight:700;">Nobar Only</span>';
+      }
+      showTab('nobar');
+    } else {
+      document.getElementById('productCategory').addEventListener('change', toggleProductSizesField);
+      toggleProductSizesField();
+      initProductImageUpload();
+      renderDashboard();
+      loadSettings();
+    }
+
+    if (new URLSearchParams(window.location.search).get('scan') === '1') {
+      showTab('nobar');
+      setTimeout(() => openNobarQrScanner(), 350);
+    }
   </script>
 </body>
 

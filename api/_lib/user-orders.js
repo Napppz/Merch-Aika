@@ -1,6 +1,7 @@
 const { query } = require('./_db');
 const { requireUserOrAdmin } = require('./user-auth');
 const { expireStalePendingOrders, ensureOrderPaymentColumns } = require('./order-lifecycle');
+const { generateNobarQrToken, generateNobarQrDataUrl } = require('./nobar-qr');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -41,6 +42,11 @@ module.exports = async function handler(req, res) {
          o.shipping,
          (o.payment_proof IS NOT NULL AND o.payment_proof <> '') AS has_payment_proof,
          (o.pelunasan_proof IS NOT NULL AND o.pelunasan_proof <> '') AS has_pelunasan_proof,
+         CASE
+           WHEN LEFT(COALESCE(o.payment_proof, ''), 4) = 'http' OR o.shipping::text LIKE '%"isNobar"%'
+           THEN o.payment_proof
+           ELSE NULL
+         END AS payment_proof,
          o.date,
          o.updated_at,
          r.id as review_id
@@ -59,7 +65,7 @@ module.exports = async function handler(req, res) {
       if (p.name) productMap[p.name.toLowerCase().trim()] = p;
     });
 
-    const enrichedOrders = result.rows.map(order => {
+    const enrichedOrders = await Promise.all(result.rows.map(async order => {
       let items = Array.isArray(order.items) ? order.items : (typeof order.items === 'string' ? JSON.parse(order.items) : []);
       let shipObj = {};
       try {
@@ -72,6 +78,18 @@ module.exports = async function handler(req, res) {
       const isVerified = isDp
         ? (['paid', 'completed', 'shipped'].includes(statusLower) && (shipObj.pelunasanStatus === 'verified' || statusLower === 'completed'))
         : ['paid', 'completed', 'shipped'].includes(statusLower);
+
+      const isNobar = Boolean(shipObj.isNobar && shipObj.nobarTicket);
+      let nobarTicketToken = null;
+      let nobarQrDataUrl = null;
+      if (isNobar && ['paid', 'shipped', 'completed'].includes(statusLower)) {
+        nobarTicketToken = shipObj.nobarTicket.ticketToken || generateNobarQrToken(order.id, order.email);
+        try {
+          nobarQrDataUrl = await generateNobarQrDataUrl(nobarTicketToken);
+        } catch (qrErr) {
+          console.warn('QR generation error for order', order.id, qrErr.message);
+        }
+      }
 
       items = items.map(item => {
         const prod = productMap[item.id] || productMap[(item.name || '').toLowerCase().trim()] || {};
@@ -109,9 +127,11 @@ module.exports = async function handler(req, res) {
 
       return {
         ...order,
-        items
+        items,
+        nobar_ticket_token: nobarTicketToken,
+        nobar_qr_data_url: nobarQrDataUrl
       };
-    });
+    }));
 
     return res.status(200).json(enrichedOrders);
   } catch (err) {

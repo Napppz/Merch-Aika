@@ -7,7 +7,8 @@ const {
   dispatchBackgroundTask,
   ensureOrderPaymentColumns,
   ensureOrderHistoryTable,
-  recordOrderStatusHistory
+  recordOrderStatusHistory,
+  expireStalePendingOrders
 } = require('./order-lifecycle');
 
 function getMailTransportSafe() {
@@ -96,9 +97,23 @@ module.exports = async (req, res) => {
         });
       }
     } else if (auth.type !== 'admin' && existingOrder.status !== 'pending') {
+      const expiredMsg = existingShipObj.isNobar && existingOrder.status === 'cancelled'
+        ? 'Batas waktu pembayaran tiket telah habis dan kursi dikembalikan ke kuota publik. Silakan pesan ulang di halaman Nobar.'
+        : 'Bukti pembayaran sudah pernah diunggah atau status pesanan tidak lagi mengizinkan pengunggahan bukti.';
       return res.status(409).json({
-        error: 'Bukti pembayaran sudah pernah diunggah atau status pesanan tidak lagi mengizinkan pengunggahan bukti.'
+        error: expiredMsg
       });
+    }
+
+    // 3b. Khusus reservasi tiket Nobar yang belum upload bukti: pastikan belum melewati batas waktu pembayaran
+    if (!isPelunasan && auth.type !== 'admin' && existingShipObj.isNobar && !existingOrder.payment_proof) {
+      const expStr = existingShipObj.nobarTicket && existingShipObj.nobarTicket.paymentExpiresAt;
+      if (expStr && !Number.isNaN(Date.parse(expStr)) && Date.now() > Date.parse(expStr)) {
+        await expireStalePendingOrders({ force: true });
+        return res.status(409).json({
+          error: 'Batas waktu pembayaran tiket Nobar telah berakhir. Kursi telah dikembalikan otomatis—silakan pesan ulang di halaman Nobar.'
+        });
+      }
     }
 
     // 4. Validasi format & ukuran gambar base64
@@ -223,6 +238,9 @@ module.exports = async (req, res) => {
         nextShip.reuploadRequested = false;
         nextShip.lastReuploadAt = new Date().toISOString();
         delete nextShip.reuploadNote;
+      }
+      if (nextShip.isNobar && nextShip.nobarTicket) {
+        nextShip.nobarTicket.paymentUploadedAt = new Date().toISOString();
       }
 
       const { rows } = await client.query(
@@ -386,6 +404,12 @@ module.exports = async (req, res) => {
         pelunasanStatus: finalShip.pelunasanStatus || null,
         customerName: order.customerName,
         email: order.email,
+        phone: order.phone,
+        address: order.address,
+        notes: order.notes,
+        items: order.items,
+        shipping: order.shipping,
+        date: order.date,
         total: order.total
       }
     });

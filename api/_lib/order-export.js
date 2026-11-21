@@ -1,5 +1,5 @@
 const db = require('./_db');
-const { requireAdmin } = require('./admin-auth');
+const { requireAdmin, requireFullAdmin } = require('./admin-auth');
 
 const ORDER_DETAIL_COLUMNS = `
   id,
@@ -341,7 +341,15 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   }
 
-  if (!requireAdmin(req, res)) return;
+  const adminUser = requireAdmin(req, res);
+  if (!adminUser) return;
+
+  // Akun admin khusus nobar dibatasi
+  if (adminUser.role === 'nobar_admin') {
+    if (!req.query.id) {
+      return res.status(403).json({ error: 'Akses ditolak: Akun admin khusus Nobar hanya dapat mengekspor data peserta Nobar melalui tab Nobar Bioskop.' });
+    }
+  }
 
   const { id, format = 'csv', status } = req.query;
 

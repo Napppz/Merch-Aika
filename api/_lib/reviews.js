@@ -19,7 +19,21 @@ module.exports = async (req, res) => {
       }
 
       res.setHeader('X-Cache', 'MISS');
-      const { rows } = await db.query('SELECT * FROM reviews ORDER BY date DESC LIMIT 10');
+      const { rows } = await db.query(`
+        SELECT 
+          r.id,
+          r.customer_name,
+          r.order_id,
+          r.rating,
+          r.comment,
+          r.date,
+          COALESCE(NULLIF(u.avatar, ''), NULLIF(r.avatar, '')) as avatar
+        FROM reviews r
+        LEFT JOIN orders o ON o.id = r.order_id
+        LEFT JOIN users u ON (u.email = o.email OR LOWER(u.username) = LOWER(r.customer_name))
+        ORDER BY r.date DESC
+        LIMIT 25
+      `);
 
       // ✅ Cache for 10 minutes (reviews update periodically)
       setCache('reviews_latest', rows, 600);

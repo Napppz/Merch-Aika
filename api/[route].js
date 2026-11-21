@@ -7,6 +7,7 @@ const INTERNAL_HELPER_MODULES = new Set([
   'env',
   'jwt-manager',
   'multipart',
+  'nobar-qr',
   'order-lifecycle',
   'r2-storage',
   'security-middleware',

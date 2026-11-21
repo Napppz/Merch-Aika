@@ -13,7 +13,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Nunito:wght@300;400;600;700&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=2" />
   <style>
     /* ============================================================
        PROFILE DASHBOARD — ULTRA-CLEAN MOBILE & iOS DESIGN SYSTEM
@@ -1844,6 +1844,7 @@
             <label for="userCategoryFilter" class="filter-label">Filter:</label>
             <select id="userCategoryFilter" onchange="filterUserOrdersCategory(this.value)" class="category-select">
               <option value="Semua">Semua Kategori</option>
+              <option value="Tiket Nobar">Tiket Nobar Bioskop</option>
               <option value="Photopack">📸 Photopack Digital</option>
               <option value="Pakaian">👕 Pakaian</option>
               <option value="Aksesoris">💎 Aksesoris</option>
@@ -2100,6 +2101,40 @@
           ✅ Kirim Bukti Transfer
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Nobar E-Ticket QR Modal (Fullscreen High Contrast Ready-to-Scan) -->
+  <div id="nobarQrModal" class="cart-overlay" onclick="if(event.target===this) closeNobarQrModal()"
+    style="display:none; align-items:center; justify-content:center; padding:1rem; z-index:9999;">
+    <div
+      style="position:relative; width:100%; max-width:420px; max-height:90vh; overflow-y:auto; background:linear-gradient(155deg, #07193d, #03091f); border:2px solid var(--aqua); box-shadow:0 18px 50px rgba(0,0,0,0.75); border-radius:20px; padding:1.5rem; text-align:center;"
+      onclick="event.stopPropagation()">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <div style="text-align:left;">
+          <div style="font-family:var(--font-display); color:var(--aqua); font-size:1.1rem; font-weight:800;">🎟️ E-TIKET NOBAR RESMI</div>
+          <div id="nobarQrModalOrderId" style="font-family:monospace; color:var(--text-muted); font-size:0.8rem; margin-top:2px;">#INV-...</div>
+        </div>
+        <button type="button" onclick="closeNobarQrModal()"
+          style="background:rgba(255,255,255,0.08); border:1px solid var(--card-border); color:var(--white); width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:1rem;">✕</button>
+      </div>
+
+      <div id="nobarQrModalTier" style="display:inline-block; background:rgba(41,182,246,0.16); border:1px solid rgba(41,182,246,0.45); color:var(--aqua); padding:4px 12px; border-radius:50px; font-size:0.78rem; font-weight:800; margin-bottom:0.9rem;">
+        Tiket Nobar
+      </div>
+
+      <div style="background:#ffffff; padding:14px; border-radius:16px; display:inline-block; box-shadow:0 8px 30px rgba(0,0,0,0.5);">
+        <img id="nobarQrModalImg" src="" alt="QR Code E-Tiket" style="width:240px; height:240px; display:block; object-fit:contain;" />
+      </div>
+
+      <div id="nobarQrModalToken" style="margin-top:0.65rem; font-family:monospace; font-size:0.76rem; color:var(--text-muted); word-break:break-all;"></div>
+
+      <div id="nobarQrModalMeta" style="margin-top:1rem; text-align:left; background:rgba(3,9,31,0.7); border:1px solid var(--card-border); border-radius:12px; padding:0.9rem; font-size:0.83rem; color:var(--white); line-height:1.55;">
+      </div>
+
+      <p style="margin:0.85rem 0 0; font-size:0.76rem; color:var(--text-muted); line-height:1.45;">
+        Tunjukkan QR Code ini ke panitia di pintu masuk bioskop untuk di-scan. Naikkan kecerahan layar HP Anda jika ruangan gelap.
+      </p>
     </div>
   </div>
 
@@ -2612,6 +2647,7 @@
     }
 
     function getItemCategory(item) {
+      if (item.is_nobar || item.category === 'Tiket Nobar') return 'Tiket Nobar';
       if (item.is_photopack || item.category === 'Photopack') return 'Photopack';
       const prod = catalogProductsMap[item.id] || catalogProductsMap[(item.name || '').toLowerCase().trim()] || {};
       if (prod.is_photopack || prod.category === 'Photopack') return 'Photopack';
@@ -2677,21 +2713,34 @@
           hour: '2-digit', minute: '2-digit'
         }) + ' WIB';
 
+        const isNobar = Boolean(shippingInfo?.isNobar && shippingInfo?.nobarTicket);
+        const nobarTicket = shippingInfo?.nobarTicket || null;
+
         const statusLower = (o.status || 'pending').toLowerCase();
         const statusClass = ['paid', 'shipped', 'completed', 'cancelled'].includes(statusLower) ? statusLower : 'pending';
         const statusLabel = isInitialReupload
           ? 'PERLU UPLOAD ULANG'
-          : o.status === 'paid'
-            ? 'DIKEMAS'
-            : o.status === 'shipped'
-              ? 'DIKIRIM'
-              : o.status === 'completed'
-                ? 'SELESAI'
-                : o.status === 'cancelled'
-                  ? 'DIBATALKAN'
-                  : o.status === 'payment_pending'
-                    ? 'MENUNGGU VERIFIKASI'
-                    : 'MENUNGGU PEMBAYARAN';
+          : isNobar
+            ? (o.status === 'paid'
+                ? 'TIKET AKTIF'
+                : o.status === 'completed'
+                  ? 'SUDAH CHECK-IN'
+                  : o.status === 'cancelled'
+                    ? 'DIBATALKAN'
+                    : o.status === 'payment_pending'
+                      ? 'MENUNGGU VERIFIKASI'
+                      : 'MENUNGGU PEMBAYARAN')
+            : (o.status === 'paid'
+                ? 'DIKEMAS'
+                : o.status === 'shipped'
+                  ? 'DIKIRIM'
+                  : o.status === 'completed'
+                    ? 'SELESAI'
+                    : o.status === 'cancelled'
+                      ? 'DIBATALKAN'
+                      : o.status === 'payment_pending'
+                        ? 'MENUNGGU VERIFIKASI'
+                        : 'MENUNGGU PEMBAYARAN');
         const safeOid = escapeHtml(o.id);
 
         let pelunasanPillHtml = '';
@@ -2714,11 +2763,27 @@
             </div>
           `;
         } else if (o.status === 'pending' && !o.has_payment_proof) {
-          paymentNoticeHtml = `
-            <div style="margin:0.65rem 0 0.25rem; padding:0.65rem 0.9rem; background:rgba(41,182,246,0.1); border:1px solid rgba(41,182,246,0.3); border-radius:10px; font-size:0.79rem; color:var(--sky-light); line-height:1.4;">
-              ⏳ Bukti pembayaran belum diunggah. Silakan unggah bukti transfer dalam 24 jam agar pesanan tidak dibatalkan otomatis.
-            </div>
-          `;
+          if (isNobar && nobarTicket) {
+            const timeoutMins = parseInt(nobarTicket.paymentTimeoutMinutes, 10) || 45;
+            const expIso = nobarTicket.paymentExpiresAt || new Date(Date.parse(o.date || o.created_at || Date.now()) + timeoutMins * 60000).toISOString();
+            const expWib = new Date(Date.parse(expIso)).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            paymentNoticeHtml = `
+              <div style="margin:0.65rem 0 0.25rem; padding:0.75rem 0.95rem; background:rgba(245,158,11,0.13); border:1px solid rgba(245,158,11,0.45); border-radius:10px; font-size:0.8rem; color:#fde68a; line-height:1.45; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+                <div>
+                  ⏱️ <strong>Kursi Nobar Dikunci Sementara!</strong> Unggah bukti transfer QRIS sebelum pukul <strong>${expWib} WIB</strong> agar kursi tidak dilepas otomatis.
+                </div>
+                <span class="nobar-prof-countdown" data-expires="${escapeHtml(expIso)}" data-oid="${safeOid}" style="background:rgba(3,9,31,0.8); border:1px solid rgba(245,158,11,0.6); color:#fde047; font-family:monospace; font-weight:800; padding:3px 10px; border-radius:8px;">
+                  --:--
+                </span>
+              </div>
+            `;
+          } else {
+            paymentNoticeHtml = `
+              <div style="margin:0.65rem 0 0.25rem; padding:0.65rem 0.9rem; background:rgba(41,182,246,0.1); border:1px solid rgba(41,182,246,0.3); border-radius:10px; font-size:0.79rem; color:var(--sky-light); line-height:1.4;">
+                ⏳ Bukti pembayaran belum diunggah. Silakan unggah bukti transfer dalam 24 jam agar pesanan tidak dibatalkan otomatis.
+              </div>
+            `;
+          }
         } else if (isPelunasanRejected) {
           paymentNoticeHtml = `
             <div style="margin:0.65rem 0 0.25rem; padding:0.75rem 0.9rem; background:rgba(245,158,11,0.14); border:1px solid rgba(245,158,11,0.45); border-radius:10px; font-size:0.8rem; color:#fde68a; line-height:1.45;">
@@ -2727,6 +2792,73 @@
             </div>
           `;
         }
+
+        const isNobarVerified = isNobar && ['paid', 'shipped', 'completed'].includes(statusLower);
+        const isNobarCheckedIn = isNobar && (statusLower === 'completed' || Boolean(nobarTicket?.checkedIn));
+        const safeProofImgUrl = sanitizeProfileImageUrl(o.payment_proof || '');
+        const safeQrUrl = isNobarVerified && typeof o.nobar_qr_data_url === 'string' && o.nobar_qr_data_url.startsWith('data:image/')
+          ? o.nobar_qr_data_url
+          : '';
+
+        const nobarPassHtml = isNobar && nobarTicket ? `
+          <div style="margin:0.75rem 0; padding:1rem 1.15rem; background:linear-gradient(135deg, ${nobarTicket.tier === 'vip' ? 'rgba(234,179,8,0.14), rgba(3,9,31,0.9)' : 'rgba(2,132,199,0.14), rgba(3,9,31,0.9)'}); border:1.5px solid ${isNobarCheckedIn ? '#4ade80' : (isNobarVerified ? '#22c55e' : (nobarTicket.tier === 'vip' ? 'rgba(234,179,8,0.55)' : 'rgba(41,182,246,0.45)'))}; border-radius:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.55rem;">
+              <div style="font-weight:800; font-size:0.9rem; color:${nobarTicket.tier === 'vip' ? '#fde047' : 'var(--aqua)'};">
+                🎟️ TIKET NOBAR BIOSKOP — ${escapeHtml(nobarTicket.tierLabel || 'Tiket Nobar')}
+              </div>
+              <div style="display:flex; gap:0.4rem; flex-wrap:wrap; align-items:center;">
+                ${isNobarCheckedIn
+                  ? `<span style="background:rgba(34,197,94,0.22); color:#4ade80; border:1px solid rgba(34,197,94,0.6); padding:3px 10px; border-radius:50px; font-size:0.72rem; font-weight:800;">✅ SUDAH CHECK-IN</span>`
+                  : isNobarVerified
+                    ? '<span style="background:rgba(34,197,94,0.2); color:#4ade80; border:1px solid rgba(34,197,94,0.5); padding:3px 10px; border-radius:50px; font-size:0.72rem; font-weight:800;">TIKET RESMI TERVERIFIKASI</span>'
+                    : statusLower === 'cancelled'
+                      ? '<span style="background:rgba(239,68,68,0.2); color:#fca5a5; border:1px solid rgba(239,68,68,0.45); padding:3px 10px; border-radius:50px; font-size:0.72rem; font-weight:800;">DIBATALKAN / KEDALUWARSA</span>'
+                      : o.status === 'pending'
+                        ? '<span style="background:rgba(245,158,11,0.18); color:#fde047; border:1px solid rgba(245,158,11,0.45); padding:3px 10px; border-radius:50px; font-size:0.72rem; font-weight:700;">MENUNGGU PEMBAYARAN</span>'
+                        : '<span style="background:rgba(56,189,248,0.18); color:#7dd3fc; border:1px solid rgba(56,189,248,0.4); padding:3px 10px; border-radius:50px; font-size:0.72rem; font-weight:700;">MENUNGGU VERIFIKASI ADMIN</span>'}
+              </div>
+            </div>
+            <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+              ${isNobarVerified && safeQrUrl ? `
+                <div onclick="openNobarQrModal('${safeOid}')" title="Klik untuk memperbesar QR Code saat scan"
+                  style="cursor:pointer; background:#fff; padding:8px; border-radius:12px; flex-shrink:0; text-align:center; box-shadow:0 6px 18px rgba(0,0,0,0.35);">
+                  <img src="${safeQrUrl}" alt="QR E-Tiket ${safeOid}" style="width:94px; height:94px; display:block;" />
+                  <div style="color:#0284c7; font-size:0.65rem; font-weight:800; margin-top:3px;">Tap Perbesar</div>
+                </div>
+              ` : ''}
+              <div style="flex:1; min-width:200px; font-size:0.83rem; color:var(--white); line-height:1.55;">
+                <div><strong>Jumlah Kursi:</strong> ${parseInt(nobarTicket.qty, 10) || 1} Tiket (${nobarTicket.tier === 'vip' ? 'Kursi Spesial di Samping Kak Aika' : 'Ambil kursi saat event berlangsung — siapa cepat dia dapat'})</div>
+                <div><strong>Daftar Peserta:</strong> ${(nobarTicket.participants || []).map((p, idx) => `${idx + 1}. ${escapeHtml(p)}`).join(' • ')}</div>
+                ${nobarTicket.includesMerch ? `<div><strong>Paket Merch:</strong> <span style="color:var(--gold);">${escapeHtml(nobarTicket.merchBundle || 'Photocard & Poster')}</span> ${nobarTicket.merchClaimed ? '<span style="color:#4ade80;font-weight:700;">(Sudah Diambil ✓)</span>' : '(Ambil di lokasi)'}</div>` : ''}
+                ${nobarTicket.eventSnapshot ? `<div style="color:var(--text-muted); font-size:0.78rem; margin-top:0.25rem;">Lokasi: ${escapeHtml(nobarTicket.eventSnapshot.cinemaLocation || '-')} • Jadwal: ${escapeHtml(nobarTicket.eventSnapshot.eventDate || '-')} (${escapeHtml(nobarTicket.eventSnapshot.eventTime || '-')})</div>` : ''}
+                ${isNobarCheckedIn && nobarTicket.checkedInAt ? `<div style="color:#4ade80; font-size:0.76rem; font-weight:700; margin-top:0.25rem;">✓ Check-in di lokasi pada ${new Date(nobarTicket.checkedInAt).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })} WIB</div>` : ''}
+              </div>
+            </div>
+            <div style="margin-top:0.65rem; padding-top:0.6rem; border-top:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+              <span style="font-size:0.76rem; color:${isNobarVerified ? '#4ade80' : 'var(--text-muted)'}; font-weight:700;">
+                ${isNobarVerified
+                  ? (isNobarCheckedIn ? 'Anda telah berhasil check-in di lokasi bioskop. Selamat menonton! 🍿' : 'Tunjukkan QR Code E-Tiket di atas kepada panitia untuk di-scan di pintu masuk bioskop.')
+                  : statusLower === 'cancelled'
+                    ? 'Pesanan tiket dibatalkan / melewati batas waktu bayar.'
+                    : o.status === 'pending'
+                      ? 'Selesaikan transfer QRIS & upload bukti pembayaran untuk menerbitkan QR E-Tiket.'
+                      : '🔒 QR Code E-Tiket resmi akan langsung aktif setelah bukti pembayaran diverifikasi Admin.'}
+              </span>
+              <div style="display:flex; gap:0.45rem; flex-wrap:wrap;">
+                ${isNobarVerified ? `
+                  <button type="button" class="btn-primary" data-oid="${safeOid}" onclick="openNobarQrModal(this.dataset.oid)" style="padding:0.4rem 0.9rem; font-size:0.76rem; border-radius:8px; font-weight:800;">
+                    📱 Buka QR E-Tiket
+                  </button>
+                ` : ''}
+                ${safeProofImgUrl ? `
+                  <button type="button" class="btn-secondary" data-oid="${safeOid}" onclick="openNobarProofViewer(this.dataset.oid)" style="padding:0.4rem 0.85rem; font-size:0.76rem; border-radius:8px; border:1px solid var(--aqua); color:var(--aqua); background:rgba(41,182,246,0.12); cursor:pointer; font-weight:700;">
+                    Lihat Bukti Bayar
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        ` : '';
 
         return `
       <div class="order-card">
@@ -2747,6 +2879,7 @@
           </div>
         </div>
         ${paymentNoticeHtml}
+        ${nobarPassHtml}
         <div class="order-items">
           ${itemsArr.map(i => {
           const prod = catalogProductsMap[i.id] || catalogProductsMap[(i.name || '').toLowerCase().trim()] || {};
@@ -2825,8 +2958,10 @@
               </button>
             ` : ''}
             <button class="btn-ghost action-btn" data-oid="${safeOid}" onclick="printOrderInvoice(this.dataset.oid)">🧾 Invoice</button>
-            ${o.status === 'shipped' ? `<button class="btn-primary action-btn btn-primary-action" data-oid="${safeOid}" onclick="confirmDelivery(this.dataset.oid)">📦 Diterima</button>` : ''}
-            <button class="btn-ghost action-btn" data-oid="${safeOid}" onclick="reorderItems(this.dataset.oid)">🛒 Beli Lagi</button>
+            ${o.status === 'shipped' && !isNobar ? `<button class="btn-primary action-btn btn-primary-action" data-oid="${safeOid}" onclick="confirmDelivery(this.dataset.oid)">📦 Diterima</button>` : ''}
+            ${isNobar
+              ? `<a href="nobar.html" class="btn-ghost action-btn" style="text-decoration:none;">🎟️ Pesan Lagi</a>`
+              : `<button class="btn-ghost action-btn" data-oid="${safeOid}" onclick="reorderItems(this.dataset.oid)">🛒 Beli Lagi</button>`}
             ${o.status === 'completed' ? (
             o.review_id
               ? '<span class="reviewed-pill">⭐ Ulasan Terkirim</span>'
@@ -2837,6 +2972,117 @@
       </div>
     `;
       }).join('');
+      startProfileNobarCountdowns();
+    }
+
+    let profileNobarCountdownTimer = null;
+    function startProfileNobarCountdowns() {
+      if (profileNobarCountdownTimer) {
+        clearInterval(profileNobarCountdownTimer);
+        profileNobarCountdownTimer = null;
+      }
+      const els = Array.from(document.querySelectorAll('.nobar-prof-countdown'));
+      if (!els.length) return;
+
+      const updateAll = () => {
+        let hasExpired = false;
+        const now = Date.now();
+        els.forEach(el => {
+          const expIso = el.getAttribute('data-expires') || '';
+          const expMs = Date.parse(expIso);
+          if (!Number.isFinite(expMs)) return;
+          const diffSec = Math.max(0, Math.floor((expMs - now) / 1000));
+          if (diffSec <= 0) {
+            el.textContent = 'KEDALUWARSA';
+            el.style.color = '#f87171';
+            el.style.borderColor = 'rgba(239,68,68,0.65)';
+            hasExpired = true;
+          } else {
+            const m = Math.floor(diffSec / 60);
+            const s = diffSec % 60;
+            const h = Math.floor(m / 60);
+            const rm = m % 60;
+            el.textContent = h > 0
+              ? `${String(h).padStart(2, '0')}:${String(rm).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+              : `${String(rm).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+          }
+        });
+        if (hasExpired && profileNobarCountdownTimer) {
+          clearInterval(profileNobarCountdownTimer);
+          profileNobarCountdownTimer = null;
+        }
+      };
+
+      updateAll();
+      profileNobarCountdownTimer = setInterval(updateAll, 1000);
+    }
+
+    async function openNobarQrModal(orderId) {
+      const order = userOrdersList.find(o => o.id === orderId);
+      if (!order) return;
+      let ship = {};
+      try { ship = typeof order.shipping === 'string' ? JSON.parse(order.shipping || '{}') : (order.shipping || {}); } catch (_) {}
+      const nb = ship.nobarTicket || {};
+
+      let qrUrl = order.nobar_qr_data_url || '';
+      let qrToken = order.nobar_ticket_token || nb.ticketToken || '';
+
+      if (!qrUrl) {
+        try {
+          const res = await fetch('/api/nobar?qr_order_id=' + encodeURIComponent(orderId), {
+            headers: getSessionAuthHeaders()
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Gagal memuat QR E-Tiket');
+          qrUrl = data.qrCodeDataUrl;
+          qrToken = data.ticketToken;
+        } catch (err) {
+          alert(err.message);
+          return;
+        }
+      }
+
+      document.getElementById('nobarQrModalOrderId').textContent = '#' + order.id;
+      document.getElementById('nobarQrModalTier').textContent = nb.tierLabel || (nb.tier === 'vip' ? 'Tiket VIP' : 'Tiket Reguler');
+      document.getElementById('nobarQrModalImg').src = qrUrl;
+      document.getElementById('nobarQrModalToken').textContent = qrToken ? 'Kode: ' + qrToken : '';
+
+      const participantsText = (nb.participants || []).map((p, idx) => `${idx + 1}. ${escapeHtml(p)}`).join('<br>');
+      document.getElementById('nobarQrModalMeta').innerHTML = `
+        <div><strong>Jumlah Kursi:</strong> ${parseInt(nb.qty, 10) || 1} Kursi</div>
+        <div style="margin-top:4px;"><strong>Peserta:</strong><br>${participantsText || '-'}</div>
+        ${nb.includesMerch ? `<div style="margin-top:4px; color:var(--gold);"><strong>Merch:</strong> ${escapeHtml(nb.merchBundle || 'Photocard & Poster')} ${nb.merchClaimed ? '<span style="color:#4ade80;">(Sudah diambil ✓)</span>' : '(Ambil di lokasi)'}</div>` : ''}
+      `;
+
+      const modal = document.getElementById('nobarQrModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+      }
+    }
+
+    function closeNobarQrModal() {
+      const modal = document.getElementById('nobarQrModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+      }
+    }
+
+    
+    function openNobarProofViewer(orderId) {
+      const order = userOrdersList.find(o => o.id === orderId);
+      if (!order) return;
+      const proofUrl = sanitizeProfileImageUrl(order.payment_proof || '');
+      if (!proofUrl) {
+        alert('Bukti pembayaran belum tersedia.');
+        return;
+      }
+      if (typeof openImageLightbox === 'function') {
+        openImageLightbox([proofUrl], 0, 'Bukti Pembayaran Tiket #' + order.id);
+      } else {
+        window.open(proofUrl, '_blank');
+      }
     }
 
     function printOrderInvoice(orderId) {

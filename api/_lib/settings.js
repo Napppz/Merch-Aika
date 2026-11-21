@@ -1,4 +1,4 @@
-const { requireAdmin } = require('./admin-auth');
+const { requireFullAdmin } = require('./admin-auth');
 const db = require('./_db');
 const { hasR2Config, parseDataUrlImage, uploadImageBuffer } = require('./r2-storage');
 
@@ -17,7 +17,7 @@ module.exports = async function handler(req, res) {
     } 
     
     if (req.method === 'POST') {
-      if (!requireAdmin(req, res)) {
+      if (!requireFullAdmin(req, res)) {
         return;
       }
       const { hero_image } = req.body;

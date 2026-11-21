@@ -1,5 +1,5 @@
 const db = require('./_db');
-const { requireAdmin } = require('./admin-auth');
+const { requireAdmin, requireFullAdmin } = require('./admin-auth');
 const { verifyUserAuth } = require('./user-auth');
 
 const SETTINGS_KEY = 'vouchers';
@@ -197,7 +197,7 @@ module.exports = async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
-      const authResult = requireAdmin(req, {
+      const authResult = requireFullAdmin(req, {
         status: () => ({ json: () => null })
       });
       const userAuth = verifyUserAuth(req);
@@ -225,7 +225,7 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      if (!requireAdmin(req, res)) return;
+      if (!requireFullAdmin(req, res)) return;
 
       const voucher = sanitizeVoucher(req.body || {});
       const validationError = validateVoucher(voucher);
@@ -248,7 +248,7 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'PUT') {
-      if (!requireAdmin(req, res)) return;
+      if (!requireFullAdmin(req, res)) return;
 
       const voucher = sanitizeVoucher(req.body || {});
       const validationError = validateVoucher(voucher);
@@ -272,7 +272,7 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'DELETE') {
-      if (!requireAdmin(req, res)) return;
+      if (!requireFullAdmin(req, res)) return;
 
       const code = normalizeCode(req.query.code || req.body?.code || '');
       if (!code) {

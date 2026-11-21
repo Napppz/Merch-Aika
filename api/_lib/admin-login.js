@@ -108,6 +108,33 @@ function buildAdminToken(admin) {
 }
 
 function tryEnvAdminLogin(username, password, clientIp) {
+  const envNobarUsername = String(process.env.NOBAR_ADMIN_USERNAME || '').trim();
+  const envNobarPassword = String(process.env.NOBAR_ADMIN_PASSWORD || '');
+
+  if (envNobarUsername && envNobarPassword && username === envNobarUsername) {
+    const inputHash = hashPassword(password);
+    const expectedHash = hashPassword(envNobarPassword);
+    if (!verifyHash(inputHash, expectedHash)) {
+      recordFailedAttempt(clientIp);
+      return {
+        status: 401,
+        body: {
+          success: false,
+          message: 'Username atau password admin salah!'
+        }
+      };
+    }
+    recordSuccessfulLogin(clientIp, 3);
+    return {
+      status: 200,
+      body: buildAdminToken({
+        id: 3,
+        username: envNobarUsername,
+        role: 'nobar_admin'
+      })
+    };
+  }
+
   const envUsername = process.env.ADMIN_USERNAME || 'Aika';
   const envPasswordHash = process.env.ADMIN_PASSWORD_HASH;
 
@@ -205,8 +232,8 @@ module.exports = async function handler(req, res) {
     let result;
     try {
       result = await db.query(
-        'SELECT id, username, password_hash, role, status FROM admins WHERE username = $1 AND status = $2',
-        [username, 'active']
+        'SELECT id, username, password_hash, role, status FROM admins WHERE username = $1',
+        [username]
       );
     } catch (dbErr) {
       console.error('Admin login DB error:', dbErr.message);
@@ -234,6 +261,12 @@ module.exports = async function handler(req, res) {
     }
 
     const admin = result.rows[0];
+    if (String(admin.status || '').toLowerCase() !== 'active') {
+      return res.status(403).json({
+        success: false,
+        message: 'Akun admin ini sedang dinonaktifkan oleh Superadmin.'
+      });
+    }
     
     // Hash input password dan bandingkan
     const inputPasswordHash = hashPassword(password);

@@ -1,4 +1,4 @@
-const { requireAdmin } = require('./admin-auth');
+const { requireFullAdmin } = require('./admin-auth');
 const { parseMultipartForm } = require('./multipart');
 const { uploadImageBuffer } = require('./r2-storage');
 
@@ -8,7 +8,7 @@ module.exports = async (req, res) => {
     return res.status(405).json({ success: false, error: 'Method Not Allowed' });
   }
 
-  if (!requireAdmin(req, res)) return;
+  if (!requireFullAdmin(req, res)) return;
 
   try {
     const contentType = req.headers['content-type'] || '';

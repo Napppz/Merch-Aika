@@ -1,6 +1,6 @@
 const db = require('./_db');
 const { invalidateCache } = require('./cache');
-const { requireAdmin, verifyAdminToken } = require('./admin-auth');
+const { requireAdmin, requireFullAdmin, verifyAdminToken } = require('./admin-auth');
 const { expireStalePendingOrders } = require('./order-lifecycle');
 
 let ensuredColumns = false;
@@ -90,6 +90,9 @@ module.exports = async (req, res) => {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       const adminUser = verifyAdminToken(req);
       const isAdminReq = req.query.admin === 'true' && !!adminUser;
+      if (adminUser && adminUser.role === 'nobar_admin' && req.query.admin === 'true') {
+        return res.status(403).json({ error: 'Akses ditolak: Akun admin khusus Nobar tidak memiliki izin mengakses data produk toko.' });
+      }
 
       const selectFields = isAdminReq
         ? `id, name, category, description, price, "oldPrice", stock, badge, image, images, sizes, tag, gdrive_link, cosplayer_name, is_photopack, created_at`
@@ -105,7 +108,7 @@ module.exports = async (req, res) => {
     } 
     
     if (method === 'POST') {
-      if (!requireAdmin(req, res)) return;
+      if (!requireFullAdmin(req, res)) return;
       const { id, name, category, description, price, oldPrice, stock, badge, image, images, sizes, tag, gdrive_link, cosplayer_name, is_photopack } = req.body;
       
       const isPhotopackBool = is_photopack === true || is_photopack === 'true' || category === 'Photopack';
@@ -125,7 +128,7 @@ module.exports = async (req, res) => {
     }
 
     if (method === 'PUT') {
-      if (!requireAdmin(req, res)) return;
+      if (!requireFullAdmin(req, res)) return;
       const { id, name, category, description, price, oldPrice, stock, badge, image, images, sizes, tag, gdrive_link, cosplayer_name, is_photopack } = req.body;
       
       const isPhotopackBool = is_photopack === true || is_photopack === 'true' || category === 'Photopack';
@@ -147,7 +150,7 @@ module.exports = async (req, res) => {
     }
 
     if (method === 'DELETE') {
-      if (!requireAdmin(req, res)) return;
+      if (!requireFullAdmin(req, res)) return;
       const { id } = req.query;
       await db.query(`DELETE FROM products WHERE id = $1`, [id]);
       

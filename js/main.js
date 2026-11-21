@@ -1156,19 +1156,19 @@ function initFadeIn() {
   document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 }
 
-// ── RENDER REVIEWS ──
+// ── RENDER REVIEWS (SMOOTH HORIZONTAL MARQUEE TO LEFT) ──
 async function loadReviews() {
   const grid = document.getElementById('reviewsGrid');
   if (!grid) return;
   try {
     const res = await fetch('/api/reviews');
     const reviews = await res.json();
-    if (reviews.length === 0) {
-      grid.innerHTML = '<p style="text-align:center; color:var(--text-muted); grid-column:1/-1">Belum ada ulasan. Belilah produk dan jadilah yang pertama mereview!</p>';
+    if (!Array.isArray(reviews) || reviews.length === 0) {
+      grid.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:2rem;">Belum ada ulasan. Belilah produk dan jadilah yang pertama mereview!</p>';
       return;
     }
 
-    grid.innerHTML = reviews.map((r, i) => {
+    const renderCard = (r) => {
       const ratingNum = Math.min(5, Math.max(1, parseInt(r.rating, 10) || 5));
       const rawComment = typeof r.comment === 'string' ? r.comment.trim() : '';
       const fallbackComment = ratingNum >= 4
@@ -1179,19 +1179,21 @@ async function loadReviews() {
       const safeAvatar = sanitizeStoreImageUrl(r.avatar || '');
       const initial = escapeStoreHtml((r.customer_name || 'P').charAt(0).toUpperCase());
       const commentHtml = rawComment
-        ? `<q style="color:var(--text-main); font-style:italic; display:block; margin-bottom:1.5rem; font-size:1.05rem; line-height: 1.6;">${safeComment}</q>`
+        ? `<q style="color:var(--text-main); font-style:italic; display:block; margin-bottom:1.5rem; font-size:1.02rem; line-height: 1.6;">${safeComment}</q>`
         : `<p style="color:var(--text-muted); font-style:italic; display:block; margin-bottom:1.5rem; font-size:0.98rem; line-height: 1.6;">${safeComment}</p>`;
       return `
-      <div class="product-card fade-in" style="padding:2rem; text-align:left; background: linear-gradient(145deg, rgba(10,56,114,0.6), rgba(3,9,31,0.8)); position:relative; box-shadow: var(--shadow-blue); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); animation-delay: ${i * 0.1}s;">
-        <div style="position:absolute; top:1rem; right:1.5rem; font-size:3rem; color:var(--aqua); opacity:0.1; font-family:var(--font-display)">"</div>
-        <div style="color:var(--gold); margin-bottom:1rem; font-size:1.2rem; filter: drop-shadow(0 0 5px rgba(255,213,79,0.5));">
-          ${'⭐'.repeat(ratingNum)}
+      <div class="review-marquee-card">
+        <div>
+          <div style="position:absolute; top:1rem; right:1.5rem; font-size:3rem; color:var(--aqua); opacity:0.1; font-family:var(--font-display)">"</div>
+          <div style="color:var(--gold); margin-bottom:1rem; font-size:1.15rem; filter: drop-shadow(0 0 5px rgba(255,213,79,0.5));">
+            ${'⭐'.repeat(ratingNum)}
+          </div>
+          ${commentHtml}
         </div>
-        ${commentHtml}
-        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--card-border); padding-top:1rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--card-border); padding-top:1rem; margin-top:auto;">
           <div style="display:flex; align-items:center; gap:0.8rem;">
-            <div data-nosnippet style="width:35px; height:35px; border-radius:50%; background:var(--aqua); color:var(--deep-ocean); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1rem; font-family:var(--font-display); overflow:hidden;">
-              ${safeAvatar ? `<img src="${escapeStoreHtml(safeAvatar)}" alt="" role="presentation" loading="lazy" style="width:100%;height:100%;object-fit:cover;">` : initial}
+            <div data-nosnippet style="width:35px; height:35px; border-radius:50%; background:var(--aqua); color:var(--deep-ocean); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1rem; font-family:var(--font-display); overflow:hidden; flex-shrink:0;">
+              ${safeAvatar ? `<img src="${escapeStoreHtml(safeAvatar)}" alt="" role="presentation" loading="lazy" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentElement.textContent='${initial}';">` : initial}
             </div>
             <div style="font-weight:700; color:var(--white); font-size:0.95rem;">${safeCustomer}</div>
           </div>
@@ -1199,10 +1201,27 @@ async function loadReviews() {
         </div>
       </div>
     `;
-    }).join('');
-    initFadeIn();
+    };
+
+    // Pastikan setiap grup memiliki minimal 6 kartu agar barisan penuh di layar lebar
+    let baseList = [...reviews];
+    while (baseList.length < 6) {
+      baseList = baseList.concat(reviews);
+    }
+
+    const cardsHtml = baseList.map(renderCard).join('');
+    const durationSec = Math.max(30, Math.round(baseList.length * 4.5));
+
+    grid.classList.add('reviews-marquee-viewport');
+    grid.removeAttribute('style');
+    grid.innerHTML = `
+      <div class="reviews-marquee-track" style="--marquee-duration: ${durationSec}s;">
+        <div class="reviews-marquee-group">${cardsHtml}</div>
+        <div class="reviews-marquee-group" aria-hidden="true">${cardsHtml}</div>
+      </div>
+    `;
   } catch (e) {
-    grid.innerHTML = '<p style="text-align:center; color:#ef4444; grid-column:1/-1">Gagal memuat ulasan.</p>';
+    grid.innerHTML = '<p style="text-align:center; color:#ef4444; padding:2rem;">Gagal memuat ulasan.</p>';
   }
 }
 
