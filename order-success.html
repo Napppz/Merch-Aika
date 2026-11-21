@@ -22,6 +22,7 @@
       align-items: center;
       justify-content: center;
       padding: 3rem 1.5rem;
+      box-sizing: border-box;
     }
 
     .success-card {
@@ -34,6 +35,8 @@
       text-align: center;
       backdrop-filter: blur(12px);
       box-shadow: var(--shadow-blue);
+      box-sizing: border-box;
+      overflow: hidden;
     }
 
     .success-icon {
@@ -73,6 +76,7 @@
       padding: 1.8rem;
       margin: 2rem 0;
       text-align: left;
+      box-sizing: border-box;
     }
 
     .order-detail h3 {
@@ -83,15 +87,31 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.75rem;
       border-bottom: 1px solid var(--card-border);
       padding-bottom: 0.8rem;
+    }
+
+    .invoice-id-badge {
+      font-size: 0.92rem;
+      color: var(--white);
+      font-weight: 800;
+      font-family: monospace;
+      background: rgba(41, 182, 246, 0.14);
+      border: 1px solid rgba(41, 182, 246, 0.35);
+      padding: 3px 10px;
+      border-radius: 8px;
+      white-space: nowrap;
     }
 
     .detail-row {
       display: flex;
       justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.45rem 1rem;
       font-size: 0.88rem;
-      padding: 0.45rem 0;
+      padding: 0.5rem 0;
       border-bottom: 1px solid rgba(41, 182, 246, 0.08);
     }
 
@@ -99,13 +119,23 @@
       border: none;
     }
 
-    .detail-row span:first-child {
+    .detail-row > span:first-child {
       color: var(--text-muted);
+      flex-shrink: 0;
     }
 
-    .detail-row span:last-child {
+    .detail-row > span:last-child {
       color: var(--white);
       font-weight: 600;
+      text-align: right;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .detail-row.summary-amount-row > span:last-child {
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .items-list {
@@ -115,14 +145,95 @@
     .item-row {
       display: flex;
       justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.75rem;
       font-size: 0.88rem;
-      padding: 0.4rem 0;
+      padding: 0.45rem 0;
       color: var(--text-muted);
     }
 
-    .item-row span:last-child {
+    .item-row > div {
+      min-width: 0;
+      flex: 1;
+      line-height: 1.45;
+    }
+
+    .item-row > span:last-child {
       color: var(--aqua);
       font-weight: 700;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 640px) {
+      .success-wrap {
+        padding: 1.25rem 0.75rem 5.5rem;
+        align-items: flex-start;
+      }
+
+      .success-card {
+        padding: 1.55rem 1.05rem;
+        border-radius: 18px;
+      }
+
+      .success-icon {
+        font-size: 3rem;
+        margin-bottom: 0.65rem;
+      }
+
+      .success-card h1 {
+        font-size: 1.45rem;
+        line-height: 1.25;
+      }
+
+      .order-detail {
+        padding: 1.05rem;
+        margin: 1.35rem 0;
+        border-radius: 14px;
+      }
+
+      .order-detail h3 {
+        font-size: 0.98rem;
+        margin-bottom: 0.9rem;
+        padding-bottom: 0.7rem;
+      }
+
+      .invoice-id-badge {
+        font-size: 0.84rem;
+        padding: 3px 8px;
+      }
+
+      .detail-row:not(.summary-amount-row) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.22rem;
+        padding: 0.55rem 0;
+      }
+
+      .detail-row:not(.summary-amount-row) > span:first-child {
+        font-size: 0.76rem;
+      }
+
+      .detail-row:not(.summary-amount-row) > span:last-child {
+        text-align: left;
+        width: 100%;
+        font-size: 0.9rem;
+        line-height: 1.45;
+      }
+
+      .cta-buttons {
+        flex-direction: column;
+        gap: 0.65rem;
+      }
+
+      .cta-buttons a,
+      .cta-buttons button {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+        border-radius: 12px !important;
+        box-sizing: border-box;
+      }
     }
 
     .cta-buttons {
@@ -213,7 +324,7 @@
       </div>
 
       <div class="cta-buttons">
-        <a href="profile.html?tab=orders" class="btn-primary" style="padding:0.75rem 1.4rem; border-radius:50px;">📂
+        <a href="profile.html?tab=orders" id="btnSuccessProfile" class="btn-primary" style="padding:0.75rem 1.4rem; border-radius:50px;">📂
           Lihat Status & GDrive di Profil</a>
         <button onclick="window.print()" class="btn-print">🖨️ Cetak / Simpan Invoice (PDF)</button>
         <a href="shop.html" class="btn-ghost" style="padding:0.75rem 1.4rem; border-radius:50px;">🛍️ Lanjut Belanja</a>
@@ -363,10 +474,17 @@
             ? '<span style="color:#f87171; font-weight:700;">❌ Dibatalkan</span>'
             : '<span style="color:#fde047; font-weight:700;">⏳ Menunggu Verifikasi Admin</span>';
 
+      const profileBtn = document.getElementById('btnSuccessProfile');
+      if (profileBtn) {
+        profileBtn.textContent = isNobar
+          ? '🎟️ Lihat Status & E-Tiket QR di Profil'
+          : '📂 Lihat Status & GDrive di Profil';
+      }
+
       detail.innerHTML = `
         <h3>
           <span>📄 INVOICE PESANAN</span>
-          <span style="font-size:0.95rem; color:var(--white); font-weight:700;">#${escapeHtml(order.id)}</span>
+          <span class="invoice-id-badge">#${escapeHtml(order.id)}</span>
         </h3>
         <div class="detail-row"><span>Waktu Pesanan</span><span>${formattedDate}</span></div>
         <div class="detail-row"><span>Nama Pembeli</span><span>${escapeHtml(order.customerName || '-')}</span></div>
@@ -378,7 +496,7 @@
         ${shippingInfo.resi ? `<div class="detail-row"><span>No. Resi</span><span style="font-weight:700; color:var(--sky-blue); letter-spacing:1px">${escapeHtml(shippingInfo.resi)}</span></div>` : ''}
         <div class="detail-row">
           <span>Skema Pembayaran</span>
-          <span>${isDp ? '<span style="background:rgba(234,179,8,0.2);color:#fde047;border:1px solid rgba(234,179,8,0.4);padding:2px 8px;border-radius:12px;font-size:0.78rem;font-weight:bold;">⚡ DP 50% (Uang Muka)</span>' : '<span style="background:rgba(41,182,246,0.15);color:var(--aqua);padding:2px 8px;border-radius:12px;font-size:0.78rem;font-weight:bold;">💎 Bayar Penuh QRIS</span>'}</span>
+          <span>${isDp ? '<span style="display:inline-block;background:rgba(234,179,8,0.2);color:#fde047;border:1px solid rgba(234,179,8,0.4);padding:3px 10px;border-radius:10px;font-size:0.78rem;font-weight:bold;">⚡ DP 50% (Uang Muka)</span>' : '<span style="display:inline-block;background:rgba(41,182,246,0.15);color:var(--aqua);padding:3px 10px;border-radius:10px;font-size:0.78rem;font-weight:bold;">💎 Bayar Penuh QRIS</span>'}</span>
         </div>
         <div class="detail-row">
           <span>Status Pembayaran</span>
@@ -386,8 +504,8 @@
         </div>
 
         ${isNobar && nobarTicket ? `
-          <div style="margin:1rem 0; padding:1.15rem; background:linear-gradient(135deg, ${nobarTicket.tier === 'vip' ? 'rgba(234,179,8,0.16), rgba(3,9,31,0.9)' : 'rgba(2,132,199,0.16), rgba(3,9,31,0.9)'}); border:1.5px solid ${isNobarVerified ? '#22c55e' : (nobarTicket.tier === 'vip' ? 'rgba(234,179,8,0.5)' : 'var(--aqua)')}; border-radius:12px; font-size:0.86rem; color:var(--white); line-height:1.55;">
-            <div style="font-weight:800; color:${nobarTicket.tier === 'vip' ? '#fde047' : 'var(--aqua)'}; font-size:0.95rem; margin-bottom:0.45rem;">
+          <div style="margin:1rem 0; padding:1.05rem; background:linear-gradient(135deg, ${nobarTicket.tier === 'vip' ? 'rgba(234,179,8,0.16), rgba(3,9,31,0.9)' : 'rgba(2,132,199,0.16), rgba(3,9,31,0.9)'}); border:1.5px solid ${isNobarVerified ? '#22c55e' : (nobarTicket.tier === 'vip' ? 'rgba(234,179,8,0.5)' : 'var(--aqua)')}; border-radius:12px; font-size:0.86rem; color:var(--white); line-height:1.55;">
+            <div style="font-weight:800; color:${nobarTicket.tier === 'vip' ? '#fde047' : 'var(--aqua)'}; font-size:0.94rem; margin-bottom:0.45rem;">
               🎟️ BUKTI TIKET NOBAR BIOSKOP — ${escapeHtml(tierBadgeText)}
             </div>
             <div><strong>Jumlah Tiket:</strong> ${parseInt(nobarTicket.qty, 10) || 1} Kursi</div>
@@ -398,8 +516,8 @@
                 <div style="font-weight:800; color:#0284c7; font-size:0.86rem; margin-bottom:0.5rem;">
                   ${isNobarCheckedIn ? '✅ SUDAH CHECK-IN DI BIOSKOP' : '📱 QR CODE E-TIKET RESMI (SIAP SCAN)'}
                 </div>
-                <img src="${safeQrUrl}" alt="QR E-Tiket" style="width:190px; height:190px; display:inline-block;" />
-                ${order.nobar_ticket_token ? `<div style="font-family:monospace; font-size:0.72rem; color:#64748b; margin-top:4px;">${escapeHtml(order.nobar_ticket_token)}</div>` : ''}
+                <img src="${safeQrUrl}" alt="QR E-Tiket" style="width:190px; max-width:100%; height:auto; display:inline-block;" />
+                ${order.nobar_ticket_token ? `<div style="font-family:monospace; font-size:0.72rem; color:#64748b; margin-top:4px; word-break:break-all;">${escapeHtml(order.nobar_ticket_token)}</div>` : ''}
               </div>
             ` : `
               <div style="margin-top:0.6rem; padding-top:0.5rem; border-top:1px solid rgba(255,255,255,0.12); color:var(--text-muted); font-size:0.8rem;">
@@ -424,12 +542,12 @@
         ` : ''}
 
         <div class="items-list">${itemsHtml}</div>
-        <div class="detail-row"><span>Ongkos Kirim</span><span>${isNobar ? 'Rp 0 (Ambil di Lokasi)' : formatPrice(shippingInfo.price || 0)}</span></div>
-        ${shippingInfo.discount ? `<div class="detail-row"><span style="color:#4caf50">Diskon Voucher (${escapeHtml(shippingInfo.discount.code)})</span><span style="color:#4caf50">- ${formatPrice(shippingInfo.discount.amount)}</span></div>` : ''}
-        <div class="detail-row" style="font-weight:700; font-size:1.02rem; border-top:1px solid var(--card-border); padding-top:0.8rem; margin-top:0.5rem;"><span style="color:var(--white)">Total Nilai Pesanan</span><span style="color:var(--aqua)">${formatPrice(order.total)}</span></div>
+        <div class="detail-row summary-amount-row"><span>Ongkos Kirim</span><span>${isNobar ? 'Rp 0 (Di Lokasi)' : formatPrice(shippingInfo.price || 0)}</span></div>
+        ${shippingInfo.discount ? `<div class="detail-row summary-amount-row"><span style="color:#4caf50">Diskon Voucher (${escapeHtml(shippingInfo.discount.code)})</span><span style="color:#4caf50">- ${formatPrice(shippingInfo.discount.amount)}</span></div>` : ''}
+        <div class="detail-row summary-amount-row" style="font-weight:700; font-size:1.02rem; border-top:1px solid var(--card-border); padding-top:0.8rem; margin-top:0.5rem;"><span style="color:var(--white)">Total Nilai Pesanan</span><span style="color:var(--aqua)">${formatPrice(order.total)}</span></div>
         ${isDp ? `
-          <div class="detail-row" style="font-weight:700; font-size:1.05rem;"><span style="color:#4ade80;">Tagihan DP 50% (Dibayar)</span><span style="color:#4ade80;">${formatPrice(dpAmount)}</span></div>
-          <div class="detail-row" style="font-weight:700; font-size:0.95rem;"><span style="color:var(--gold);">Sisa Pelunasan Nanti</span><span style="color:var(--gold);">${formatPrice(remainingAmount)}</span></div>
+          <div class="detail-row summary-amount-row" style="font-weight:700; font-size:1.05rem;"><span style="color:#4ade80;">Tagihan DP 50% (Dibayar)</span><span style="color:#4ade80;">${formatPrice(dpAmount)}</span></div>
+          <div class="detail-row summary-amount-row" style="font-weight:700; font-size:0.95rem;"><span style="color:var(--gold);">Sisa Pelunasan Nanti</span><span style="color:var(--gold);">${formatPrice(remainingAmount)}</span></div>
         ` : ''}
       `;
     }
