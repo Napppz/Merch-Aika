@@ -35,13 +35,104 @@
 
     body {
       background:
-        radial-gradient(ellipse 85% 48% at 50% 0%, rgba(21, 101, 192, 0.28) 0%, transparent 65%),
-        radial-gradient(ellipse 65% 40% at 85% 38%, rgba(41, 182, 246, 0.10) 0%, transparent 60%),
-        var(--deep-ocean);
+        radial-gradient(ellipse 95% 55% at 50% -5%, rgba(30, 88, 188, 0.42) 0%, rgba(17, 36, 92, 0.25) 45%, transparent 72%),
+        radial-gradient(ellipse 60% 42% at 82% 18%, rgba(56, 189, 248, 0.18) 0%, transparent 62%),
+        radial-gradient(ellipse 55% 38% at 18% 24%, rgba(244, 114, 182, 0.11) 0%, transparent 60%),
+        radial-gradient(ellipse 75% 45% at 50% 100%, rgba(30, 58, 138, 0.24) 0%, transparent 65%),
+        #02081f;
       font-family: var(--nobar-font);
+      position: relative;
+    }
+
+    /* ── PORTFOLIO-STYLE CANVAS METEOR SHOWER & STARFIELD BACKDROP ── */
+    .kimi-sky-backdrop {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .kimi-meteor-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      transform: translateZ(0);
+    }
+
+    .nobar-typewriter-wrap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      min-height: 1.22em;
+      gap: 0.24em;
+    }
+
+    @media (max-width: 640px) {
+      .nobar-typewriter-wrap {
+        min-height: 2.35em;
+      }
+    }
+
+    .nobar-typewriter-prefix {
+      color: var(--white);
+    }
+
+    .nobar-typewriter-highlight {
+      color: #38bdf8;
+      text-shadow: 0 0 24px rgba(56, 189, 248, 0.6), 0 4px 30px rgba(37, 99, 235, 0.45);
+    }
+
+    .nobar-typewriter-cursor {
+      display: inline-block;
+      width: 3.5px;
+      height: 0.88em;
+      background: #38bdf8;
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.9);
+      margin-left: 4px;
+      vertical-align: -0.08em;
+      border-radius: 2px;
+      animation: nobarCursorBlink 0.9s ease-in-out infinite alternate;
+    }
+
+    @keyframes nobarCursorBlink {
+      0% { opacity: 1; }
+      100% { opacity: 0.2; }
+    }
+
+    .kimi-musubi-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 0 auto 1.35rem;
+      max-width: 340px;
+    }
+
+    .kimi-musubi-line {
+      flex: 1;
+      height: 1.5px;
+      background: linear-gradient(90deg, transparent 0%, rgba(56, 189, 248, 0.75) 55%, rgba(244, 63, 94, 0.88) 100%);
+      border-radius: 99px;
+    }
+
+    .kimi-musubi-line.right {
+      background: linear-gradient(90deg, rgba(244, 63, 94, 0.88) 0%, rgba(56, 189, 248, 0.75) 45%, transparent 100%);
+    }
+
+    .kimi-musubi-star {
+      color: #7dd3fc;
+      filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.85));
+      display: inline-flex;
     }
 
     .nobar-page-wrap {
+      position: relative;
+      z-index: 1;
       max-width: 1360px;
       margin: 0 auto;
       padding: 8.2rem 2rem 4rem;
@@ -49,10 +140,50 @@
       overflow-x: clip;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     #detailEventSection,
     #compareTiersSection,
     #beliTiketSection {
       scroll-margin-top: 96px;
+      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), filter 0.65s ease;
+    }
+
+    .kimi-scroll-arriving {
+      animation: kimiSectionArrive 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes kimiSectionArrive {
+      0% {
+        transform: translateY(14px);
+      }
+      100% {
+        transform: translateY(0);
+      }
+    }
+
+    .figma-pill-btn svg {
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .figma-pill-btn.scroll-down-btn svg {
+      animation: pillArrowBounce 2.2s ease-in-out infinite;
+    }
+
+    .figma-pill-btn:hover:not(:disabled) svg {
+      transform: translateX(3px);
+    }
+
+    .figma-pill-btn.scroll-down-btn:hover:not(:disabled) svg {
+      animation: none;
+      transform: translateY(4px);
+    }
+
+    @keyframes pillArrowBounce {
+      0%, 100% { transform: translateY(-1.5px); }
+      50% { transform: translateY(3px); }
     }
 
     /* ── FIGMA PILL BUTTON ── */
@@ -128,8 +259,10 @@
       color: var(--white);
       line-height: 1.08;
       letter-spacing: -0.03em;
-      margin-bottom: 1.5rem;
-      text-shadow: 0 6px 32px rgba(21, 101, 192, 0.35);
+      margin-bottom: 1.15rem;
+      text-shadow:
+        0 4px 28px rgba(56, 189, 248, 0.42),
+        0 0 64px rgba(244, 114, 182, 0.18);
     }
 
     .figma-hero-subtitle {
@@ -350,6 +483,19 @@
       box-shadow: 0 16px 40px rgba(56, 189, 248, 0.28);
     }
 
+    .figma-tier-showcase.plus-showcase {
+      background:
+        radial-gradient(circle at 92% 10%, rgba(34, 211, 238, 0.22) 0%, rgba(244, 114, 182, 0.12) 42%, transparent 68%),
+        linear-gradient(155deg, #0d2b66 0%, #112255 58%, #1a194b 100%);
+      border: 1.5px solid #0284c7;
+      box-shadow: 0 14px 36px rgba(14, 165, 233, 0.24);
+    }
+
+    .figma-tier-showcase.plus-showcase:hover {
+      border-color: #22d3ee;
+      box-shadow: 0 18px 44px rgba(34, 211, 238, 0.34);
+    }
+
     .figma-tier-showcase.vip-showcase {
       background: var(--nobar-vip-bg);
       border: 1px solid var(--nobar-vip-border);
@@ -562,6 +708,21 @@
       background: linear-gradient(145deg, #102e6b 0%, #0b2352 100%);
       border: 2px solid #38bdf8;
       box-shadow: 0 0 28px rgba(56, 189, 248, 0.28);
+    }
+
+    #tierCard-regular_merch {
+      background:
+        radial-gradient(circle at 95% 15%, rgba(34, 211, 238, 0.20) 0%, rgba(244, 114, 182, 0.10) 45%, transparent 70%),
+        linear-gradient(145deg, #0d2b66 0%, #112255 60%, #1a194b 100%);
+      border-color: #0284c7;
+    }
+
+    #tierCard-regular_merch.selected {
+      background:
+        radial-gradient(circle at 95% 15%, rgba(34, 211, 238, 0.28) 0%, rgba(244, 114, 182, 0.14) 45%, transparent 72%),
+        linear-gradient(145deg, #12377e 0%, #152b69 60%, #201f5c 100%);
+      border: 2px solid #22d3ee;
+      box-shadow: 0 0 30px rgba(34, 211, 238, 0.32);
     }
 
     .tier-option-card.vip-card {
@@ -1513,6 +1674,11 @@
     </div>
   </nav>
 
+  <!-- PORTFOLIO-STYLE ANIMATED METEOR SHOWER & STARFIELD CANVAS -->
+  <div class="kimi-sky-backdrop" aria-hidden="true">
+    <canvas id="nobarMeteorCanvas" class="kimi-meteor-canvas"></canvas>
+  </div>
+
   <div class="nobar-page-wrap">
 
     <!-- 1. HERO HEADER -->
@@ -1524,9 +1690,18 @@
         </svg>
         <span id="nobarStatusText">MEMUAT STATUS EVENT...</span>
       </div>
-      <h1 class="figma-hero-title" id="nobarEventTitle">Nonton Bareng Aika Sesilia</h1>
+      <h1 class="figma-hero-title" id="nobarEventTitle" aria-label="Nonton Bareng Aika Sesilia"><span class="nobar-typewriter-wrap"><span class="nobar-typewriter-prefix" id="nobarTwPrefix"></span><span class="nobar-typewriter-highlight" id="nobarTwHighlight"></span><span class="nobar-typewriter-cursor" aria-hidden="true"></span></span></h1>
+      <div class="kimi-musubi-divider" aria-hidden="true">
+        <span class="kimi-musubi-line"></span>
+        <span class="kimi-musubi-star">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 1L14.8 9.2L23 12L14.8 14.8L12 23L9.2 14.8L1 12L9.2 9.2L12 1Z" />
+          </svg>
+        </span>
+        <span class="kimi-musubi-line right"></span>
+      </div>
       <p class="figma-hero-subtitle" id="nobarHeroSubtitle">Menyinkronkan jadwal &amp; lokasi bioskop...</p>
-      <a href="#detailEventSection" class="figma-pill-btn">
+      <a href="#detailEventSection" class="figma-pill-btn scroll-down-btn" onclick="return smoothScrollToSection('detailEventSection', event)">
         <span>Scroll Down</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1606,7 +1781,7 @@
     <section class="figma-compare-section" id="compareTiersSection">
       <div class="figma-section-header">
         <h2 class="figma-section-heading">Perbedaan Jenis Tiket</h2>
-        <a href="#beliTiketSection" class="figma-pill-btn">
+        <a href="#beliTiketSection" class="figma-pill-btn" onclick="return smoothScrollToSection('beliTiketSection', event)">
           <span>Beli Tiket</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1619,7 +1794,7 @@
       <div class="figma-compare-grid">
         <!-- Card 1: Tiket Regular -->
         <div class="figma-tier-showcase"
-          onclick="selectNobarTier('regular'); document.getElementById('beliTiketSection').scrollIntoView({behavior:'smooth'});">
+          onclick="selectNobarTier('regular'); smoothScrollToSection('beliTiketSection');">
           <div class="figma-tier-top">
             <img src="images/nobar/ticket-regular.svg" alt="" width="56" height="56" class="figma-tier-icon-filter" />
             <div class="figma-tier-title">Tiket Regular</div>
@@ -1638,8 +1813,8 @@
         </div>
 
         <!-- Card 2: Tiket Regular+ -->
-        <div class="figma-tier-showcase"
-          onclick="selectNobarTier('regular_merch'); document.getElementById('beliTiketSection').scrollIntoView({behavior:'smooth'});">
+        <div class="figma-tier-showcase plus-showcase"
+          onclick="selectNobarTier('regular_merch'); smoothScrollToSection('beliTiketSection');">
           <div class="figma-tier-top">
             <img src="images/nobar/ticket-plus.svg" alt="" width="64" height="64" class="figma-tier-icon-filter" />
             <div class="figma-tier-title">Tiket Regular+</div>
@@ -1663,7 +1838,7 @@
 
         <!-- Card 3: Tiket VIP -->
         <div class="figma-tier-showcase vip-showcase"
-          onclick="selectNobarTier('vip'); document.getElementById('beliTiketSection').scrollIntoView({behavior:'smooth'});">
+          onclick="selectNobarTier('vip'); smoothScrollToSection('beliTiketSection');">
           <div class="figma-tier-top">
             <img src="images/nobar/ticket-vip.svg" alt="" width="61" height="61" class="figma-tier-icon-raw" />
             <div class="figma-tier-title">Tiket VIP</div>
@@ -2076,6 +2251,73 @@
     let nobarCountdownTimerId = null;
     let nobarDialogResolver = null;
     let nobarDialogOnClose = null;
+    let activeSmoothScrollRaf = null;
+
+    function smoothScrollToSection(targetIdOrEl, ev, durationMs = 920) {
+      if (ev && typeof ev.preventDefault === 'function') {
+        ev.preventDefault();
+      }
+      const targetEl = typeof targetIdOrEl === 'string'
+        ? document.getElementById(targetIdOrEl)
+        : targetIdOrEl;
+      if (!targetEl) return false;
+
+      if (activeSmoothScrollRaf) {
+        cancelAnimationFrame(activeSmoothScrollRaf);
+        activeSmoothScrollRaf = null;
+      }
+
+      const navOffset = 94;
+      const startY = window.pageYOffset || document.documentElement.scrollTop || 0;
+      const targetRect = targetEl.getBoundingClientRect();
+      const maxScrollY = Math.max(0, (document.documentElement.scrollHeight || document.body.scrollHeight) - window.innerHeight);
+      const destY = Math.max(0, Math.min(maxScrollY, startY + targetRect.top - navOffset));
+      const distance = destY - startY;
+
+      if (Math.abs(distance) < 4) {
+        return false;
+      }
+
+      // Custom cubic easing (easeInOutCubic) for silky cinematic glide
+      const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+      let startTime = null;
+
+      const cancelOnUserWheel = () => {
+        if (activeSmoothScrollRaf) {
+          cancelAnimationFrame(activeSmoothScrollRaf);
+          activeSmoothScrollRaf = null;
+        }
+        window.removeEventListener('wheel', cancelOnUserWheel, { passive: true });
+        window.removeEventListener('touchstart', cancelOnUserWheel, { passive: true });
+      };
+
+      window.addEventListener('wheel', cancelOnUserWheel, { passive: true });
+      window.addEventListener('touchstart', cancelOnUserWheel, { passive: true });
+
+      targetEl.classList.remove('kimi-scroll-arriving');
+
+      const step = (timestamp) => {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        const progress = Math.min(1, elapsed / durationMs);
+        const eased = easeInOutCubic(progress);
+
+        window.scrollTo(0, Math.round(startY + distance * eased));
+
+        if (progress < 1) {
+          activeSmoothScrollRaf = requestAnimationFrame(step);
+        } else {
+          activeSmoothScrollRaf = null;
+          window.removeEventListener('wheel', cancelOnUserWheel, { passive: true });
+          window.removeEventListener('touchstart', cancelOnUserWheel, { passive: true });
+          targetEl.classList.add('kimi-scroll-arriving');
+          setTimeout(() => targetEl.classList.remove('kimi-scroll-arriving'), 900);
+        }
+      };
+
+      activeSmoothScrollRaf = requestAnimationFrame(step);
+      return false;
+    }
 
     function getNobarDialogIconSvg(variant) {
       if (variant === 'vip') {
@@ -3045,7 +3287,7 @@
       }
 
       // Hero & Info Card
-      document.getElementById('nobarEventTitle').textContent = nobarConfig.eventTitle;
+      setNobarHeroTitleTarget(nobarConfig.eventTitle, nobarConfig.movieTitle);
       const heroSubEl = document.getElementById('nobarHeroSubtitle');
       if (heroSubEl) {
         heroSubEl.textContent = `${nobarConfig.eventDate}, ${nobarConfig.eventTime} · ${nobarConfig.cinemaLocation}`;
@@ -3380,6 +3622,356 @@
       }
     }
 
+    // ── TYPEWRITER HERO TITLE ENGINE (PORTFOLIO STYLE) ──
+    let nobarTwPhrases = [
+      { prefix: 'Nobar', highlight: 'Kimi no Nawa' },
+      { prefix: 'Nonton Bareng', highlight: 'Aika Sesilia' }
+    ];
+    let nobarTwPhraseIdx = 0;
+    let nobarTwCharIdx = 0;
+    let nobarTwDeleting = false;
+    let nobarTwTimerId = null;
+    let nobarTwLastCustomTitle = '';
+
+    function splitTitleForTypewriter(rawTitle) {
+      const clean = String(rawTitle || '').trim() || 'Nonton Bareng Aika Sesilia';
+      const words = clean.split(/\s+/);
+      if (words.length <= 1) {
+        return { prefix: '', highlight: clean };
+      }
+      if (/^nonton\s+bareng\b/i.test(clean) && words.length > 2) {
+        return { prefix: words.slice(0, 2).join(' '), highlight: words.slice(2).join(' ') };
+      }
+      return { prefix: words[0], highlight: words.slice(1).join(' ') };
+    }
+
+    function setNobarHeroTitleTarget(eventTitle, movieTitle) {
+      const cleanTitle = String(eventTitle || '').trim() || 'Nonton Bareng Aika Sesilia';
+      const titleEl = document.getElementById('nobarEventTitle');
+      if (titleEl) titleEl.setAttribute('aria-label', cleanTitle);
+
+      const primary = splitTitleForTypewriter(cleanTitle);
+      const cleanMovie = String(movieTitle || '').trim();
+      const secondary = (!/aika\s+sesilia/i.test(cleanTitle))
+        ? { prefix: 'Nonton Bareng', highlight: 'Aika Sesilia' }
+        : (cleanMovie && !/segera\s+diumumkan/i.test(cleanMovie))
+          ? { prefix: 'Nobar Spesial', highlight: cleanMovie }
+          : { prefix: 'Nobar Bioskop', highlight: 'Aika Sesilia' };
+
+      const key = primary.prefix + '|' + primary.highlight + '||' + secondary.prefix + '|' + secondary.highlight;
+      if (key !== nobarTwLastCustomTitle) {
+        nobarTwLastCustomTitle = key;
+        nobarTwPhrases = [primary, secondary];
+        nobarTwPhraseIdx = 0;
+        nobarTwCharIdx = 0;
+        nobarTwDeleting = false;
+      }
+    }
+
+    function tickNobarTypewriter() {
+      const prefixEl = document.getElementById('nobarTwPrefix');
+      const highlightEl = document.getElementById('nobarTwHighlight');
+      if (!prefixEl || !highlightEl) return;
+
+      const current = nobarTwPhrases[nobarTwPhraseIdx % nobarTwPhrases.length] || { prefix: 'Nobar', highlight: 'Kimi no Nawa' };
+      const fullText = current.prefix ? (current.prefix + ' ' + current.highlight) : current.highlight;
+      const prefixLen = current.prefix ? current.prefix.length : 0;
+
+      if (nobarTwCharIdx <= prefixLen) {
+        prefixEl.textContent = fullText.slice(0, nobarTwCharIdx);
+        highlightEl.textContent = '';
+      } else {
+        prefixEl.textContent = current.prefix;
+        highlightEl.textContent = fullText.slice(prefixLen + (current.prefix ? 1 : 0), nobarTwCharIdx);
+      }
+
+      let nextDelay = 85;
+      if (nobarTwDeleting) {
+        if (nobarTwCharIdx > 0) {
+          nobarTwCharIdx -= 1;
+          nextDelay = 35;
+        } else {
+          nobarTwDeleting = false;
+          nobarTwPhraseIdx = (nobarTwPhraseIdx + 1) % nobarTwPhrases.length;
+          nextDelay = 350;
+        }
+      } else {
+        if (nobarTwCharIdx < fullText.length) {
+          nobarTwCharIdx += 1;
+          nextDelay = 85;
+        } else {
+          nobarTwDeleting = true;
+          nextDelay = 2800;
+        }
+      }
+
+      nobarTwTimerId = setTimeout(tickNobarTypewriter, nextDelay);
+    }
+
+    // ── CANVAS FALLING METEOR SHOWER & TWINKLING STARS (KIMI NO NA WA COMET TIAMAT PALETTE + MOBILE OPTIMIZED) ──
+    function initNobarMeteorCanvas() {
+      const canvas = document.getElementById('nobarMeteorCanvas');
+      if (!canvas || typeof canvas.getContext !== 'function') return;
+      const ctx = canvas.getContext('2d', { alpha: true });
+      if (!ctx) return;
+
+      let stars = [];
+      let meteors = [];
+      let w = window.innerWidth || 1440;
+      let h = window.innerHeight || 800;
+      let lastInitW = 0;
+      let lastInitH = 0;
+      let rafId = null;
+      let resizeTimer = null;
+      const baseAngle = (138 * Math.PI) / 180;
+
+      // 3 authentic Kimi no Na wa (Comet Tiamat) color palettes
+      const TIAMAT_PALETTES = [
+        // 1. Main Comet Tiamat: White -> Ice Cyan -> Sky Cobalt -> Indigo-Violet fade
+        {
+          core: '255, 255, 255',
+          headMid: '125, 211, 252',
+          headOuter: '56, 189, 248',
+          tailNear: '125, 211, 252',
+          tailMid: '56, 189, 248',
+          tailFar: '129, 140, 248'
+        },
+        // 2. Splitting Fragment (Kataware-doki / Kumihimo): Rose-White -> Pink-Magenta -> Orchid Violet
+        {
+          core: '255, 241, 242',
+          headMid: '244, 114, 182',
+          headOuter: '192, 132, 252',
+          tailNear: '249, 168, 212',
+          tailMid: '232, 121, 249',
+          tailFar: '147, 51, 234'
+        },
+        // 3. Tiamat Prismatic Nucleus: Warm Starlight Gold-White -> Ice Cyan -> Magenta-Violet tail
+        {
+          core: '254, 249, 195',
+          headMid: '125, 211, 252',
+          headOuter: '232, 121, 249',
+          tailNear: '186, 230, 253',
+          tailMid: '56, 189, 248',
+          tailFar: '217, 70, 239'
+        }
+      ];
+
+      const STAR_COLORS = [
+        '195, 245, 255',
+        '255, 255, 255',
+        '233, 213, 255',
+        '254, 240, 138'
+      ];
+
+      function pickTiamatPalette(tier) {
+        if (tier === 2) {
+          return Math.random() < 0.5 ? TIAMAT_PALETTES[2] : TIAMAT_PALETTES[0];
+        }
+        const p = Math.random();
+        if (p < 0.52) return TIAMAT_PALETTES[0];
+        if (p < 0.84) return TIAMAT_PALETTES[1];
+        return TIAMAT_PALETTES[2];
+      }
+
+      function createMeteor(initialSpread = false) {
+        let speed, length, width, alpha, tier;
+        const isMobile = w < 768;
+        const lenScale = isMobile ? 0.78 : 1;
+        const r = Math.random();
+        if (r < 0.38) {
+          tier = 0;
+          speed = 1.8 * Math.random() + 2.1;
+          length = (65 * Math.random() + 75) * lenScale;
+          width = 0.45 * Math.random() + 0.85;
+          alpha = 0.28 * Math.random() + 0.35;
+        } else if (r < 0.82) {
+          tier = 1;
+          speed = 2.4 * Math.random() + 3.2;
+          length = (95 * Math.random() + 125) * lenScale;
+          width = 0.6 * Math.random() + 1.25;
+          alpha = 0.35 * Math.random() + 0.55;
+        } else {
+          tier = 2;
+          speed = 3.0 * Math.random() + 4.4;
+          length = (140 * Math.random() + 190) * lenScale;
+          width = 1.0 * Math.random() + 1.85;
+          alpha = 0.55 * Math.random() + 0.42;
+        }
+        const angle = baseAngle + (0.07 * Math.random() - 0.035);
+        let x, y;
+        if (initialSpread) {
+          x = Math.random() * (w + 320) - 80;
+          y = Math.random() * (h + 180) - 80;
+        } else if (Math.random() < 0.65) {
+          x = Math.random() * (w + 420) - 80;
+          y = -(110 * Math.random()) - 35;
+        } else {
+          x = w + 150 * Math.random() + 25;
+          y = 0.8 * h * Math.random();
+        }
+        return {
+          x,
+          y,
+          length,
+          speed,
+          angle,
+          alpha,
+          width,
+          tier,
+          palette: pickTiamatPalette(tier),
+          headGlowSize: 4.0 * width
+        };
+      }
+
+      function setupScene(forceRebuild = false) {
+        const nextW = window.innerWidth || 1440;
+        const nextH = window.innerHeight || 800;
+        const isMobile = nextW < 768;
+
+        // Ignore small vertical-only resize events on mobile Android caused by URL address bar hiding/showing
+        if (!forceRebuild && isMobile && nextW === lastInitW && Math.abs(nextH - lastInitH) < 150) {
+          return;
+        }
+
+        w = nextW;
+        h = nextH;
+        lastInitW = w;
+        lastInitH = h;
+
+        const isLowPower = isMobile || ((typeof navigator !== 'undefined' && navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4));
+        const maxDpr = isLowPower ? 1.25 : 2;
+        const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        if (typeof ctx.resetTransform === 'function') ctx.resetTransform();
+        ctx.scale(dpr, dpr);
+
+        stars = [];
+        const starCount = isMobile
+          ? Math.min(Math.floor(w / 8), 48)
+          : Math.min(Math.floor(w / 12), 110);
+        for (let i = 0; i < starCount; i++) {
+          stars.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            size: 1.45 * Math.random() + 0.45,
+            baseAlpha: 0.5 * Math.random() + 0.16,
+            twinkleSpeed: 0.022 * Math.random() + 0.007,
+            twinkleOffset: Math.random() * Math.PI * 2,
+            rgb: STAR_COLORS[i % STAR_COLORS.length]
+          });
+        }
+
+        meteors = [];
+        const meteorCount = isMobile
+          ? Math.max(7, Math.min(Math.floor(w / 42), 10))
+          : Math.max(14, Math.min(Math.floor(w / 58), 22));
+        for (let i = 0; i < meteorCount; i++) {
+          meteors.push(createMeteor(true));
+        }
+      }
+
+      let frame = 0;
+      function renderFrame() {
+        if (typeof document !== 'undefined' && document.hidden) {
+          rafId = null;
+          return;
+        }
+        frame++;
+        ctx.clearRect(0, 0, w, h);
+
+        for (let i = 0; i < stars.length; i++) {
+          const s = stars[i];
+          const a = Math.max(0.08, Math.min(0.92, s.baseAlpha + 0.3 * Math.sin(frame * s.twinkleSpeed + s.twinkleOffset)));
+          ctx.fillStyle = `rgba(${s.rgb}, ${a})`;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        for (let i = 0; i < meteors.length; i++) {
+          const m = meteors[i];
+          const pal = m.palette;
+          const cos = Math.cos(m.angle);
+          const sin = Math.sin(m.angle);
+          m.x += cos * m.speed;
+          m.y += sin * m.speed;
+          const tailX = m.x - cos * m.length;
+          const tailY = m.y - sin * m.length;
+
+          const grad = ctx.createLinearGradient(tailX, tailY, m.x, m.y);
+          grad.addColorStop(0, `rgba(${pal.tailFar}, 0)`);
+          grad.addColorStop(0.38, `rgba(${pal.tailFar}, ${0.26 * m.alpha})`);
+          grad.addColorStop(0.7, `rgba(${pal.tailMid}, ${0.65 * m.alpha})`);
+          grad.addColorStop(0.9, `rgba(${pal.tailNear}, ${0.88 * m.alpha})`);
+          grad.addColorStop(1, `rgba(${pal.core}, ${0.98 * m.alpha})`);
+
+          ctx.save();
+          if (m.tier >= 1 && w >= 768) {
+            ctx.strokeStyle = grad;
+            ctx.lineWidth = m.width * 3.0;
+            ctx.lineCap = 'round';
+            ctx.globalAlpha = 0.2;
+            ctx.beginPath();
+            ctx.moveTo(tailX, tailY);
+            ctx.lineTo(m.x, m.y);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+          }
+
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = m.width;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(tailX, tailY);
+          ctx.lineTo(m.x, m.y);
+          ctx.stroke();
+
+          const headGrad = ctx.createRadialGradient(m.x, m.y, 0, m.x, m.y, m.headGlowSize);
+          headGrad.addColorStop(0, `rgba(${pal.core}, ${m.alpha})`);
+          headGrad.addColorStop(0.36, `rgba(${pal.headMid}, ${0.8 * m.alpha})`);
+          headGrad.addColorStop(0.72, `rgba(${pal.headOuter}, ${0.34 * m.alpha})`);
+          headGrad.addColorStop(1, `rgba(${pal.headOuter}, 0)`);
+
+          ctx.fillStyle = headGrad;
+          ctx.beginPath();
+          ctx.arc(m.x, m.y, m.headGlowSize, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = `rgba(${pal.core}, ${m.alpha})`;
+          ctx.beginPath();
+          ctx.arc(m.x, m.y, Math.max(0.85, 0.85 * m.width), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          if (tailX < -180 || tailY > h + 180) {
+            meteors[i] = createMeteor(false);
+          }
+        }
+
+        rafId = requestAnimationFrame(renderFrame);
+      }
+
+      window.addEventListener('resize', () => {
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => setupScene(false), 150);
+      });
+
+      if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden && !rafId) {
+            rafId = requestAnimationFrame(renderFrame);
+          }
+        });
+      }
+
+      setupScene(true);
+      rafId = requestAnimationFrame(renderFrame);
+    }
+
+    initNobarMeteorCanvas();
+    tickNobarTypewriter();
     hydrateNobarFromCache();
     document.addEventListener('DOMContentLoaded', loadNobarPageData);
   </script>
