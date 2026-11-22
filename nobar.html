@@ -1,95 +1,117 @@
 <!DOCTYPE html>
-<!-- Presentasi: Halaman pembelian Tiket Nobar Bioskop (VIP, Tiket Biasa, Tiket Biasa + Merch Photocard & Poster). -->
+<!-- Presentasi: Halaman pembelian Tiket Nobar Bioskop (Tiket Regular, Tiket Regular+, dan Tiket VIP) mengikuti desain Figma dengan tema Dark Ocean Aika Sesilia. -->
 <html lang="id">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Tiket Nobar Bioskop — Aika Sesilia Official Store</title>
-  <meta name="description" content="Pembelian tiket resmi Nobar Bioskop bersama Aika Sesilia. Tersedia opsi VIP (Duduk di samping Kak Aika), Tiket Biasa, dan Tiket Biasa + Merch (Photocard &amp; Poster)." />
+  <meta name="description" content="Pembelian tiket resmi Nobar Bioskop bersama Aika Sesilia. Tersedia opsi Tiket Regular, Tiket Regular+, dan Tiket VIP (Kursi di sebelah Kak Aika)." />
   <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png?v=hiu1" />
   <link rel="shortcut icon" href="/favicon.ico?v=hiu1" />
   <link rel="apple-touch-icon" sizes="192x192" href="/favicon.png?v=hiu1" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link
-    href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700;800&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Manrope:wght@400;500;600;700;800&family=Nunito:wght@300;400;600;700;800&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css?v=2" />
   <style>
+    :root {
+      --nobar-surface: rgba(7, 26, 62, 0.72);
+      --nobar-surface-soft: rgba(10, 56, 114, 0.28);
+      --nobar-surface-inner: rgba(3, 9, 31, 0.72);
+      --nobar-border: rgba(41, 182, 246, 0.22);
+      --nobar-divider: rgba(41, 182, 246, 0.16);
+      --nobar-pill-bg: #071e3e;
+      --nobar-pill-border: #135a86;
+      --nobar-vip-bg: linear-gradient(145deg, #6f18bc 0%, #4d108c 100%);
+      --nobar-vip-border: rgba(192, 132, 252, 0.55);
+      --nobar-green: #33c385;
+      --nobar-yellow: #facc15;
+      --nobar-red: #f87171;
+      --nobar-font: 'Manrope', var(--font-body), sans-serif;
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse 85% 48% at 50% 0%, rgba(21, 101, 192, 0.28) 0%, transparent 65%),
+        radial-gradient(ellipse 65% 40% at 85% 38%, rgba(41, 182, 246, 0.10) 0%, transparent 60%),
+        var(--deep-ocean);
+      font-family: var(--nobar-font);
+    }
+
     .nobar-page-wrap {
-      max-width: 1220px;
+      max-width: 1360px;
       margin: 0 auto;
-      padding: 6.5rem 2rem 6rem;
+      padding: 8.2rem 2rem 4rem;
       box-sizing: border-box;
       overflow-x: clip;
     }
 
-    .nobar-hero-card {
-      background: linear-gradient(145deg, rgba(10, 56, 114, 0.72), rgba(3, 9, 31, 0.92));
-      border: 1px solid rgba(41, 182, 246, 0.35);
-      border-radius: 22px;
-      padding: 2.2rem;
-      display: grid;
-      grid-template-columns: 260px 1fr;
-      gap: 2.2rem;
-      align-items: center;
-      box-shadow: var(--shadow-blue);
-      margin-bottom: 2.2rem;
-      position: relative;
-      overflow: hidden;
+    #detailEventSection,
+    #compareTiersSection,
+    #beliTiketSection {
+      scroll-margin-top: 96px;
     }
 
-    .nobar-poster-wrap {
-      width: 100%;
-      min-height: 240px;
-      border-radius: 16px;
-      overflow: hidden;
-      border: 2px solid rgba(41, 182, 246, 0.4);
-      background: linear-gradient(120deg, rgba(10, 42, 92, 0.75) 25%, rgba(41, 182, 246, 0.14) 50%, rgba(10, 42, 92, 0.75) 75%);
-      background-size: 200% 100%;
-      animation: nobarShimmer 1.4s infinite linear;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-      display: flex;
+    /* ── FIGMA PILL BUTTON ── */
+    .figma-pill-btn {
+      display: inline-flex;
       align-items: center;
       justify-content: center;
+      gap: 10px;
+      padding: 12px 24px;
+      background: var(--nobar-pill-bg);
+      border: 1px solid var(--nobar-pill-border);
+      border-radius: 87px;
+      color: var(--white);
+      font-family: var(--nobar-font);
+      font-size: 0.96rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      text-decoration: none;
+      cursor: pointer;
+      transition: var(--transition);
+      white-space: nowrap;
     }
 
-    .nobar-poster-wrap.loaded {
-      min-height: 0;
-      background: rgba(3, 9, 31, 0.85);
-      animation: none;
+    .figma-pill-btn:hover:not(:disabled) {
+      background: var(--sea-blue);
+      border-color: var(--aqua);
+      box-shadow: 0 8px 26px rgba(41, 182, 246, 0.28);
+      transform: translateY(-1px);
     }
 
-    @keyframes nobarShimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
+    .figma-pill-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
     }
 
-    .nobar-poster-wrap img {
-      width: 100%;
-      height: auto;
-      max-height: 420px;
-      object-fit: contain;
-      display: block;
+    /* ── HERO SECTION ── */
+    .figma-hero-section {
+      text-align: center;
+      padding: 1.5rem 0 4.5rem;
+      max-width: 860px;
+      margin: 0 auto;
     }
 
     .nobar-status-pill {
       display: inline-flex;
       align-items: center;
       gap: 0.45rem;
-      font-size: 0.76rem;
+      font-size: 0.75rem;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      padding: 0.35rem 0.9rem;
+      padding: 0.38rem 0.95rem;
       border-radius: 50px;
-      margin-bottom: 0.85rem;
+      margin-bottom: 1.4rem;
     }
 
     .nobar-status-pill.open {
-      background: rgba(34, 197, 94, 0.16);
+      background: rgba(51, 195, 133, 0.14);
       color: #4ade80;
-      border: 1px solid rgba(34, 197, 94, 0.45);
+      border: 1px solid rgba(51, 195, 133, 0.45);
     }
 
     .nobar-status-pill.closed {
@@ -98,173 +120,449 @@
       border: 1px solid rgba(239, 68, 68, 0.45);
     }
 
-    .nobar-hero-title {
-      font-family: var(--font-display);
-      font-size: 1.85rem;
-      color: var(--white);
-      line-height: 1.25;
-      margin-bottom: 0.9rem;
-    }
-
-    .nobar-meta-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 0.85rem;
-      margin-bottom: 1.2rem;
-    }
-
-    .nobar-meta-item {
-      background: rgba(3, 9, 31, 0.65);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 0.75rem 1rem;
-    }
-
-    .nobar-meta-label {
-      font-size: 0.74rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      margin-bottom: 0.2rem;
-    }
-
-    .nobar-meta-val {
-      font-size: 0.93rem;
+    .figma-hero-title {
+      font-family: var(--nobar-font);
+      font-size: clamp(2.35rem, 6.2vw, 5.2rem);
       font-weight: 700;
       color: var(--white);
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+      text-shadow: 0 6px 32px rgba(21, 101, 192, 0.35);
     }
 
-    .nobar-quota-grid {
+    .figma-hero-subtitle {
+      font-size: clamp(0.95rem, 1.8vw, 1.35rem);
+      color: var(--text-muted);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.5;
+      margin-bottom: 2.4rem;
+    }
+
+    /* ── SECTION 2: POSTER + EVENT DETAILS + AVAILABILITY ── */
+    .figma-event-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-top: 1rem;
+      grid-template-columns: minmax(0, 626fr) minmax(0, 690fr);
+      gap: 44px;
+      align-items: stretch;
+      margin-bottom: 5.5rem;
     }
 
-    .nobar-quota-box {
-      background: rgba(3, 9, 31, 0.75);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 0.9rem 1.1rem;
-    }
-
-    .nobar-quota-box.vip {
-      border-color: rgba(255, 213, 79, 0.45);
-      background: linear-gradient(135deg, rgba(234, 179, 8, 0.12), rgba(3, 9, 31, 0.85));
-    }
-
-    .nobar-quota-top {
+    .nobar-poster-wrap {
+      width: 100%;
+      height: 100%;
+      min-height: 360px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--nobar-border);
+      background: linear-gradient(120deg, rgba(10, 42, 92, 0.75) 25%, rgba(41, 182, 246, 0.14) 50%, rgba(10, 42, 92, 0.75) 75%);
+      background-size: 200% 100%;
+      animation: nobarShimmer 1.4s infinite linear;
+      box-shadow: var(--shadow-blue);
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      gap: 0.5rem;
+      justify-content: center;
+      cursor: zoom-in;
+    }
+
+    .nobar-poster-wrap.loaded {
+      background: rgba(3, 9, 31, 0.85);
+      animation: none;
+    }
+
+    .nobar-poster-wrap img {
+      width: 100%;
+      height: 100%;
+      max-height: 860px;
+      object-fit: cover;
+      display: block;
+    }
+
+    @keyframes nobarShimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .figma-event-right {
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+      min-width: 0;
+    }
+
+    .figma-card {
+      background: linear-gradient(155deg, rgba(10, 56, 114, 0.36), rgba(7, 26, 62, 0.82));
+      border: 1px solid var(--nobar-border);
+      border-radius: 16px;
+      padding: 2.5rem 2.75rem;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 12px 36px rgba(3, 9, 31, 0.45);
+    }
+
+    .figma-meta-block {
+      padding: 1.5rem 0;
+      border-bottom: 1px solid var(--nobar-divider);
+    }
+
+    .figma-meta-block:first-child {
+      padding-top: 0;
+    }
+
+    .figma-meta-block:last-of-type {
+      border-bottom: none;
+    }
+
+    .figma-meta-label {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: -0.02em;
+      margin-bottom: 0.65rem;
+    }
+
+    .figma-meta-value {
+      font-size: clamp(1.35rem, 2.2vw, 1.9rem);
+      font-weight: 500;
+      color: var(--white);
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      word-break: break-word;
+    }
+
+    .figma-event-notes {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin: 0.25rem 0 1.4rem;
+    }
+
+    .figma-avail-title {
+      font-size: clamp(1.35rem, 2.2vw, 1.9rem);
+      font-weight: 500;
+      color: var(--white);
+      letter-spacing: -0.02em;
+      margin-bottom: 1.65rem;
+    }
+
+    .figma-avail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .figma-avail-col {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 0;
+    }
+
+    .figma-avail-label {
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .figma-avail-num {
+      font-size: clamp(1.9rem, 3.2vw, 2.95rem);
+      font-weight: 600;
+      color: var(--white);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .figma-avail-num .remain.ok {
+      color: var(--nobar-green);
+    }
+
+    .figma-avail-num .remain.warn {
+      color: var(--nobar-yellow);
+    }
+
+    .figma-avail-num .remain.full {
+      color: var(--nobar-red);
+    }
+
+    .figma-avail-note {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      letter-spacing: -0.01em;
+    }
+
+    /* ── SECTION 3: PERBEDAAN JENIS TIKET ── */
+    .figma-compare-section {
+      margin-bottom: 6rem;
+    }
+
+    .figma-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .figma-section-heading {
+      font-family: var(--nobar-font);
+      font-size: clamp(1.95rem, 4vw, 3.6rem);
+      font-weight: 600;
+      color: var(--white);
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+
+    .figma-compare-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 36px;
+      align-items: stretch;
+    }
+
+    .figma-tier-showcase {
+      background: linear-gradient(155deg, rgba(10, 56, 114, 0.36), rgba(7, 26, 62, 0.82));
+      border: 1px solid var(--nobar-border);
+      border-radius: 16px;
+      padding: 2.25rem 2.25rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+
+    .figma-tier-showcase:hover {
+      border-color: rgba(41, 182, 246, 0.6);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-blue);
+    }
+
+    .figma-tier-showcase.vip-showcase {
+      background: var(--nobar-vip-bg);
+      border: 1px solid var(--nobar-vip-border);
+      box-shadow: 0 14px 40px rgba(111, 24, 188, 0.38);
+    }
+
+    .figma-tier-showcase.vip-showcase:hover {
+      border-color: #d8b4fe;
+      box-shadow: 0 18px 46px rgba(111, 24, 188, 0.55);
+    }
+
+    .figma-tier-top {
+      display: flex;
+      align-items: center;
+      gap: 1.35rem;
+      margin-bottom: 1.5rem;
+      min-height: 64px;
+    }
+
+    .figma-tier-icon-filter {
+      filter: brightness(0) invert(1) opacity(0.92);
+      flex-shrink: 0;
+    }
+
+    .figma-tier-icon-raw {
+      flex-shrink: 0;
+    }
+
+    .figma-tier-title {
+      font-size: 1.85rem;
+      font-weight: 500;
+      color: var(--white);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    .figma-tier-price {
+      font-size: clamp(2rem, 3.2vw, 2.85rem);
+      font-weight: 600;
+      color: var(--aqua);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 2.15rem;
+      white-space: nowrap;
+    }
+
+    .figma-tier-showcase.vip-showcase .figma-tier-price {
+      color: var(--white);
+    }
+
+    .figma-perks-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .figma-perk-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1.25rem 0;
+      border-top: 1px solid var(--nobar-divider);
+      font-size: 1.05rem;
+      color: var(--text-main);
+      line-height: 1.48;
+      letter-spacing: -0.015em;
+    }
+
+    .figma-perk-item:first-child {
+      border-top: none;
+      padding-top: 0;
+    }
+
+    .figma-tier-showcase.vip-showcase .figma-perk-item {
+      border-top-color: rgba(255, 255, 255, 0.22);
+      color: var(--white);
+    }
+
+    .figma-perk-icon {
+      flex-shrink: 0;
+      margin-top: 2px;
+      opacity: 0.94;
+    }
+
+    /* ── SECTION 4: BELI TIKET LAYOUT ── */
+    .figma-buy-layout {
+      display: grid;
+      grid-template-columns: minmax(260px, 380fr) minmax(0, 893fr);
+      gap: 48px;
+      align-items: start;
+      margin-bottom: 4.5rem;
+    }
+
+    .figma-buy-sidebar {
+      position: sticky;
+      top: 6.5rem;
+    }
+
+    .figma-buy-heading {
+      font-family: var(--nobar-font);
+      font-size: clamp(2.1rem, 4vw, 3.7rem);
+      font-weight: 600;
+      color: var(--white);
+      letter-spacing: -0.03em;
+      line-height: 1.08;
+      margin-bottom: 2.4rem;
+    }
+
+    .figma-contact-card {
+      display: flex;
+      flex-direction: column;
+      gap: 1.35rem;
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      line-height: 1.55;
+      letter-spacing: -0.015em;
+    }
+
+    .figma-contact-divider {
+      height: 1px;
+      background: var(--nobar-divider);
+      width: 100%;
+    }
+
+    .figma-contact-card a {
+      color: var(--aqua);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .figma-contact-card a:hover {
+      text-decoration: underline;
+    }
+
+    .figma-form-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+      min-width: 0;
+    }
+
+    .figma-step-card {
+      background: linear-gradient(155deg, rgba(10, 56, 114, 0.36), rgba(7, 26, 62, 0.82));
+      border: 1px solid var(--nobar-border);
+      border-radius: 16px;
+      padding: 2.75rem 3rem;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 12px 36px rgba(3, 9, 31, 0.45);
+    }
+
+    .figma-step-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
       margin-bottom: 0.45rem;
     }
 
-    .nobar-quota-title {
-      font-size: 0.82rem;
-      font-weight: 800;
+    .figma-step-title {
+      font-size: clamp(1.45rem, 2.4vw, 2rem);
+      font-weight: 600;
       color: var(--white);
+      letter-spacing: -0.02em;
+      line-height: 1.15;
     }
 
-    .nobar-quota-count {
-      font-size: 0.85rem;
-      font-weight: 800;
+    .figma-step-label {
+      font-size: 0.92rem;
+      font-weight: 700;
       color: var(--aqua);
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      text-transform: uppercase;
     }
 
-    .nobar-quota-box.vip .nobar-quota-count {
-      color: var(--gold);
-    }
-
-    .nobar-progress-track {
-      height: 7px;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 50px;
-      overflow: hidden;
-      margin-bottom: 0.4rem;
-    }
-
-    .nobar-progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--sea-blue), var(--aqua));
-      border-radius: 50px;
-      transition: width 0.35s ease;
-    }
-
-    .nobar-quota-box.vip .nobar-progress-fill {
-      background: linear-gradient(90deg, #f59e0b, #fde047);
-    }
-
-    .nobar-quota-sub {
-      font-size: 0.74rem;
+    .figma-step-sub {
+      font-size: 1rem;
       color: var(--text-muted);
-      line-height: 1.4;
+      margin-bottom: 2rem;
     }
 
-    .nobar-main-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-      max-width: 880px;
-      margin: 0 auto;
-    }
-
-    .nobar-panel {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 18px;
-      padding: 1.8rem;
-      backdrop-filter: blur(14px);
-    }
-
-    .nobar-panel-title {
-      font-family: var(--font-display);
-      font-size: 1.15rem;
-      color: var(--aqua);
-      margin-bottom: 1.2rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      border-bottom: 1px solid var(--card-border);
-      padding-bottom: 0.8rem;
-    }
-
+    /* ── STEP 01 RADIO CARDS ── */
     .tier-cards-stack {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
-      margin-bottom: 1.6rem;
+      gap: 1.25rem;
+      margin-top: 1.75rem;
     }
 
     .tier-option-card {
       position: relative;
-      background: rgba(3, 9, 31, 0.7);
-      border: 2px solid var(--card-border);
-      border-radius: 14px;
-      padding: 1.25rem;
+      background: var(--nobar-surface-inner);
+      border: 1.5px solid var(--nobar-border);
+      border-radius: 10px;
+      padding: 1.65rem 1.85rem;
       cursor: pointer;
       transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
     }
 
     .tier-option-card:hover:not(.disabled) {
       border-color: rgba(41, 182, 246, 0.65);
-      transform: translateY(-2px);
+      transform: translateY(-1px);
     }
 
     .tier-option-card.selected {
-      border-color: var(--aqua);
-      background: rgba(21, 101, 192, 0.25);
-      box-shadow: 0 0 25px rgba(41, 182, 246, 0.22);
+      background: rgba(21, 101, 192, 0.28);
+      border: 2px solid var(--aqua);
+      box-shadow: 0 0 26px rgba(41, 182, 246, 0.22);
+    }
+
+    .tier-option-card.vip-card {
+      background: var(--nobar-vip-bg);
+      border-color: var(--nobar-vip-border);
     }
 
     .tier-option-card.vip-card.selected {
-      border-color: var(--gold);
-      background: rgba(234, 179, 8, 0.14);
-      box-shadow: 0 0 28px rgba(234, 179, 8, 0.22);
+      border: 2px solid var(--gold);
+      box-shadow: 0 0 28px rgba(255, 213, 79, 0.28);
     }
 
     .tier-option-card.disabled {
@@ -272,103 +570,429 @@
       cursor: not-allowed;
     }
 
-    .tier-header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 0.75rem;
-      margin-bottom: 0.55rem;
-    }
-
-    .tier-name {
-      font-size: 1.05rem;
-      font-weight: 800;
-      color: var(--white);
+    .figma-radio-circle {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid var(--text-muted);
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: var(--transition);
+    }
+
+    .tier-option-card.selected .figma-radio-circle {
+      border-color: var(--aqua);
+    }
+
+    .tier-option-card.vip-card .figma-radio-circle {
+      border-color: rgba(255, 255, 255, 0.8);
+    }
+
+    .tier-option-card.vip-card.selected .figma-radio-circle {
+      border-color: var(--gold);
+    }
+
+    .figma-radio-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: var(--aqua);
+      transform: scale(0);
+      transition: transform 0.2s ease;
+    }
+
+    .tier-option-card.selected .figma-radio-dot {
+      transform: scale(1);
+    }
+
+    .tier-option-card.vip-card.selected .figma-radio-dot {
+      background: var(--gold);
+    }
+
+    .tier-option-main {
       flex: 1;
+      min-width: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .tier-option-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
       min-width: 0;
     }
 
-    .tier-badge {
+    .tier-name {
+      font-size: clamp(1.25rem, 2.2vw, 1.85rem);
+      font-weight: 500;
+      color: var(--white);
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+    }
+
+    .tier-meta-inline {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      flex-wrap: wrap;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      letter-spacing: -0.015em;
+    }
+
+    .tier-option-card.vip-card .tier-meta-inline {
+      color: rgba(255, 255, 255, 0.88);
+    }
+
+    .tier-meta-sep {
+      width: 1px;
+      height: 18px;
+      background: rgba(144, 184, 216, 0.38);
       display: inline-block;
-      font-size: 0.68rem;
-      font-weight: 800;
-      padding: 3px 9px;
-      border-radius: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      line-height: 1.35;
-      max-width: 100%;
     }
 
-    .tier-badge.vip {
-      background: rgba(234, 179, 8, 0.22);
-      color: #fde047;
-      border: 1px solid rgba(234, 179, 8, 0.5);
-    }
-
-    .tier-badge.merch {
-      background: rgba(41, 182, 246, 0.2);
-      color: var(--aqua);
-      border: 1px solid rgba(41, 182, 246, 0.45);
-    }
-
-    .tier-badge.soldout {
-      background: rgba(239, 68, 68, 0.22);
-      color: #f87171;
-      border: 1px solid rgba(239, 68, 68, 0.45);
+    .tier-option-card.vip-card .tier-meta-sep {
+      background: rgba(255, 255, 255, 0.45);
     }
 
     .tier-price {
-      font-size: 1.2rem;
-      font-weight: 800;
-      color: var(--aqua);
+      font-size: clamp(1.3rem, 2.2vw, 1.9rem);
+      font-weight: 600;
+      color: var(--white);
+      letter-spacing: -0.02em;
       white-space: nowrap;
+      flex-shrink: 0;
     }
 
-    .tier-option-card.vip-card .tier-price {
-      color: var(--gold);
+    .tier-badge.ok {
+      color: var(--nobar-green);
+      font-weight: 700;
     }
 
-    .tier-desc {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      line-height: 1.5;
-      margin-bottom: 0.65rem;
+    .tier-badge.warn {
+      color: var(--nobar-yellow);
+      font-weight: 700;
     }
 
-    .tier-rules-list {
+    .tier-badge.low,
+    .tier-badge.soldout {
+      color: var(--nobar-red);
+      font-weight: 700;
+    }
+
+    .tier-option-card.vip-card .tier-badge.low,
+    .tier-option-card.vip-card .tier-badge.soldout {
+      color: #fecaca;
+    }
+
+    /* ── STEP 02 INPUTS & SUMMARY ── */
+    .nobar-qty-phone-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem 2rem;
+      margin-bottom: 1.75rem;
+      align-items: stretch;
+    }
+
+    .nobar-qty-phone-grid .form-group {
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.45rem;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+      margin: 0;
     }
 
-    .tier-rule-chip {
-      font-size: 0.74rem;
-      color: var(--text-main);
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      padding: 3px 9px;
-      border-radius: 6px;
+    .figma-input-label {
+      display: block;
+      font-size: 1.15rem;
+      font-weight: 500;
+      color: var(--white);
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+    }
+
+    .figma-input {
+      width: 100%;
+      height: 54px;
+      border-radius: 8px;
+      background: var(--nobar-surface-inner);
+      border: 1px solid var(--nobar-border);
+      color: var(--white);
+      padding: 0 1.25rem;
+      font-family: var(--nobar-font);
+      font-size: 0.98rem;
+      font-weight: 500;
+      box-sizing: border-box;
+      transition: var(--transition);
+    }
+
+    .figma-input:focus {
+      outline: none;
+      border-color: var(--aqua);
+      box-shadow: 0 0 0 3px rgba(41, 182, 246, 0.16);
+    }
+
+    .figma-input::placeholder {
+      color: rgba(144, 184, 216, 0.6);
+    }
+
+    .figma-select-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    .figma-select {
+      appearance: none;
+      -webkit-appearance: none;
+      padding-right: 2.75rem;
+      background-color: rgba(3, 9, 31, 0.88);
+      cursor: pointer;
+    }
+
+    .figma-select option {
+      background: #071a3e;
+      color: #ffffff;
+    }
+
+    .figma-select-chevron {
+      position: absolute;
+      right: 1.05rem;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: var(--text-muted);
     }
 
     .participant-inputs-grid {
       display: flex;
       flex-direction: column;
-      gap: 0.65rem;
-      margin-top: 0.5rem;
+      gap: 1rem;
     }
 
+    .figma-form-divider {
+      height: 1px;
+      background: var(--nobar-divider);
+      margin: 2.25rem 0 2rem;
+    }
+
+    /* ── FRAME 2: TAMBAHAN OPSIONAL (FOTO POLAROID) ── */
+    .figma-addon-section {
+      margin-bottom: 2.15rem;
+    }
+
+    .figma-addon-heading {
+      font-size: clamp(1.2rem, 2vw, 1.5rem);
+      font-weight: 500;
+      color: var(--white);
+      letter-spacing: -0.02em;
+      margin: 0 0 0.4rem;
+    }
+
+    .figma-addon-sub {
+      font-size: 0.96rem;
+      color: var(--text-muted);
+      margin: 0 0 1.05rem;
+      line-height: 1.45;
+    }
+
+    .figma-addon-card {
+      background: var(--nobar-surface-inner);
+      border: 1px solid var(--nobar-border);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      transition: var(--transition);
+    }
+
+    .figma-addon-card.active {
+      border-color: var(--aqua);
+      background: rgba(21, 101, 192, 0.22);
+      box-shadow: 0 0 22px rgba(41, 182, 246, 0.16);
+    }
+
+    .figma-addon-left {
+      display: flex;
+      align-items: center;
+      gap: 1.15rem;
+      min-width: 0;
+    }
+
+    .figma-addon-thumb {
+      flex-shrink: 0;
+      border-radius: 10px;
+      display: block;
+    }
+
+    .figma-addon-title {
+      font-size: clamp(1.15rem, 2vw, 1.55rem);
+      font-weight: 500;
+      color: var(--white);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 0.25rem;
+    }
+
+    .figma-addon-price {
+      font-size: 0.96rem;
+      color: var(--text-muted);
+    }
+
+    .figma-qty-stepper {
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+      flex-shrink: 0;
+    }
+
+    .figma-stepper-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: rgba(19, 90, 134, 0.28);
+      border: 1px solid var(--nobar-pill-border);
+      color: var(--white);
+      font-family: var(--nobar-font);
+      font-size: 1.35rem;
+      font-weight: 600;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .figma-stepper-btn:hover:not(:disabled) {
+      background: var(--sea-blue);
+      border-color: var(--aqua);
+    }
+
+    .figma-stepper-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .figma-stepper-val {
+      min-width: 1.4ch;
+      text-align: center;
+      font-size: 1.22rem;
+      font-weight: 700;
+      color: var(--white);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .figma-addon-hint {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin: 0.7rem 0 0;
+    }
+
+    .figma-summary-heading {
+      font-size: clamp(1.2rem, 2vw, 1.5rem);
+      font-weight: 500;
+      color: var(--white);
+      letter-spacing: -0.02em;
+      margin-bottom: 0.95rem;
+    }
+
+    .figma-receipt-card {
+      background: var(--nobar-surface-inner);
+      border: 1px solid var(--nobar-border);
+      border-radius: 10px;
+      padding: 1.45rem 1.7rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      margin-bottom: 2.15rem;
+    }
+
+    .figma-receipt-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+      font-size: clamp(1rem, 1.6vw, 1.18rem);
+      color: var(--text-main);
+      letter-spacing: -0.015em;
+    }
+
+    .figma-receipt-amount {
+      font-weight: 600;
+      color: var(--white);
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .figma-receipt-divider {
+      height: 1px;
+      background: var(--nobar-divider);
+      width: 100%;
+    }
+
+    .figma-receipt-total-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .figma-receipt-total-label {
+      font-size: clamp(1.15rem, 1.9vw, 1.45rem);
+      font-weight: 600;
+      color: var(--white);
+      letter-spacing: -0.02em;
+    }
+
+    .figma-receipt-timeout {
+      font-size: 0.84rem;
+      color: #fde047;
+      font-weight: 600;
+      margin-top: 0.25rem;
+    }
+
+    .figma-receipt-total-val {
+      font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+      font-weight: 700;
+      color: var(--aqua);
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .figma-step2-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .figma-verify-note {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    /* ── STEP 03 QRIS PANEL ── */
     .qris-box {
-      background: rgba(3, 9, 31, 0.8);
+      background: var(--nobar-surface-inner);
       border: 1.5px solid rgba(41, 182, 246, 0.4);
       border-radius: 14px;
-      padding: 1.25rem;
+      padding: 1.35rem;
       text-align: center;
-      margin-bottom: 1.25rem;
+      margin-bottom: 1.35rem;
     }
 
     .qris-img-card {
@@ -388,111 +1012,214 @@
       border-radius: 6px;
     }
 
-    .nobar-qty-phone-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-bottom: 1rem;
-      align-items: stretch;
-    }
-
-    .nobar-qty-phone-grid .form-group {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      height: 100%;
-      margin: 0;
-    }
-
-    .nobar-confirm-bar {
-      background: rgba(3, 9, 31, 0.75);
-      border: 1px solid rgba(41, 182, 246, 0.35);
-      border-radius: 14px;
-      padding: 1.1rem 1.3rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .nobar-confirm-btn {
-      padding: 0.85rem 1.6rem;
+    /* ── FOOTER ── */
+    .figma-nobar-footer {
+      border-top: 1px solid var(--nobar-divider);
+      padding-top: 2rem;
+      padding-bottom: 2.5rem;
+      text-align: center;
       font-size: 0.95rem;
-      font-weight: 800;
-      border-radius: 50px;
+      color: var(--text-muted);
     }
 
-    @media (max-width: 920px) {
-      .nobar-hero-card {
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1060px) {
+      .figma-event-grid {
         grid-template-columns: 1fr;
-        text-align: center;
+        gap: 28px;
       }
+
       .nobar-poster-wrap {
-        max-width: 240px;
+        max-width: 440px;
         margin: 0 auto;
+        min-height: 280px;
       }
-      .nobar-quota-grid,
-      .nobar-main-grid {
+
+      .figma-compare-grid {
         grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .figma-buy-layout {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .figma-buy-sidebar {
+        position: static;
+      }
+
+      .figma-buy-heading {
+        margin-bottom: 1rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nobar-page-wrap {
+        padding: 80px 16px;
+      }
+
+      .figma-hero-section {
+        padding: 0 0 2.5rem;
+      }
+
+      .figma-nobar-footer {
+        padding-bottom: 0;
       }
     }
 
     @media (max-width: 640px) {
       .nobar-page-wrap {
-        padding: 5.15rem 0.75rem 6rem;
+        padding: 80px 16px;
       }
-      .nobar-hero-card {
-        padding: 1.15rem;
-        border-radius: 16px;
-        gap: 1.2rem;
+
+      .figma-hero-section {
+        padding: 0 0 2.5rem;
+      }
+
+      .figma-nobar-footer {
+        padding-bottom: 0;
+      }
+
+      .figma-hero-subtitle {
+        margin-bottom: 1.5rem;
+      }
+
+      .figma-event-grid {
+        margin-bottom: 3rem;
+      }
+
+      .nobar-poster-wrap {
+        min-height: 240px;
+      }
+
+      .figma-event-right {
+        gap: 18px;
+      }
+
+      .figma-card,
+      .figma-step-card {
+        padding: 1.25rem 1.1rem;
+        border-radius: 14px;
+      }
+
+      .figma-meta-block {
+        padding: 1rem 0;
+      }
+
+      .figma-avail-grid {
+        gap: 0.65rem;
+      }
+
+      .figma-avail-label {
+        font-size: 0.82rem;
+      }
+
+      .figma-avail-num {
+        font-size: 1.55rem;
+      }
+
+      .figma-compare-section {
+        margin-bottom: 3.25rem;
+      }
+
+      .figma-section-header {
+        margin-bottom: 1.4rem;
+      }
+
+      .figma-tier-showcase {
+        padding: 1.35rem 1.15rem;
+      }
+
+      .figma-tier-top {
+        gap: 0.95rem;
+        margin-bottom: 1rem;
+        min-height: 48px;
+      }
+
+      .figma-tier-title {
+        font-size: 1.4rem;
+      }
+
+      .figma-tier-price {
         margin-bottom: 1.25rem;
       }
-      .nobar-hero-title {
-        font-size: 1.35rem;
+
+      .figma-perk-item {
+        padding: 0.95rem 0;
+        font-size: 0.94rem;
       }
-      .nobar-meta-grid {
-        grid-template-columns: 1fr;
+
+      .figma-step-head {
+        flex-wrap: wrap;
       }
-      .nobar-panel {
-        padding: 1.05rem;
-        border-radius: 16px;
-      }
-      .nobar-panel-title {
-        font-size: 1.02rem;
-        padding-bottom: 0.65rem;
-        margin-bottom: 1rem;
-      }
+
       .tier-option-card {
-        padding: 0.95rem;
+        padding: 1.05rem 1rem;
+        gap: 0.85rem;
+        align-items: flex-start;
       }
-      .tier-name {
-        font-size: 0.98rem;
+
+      .figma-radio-circle {
+        margin-top: 3px;
+        width: 20px;
+        height: 20px;
+      }
+
+      .tier-option-main {
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.35rem;
+        gap: 0.5rem;
       }
-      .tier-price {
-        font-size: 1.02rem;
-        line-height: 1.3;
+
+      .tier-meta-inline {
+        gap: 0.5rem;
+        font-size: 0.84rem;
       }
+
+      .tier-meta-sep {
+        height: 14px;
+      }
+
       .nobar-qty-phone-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .figma-input-label {
+        font-size: 0.98rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .nobar-confirm-summary-card,
+      .figma-receipt-card {
+        padding: 1.15rem 1.05rem;
+        gap: 0.85rem;
+        margin-bottom: 1.4rem;
+      }
+
+      .figma-addon-card {
+        padding: 1rem 1rem;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      .figma-addon-left {
         gap: 0.85rem;
       }
-      .nobar-confirm-bar {
-        padding: 1rem;
+
+      .figma-qty-stepper {
+        gap: 0.75rem;
+        margin-left: auto;
+      }
+
+      .figma-step2-footer {
         flex-direction: column;
         align-items: stretch;
-        gap: 0.85rem;
       }
-      .nobar-confirm-btn {
+
+      .figma-step2-footer .figma-pill-btn {
         width: 100%;
-        border-radius: 12px;
-        padding: 0.88rem 1rem;
-        font-size: 0.92rem;
-        line-height: 1.35;
-        text-align: center;
       }
     }
   </style>
@@ -501,7 +1228,7 @@
 <body class="has-bottom-nav">
   <div class="cursor-glow"></div>
 
-  <!-- NAVBAR -->
+  <!-- NAVBAR (KA AIKA STORE) -->
   <nav class="navbar">
     <a href="index.html" class="nav-brand" title="Aika Sesilia Merch Store">
       <img src="/images/logo-hiu.png" alt="Aika Sesilia" class="brand-logo-img" width="32" height="32" style="width:32px;height:32px;object-fit:contain;vertical-align:middle;" />
@@ -524,295 +1251,426 @@
   </nav>
 
   <div class="nobar-page-wrap">
-    <!-- EVENT HERO HEADER -->
-    <section class="nobar-hero-card">
-      <div class="nobar-poster-wrap" id="nobarPosterWrap" style="cursor:zoom-in;" title="Klik untuk memperbesar poster film" onclick="const imgEl=document.getElementById('nobarBannerImg'); const rawSrc=imgEl?imgEl.getAttribute('src'):''; if(typeof openImageLightbox==='function' && rawSrc) openImageLightbox([rawSrc], 0, (nobarConfig && (nobarConfig.movieTitle || nobarConfig.eventTitle)) || 'Poster Film Nobar')">
-        <img id="nobarBannerImg" alt="Poster Nobar Aika Sesilia" style="opacity:0; transition:opacity 0.22s ease;" onload="this.style.opacity='1'; const w=document.getElementById('nobarPosterWrap'); if(w) w.classList.add('loaded');" onerror="this.onerror=null; this.src='/images/Profil/charlotta-seo.jpg'; this.style.opacity='1'; const w=document.getElementById('nobarPosterWrap'); if(w) w.classList.add('loaded');" />
+
+    <!-- 1. HERO HEADER -->
+    <section class="figma-hero-section">
+      <div id="nobarStatusPill" class="nobar-status-pill open" style="opacity:0.85;">
+        <svg class="ui-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        <span id="nobarStatusText">MEMUAT STATUS EVENT...</span>
       </div>
-      <div>
-        <div id="nobarStatusPill" class="nobar-status-pill open" style="opacity:0.85;">
-          <svg class="ui-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          <span id="nobarStatusText">MEMUAT STATUS EVENT...</span>
+      <h1 class="figma-hero-title" id="nobarEventTitle">Nonton Bareng Aika Sesilia</h1>
+      <p class="figma-hero-subtitle" id="nobarHeroSubtitle">Menyinkronkan jadwal &amp; lokasi bioskop...</p>
+      <a href="#detailEventSection" class="figma-pill-btn">
+        <span>Scroll Down</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+      </a>
+    </section>
+
+    <!-- LOAD ERROR BANNER (ONLY IF /api/nobar FAILS) -->
+    <div id="nobarLoadErrorAlert" style="display:none; background:rgba(239,68,68,0.14); border:1px solid rgba(239,68,68,0.45); border-radius:14px; padding:1.1rem 1.4rem; margin-bottom:2rem; color:#fca5a5; text-align:center;">
+      <div style="font-weight:700; margin-bottom:0.55rem;" id="nobarLoadErrorMsg">Gagal memuat info event nobar terbaru.</div>
+      <button type="button" class="btn-secondary" onclick="loadNobarPageData()" style="padding:0.45rem 1rem; border-radius:8px; font-size:0.84rem; font-weight:700; border-color:rgba(248,113,113,0.55); color:#fecaca;">🔄 Muat Ulang Info Event</button>
+    </div>
+
+    <!-- 2. EVENT POSTER + DETAILS + REALTIME AVAILABILITY -->
+    <section class="figma-event-grid" id="detailEventSection">
+      <div class="nobar-poster-wrap" id="nobarPosterWrap" title="Klik untuk memperbesar poster film" onclick="const imgEl=document.getElementById('nobarBannerImg'); const rawSrc=imgEl?imgEl.getAttribute('src'):''; if(typeof openImageLightbox==='function' && rawSrc) openImageLightbox([rawSrc], 0, (nobarConfig && (nobarConfig.movieTitle || nobarConfig.eventTitle)) || 'Poster Film Nobar')">
+        <img id="nobarBannerImg" alt="Poster Nobar Aika Sesilia" style="opacity:0; transition:opacity 0.25s ease;" onload="this.style.opacity='1'; const w=document.getElementById('nobarPosterWrap'); if(w) w.classList.add('loaded');" onerror="this.onerror=null; this.src='/images/Profil/charlotta-seo.jpg'; this.style.opacity='1'; const w=document.getElementById('nobarPosterWrap'); if(w) w.classList.add('loaded');" />
+      </div>
+
+      <div class="figma-event-right">
+        <!-- Info Card -->
+        <div class="figma-card">
+          <div class="figma-meta-block">
+            <div class="figma-meta-label">Judul Film</div>
+            <div class="figma-meta-value" id="nobarMovieTitle">Menyinkronkan jadwal...</div>
+          </div>
+          <div class="figma-meta-block">
+            <div class="figma-meta-label">Tanggal &amp; Waktu</div>
+            <div class="figma-meta-value" id="nobarDateTime">-</div>
+          </div>
+          <div class="figma-meta-block">
+            <div class="figma-meta-label">Lokasi Bioskop</div>
+            <div class="figma-meta-value" id="nobarCinemaLocation">-</div>
+          </div>
+          <p class="figma-event-notes" id="nobarEventNotes"></p>
+          <a id="nobarMapsLink" href="https://maps.app.goo.gl/7yF59NSdjGyyNP6X9" target="_blank" rel="noopener noreferrer" class="figma-pill-btn">
+            <span>Google Maps</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
         </div>
-        <h1 class="nobar-hero-title" id="nobarEventTitle">Nobar Bioskop Aika Sesilia</h1>
 
-        <div class="nobar-meta-grid">
-          <div class="nobar-meta-item">
-            <div class="nobar-meta-label">
-              <svg class="ui-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" viewBox="0 0 24 24"><rect width="20" height="15" x="2" y="3" rx="2"/><polyline points="8 21 12 17 16 21"/></svg>
-              Film
+        <!-- Availability Card -->
+        <div class="figma-card">
+          <div class="figma-avail-title">Cek Ketersediaan Tiket:</div>
+          <div class="figma-avail-grid">
+            <div class="figma-avail-col">
+              <div class="figma-avail-label">Tiket Regular / Regular+</div>
+              <div class="figma-avail-num"><span class="remain ok" id="availRegLeft">--</span><span id="availRegTotal">/--</span></div>
             </div>
-            <div class="nobar-meta-val" id="nobarMovieTitle">Menyinkronkan jadwal...</div>
+            <div class="figma-avail-col">
+              <div class="figma-avail-label">Tiket VIP</div>
+              <div class="figma-avail-num"><span class="remain ok" id="availVipLeft">--</span><span id="availVipTotal">/--</span></div>
+            </div>
           </div>
-          <div class="nobar-meta-item">
-            <div class="nobar-meta-label">
-              <svg class="ui-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-              Tanggal &amp; Waktu
-            </div>
-            <div class="nobar-meta-val" id="nobarDateTime">-</div>
+          <div class="figma-avail-note" id="availRealtimeNote">*Ketersediaan slot diupdate secara realtime</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. PERBEDAAN JENIS TIKET -->
+    <section class="figma-compare-section" id="compareTiersSection">
+      <div class="figma-section-header">
+        <h2 class="figma-section-heading">Perbedaan Jenis Tiket</h2>
+        <a href="#beliTiketSection" class="figma-pill-btn">
+          <span>Beli Tiket</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+
+      <div class="figma-compare-grid">
+        <!-- Card 1: Tiket Regular -->
+        <div class="figma-tier-showcase" onclick="selectNobarTier('regular'); document.getElementById('beliTiketSection').scrollIntoView({behavior:'smooth'});">
+          <div class="figma-tier-top">
+            <img src="images/nobar/ticket-regular.svg" alt="" width="56" height="56" class="figma-tier-icon-filter" />
+            <div class="figma-tier-title">Tiket Regular</div>
           </div>
-          <div class="nobar-meta-item">
-            <div class="nobar-meta-label">
-              <svg class="ui-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-              Lokasi Bioskop
+          <div class="figma-tier-price" id="cmpPrice-regular">IDR 75.000</div>
+          <div class="figma-perks-list">
+            <div class="figma-perk-item">
+              <img src="images/nobar/perk-ticket.svg" alt="" width="28" height="28" class="figma-perk-icon" />
+              <span>Tiket Masuk</span>
             </div>
-            <div class="nobar-meta-val" id="nobarCinemaLocation">-</div>
+            <div class="figma-perk-item">
+              <img src="images/nobar/perk-postcard.svg" alt="" width="28.9156" height="28" class="figma-perk-icon" />
+              <span id="cmpDesc-regular">Postcard Freebies (@wutheringwave.id) · Kursi sesuai urutan kedatangan</span>
+            </div>
           </div>
         </div>
 
-        <p id="nobarEventNotes" style="font-size:0.86rem; color:var(--text-muted); line-height:1.55; margin-bottom:0.8rem;"></p>
-
-        <!-- LIVE SEAT QUOTA BARS -->
-        <div class="nobar-quota-grid">
-          <div class="nobar-quota-box vip">
-            <div class="nobar-quota-top">
-              <span class="nobar-quota-title">Tiket VIP</span>
-              <span class="nobar-quota-count" id="vipQuotaText">Sisa - Kursi</span>
+        <!-- Card 2: Tiket Regular+ -->
+        <div class="figma-tier-showcase" onclick="selectNobarTier('regular_merch'); document.getElementById('beliTiketSection').scrollIntoView({behavior:'smooth'});">
+          <div class="figma-tier-top">
+            <img src="images/nobar/ticket-plus.svg" alt="" width="64" height="64" class="figma-tier-icon-filter" />
+            <div class="figma-tier-title">Tiket Regular+</div>
+          </div>
+          <div class="figma-tier-price" id="cmpPrice-regular_merch">IDR 135.000</div>
+          <div class="figma-perks-list">
+            <div class="figma-perk-item">
+              <img src="images/nobar/perk-ticket.svg" alt="" width="28" height="28" class="figma-perk-icon" />
+              <span>Tiket Masuk</span>
             </div>
-            <div class="nobar-progress-track">
-              <div class="nobar-progress-fill" id="vipQuotaBar" style="width:0%"></div>
+            <div class="figma-perk-item">
+              <img src="images/nobar/perk-postcard.svg" alt="" width="28.9156" height="28" class="figma-perk-icon" />
+              <span>Postcard Freebies (@wutheringwave.id)</span>
             </div>
-            <div class="nobar-quota-sub" id="vipQuotaSub">
-              Memuat kuota kursi VIP...
+            <div class="figma-perk-item">
+              <img src="images/nobar/perk-merch.svg" alt="" width="29" height="28.9996" class="figma-perk-icon" />
+              <span id="cmpDesc-regular_merch">Paket merch (Photocard + Poster Eksklusif dari Aika)</span>
             </div>
           </div>
+        </div>
 
-          <div class="nobar-quota-box">
-            <div class="nobar-quota-top">
-              <span class="nobar-quota-title">Tiket Reguler</span>
-              <span class="nobar-quota-count" id="regQuotaText">Sisa - Kursi</span>
+        <!-- Card 3: Tiket VIP -->
+        <div class="figma-tier-showcase vip-showcase" onclick="selectNobarTier('vip'); document.getElementById('beliTiketSection').scrollIntoView({behavior:'smooth'});">
+          <div class="figma-tier-top">
+            <img src="images/nobar/ticket-vip.svg" alt="" width="61" height="61" class="figma-tier-icon-raw" />
+            <div class="figma-tier-title">Tiket VIP</div>
+          </div>
+          <div class="figma-tier-price" id="cmpPrice-vip">IDR 250.000</div>
+          <div class="figma-perks-list">
+            <div class="figma-perk-item">
+              <img src="images/nobar/perk-ticket.svg" alt="" width="28" height="28" class="figma-perk-icon" />
+              <span>Tiket Masuk</span>
             </div>
-            <div class="nobar-progress-track">
-              <div class="nobar-progress-fill" id="regQuotaBar" style="width:0%"></div>
+            <div class="figma-perk-item">
+              <img src="images/nobar/perk-postcard.svg" alt="" width="28.9156" height="28" class="figma-perk-icon" />
+              <span>Postcard Freebies (@wutheringwave.id)</span>
             </div>
-            <div class="nobar-quota-sub" id="regQuotaSub">
-              Memuat kuota kursi reguler...
+            <div class="figma-perk-item">
+              <img src="images/nobar/perk-merch.svg" alt="" width="29" height="28.9996" class="figma-perk-icon" />
+              <span id="cmpMerchVip">Paket merch (Photocard + Poster Eksklusif dari Aika)</span>
+            </div>
+            <div class="figma-perk-item">
+              <img src="images/nobar/perk-chair.svg" alt="" width="18.1096" height="31" class="figma-perk-icon" />
+              <span id="cmpDesc-vip">Kursi di sebelah Kak Aika</span>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- LOAD ERROR BANNER (ONLY IF /api/nobar FAILS) -->
-    <div id="nobarLoadErrorAlert" style="display:none; background:rgba(239,68,68,0.14); border:1px solid rgba(239,68,68,0.45); border-radius:14px; padding:1.1rem 1.4rem; margin-bottom:1.5rem; color:#fca5a5; text-align:center;">
-      <div style="font-weight:700; margin-bottom:0.55rem;" id="nobarLoadErrorMsg">Gagal memuat info event nobar terbaru.</div>
-      <button type="button" class="btn-secondary" onclick="loadNobarPageData()" style="padding:0.45rem 1rem; border-radius:8px; font-size:0.84rem; font-weight:700; border-color:rgba(248,113,113,0.55); color:#fecaca;">🔄 Muat Ulang Info Event</button>
-    </div>
-
-    <!-- CLOSED BANNER (IF ADMIN CLOSED SALES) -->
-    <div id="nobarClosedAlert" style="display:none; background:rgba(239,68,68,0.14); border:1px solid rgba(239,68,68,0.45); border-radius:14px; padding:1.25rem 1.5rem; margin-bottom:2rem; color:#fca5a5; text-align:center; font-weight:700;">
-      Penjualan Tiket Nobar Bioskop saat ini sedang ditutup oleh Admin. Jika Anda sudah membeli tiket, silakan cek status verifikasi dan bukti pembayaran Anda di menu <a href="profile.html?tab=orders" style="color:var(--aqua);text-decoration:underline;">Profil &gt; Riwayat Pesanan</a>.
-    </div>
-
-    <div class="nobar-main-grid">
-      <!-- LEFT COLUMN: 3 TICKET TIERS & PARTICIPANT FORM -->
-      <main class="nobar-panel">
-        <h2 class="nobar-panel-title">
-          <svg class="ui-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" viewBox="0 0 24 24"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>
-          1. Pilih Kategori Tiket Nobar
-        </h2>
-
-        <div class="tier-cards-stack" id="tierCardsContainer">
-          <!-- Tier 1: VIP -->
-          <div class="tier-option-card vip-card" id="tierCard-vip" onclick="selectNobarTier('vip')">
-            <div class="tier-header-row">
-              <div class="tier-name">
-                <span>1. Tiket VIP</span>
-                <span class="tier-badge vip" id="tierBadge-vip">Kuota 2 Orang • Duduk di Samping Kak Aika</span>
-              </div>
-              <div class="tier-price" id="tierPrice-vip">Rp 250.000</div>
-            </div>
-            <div class="tier-desc" id="tierDesc-vip">
-              Duduk eksklusif tepat di samping Kak Aika (2 pembeli pertama yang pembayarannya diverifikasi Admin).
-            </div>
-            <div class="tier-rules-list">
-              <span class="tier-rule-chip">Maks 1 Tiket / Akun</span>
-              <span class="tier-rule-chip">Kursi Spesial Samping Kak Aika</span>
-            </div>
-          </div>
-
-          <!-- Tier 2: Tiket Biasa -->
-          <div class="tier-option-card selected" id="tierCard-regular" onclick="selectNobarTier('regular')">
-            <div class="tier-header-row">
-              <div class="tier-name">
-                <span>2. Tiket Biasa</span>
-                <span class="tier-badge merch" id="tierBadge-regular">Tiket Masuk Nobar</span>
-              </div>
-              <div class="tier-price" id="tierPrice-regular">Rp 75.000</div>
-            </div>
-            <div class="tier-desc" id="tierDesc-regular">
-              1x Tiket Masuk Nobar Bioskop. Pengambilan kursi dilakukan saat event berlangsung di lokasi (siapa cepat dia dapat).
-            </div>
-            <div class="tier-rules-list">
-              <span class="tier-rule-chip" id="regMaxRuleChip1">Maks 5 Tiket / Pembelian</span>
-              <span class="tier-rule-chip">Ambil Tiket di Lokasi Bioskop</span>
-            </div>
-          </div>
-
-          <!-- Tier 3: Tiket Biasa + Merch -->
-          <div class="tier-option-card" id="tierCard-regular_merch" onclick="selectNobarTier('regular_merch')">
-            <div class="tier-header-row">
-              <div class="tier-name">
-                <span>3. Tiket Biasa + Merch</span>
-                <span class="tier-badge merch" id="tierBadge-regular_merch">Bundel Photocard &amp; Poster</span>
-              </div>
-              <div class="tier-price" id="tierPrice-regular_merch">Rp 135.000</div>
-            </div>
-            <div class="tier-desc" id="tierDesc-regular_merch">
-              1x Tiket Masuk Nobar Bioskop + Paket Merch Bundel Tetap (Photocard &amp; Poster Eksklusif, tanpa ukuran baju). Diambil langsung di lokasi bioskop tanpa ongkir.
-            </div>
-            <div class="tier-rules-list">
-              <span class="tier-rule-chip">Termasuk Photocard &amp; Poster</span>
-              <span class="tier-rule-chip">Ambil di Lokasi (Tanpa Ongkir)</span>
-              <span class="tier-rule-chip" id="regMaxRuleChip2">Maks 5 Tiket / Pembelian</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- PARTICIPANT DETAILS FORM -->
-        <h2 class="nobar-panel-title" style="margin-top:1.8rem;">
-          <svg class="ui-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          2. Jumlah Tiket &amp; Nama Peserta
-        </h2>
-
-        <div id="guestLoginNotice" style="display:none; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.4); border-radius:12px; padding:1rem; margin-bottom:1.2rem; font-size:0.86rem; color:#fde68a;">
-          Anda belum login. Silakan <a href="login.html?redirect=nobar.html" style="color:var(--aqua); font-weight:800; text-decoration:underline;">Masuk ke Akun</a> terlebih dahulu agar bukti pembelian tiket nobar tersimpan di halaman Profil Anda.
-        </div>
-
-        <div class="nobar-qty-phone-grid">
-          <div class="form-group">
-            <label for="nobarQtySelect" style="font-size:0.84rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Jumlah Tiket *</label>
-            <select id="nobarQtySelect" onchange="handleNobarQtyChange()" style="width:100%; border-radius:10px; background:rgba(3,9,31,0.85); border:1px solid var(--card-border); color:var(--white); padding:0.78rem; font-family:var(--font-body); font-weight:700;">
-              <option value="1">1 Tiket</option>
-              <option value="2">2 Tiket</option>
-              <option value="3">3 Tiket</option>
-              <option value="4">4 Tiket</option>
-              <option value="5">5 Tiket</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="nobarPhone" style="font-size:0.84rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">No. HP / WhatsApp Aktif *</label>
-            <input type="tel" id="nobarPhone" placeholder="Contoh: 08123456789" required style="width:100%; border-radius:10px; background:rgba(3,9,31,0.85); border:1px solid var(--card-border); color:var(--white); padding:0.78rem;" />
-          </div>
-        </div>
-
-        <div class="form-group" style="margin-bottom:1rem;">
-          <label style="font-size:0.84rem; color:var(--white); font-weight:700; margin-bottom:0.25rem; display:block;">
-            Daftar Nama Peserta * <small style="color:var(--text-muted); font-weight:400;">(Wajib diisi untuk pencocokan daftar hadir di bioskop)</small>
-          </label>
-          <div id="participantInputsContainer" class="participant-inputs-grid"></div>
-        </div>
-
-        <div class="form-group" style="margin:0 0 1.4rem 0;">
-          <label for="nobarBuyerNote" style="font-size:0.84rem; color:var(--white); font-weight:700; margin-bottom:0.35rem; display:block;">Catatan Tambahan <small style="color:var(--text-muted); font-weight:400;">(Opsional)</small></label>
-          <input type="text" id="nobarBuyerNote" placeholder="Catatan untuk panitia nobar (opsional)" maxlength="250" style="width:100%; border-radius:10px; background:rgba(3,9,31,0.85); border:1px solid var(--card-border); color:var(--white); padding:0.78rem;" />
-        </div>
-
-        <!-- STEP 1 CONFIRMATION BAR -->
-        <div id="step1ConfirmBar" class="nobar-confirm-bar">
+    <!-- 4. BELI TIKET (2-COLUMN SIDEBAR + MULTI-STEP FORM) -->
+    <section class="figma-buy-layout" id="beliTiketSection">
+      <aside class="figma-buy-sidebar">
+        <h2 class="figma-buy-heading">Beli Tiket</h2>
+        <div class="figma-contact-card">
           <div>
-            <div style="font-size:0.78rem; color:var(--text-muted); line-height:1.45; margin-bottom:0.25rem;">Pilihan Tiket Saat Ini: <span id="step1TimeoutHint" style="color:#fde047; font-weight:700; white-space:nowrap;">⏱️ Kunci kursi 45 menit</span></div>
-            <div style="font-size:1rem; font-weight:800; color:var(--white); line-height:1.4;" id="step1PreviewLabel">Tiket Biasa (1 Tiket) — <span style="color:var(--aqua); white-space:nowrap;" id="step1PreviewTotal">Rp 75.000</span></div>
+            Terdapat bug / kesalahan pada formulir? Hubungi
+            <a href="https://wa.me/6285777149410?text=Halo%20Admin%2C%20saya%20menemukan%20kendala%2Fbug%20pada%20formulir%20pembelian%20tiket%20Nobar." target="_blank" rel="noopener noreferrer">WhatsApp (0857-7714-9410)</a>
           </div>
-          <button type="button" id="btnConfirmTicketStep" class="btn-primary nobar-confirm-btn" onclick="confirmNobarTicketSelection()">
-            Konfirmasi Pilihan &amp; Kunci Kursi →
-          </button>
-        </div>
-      </main>
-
-      <!-- ACTIVE RESERVATION RESUME NOTICE (IF USER RELOADED WHILE UNPAID) -->
-      <div id="activeReservationResumeBanner" style="display:none; background:rgba(245,158,11,0.12); border:1.5px solid rgba(245,158,11,0.5); border-radius:14px; padding:1rem 1.25rem; color:#fde68a; font-size:0.86rem; line-height:1.5;">
-      </div>
-
-      <!-- STEP 3: DIRECT QRIS PAYMENT & PROOF UPLOAD (HIDDEN UNTIL TICKET CONFIRMED) -->
-      <aside class="nobar-panel" id="nobarPaymentPanel" style="display:none; border-color:var(--aqua); box-shadow:0 0 35px rgba(41,182,246,0.2);">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; border-bottom:1px solid var(--card-border); padding-bottom:0.8rem; margin-bottom:1rem;">
-          <h2 class="nobar-panel-title" style="border:none; padding:0; margin:0;">
-            <svg class="ui-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
-            3. Pembayaran Langsung QRIS
-          </h2>
-          <button type="button" id="btnCancelReservation" class="btn-ghost" onclick="cancelNobarReservation()" style="padding:0.42rem 0.95rem; font-size:0.8rem; border-radius:50px; border-color:rgba(239,68,68,0.45); color:#fca5a5;">
-            ✕ Batalkan Reservasi &amp; Ubah Pilihan
-          </button>
-        </div>
-
-        <!-- LIVE COUNTDOWN TIMER BANNER -->
-        <div id="nobarPaymentCountdownBox" style="background:linear-gradient(135deg, rgba(245,158,11,0.16), rgba(3,9,31,0.88)); border:1.5px solid rgba(245,158,11,0.55); border-radius:12px; padding:0.9rem 1.1rem; margin-bottom:1.1rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
+          <div class="figma-contact-divider"></div>
           <div>
-            <div style="font-size:0.76rem; color:#fde68a; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">
-              ⏱️ Kursi Telah Dikunci Sementara (<span id="reservationInvoiceBadge" style="color:var(--white); font-family:monospace;">#INV-...</span>)
-            </div>
-            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">
-              Selesaikan transfer QRIS &amp; unggah bukti sebelum <strong id="reservationDeadlineText" style="color:var(--white);">-</strong> agar kuota kursi tidak dilepas otomatis.
-            </div>
-          </div>
-          <div id="reservationCountdownClock" style="background:rgba(3,9,31,0.85); border:1px solid rgba(245,158,11,0.6); color:#fde047; font-family:monospace; font-size:1.35rem; font-weight:900; padding:0.4rem 0.95rem; border-radius:10px; min-width:96px; text-align:center;">
-            45:00
+            Pertanyaan lebih lanjut seputar tiket? Hubungi
+            <a href="https://wa.me/6285777149410?text=Halo%20Admin%2C%20saya%20ingin%20bertanya%20seputar%20tiket%20Nobar%20Bioskop%20Aika%20Sesilia." target="_blank" rel="noopener noreferrer">WhatsApp (0857-7714-9410)</a>
           </div>
         </div>
-
-        <div style="background:rgba(3,9,31,0.65); border:1px solid var(--card-border); border-radius:12px; padding:1rem; margin-bottom:1.15rem; font-size:0.86rem;">
-          <div style="display:flex; justify-content:space-between; padding:0.3rem 0; color:var(--text-muted);">
-            <span>Kategori Tiket</span>
-            <strong id="summaryTierLabel" style="color:var(--white); text-align:right;">Tiket Biasa</strong>
-          </div>
-          <div style="display:flex; justify-content:space-between; padding:0.3rem 0; color:var(--text-muted);">
-            <span>Daftar Nama Peserta</span>
-            <strong id="summaryParticipantsList" style="color:var(--aqua); text-align:right;">-</strong>
-          </div>
-          <div style="display:flex; justify-content:space-between; padding:0.3rem 0; color:var(--text-muted);">
-            <span>Harga per Tiket</span>
-            <span id="summaryUnitPrice" style="color:var(--white);">Rp 75.000</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; padding:0.3rem 0; color:var(--text-muted);">
-            <span>Jumlah Tiket</span>
-            <span id="summaryQty" style="color:var(--white);">1 Tiket</span>
-          </div>
-          <div id="summaryMerchRow" style="display:none; justify-content:space-between; padding:0.3rem 0; color:var(--aqua);">
-            <span>Paket Merch Bundel</span>
-            <strong id="summaryMerchDesc" style="text-align:right;">Photocard &amp; Poster (Ambil di Lokasi)</strong>
-          </div>
-          <div style="display:flex; justify-content:space-between; padding:0.3rem 0; color:var(--text-muted);">
-            <span>Pengambilan Tiket &amp; Merch</span>
-            <span style="color:#4ade80; font-weight:700;">Di Lokasi Bioskop (Rp 0)</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; padding:0.65rem 0 0.2rem; margin-top:0.4rem; border-top:1px solid var(--card-border); font-size:1.05rem; font-weight:800;">
-            <span style="color:var(--white);">Total Bayar (100%)</span>
-            <span id="summaryTotalAmount" style="color:var(--aqua); font-size:1.25rem;">Rp 75.000</span>
-          </div>
-        </div>
-
-        <div class="qris-box">
-          <div style="color:var(--aqua); font-weight:700; font-size:0.88rem; margin-bottom:0.65rem; display:flex; align-items:center; justify-content:center; gap:0.4rem;">
-            <svg class="ui-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg>
-            Scan QRIS Resmi Aika Sesilia (Bayar Penuh)
-          </div>
-          <div class="qris-img-card">
-            <img src="images/Qris/Qris.jpeg" alt="QRIS Aika Sesilia" />
-          </div>
-          <div style="margin-top:0.75rem; font-size:0.78rem; color:var(--text-muted); line-height:1.45;">
-            Pembelian tiket nobar wajib langsung dibayar penuh (tanpa DP). Saat acara berlangsung, Anda cukup menunjukkan bukti pembayaran tiket ini di website kepada panitia.
-          </div>
-        </div>
-
-        <!-- PROOF UPLOAD -->
-        <div style="margin-bottom:1.2rem;">
-          <label style="display:block; color:var(--white); font-weight:700; font-size:0.86rem; margin-bottom:0.45rem;">
-            Unggah Screenshot Bukti Transfer QRIS *
-          </label>
-          <input type="file" id="nobarProofInput" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleNobarProofChange(event)" />
-          <button type="button" class="btn-ghost" onclick="document.getElementById('nobarProofInput').click()" style="width:100%; padding:0.85rem; border-radius:12px; border:1.5px dashed var(--aqua); color:var(--aqua); font-weight:700; font-size:0.86rem; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:0.5rem;">
-            <svg class="ui-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-            <span id="nobarProofBtnText">Pilih Gambar Bukti Transfer (JPG / PNG / WebP)</span>
-          </button>
-          <div id="nobarProofPreview" style="margin-top:0.75rem;"></div>
-        </div>
-
-        <button type="button" id="btnSubmitNobar" class="btn-primary w100" onclick="submitNobarBooking()" style="padding:1rem; font-size:1rem; font-weight:800; border-radius:50px;">
-          Kirim Pembelian &amp; Bukti Pembayaran Tiket
-        </button>
       </aside>
-    </div>
+
+      <main class="figma-form-stack">
+        <!-- CLOSED BANNER (IF ADMIN CLOSED SALES) -->
+        <div id="nobarClosedAlert" style="display:none; background:rgba(239,68,68,0.14); border:1px solid rgba(239,68,68,0.45); border-radius:14px; padding:1.2rem 1.4rem; color:#fca5a5; text-align:center; font-weight:700;">
+          Penjualan Tiket Nobar Bioskop saat ini sedang ditutup oleh Admin. Jika Anda sudah membeli tiket, silakan cek status verifikasi dan E-Tiket QR Anda di menu <a href="profile.html?tab=orders" style="color:var(--aqua);text-decoration:underline;">Profil &gt; Riwayat Pesanan</a>.
+        </div>
+
+        <!-- ACTIVE RESERVATION RESUME NOTICE -->
+        <div id="activeReservationResumeBanner" style="display:none; background:rgba(245,158,11,0.12); border:1.5px solid rgba(245,158,11,0.5); border-radius:14px; padding:1rem 1.25rem; color:#fde68a; font-size:0.9rem; line-height:1.55;"></div>
+
+        <!-- STEP 01 / 02: PILIH JENIS TIKET -->
+        <section class="figma-step-card">
+          <div class="figma-step-head">
+            <h3 class="figma-step-title">Pilih Jenis Tiket</h3>
+            <span class="figma-step-label">Step 01 / 02</span>
+          </div>
+
+          <div class="tier-cards-stack" id="tierCardsContainer">
+            <!-- Regular -->
+            <div class="tier-option-card selected" id="tierCard-regular" onclick="selectNobarTier('regular')">
+              <div class="figma-radio-circle"><div class="figma-radio-dot"></div></div>
+              <div class="tier-option-main">
+                <div class="tier-option-info">
+                  <div class="tier-name"><span>Tiket Regular</span></div>
+                  <div class="tier-meta-inline">
+                    <span class="tier-badge merch" id="tierBadge-regular">Sisa -- tiket</span>
+                    <span class="tier-meta-sep"></span>
+                    <span>Pilih kursi sesuai urutan kedatangan</span>
+                  </div>
+                </div>
+                <div class="tier-price" id="tierPrice-regular">IDR 75.000</div>
+              </div>
+            </div>
+
+            <!-- Regular+ -->
+            <div class="tier-option-card" id="tierCard-regular_merch" onclick="selectNobarTier('regular_merch')">
+              <div class="figma-radio-circle"><div class="figma-radio-dot"></div></div>
+              <div class="tier-option-main">
+                <div class="tier-option-info">
+                  <div class="tier-name"><span>Tiket Regular+</span></div>
+                  <div class="tier-meta-inline">
+                    <span class="tier-badge merch" id="tierBadge-regular_merch">Sisa -- tiket</span>
+                    <span class="tier-meta-sep"></span>
+                    <span>Pilih kursi sesuai urutan kedatangan (+ Merch Bundel)</span>
+                  </div>
+                </div>
+                <div class="tier-price" id="tierPrice-regular_merch">IDR 135.000</div>
+              </div>
+            </div>
+
+            <!-- VIP -->
+            <div class="tier-option-card vip-card" id="tierCard-vip" onclick="selectNobarTier('vip')">
+              <div class="figma-radio-circle"><div class="figma-radio-dot"></div></div>
+              <div class="tier-option-main">
+                <div class="tier-option-info">
+                  <div class="tier-name">
+                    <span>Tiket VIP</span>
+                    <img src="images/nobar/vip-crown.svg" alt="" width="26" height="26" />
+                  </div>
+                  <div class="tier-meta-inline">
+                    <span class="tier-badge vip" id="tierBadge-vip">Sisa -- tiket</span>
+                    <span class="tier-meta-sep"></span>
+                    <span>Kursi sudah ditentukan (Di sebelah Kak Aika)</span>
+                  </div>
+                </div>
+                <div class="tier-price" id="tierPrice-vip">IDR 250.000</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 02 / 02: DATA PESERTA + TAMBAHAN OPSIONAL + RINGKASAN -->
+        <section class="figma-step-card">
+          <div class="figma-step-head">
+            <h3 class="figma-step-title">Data Peserta</h3>
+            <span class="figma-step-label">Step 02 / 02</span>
+          </div>
+          <p class="figma-step-sub">Isi satu nama untuk setiap tiket yang dipesan.</p>
+
+          <div id="guestLoginNotice" style="display:none; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.4); border-radius:12px; padding:1rem; margin-bottom:1.35rem; font-size:0.88rem; color:#fde68a;">
+            Anda belum login. Silakan <a href="login.html?redirect=nobar.html" style="color:var(--aqua); font-weight:800; text-decoration:underline;">Masuk ke Akun</a> terlebih dahulu agar E-Tiket QR dan bukti pembelian tersimpan di Profil Anda.
+          </div>
+
+          <div class="nobar-qty-phone-grid">
+            <div class="form-group">
+              <label for="nobarQtySelect" class="figma-input-label">Jumlah Tiket *</label>
+              <div class="figma-select-wrap">
+                <select id="nobarQtySelect" class="figma-input figma-select" onchange="handleNobarQtyChange()">
+                  <option value="1">1 Tiket</option>
+                  <option value="2">2 Tiket</option>
+                  <option value="3">3 Tiket</option>
+                  <option value="4">4 Tiket</option>
+                  <option value="5">5 Tiket</option>
+                </select>
+                <svg class="figma-select-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="nobarPhone" class="figma-input-label">Nomor WhatsApp aktif *</label>
+              <input type="tel" id="nobarPhone" class="figma-input" placeholder="Contoh: 0812 000 000" required />
+            </div>
+          </div>
+
+          <div class="form-group" style="margin:0;">
+            <label class="figma-input-label">Nama peserta *</label>
+            <div id="participantInputsContainer" class="participant-inputs-grid"></div>
+          </div>
+
+          <div class="figma-form-divider"></div>
+
+          <!-- TAMBAHAN OPSIONAL (FOTO POLAROID) -->
+          <div class="figma-addon-section" id="polaroidAddonSection">
+            <h4 class="figma-addon-heading">Tambahan opsional</h4>
+            <p class="figma-addon-sub">Foto Polaroid bisa ditambahkan ke semua jenis tiket.</p>
+            <div class="figma-addon-card" id="polaroidAddonCard">
+              <div class="figma-addon-left">
+                <img src="images/nobar/addon-polaroid.svg" alt="Foto Polaroid" width="58" height="58" class="figma-addon-thumb" />
+                <div>
+                  <div class="figma-addon-title">Foto Polaroid</div>
+                  <div class="figma-addon-price" id="polaroidUnitPriceLabel">Rp 60.000 per foto</div>
+                </div>
+              </div>
+              <div class="figma-qty-stepper" aria-label="Jumlah tambahan foto Polaroid">
+                <button type="button" id="btnPolaroidDec" class="figma-stepper-btn" onclick="changePolaroidQty(-1)" aria-label="Kurangi jumlah foto Polaroid" disabled>−</button>
+                <span id="polaroidQtyDisplay" class="figma-stepper-val" aria-live="polite">0</span>
+                <button type="button" id="btnPolaroidInc" class="figma-stepper-btn" onclick="changePolaroidQty(1)" aria-label="Tambah jumlah foto Polaroid">+</button>
+              </div>
+            </div>
+            <p class="figma-addon-hint" id="polaroidHintText">Pilih 0 jika tidak ingin menambahkan foto.</p>
+          </div>
+
+          <div class="figma-summary-heading">Ringkasan pesanan</div>
+          <div id="step1ConfirmBar" class="figma-receipt-card">
+            <div class="figma-receipt-row">
+              <span id="step1TicketLineLabel">1 tiket Regular × Rp 75.000</span>
+              <span class="figma-receipt-amount" id="step1TicketLineAmount">Rp 75.000</span>
+            </div>
+            <div class="figma-receipt-row" id="step1PolaroidRow" style="display:none;">
+              <span id="step1PolaroidLineLabel">0 foto Polaroid × Rp 60.000</span>
+              <span class="figma-receipt-amount" id="step1PolaroidLineAmount">Rp 0</span>
+            </div>
+            <div class="figma-receipt-divider"></div>
+            <div class="figma-receipt-total-row">
+              <div>
+                <div class="figma-receipt-total-label">Total pembayaran</div>
+                <div class="figma-receipt-timeout" id="step1TimeoutHint">⏱️ Batas bayar 45 menit</div>
+              </div>
+              <div class="figma-receipt-total-val" id="step1PreviewTotal">Rp 75.000</div>
+            </div>
+          </div>
+
+          <div class="figma-step2-footer">
+            <span class="figma-verify-note">Pastikan data yang kamu isi benar</span>
+            <button type="button" id="btnConfirmTicketStep" class="figma-pill-btn" onclick="confirmNobarTicketSelection()">
+              <span>Lanjut ke pembayaran</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </section>
+
+        <!-- STEP 03: PEMBAYARAN QRIS & UPLOAD BUKTI (MUNCUL SAAT KURSI DIKUNCI) -->
+        <aside class="figma-step-card" id="nobarPaymentPanel" style="display:none; border-color:var(--aqua); box-shadow:0 0 35px rgba(41,182,246,0.22);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; border-bottom:1px solid var(--nobar-divider); padding-bottom:1rem; margin-bottom:1.25rem;">
+            <h3 class="figma-step-title" style="color:var(--aqua); margin:0;">Pembayaran Langsung QRIS</h3>
+            <button type="button" id="btnCancelReservation" class="btn-ghost" onclick="cancelNobarReservation()" style="padding:0.45rem 0.95rem; font-size:0.82rem; border-radius:50px; border-color:rgba(239,68,68,0.45); color:#fca5a5;">
+              ✕ Batalkan Reservasi &amp; Ubah Pilihan
+            </button>
+          </div>
+
+          <!-- LIVE COUNTDOWN TIMER BANNER -->
+          <div id="nobarPaymentCountdownBox" style="background:linear-gradient(135deg, rgba(245,158,11,0.16), rgba(3,9,31,0.88)); border:1.5px solid rgba(245,158,11,0.55); border-radius:12px; padding:1rem 1.15rem; margin-bottom:1.2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
+            <div>
+              <div style="font-size:0.76rem; color:#fde68a; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">
+                ⏱️ Kursi Telah Dikunci Sementara (<span id="reservationInvoiceBadge" style="color:var(--white); font-family:monospace;">#INV-...</span>)
+              </div>
+              <div style="font-size:0.82rem; color:var(--text-muted); margin-top:3px;">
+                Selesaikan transfer QRIS &amp; unggah bukti sebelum <strong id="reservationDeadlineText" style="color:var(--white);">-</strong> agar kuota kursi tidak dilepas otomatis.
+              </div>
+            </div>
+            <div id="reservationCountdownClock" style="background:rgba(3,9,31,0.85); border:1px solid rgba(245,158,11,0.6); color:#fde047; font-family:monospace; font-size:1.35rem; font-weight:900; padding:0.4rem 0.95rem; border-radius:10px; min-width:96px; text-align:center;">
+              45:00
+            </div>
+          </div>
+
+          <div style="background:var(--nobar-surface-inner); border:1px solid var(--nobar-border); border-radius:12px; padding:1.1rem; margin-bottom:1.25rem; font-size:0.88rem;">
+            <div style="display:flex; justify-content:space-between; gap:0.75rem; padding:0.35rem 0; color:var(--text-muted);">
+              <span>Kategori Tiket</span>
+              <strong id="summaryTierLabel" style="color:var(--white); text-align:right;">Tiket Regular</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; gap:0.75rem; padding:0.35rem 0; color:var(--text-muted);">
+              <span>Daftar Nama Peserta</span>
+              <strong id="summaryParticipantsList" style="color:var(--aqua); text-align:right;">-</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; gap:0.75rem; padding:0.35rem 0; color:var(--text-muted);">
+              <span>Harga per Tiket</span>
+              <span id="summaryUnitPrice" style="color:var(--white); white-space:nowrap;">Rp 75.000</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; gap:0.75rem; padding:0.35rem 0; color:var(--text-muted);">
+              <span>Jumlah Tiket</span>
+              <span id="summaryQty" style="color:var(--white);">1 Tiket</span>
+            </div>
+            <div id="summaryMerchRow" style="display:none; justify-content:space-between; gap:0.75rem; padding:0.35rem 0; color:var(--aqua);">
+              <span>Paket Merch Bundel</span>
+              <strong id="summaryMerchDesc" style="text-align:right;">Photocard &amp; Poster (Ambil di Lokasi)</strong>
+            </div>
+            <div id="summaryPolaroidRow" style="display:none; justify-content:space-between; gap:0.75rem; padding:0.35rem 0; color:#7dd3fc;">
+              <span id="summaryPolaroidLabel">Tambahan Foto Polaroid (0 × Rp 60.000)</span>
+              <strong id="summaryPolaroidAmount" style="white-space:nowrap;">Rp 0</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; gap:0.75rem; padding:0.35rem 0; color:var(--text-muted);">
+              <span>Pengambilan Tiket &amp; Merch</span>
+              <span style="color:#4ade80; font-weight:700;">Di Lokasi Bioskop (Rp 0)</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; gap:0.75rem; padding:0.7rem 0 0.2rem; margin-top:0.45rem; border-top:1px solid var(--nobar-divider); font-size:1.05rem; font-weight:800;">
+              <span style="color:var(--white);">Total Bayar (100%)</span>
+              <span id="summaryTotalAmount" style="color:var(--aqua); font-size:1.25rem; white-space:nowrap;">Rp 75.000</span>
+            </div>
+          </div>
+
+          <div class="qris-box">
+            <div style="color:var(--aqua); font-weight:700; font-size:0.9rem; margin-bottom:0.7rem; display:flex; align-items:center; justify-content:center; gap:0.45rem;">
+              <svg class="ui-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg>
+              Scan QRIS Resmi Aika Sesilia (Bayar Penuh)
+            </div>
+            <div class="qris-img-card">
+              <img src="images/Qris/Qris.jpeg" alt="QRIS Aika Sesilia" />
+            </div>
+            <div style="margin-top:0.8rem; font-size:0.8rem; color:var(--text-muted); line-height:1.5;">
+              Pembelian tiket nobar wajib langsung dibayar penuh. Setelah diverifikasi Admin, QR Code E-Tiket akan otomatis dikirim ke Gmail Anda dan tersedia di halaman Profil.
+            </div>
+          </div>
+
+          <div style="margin-bottom:1.25rem;">
+            <label style="display:block; color:var(--white); font-weight:700; font-size:0.88rem; margin-bottom:0.5rem;">
+              Unggah Screenshot Bukti Transfer QRIS *
+            </label>
+            <input type="file" id="nobarProofInput" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleNobarProofChange(event)" />
+            <button type="button" class="btn-ghost" onclick="document.getElementById('nobarProofInput').click()" style="width:100%; padding:0.9rem; border-radius:12px; border:1.5px dashed var(--aqua); color:var(--aqua); font-weight:700; font-size:0.88rem; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:0.5rem;">
+              <svg class="ui-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+              <span id="nobarProofBtnText">Pilih Gambar Bukti Transfer (JPG / PNG / WebP)</span>
+            </button>
+            <div id="nobarProofPreview" style="margin-top:0.75rem;"></div>
+          </div>
+
+          <button type="button" id="btnSubmitNobar" class="btn-primary w100" onclick="submitNobarBooking()" style="padding:1rem; font-size:1rem; font-weight:800; border-radius:50px;">
+            Kirim Pembelian &amp; Bukti Pembayaran Tiket
+          </button>
+        </aside>
+      </main>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="figma-nobar-footer">
+      © 2026 Aika Sesilia × wutheringwave.id Project
+    </footer>
   </div>
 
   <!-- CART SIDEBAR -->
@@ -835,14 +1693,36 @@
   <script src="js/cart.js"></script>
   <script src="js/main.js"></script>
   <script>
+    const NOBAR_CACHE_KEY = 'aika_nobar_snapshot_v1';
     let nobarConfig = null;
     let nobarStats = null;
     let nobarUserStats = null;
     let selectedTier = 'regular';
+    let polaroidQty = 0;
     let compressedProofDataUrl = '';
     let currentSessionUser = null;
     let activeReservation = null;
     let nobarCountdownTimerId = null;
+
+    function formatIdrLabel(n) {
+      return 'IDR ' + (Number(n) || 0).toLocaleString('id-ID');
+    }
+
+    function formatRpLabel(n) {
+      return typeof formatPrice === 'function'
+        ? formatPrice(n)
+        : 'Rp ' + (Number(n) || 0).toLocaleString('id-ID');
+    }
+
+    function escapeNobarHtml(str) {
+      if (typeof escapeStoreHtml === 'function') return escapeStoreHtml(str);
+      return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
 
     function getLoggedUser() {
       try {
@@ -922,28 +1802,77 @@
         existingVals[0] = currentSessionUser.username;
       }
 
+      const ordinalWords = ['Pertama', 'Kedua', 'Ketiga', 'Keempat', 'Kelima'];
       let html = '';
       for (let i = 0; i < qty; i++) {
-        const val = escapeStoreHtml(existingVals[i] || '');
+        const val = escapeNobarHtml(existingVals[i] || '');
+        const ordLabel = ordinalWords[i] || `#${i + 1}`;
         const label = selectedTier === 'vip'
-          ? 'Nama Lengkap Peserta VIP (Duduk di Samping Kak Aika)'
-          : `Nama Lengkap Peserta #${i + 1}`;
+          ? 'Nama Lengkap Peserta VIP (Kursi di sebelah Kak Aika)'
+          : `Nama Lengkap Peserta ${ordLabel}`;
         html += `
           <div>
             <input
               type="text"
-              class="participant-name-input"
+              class="participant-name-input figma-input"
               data-idx="${i}"
               value="${val}"
               placeholder="${label} *"
               maxlength="100"
               required
-              style="width:100%; border-radius:10px; background:rgba(3,9,31,0.85); border:1px solid var(--card-border); color:var(--white); padding:0.75rem 0.9rem; font-family:var(--font-body);"
             />
           </div>
         `;
       }
       container.innerHTML = html;
+    }
+
+    function updatePolaroidUi() {
+      const sectionEl = document.getElementById('polaroidAddonSection');
+      const cardEl = document.getElementById('polaroidAddonCard');
+      const priceEl = document.getElementById('polaroidUnitPriceLabel');
+      const valEl = document.getElementById('polaroidQtyDisplay');
+      const decBtn = document.getElementById('btnPolaroidDec');
+      const incBtn = document.getElementById('btnPolaroidInc');
+      const hintEl = document.getElementById('polaroidHintText');
+
+      const enabled = !nobarConfig || nobarConfig.polaroidEnabled !== false;
+      const unitPolPrice = (nobarConfig && nobarConfig.pricePolaroid) || 60000;
+      const maxPol = Math.max(1, (nobarConfig && nobarConfig.maxPolaroidPerOrder) || 10);
+
+      if (!enabled) {
+        polaroidQty = 0;
+        if (sectionEl) sectionEl.style.display = 'none';
+        return;
+      }
+      if (sectionEl) sectionEl.style.display = 'block';
+
+      polaroidQty = Math.max(0, Math.min(maxPol, parseInt(polaroidQty, 10) || 0));
+      if (priceEl) priceEl.textContent = `${formatRpLabel(unitPolPrice)} per foto`;
+      if (valEl) valEl.textContent = String(polaroidQty);
+      if (decBtn) decBtn.disabled = polaroidQty <= 0;
+      if (incBtn) incBtn.disabled = polaroidQty >= maxPol;
+      if (cardEl) cardEl.classList.toggle('active', polaroidQty > 0);
+      if (hintEl) {
+        hintEl.textContent = polaroidQty > 0
+          ? `${polaroidQty} foto Polaroid ditambahkan (${formatRpLabel(polaroidQty * unitPolPrice)}). Pilih 0 jika tidak ingin menambahkan foto.`
+          : 'Pilih 0 jika tidak ingin menambahkan foto.';
+      }
+    }
+
+    function changePolaroidQty(delta) {
+      if (!nobarConfig || nobarConfig.polaroidEnabled === false) return;
+      if (activeReservation && (activeReservation.orderId || activeReservation.id)) {
+        alert(`Anda memiliki reservasi kursi aktif (#${activeReservation.orderId || activeReservation.id}). Klik "✕ Batalkan Reservasi & Ubah Pilihan" pada panel pembayaran jika ingin mengubah tambahan foto.`);
+        const payPanel = document.getElementById('nobarPaymentPanel');
+        if (payPanel) payPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      const maxPol = Math.max(1, nobarConfig.maxPolaroidPerOrder || 10);
+      polaroidQty = Math.max(0, Math.min(maxPol, polaroidQty + delta));
+      hideNobarPaymentStep();
+      updatePolaroidUi();
+      updateNobarSummary();
     }
 
     function updateQtyOptionsForTier() {
@@ -969,6 +1898,7 @@
         qtySelect.value = String(Math.min(prevVal, maxAllowed));
       }
       renderParticipantInputs();
+      updatePolaroidUi();
       updateNobarSummary();
     }
 
@@ -986,7 +1916,7 @@
 
       if (tier === 'vip') {
         if (nobarStats.isVipSoldOut) {
-          alert('Maaf, kuota 2 kursi Tiket VIP (Duduk di Samping Kak Aika) sudah habis terisi.');
+          alert('Maaf, kuota Tiket VIP (Kursi di sebelah Kak Aika) sudah habis terisi.');
           return;
         }
         if (nobarUserStats && nobarUserStats.hasVipTicket) {
@@ -995,7 +1925,7 @@
         }
       } else {
         if (nobarStats.isRegularSoldOut) {
-          alert('Maaf, kuota kursi Tiket Reguler sudah habis.');
+          alert('Maaf, kuota kursi Tiket Regular / Regular+ sudah habis.');
           return;
         }
       }
@@ -1022,10 +1952,7 @@
     function hideNobarPaymentStep() {
       const payPanel = document.getElementById('nobarPaymentPanel');
       if (payPanel) payPanel.style.display = 'none';
-      if (nobarCountdownTimerId) {
-        clearInterval(nobarCountdownTimerId);
-        nobarCountdownTimerId = null;
-      }
+      stopNobarCountdown();
     }
 
     function stopNobarCountdown() {
@@ -1104,19 +2031,25 @@
       selectedTier = reservation.tier || selectedTier;
 
       const labelMap = {
-        vip: 'Tiket VIP (Duduk di Samping Kak Aika)',
-        regular: 'Tiket Biasa',
-        regular_merch: 'Tiket Biasa + Merch (Photocard & Poster)'
+        vip: 'Tiket VIP (Kursi di Sebelah Kak Aika)',
+        regular: 'Tiket Regular',
+        regular_merch: 'Tiket Regular+ (Termasuk Paket Merch)'
       };
+
+      const resvPolQty = Math.max(0, parseInt(reservation.polaroidQty, 10) || 0);
+      const resvPolPrice = Number(reservation.polaroidUnitPrice) || (nobarConfig && nobarConfig.pricePolaroid) || 60000;
+      const resvPolTotal = Number(reservation.polaroidTotal) || (resvPolQty * resvPolPrice);
+      polaroidQty = resvPolQty;
+      updatePolaroidUi();
 
       const partListEl = document.getElementById('summaryParticipantsList');
       if (partListEl) {
         partListEl.textContent = (reservation.participants || []).join(', ');
       }
       document.getElementById('summaryTierLabel').textContent = labelMap[reservation.tier] || reservation.tierLabel || 'Tiket Nobar';
-      document.getElementById('summaryUnitPrice').textContent = formatPrice(reservation.unitPrice || 0);
+      document.getElementById('summaryUnitPrice').textContent = formatRpLabel(reservation.unitPrice || 0);
       document.getElementById('summaryQty').textContent = `${reservation.qty || 1} Tiket`;
-      document.getElementById('summaryTotalAmount').textContent = formatPrice(reservation.total || 0);
+      document.getElementById('summaryTotalAmount').textContent = formatRpLabel(reservation.total || 0);
 
       const merchRow = document.getElementById('summaryMerchRow');
       if (reservation.includesMerch || reservation.tier === 'vip' || reservation.tier === 'regular_merch') {
@@ -1124,6 +2057,17 @@
         document.getElementById('summaryMerchDesc').textContent = reservation.merchBundle || (nobarConfig && nobarConfig.merchBundleDesc) || 'Photocard & Poster';
       } else {
         merchRow.style.display = 'none';
+      }
+
+      const polRow = document.getElementById('summaryPolaroidRow');
+      if (polRow) {
+        if (resvPolQty > 0) {
+          polRow.style.display = 'flex';
+          document.getElementById('summaryPolaroidLabel').textContent = `Tambahan Foto Polaroid (${resvPolQty} × ${formatRpLabel(resvPolPrice)})`;
+          document.getElementById('summaryPolaroidAmount').textContent = formatRpLabel(resvPolTotal);
+        } else {
+          polRow.style.display = 'none';
+        }
       }
 
       const submitBtn = document.getElementById('btnSubmitNobar');
@@ -1218,16 +2162,17 @@
 
       const phone = document.getElementById('nobarPhone').value.trim();
       if (!phone || phone.replace(/\D/g, '').length < 8) {
-        alert('Mohon isi Nomor HP / WhatsApp aktif terlebih dahulu sebelum lanjut ke pembayaran QRIS.');
+        alert('Mohon isi Nomor WhatsApp aktif terlebih dahulu sebelum lanjut ke pembayaran QRIS.');
         document.getElementById('nobarPhone').focus();
         return;
       }
 
       const qty = Math.max(1, parseInt(document.getElementById('nobarQtySelect').value, 10) || 1);
-      const notes = document.getElementById('nobarBuyerNote').value.trim();
+      const selectedPolaroidQty = nobarConfig.polaroidEnabled === false ? 0 : Math.max(0, parseInt(polaroidQty, 10) || 0);
+      const notes = '';
 
       const confirmBtn = document.getElementById('btnConfirmTicketStep');
-      const origText = confirmBtn ? confirmBtn.textContent : 'Konfirmasi Pilihan & Kunci Kursi →';
+      const origHtml = confirmBtn ? confirmBtn.innerHTML : '';
       if (confirmBtn) {
         confirmBtn.disabled = true;
         confirmBtn.textContent = 'Mengunci Kursi Sementara...';
@@ -1241,6 +2186,7 @@
             action: 'reserve',
             tier: selectedTier,
             qty,
+            polaroidQty: selectedPolaroidQty,
             participants,
             phone,
             notes
@@ -1256,6 +2202,8 @@
           : selectedTier === 'regular_merch'
             ? nobarConfig.priceRegularMerch
             : nobarConfig.priceRegular;
+        const polPrice = nobarConfig.pricePolaroid || 60000;
+        const polTotal = selectedPolaroidQty * polPrice;
 
         const reservationObj = {
           orderId: data.id,
@@ -1263,7 +2211,11 @@
           tier: selectedTier,
           qty,
           unitPrice,
-          total: Number(data.total) || unitPrice * qty,
+          ticketSubtotal: unitPrice * qty,
+          polaroidQty: selectedPolaroidQty,
+          polaroidUnitPrice: polPrice,
+          polaroidTotal: polTotal,
+          total: Number(data.total) || ((unitPrice * qty) + polTotal),
           participants,
           phone,
           notes,
@@ -1287,7 +2239,7 @@
       } finally {
         if (confirmBtn) {
           confirmBtn.disabled = false;
-          confirmBtn.textContent = origText;
+          if (origHtml) confirmBtn.innerHTML = origHtml;
         }
       }
     }
@@ -1300,23 +2252,53 @@
         : selectedTier === 'regular_merch'
           ? nobarConfig.priceRegularMerch
           : nobarConfig.priceRegular;
-      const total = unitPrice * qty;
+      const ticketSubtotal = unitPrice * qty;
+      const polCount = nobarConfig.polaroidEnabled === false ? 0 : Math.max(0, parseInt(polaroidQty, 10) || 0);
+      const polUnitPrice = nobarConfig.pricePolaroid || 60000;
+      const polSubtotal = polCount * polUnitPrice;
+      const total = ticketSubtotal + polSubtotal;
 
+      const shortNameMap = {
+        vip: 'VIP',
+        regular: 'Regular',
+        regular_merch: 'Regular+'
+      };
       const labelMap = {
-        vip: 'Tiket VIP (Duduk di Samping Kak Aika)',
-        regular: 'Tiket Biasa',
-        regular_merch: 'Tiket Biasa + Merch (Photocard & Poster)'
+        vip: 'Tiket VIP',
+        regular: 'Tiket Regular',
+        regular_merch: 'Tiket Regular+'
       };
 
-      const step1LabelEl = document.getElementById('step1PreviewLabel');
-      if (step1LabelEl) {
-        step1LabelEl.innerHTML = `${escapeStoreHtml(labelMap[selectedTier] || 'Tiket Nobar')} (${qty} Tiket) — <span style="color:var(--aqua); white-space:nowrap;" id="step1PreviewTotal">${formatPrice(total)}</span>`;
+      const step1TicketLabelEl = document.getElementById('step1TicketLineLabel');
+      const step1TicketAmountEl = document.getElementById('step1TicketLineAmount');
+      const step1PolRowEl = document.getElementById('step1PolaroidRow');
+      const step1PolLabelEl = document.getElementById('step1PolaroidLineLabel');
+      const step1PolAmountEl = document.getElementById('step1PolaroidLineAmount');
+      const step1TotalEl = document.getElementById('step1PreviewTotal');
+
+      if (step1TicketLabelEl) {
+        step1TicketLabelEl.textContent = `${qty} tiket ${shortNameMap[selectedTier] || 'Regular'} × ${formatRpLabel(unitPrice)}`;
+      }
+      if (step1TicketAmountEl) {
+        step1TicketAmountEl.textContent = formatRpLabel(ticketSubtotal);
+      }
+      if (step1PolRowEl) {
+        step1PolRowEl.style.display = polCount > 0 ? 'flex' : 'none';
+      }
+      if (step1PolLabelEl) {
+        step1PolLabelEl.textContent = `${polCount} foto Polaroid × ${formatRpLabel(polUnitPrice)}`;
+      }
+      if (step1PolAmountEl) {
+        step1PolAmountEl.textContent = formatRpLabel(polSubtotal);
+      }
+      if (step1TotalEl) {
+        step1TotalEl.textContent = formatRpLabel(total);
       }
 
       document.getElementById('summaryTierLabel').textContent = labelMap[selectedTier] || 'Tiket Nobar';
-      document.getElementById('summaryUnitPrice').textContent = formatPrice(unitPrice);
+      document.getElementById('summaryUnitPrice').textContent = formatRpLabel(unitPrice);
       document.getElementById('summaryQty').textContent = `${qty} Tiket`;
-      document.getElementById('summaryTotalAmount').textContent = formatPrice(total);
+      document.getElementById('summaryTotalAmount').textContent = formatRpLabel(total);
 
       const merchRow = document.getElementById('summaryMerchRow');
       if (selectedTier === 'regular_merch' || selectedTier === 'vip') {
@@ -1325,9 +2307,39 @@
       } else {
         merchRow.style.display = 'none';
       }
+
+      const polSummaryRow = document.getElementById('summaryPolaroidRow');
+      if (polSummaryRow) {
+        if (polCount > 0) {
+          polSummaryRow.style.display = 'flex';
+          document.getElementById('summaryPolaroidLabel').textContent = `Tambahan Foto Polaroid (${polCount} × ${formatRpLabel(polUnitPrice)})`;
+          document.getElementById('summaryPolaroidAmount').textContent = formatRpLabel(polSubtotal);
+        } else {
+          polSummaryRow.style.display = 'none';
+        }
+      }
     }
 
-    const NOBAR_CACHE_KEY = 'aika_nobar_snapshot_v1';
+    function getRemainingLevelClass(remain) {
+      const cleanRemain = Math.max(0, parseInt(remain, 10) || 0);
+      if (cleanRemain <= 10) return 'full';
+      if (cleanRemain <= 30) return 'warn';
+      return 'ok';
+    }
+
+    function setAvailabilitySlot(leftId, totalId, remain, quota) {
+      const leftEl = document.getElementById(leftId);
+      const totalEl = document.getElementById(totalId);
+      const cleanRemain = Math.max(0, parseInt(remain, 10) || 0);
+      const cleanQuota = Math.max(1, parseInt(quota, 10) || 1);
+      if (leftEl) {
+        leftEl.textContent = String(cleanRemain).padStart(2, '0');
+        leftEl.className = 'remain ' + getRemainingLevelClass(cleanRemain);
+      }
+      if (totalEl) {
+        totalEl.textContent = '/' + String(cleanQuota).padStart(2, '0');
+      }
+    }
 
     function applyNobarData(data, { fromCache = false } = {}) {
       if (!data || !data.config || !data.stats) return;
@@ -1345,16 +2357,17 @@
       }
 
       if (!fromCache) {
-        // Jika akun memiliki reservasi kursi yang belum dibayar & belum kedaluwarsa, pulihkan otomatis
         const resumeBanner = document.getElementById('activeReservationResumeBanner');
         if (nobarUserStats.activePendingReservation) {
           const resv = nobarUserStats.activePendingReservation;
           activeReservation = resv;
           selectedTier = resv.tier || selectedTier;
+          polaroidQty = Math.max(0, parseInt(resv.polaroidQty, 10) || 0);
           if (resumeBanner) {
+            const polResumeText = polaroidQty > 0 ? ` + ${polaroidQty}x Foto Polaroid` : '';
             resumeBanner.style.display = 'block';
             resumeBanner.innerHTML = `
-              ⏱️ Anda memiliki reservasi tiket yang sedang dikunci sementara (<strong>#${escapeStoreHtml(resv.orderId)}</strong> — ${escapeStoreHtml(resv.tierLabel)} &times;${resv.qty}).
+              ⏱️ Anda memiliki reservasi tiket yang sedang dikunci sementara (<strong>#${escapeNobarHtml(resv.orderId)}</strong> — ${escapeNobarHtml(resv.tierLabel)} &times;${resv.qty}${polResumeText}).
               Silakan selesaikan pembayaran QRIS &amp; upload bukti sebelum batas waktu habis, atau klik <strong>Batalkan Reservasi</strong> di bawah untuk memesan ulang.
             `;
           }
@@ -1365,12 +2378,24 @@
         }
       }
 
-      // Populate Event Header
+      // Hero & Info Card
       document.getElementById('nobarEventTitle').textContent = nobarConfig.eventTitle;
+      const heroSubEl = document.getElementById('nobarHeroSubtitle');
+      if (heroSubEl) {
+        heroSubEl.textContent = `${nobarConfig.eventDate}, ${nobarConfig.eventTime} · ${nobarConfig.cinemaLocation}`;
+      }
       document.getElementById('nobarMovieTitle').textContent = nobarConfig.movieTitle;
       document.getElementById('nobarDateTime').textContent = `${nobarConfig.eventDate} • ${nobarConfig.eventTime}`;
       document.getElementById('nobarCinemaLocation').textContent = nobarConfig.cinemaLocation;
-      document.getElementById('nobarEventNotes').textContent = nobarConfig.eventNotes;
+      document.getElementById('nobarEventNotes').textContent = nobarConfig.eventNotes || '';
+
+      const mapsLinkEl = document.getElementById('nobarMapsLink');
+      if (mapsLinkEl) {
+        const rawMapsUrl = String(nobarConfig.cinemaMapsUrl || '').trim();
+        mapsLinkEl.href = /^https?:\/\//i.test(rawMapsUrl)
+          ? rawMapsUrl
+          : 'https://maps.app.goo.gl/7yF59NSdjGyyNP6X9';
+      }
 
       const bannerEl = document.getElementById('nobarBannerImg');
       if (bannerEl) {
@@ -1393,67 +2418,61 @@
         pillText.textContent = isAllSoldOut ? 'TIKET HABIS TERJUAL (SOLD OUT)' : 'PENJUALAN TIKET DITUTUP';
         closedAlert.style.display = 'block';
         submitBtn.disabled = true;
-        submitBtn.style.opacity = '0.45';
-        submitBtn.style.cursor = 'not-allowed';
         submitBtn.textContent = isAllSoldOut ? 'Tiket Sudah Habis Terjual' : 'Penjualan Tiket Ditutup';
         if (confirmBtn && !activeReservation) {
           confirmBtn.disabled = true;
-          confirmBtn.style.opacity = '0.45';
-          confirmBtn.style.cursor = 'not-allowed';
         }
       } else {
         pill.className = 'nobar-status-pill open';
         pillText.textContent = 'PENJUALAN TIKET DIBUKA';
         closedAlert.style.display = 'none';
         submitBtn.disabled = false;
-        submitBtn.style.opacity = '1';
-        submitBtn.style.cursor = 'pointer';
         submitBtn.textContent = 'Kirim Pembelian & Bukti Pembayaran Tiket';
         if (confirmBtn) {
           confirmBtn.disabled = false;
-          confirmBtn.style.opacity = '1';
-          confirmBtn.style.cursor = 'pointer';
-          confirmBtn.textContent = activeReservation
-            ? 'Lanjutkan ke Pembayaran QRIS Reservasi Aktif →'
-            : 'Konfirmasi Pilihan & Kunci Kursi →';
+          confirmBtn.innerHTML = activeReservation
+            ? '<span>Lanjutkan ke pembayaran QRIS</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>'
+            : '<span>Lanjut ke pembayaran</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
         }
       }
 
-      // Quota Bars
-      const vipPct = Math.min(100, Math.round((nobarStats.vipTaken / nobarConfig.vipQuota) * 100));
-      document.getElementById('vipQuotaBar').style.width = `${vipPct}%`;
-      document.getElementById('vipQuotaText').textContent =
-        nobarStats.vipRemaining <= 0
-          ? `PENUH (0 / ${nobarConfig.vipQuota} Kursi)`
-          : `Sisa ${nobarStats.vipRemaining} / ${nobarConfig.vipQuota} Kursi`;
-      document.getElementById('vipQuotaSub').textContent =
-        `Terverifikasi: ${nobarStats.vipVerified}/${nobarConfig.vipQuota}` +
-        (nobarStats.vipPending > 0 ? ` • Menunggu Verifikasi: ${nobarStats.vipPending}` : '') +
-        ' • 2 pembeli pertama yang diverifikasi Admin duduk di samping Kak Aika.';
+      // Realtime Availability Counters
+      setAvailabilitySlot('availRegLeft', 'availRegTotal', nobarStats.regularRemaining, nobarConfig.regularQuota);
+      setAvailabilitySlot('availVipLeft', 'availVipTotal', nobarStats.vipRemaining, nobarConfig.vipQuota);
 
-      const regPct = Math.min(100, Math.round((nobarStats.regularTaken / nobarConfig.regularQuota) * 100));
-      document.getElementById('regQuotaBar').style.width = `${regPct}%`;
-      document.getElementById('regQuotaText').textContent =
-        nobarStats.regularRemaining <= 0
-          ? `PENUH (0 / ${nobarConfig.regularQuota} Kursi)`
-          : `Sisa ${nobarStats.regularRemaining} / ${nobarConfig.regularQuota} Kursi`;
-      document.getElementById('regQuotaSub').textContent =
-        `Terpakai: ${nobarStats.regularTaken}/${nobarConfig.regularQuota} kursi • Gabungan Tiket Biasa & Tiket + Merch • Kursi diambil saat event berlangsung.`;
+      const availNoteEl = document.getElementById('availRealtimeNote');
+      if (availNoteEl) {
+        availNoteEl.textContent = `*Ketersediaan slot diupdate secara realtime · Kuota Tiket Regular & Regular+ gabungan (${nobarStats.regularRemaining} kursi tersedia dari ${nobarConfig.regularQuota})`;
+      }
 
-      // Tier Prices & Descriptions
-      const fmt = typeof formatPrice === 'function' ? formatPrice : (n => 'Rp ' + (Number(n) || 0).toLocaleString('id-ID'));
-      document.getElementById('tierPrice-vip').textContent = fmt(nobarConfig.priceVip);
-      document.getElementById('tierPrice-regular').textContent = fmt(nobarConfig.priceRegular);
-      document.getElementById('tierPrice-regular_merch').textContent = fmt(nobarConfig.priceRegularMerch);
-      document.getElementById('tierDesc-vip').textContent = nobarConfig.vipPerk;
-      document.getElementById('tierDesc-regular').textContent = nobarConfig.regularPerk;
-      document.getElementById('tierDesc-regular_merch').textContent =
-        `1x Tiket Masuk Nobar Bioskop + Paket Merch (${nobarConfig.merchBundleDesc}). Diambil langsung di lokasi bioskop tanpa ongkir.`;
+      // Comparison Cards + Step 01 Prices
+      document.getElementById('cmpPrice-regular').textContent = formatIdrLabel(nobarConfig.priceRegular);
+      document.getElementById('cmpPrice-regular_merch').textContent = formatIdrLabel(nobarConfig.priceRegularMerch);
+      document.getElementById('cmpPrice-vip').textContent = formatIdrLabel(nobarConfig.priceVip);
+      document.getElementById('tierPrice-regular').textContent = formatIdrLabel(nobarConfig.priceRegular);
+      document.getElementById('tierPrice-regular_merch').textContent = formatIdrLabel(nobarConfig.priceRegularMerch);
+      document.getElementById('tierPrice-vip').textContent = formatIdrLabel(nobarConfig.priceVip);
 
-      document.getElementById('regMaxRuleChip1').textContent = `Maks ${nobarConfig.maxRegularPerOrder} Tiket / Pembelian`;
-      document.getElementById('regMaxRuleChip2').textContent = `Maks ${nobarConfig.maxRegularPerOrder} Tiket / Pembelian`;
+      const cmpDescReg = document.getElementById('cmpDesc-regular');
+      if (cmpDescReg && nobarConfig.regularPerk) {
+        cmpDescReg.textContent = nobarConfig.regularPerk;
+      }
+      const cmpDescMerch = document.getElementById('cmpDesc-regular_merch');
+      if (cmpDescMerch && nobarConfig.merchBundleDesc) {
+        cmpDescMerch.textContent = nobarConfig.merchBundleDesc;
+      }
+      const cmpMerchVip = document.getElementById('cmpMerchVip');
+      if (cmpMerchVip && nobarConfig.merchBundleDesc) {
+        cmpMerchVip.textContent = nobarConfig.merchBundleDesc;
+      }
+      const cmpDescVip = document.getElementById('cmpDesc-vip');
+      if (cmpDescVip && nobarConfig.vipPerk) {
+        cmpDescVip.textContent = nobarConfig.vipPerk;
+      }
 
-      // Tier Card Availability States
+      // Step 01 Availability Badges
+      const vipLevel = getRemainingLevelClass(nobarStats.vipRemaining);
+      const vipBadgeState = vipLevel === 'full' ? 'low' : vipLevel;
       const vipCard = document.getElementById('tierCard-vip');
       const vipBadge = document.getElementById('tierBadge-vip');
       if (nobarStats.isVipSoldOut) {
@@ -1462,25 +2481,27 @@
         vipBadge.textContent = 'Kuota VIP Penuh';
       } else if (nobarUserStats.hasVipTicket) {
         vipCard.classList.add('disabled');
-        vipBadge.className = 'tier-badge merch';
-        vipBadge.textContent = 'Sudah Dibeli Akun Ini (Maks 1)';
+        vipBadge.className = 'tier-badge soldout';
+        vipBadge.textContent = 'Sudah Dibeli Akun Ini';
       } else {
         vipCard.classList.remove('disabled');
-        vipBadge.className = 'tier-badge vip';
-        vipBadge.textContent = `Sisa ${nobarStats.vipRemaining} Kursi • Duduk di Samping Kak Aika`;
+        vipBadge.className = 'tier-badge vip ' + vipBadgeState;
+        vipBadge.textContent = `Sisa ${nobarStats.vipRemaining} tiket`;
       }
 
+      const regLevel = getRemainingLevelClass(nobarStats.regularRemaining);
+      const regBadgeState = regLevel === 'full' ? 'low' : regLevel;
       ['regular', 'regular_merch'].forEach(t => {
         const card = document.getElementById('tierCard-' + t);
         const badge = document.getElementById('tierBadge-' + t);
         if (nobarStats.isRegularSoldOut) {
           card.classList.add('disabled');
           badge.className = 'tier-badge soldout';
-          badge.textContent = 'Kuota Reguler Habis';
+          badge.textContent = 'Kuota Habis';
         } else {
           card.classList.remove('disabled');
-          badge.className = 'tier-badge merch';
-          badge.textContent = t === 'regular' ? 'Tiket Masuk Nobar' : 'Bundel Photocard & Poster';
+          badge.className = 'tier-badge merch ' + regBadgeState;
+          badge.textContent = `Sisa ${nobarStats.regularRemaining} tiket`;
         }
       });
 
@@ -1572,8 +2593,9 @@
       }
 
       const qty = Math.max(1, parseInt(document.getElementById('nobarQtySelect').value, 10) || 1);
+      const selectedPolaroidQty = nobarConfig.polaroidEnabled === false ? 0 : Math.max(0, parseInt(polaroidQty, 10) || 0);
       const phone = document.getElementById('nobarPhone').value.trim();
-      const notes = document.getElementById('nobarBuyerNote').value.trim();
+      const notes = '';
 
       const participantInputs = Array.from(document.querySelectorAll('input.participant-name-input'));
       const participants = [];
@@ -1588,7 +2610,7 @@
       }
 
       if (!phone || phone.replace(/\D/g, '').length < 8) {
-        alert('Mohon isi Nomor HP / WhatsApp aktif terlebih dahulu.');
+        alert('Mohon isi Nomor WhatsApp aktif terlebih dahulu.');
         document.getElementById('nobarPhone').focus();
         return;
       }
@@ -1632,6 +2654,7 @@
             body: JSON.stringify({
               tier: selectedTier,
               qty,
+              polaroidQty: selectedPolaroidQty,
               participants,
               phone,
               notes,
@@ -1649,7 +2672,6 @@
         stopNobarCountdown();
         activeReservation = null;
 
-        // Simpan ke sessionStorage dan localStorage agar order-success.html langsung menampilkan Bukti Tiket Nobar
         const orderForStorage = { ...savedOrder };
         delete orderForStorage.payment_proof;
         try {

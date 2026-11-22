@@ -27,6 +27,7 @@ const DEFAULT_NOBAR_CONFIG = {
   eventDate: 'Segera Diumumkan',
   eventTime: 'Segera Diumumkan',
   cinemaLocation: 'Bioskop (Lokasi detail segera diumumkan)',
+  cinemaMapsUrl: 'https://maps.app.goo.gl/7yF59NSdjGyyNP6X9',
   bannerImage: '/images/Profil/charlotta-seo.jpg',
   eventNotes:
     'Pengambilan tiket fisik & nomor kursi dilakukan langsung saat registrasi ulang di lokasi bioskop (siapa cepat datang, dapat pilihan kursi lebih dulu). Untuk pembeli paket Merch, Photocard & Poster diambil langsung di lokasi tanpa ongkir.',
@@ -37,6 +38,9 @@ const DEFAULT_NOBAR_CONFIG = {
   priceVip: 250000,
   priceRegular: 75000,
   priceRegularMerch: 135000,
+  polaroidEnabled: true,
+  pricePolaroid: 60000,
+  maxPolaroidPerOrder: 10,
   vipPerk: 'Duduk eksklusif tepat di samping Kak Aika (Kuota 2 Orang) + Photocard & Poster',
   regularPerk: '1x Tiket Masuk Nobar Bioskop (Kursi diambil saat event berlangsung, siapa cepat dia dapat)',
   merchBundleDesc: 'Photocard Eksklusif + Poster Nobar Aika Sesilia (Tanpa Ukuran Baju • Ambil di Lokasi)'
@@ -63,6 +67,12 @@ const TIER_DEFINITIONS = {
   }
 };
 
+function sanitizeMapsUrl(rawUrl) {
+  const s = String(rawUrl || '').trim().slice(0, 500);
+  if (/^https?:\/\//i.test(s)) return s;
+  return DEFAULT_NOBAR_CONFIG.cinemaMapsUrl;
+}
+
 function sanitizeNobarConfig(raw = {}) {
   const src = typeof raw === 'object' && raw !== null ? raw : {};
   const rawTimeout = parseInt(src.paymentTimeoutMinutes, 10);
@@ -76,6 +86,7 @@ function sanitizeNobarConfig(raw = {}) {
     eventDate: String(src.eventDate || DEFAULT_NOBAR_CONFIG.eventDate).trim().slice(0, 100),
     eventTime: String(src.eventTime || DEFAULT_NOBAR_CONFIG.eventTime).trim().slice(0, 100),
     cinemaLocation: String(src.cinemaLocation || DEFAULT_NOBAR_CONFIG.cinemaLocation).trim().slice(0, 200),
+    cinemaMapsUrl: sanitizeMapsUrl(src.cinemaMapsUrl),
     bannerImage: String(src.bannerImage || DEFAULT_NOBAR_CONFIG.bannerImage).trim(),
     eventNotes: String(src.eventNotes || DEFAULT_NOBAR_CONFIG.eventNotes).trim().slice(0, 800),
     vipQuota: Math.max(1, Math.min(20, parseInt(src.vipQuota, 10) || DEFAULT_NOBAR_CONFIG.vipQuota)),
@@ -85,6 +96,9 @@ function sanitizeNobarConfig(raw = {}) {
     priceVip: Math.max(1000, parseInt(src.priceVip, 10) || DEFAULT_NOBAR_CONFIG.priceVip),
     priceRegular: Math.max(1000, parseInt(src.priceRegular, 10) || DEFAULT_NOBAR_CONFIG.priceRegular),
     priceRegularMerch: Math.max(1000, parseInt(src.priceRegularMerch, 10) || DEFAULT_NOBAR_CONFIG.priceRegularMerch),
+    polaroidEnabled: src.polaroidEnabled !== undefined ? Boolean(src.polaroidEnabled) : DEFAULT_NOBAR_CONFIG.polaroidEnabled,
+    pricePolaroid: Math.max(1000, parseInt(src.pricePolaroid, 10) || DEFAULT_NOBAR_CONFIG.pricePolaroid),
+    maxPolaroidPerOrder: Math.max(1, Math.min(50, parseInt(src.maxPolaroidPerOrder, 10) || DEFAULT_NOBAR_CONFIG.maxPolaroidPerOrder)),
     vipPerk: String(src.vipPerk || DEFAULT_NOBAR_CONFIG.vipPerk).trim().slice(0, 300),
     regularPerk: String(src.regularPerk || DEFAULT_NOBAR_CONFIG.regularPerk).trim().slice(0, 300),
     merchBundleDesc: String(src.merchBundleDesc || DEFAULT_NOBAR_CONFIG.merchBundleDesc).trim().slice(0, 300)
@@ -130,6 +144,7 @@ async function computeNobarStats(runner = db, config = DEFAULT_NOBAR_CONFIG, cur
   let checkedInSeats = 0;
   let verifiedOrders = 0;
   let verifiedSeats = 0;
+  let polaroidTotalOrdered = 0;
 
   const tierBreakdown = {
     vip: { verified: 0, pending: 0, total: 0 },
@@ -154,6 +169,14 @@ async function computeNobarStats(runner = db, config = DEFAULT_NOBAR_CONFIG, cur
     const ticket = ship.nobarTicket;
     const tier = TIER_DEFINITIONS[ticket.tier] ? ticket.tier : 'regular';
     const qty = Math.max(1, parseInt(ticket.qty, 10) || 1);
+    const polaroidQty = Math.max(0, parseInt(ticket.polaroidQty, 10) || 0);
+    const polaroidUnitPrice = polaroidQty > 0
+      ? (Number(ticket.polaroidUnitPrice) || config.pricePolaroid || 60000)
+      : (config.pricePolaroid || 60000);
+    const polaroidTotal = polaroidQty > 0
+      ? (Number(ticket.polaroidTotal) || polaroidUnitPrice * polaroidQty)
+      : 0;
+    const ticketUnitPrice = Number(ticket.unitPrice) || Math.max(0, Math.round(((Number(row.total) || 0) - polaroidTotal) / qty));
     const participants = Array.isArray(ticket.participants)
       ? ticket.participants.map(p => String(p || '').trim()).filter(Boolean)
       : [row.customerName];
@@ -165,6 +188,7 @@ async function computeNobarStats(runner = db, config = DEFAULT_NOBAR_CONFIG, cur
     const hasProof = Boolean(row.payment_proof);
 
     if (!isCancelled) {
+      polaroidTotalOrdered += polaroidQty;
       if (isVerified) {
         verifiedOrders += 1;
         verifiedSeats += qty;
@@ -214,7 +238,11 @@ async function computeNobarStats(runner = db, config = DEFAULT_NOBAR_CONFIG, cur
               tier,
               tierLabel: ticket.tierLabel || TIER_DEFINITIONS[tier].label,
               qty,
-              unitPrice: Number(ticket.unitPrice) || Math.round((Number(row.total) || 0) / qty),
+              unitPrice: ticketUnitPrice,
+              ticketSubtotal: ticketUnitPrice * qty,
+              polaroidQty,
+              polaroidUnitPrice,
+              polaroidTotal,
               total: Number(row.total) || 0,
               participants,
               phone: row.phone || '',
@@ -240,6 +268,8 @@ async function computeNobarStats(runner = db, config = DEFAULT_NOBAR_CONFIG, cur
       tier,
       tierLabel: ticket.tierLabel || TIER_DEFINITIONS[tier].label,
       qty,
+      polaroidQty,
+      polaroidTotal,
       participants,
       includesMerch: Boolean(ticket.includesMerch),
       merchBundle: ticket.merchBundle || '',
@@ -284,6 +314,7 @@ async function computeNobarStats(runner = db, config = DEFAULT_NOBAR_CONFIG, cur
       checkedInSeats,
       verifiedOrders,
       verifiedSeats,
+      polaroidTotalOrdered,
       tierBreakdown
     },
     userStats: {
@@ -359,6 +390,7 @@ function formatTicketSummaryForCheckin(row, ship) {
   const ticket = (ship && ship.nobarTicket) || {};
   const tier = TIER_DEFINITIONS[ticket.tier] ? ticket.tier : 'regular';
   const qty = Math.max(1, parseInt(ticket.qty, 10) || 1);
+  const polaroidQty = Math.max(0, parseInt(ticket.polaroidQty, 10) || 0);
   const participants = Array.isArray(ticket.participants)
     ? ticket.participants.map(p => String(p || '').trim()).filter(Boolean)
     : [row.customerName];
@@ -375,6 +407,8 @@ function formatTicketSummaryForCheckin(row, ship) {
     tierLabel: ticket.tierLabel || TIER_DEFINITIONS[tier].label,
     shortLabel: ticket.shortLabel || TIER_DEFINITIONS[tier].shortLabel,
     qty,
+    polaroidQty,
+    polaroidTotal: Number(ticket.polaroidTotal) || 0,
     participants,
     includesMerch: Boolean(ticket.includesMerch),
     merchBundle: ticket.merchBundle || '',
@@ -824,6 +858,7 @@ module.exports = async function handler(req, res) {
       const {
         tier: rawTier,
         qty: rawQty,
+        polaroidQty: rawPolaroidQty,
         participants: rawParticipants,
         phone: rawPhone,
         notes: rawNotes,
@@ -846,6 +881,14 @@ module.exports = async function handler(req, res) {
         return res.status(400).json({
           error: 'Tiket VIP (Duduk di Samping Kak Aika) dibatasi maksimal 1 tiket per akun.'
         });
+      }
+
+      const polaroidQty = parseInt(rawPolaroidQty, 10) || 0;
+      if (
+        (rawPolaroidQty !== undefined && rawPolaroidQty !== null && String(rawPolaroidQty).trim() !== '' && !Number.isFinite(Number(rawPolaroidQty))) ||
+        polaroidQty < 0
+      ) {
+        return res.status(400).json({ error: 'Jumlah tambahan Foto Polaroid tidak valid.' });
       }
 
       const cleanParticipants = Array.isArray(rawParticipants)
@@ -917,6 +960,16 @@ module.exports = async function handler(req, res) {
           );
         }
 
+        if (polaroidQty > 0) {
+          if (config.polaroidEnabled === false) {
+            throw createHttpError(400, 'Maaf, tambahan Foto Polaroid saat ini sedang dinonaktifkan oleh Admin.');
+          }
+          const maxPol = config.maxPolaroidPerOrder || 10;
+          if (polaroidQty > maxPol) {
+            throw createHttpError(400, `Maksimal tambahan Foto Polaroid adalah ${maxPol} foto per transaksi.`);
+          }
+        }
+
         const { stats, userStats } = await computeNobarStats(client, config, buyerEmail);
 
         if (userStats.activePendingReservation) {
@@ -962,7 +1015,10 @@ module.exports = async function handler(req, res) {
             : tier === 'regular_merch'
               ? config.priceRegularMerch
               : config.priceRegular;
-        const verifiedTotal = unitPrice * qty;
+        const ticketSubtotal = unitPrice * qty;
+        const polaroidUnitPrice = config.pricePolaroid || 60000;
+        const polaroidTotal = polaroidQty > 0 ? polaroidUnitPrice * polaroidQty : 0;
+        const verifiedTotal = ticketSubtotal + polaroidTotal;
         const tierMeta = TIER_DEFINITIONS[tier];
         const includesMerch = tierMeta.includesMerch;
         const merchBundle = includesMerch ? config.merchBundleDesc : '';
@@ -987,6 +1043,18 @@ module.exports = async function handler(req, res) {
           merchBundle
         };
 
+        const itemsList = [itemObj];
+        if (polaroidQty > 0) {
+          itemsList.push({
+            id: 'nobar-addon-polaroid',
+            name: 'Tambahan Foto Polaroid (Event Nobar)',
+            price: polaroidUnitPrice,
+            qty: polaroidQty,
+            category: 'Add-on Nobar',
+            is_nobar_addon: true
+          });
+        }
+
         const shipObj = {
           name: includesMerch
             ? 'Ambil Tiket & Merch (Photocard + Poster) di Lokasi Bioskop'
@@ -1001,6 +1069,10 @@ module.exports = async function handler(req, res) {
             shortLabel: tierMeta.shortLabel,
             qty,
             unitPrice,
+            ticketSubtotal,
+            polaroidQty,
+            polaroidUnitPrice,
+            polaroidTotal,
             participants: cleanParticipants,
             includesMerch,
             merchBundle,
@@ -1021,7 +1093,7 @@ module.exports = async function handler(req, res) {
           }
         };
 
-        const addressDisplay = `Lokasi Nobar: ${config.cinemaLocation} | Peserta (${qty}): ${cleanParticipants.join(', ')}`;
+        const addressDisplay = `Lokasi Nobar: ${config.cinemaLocation} | Peserta (${qty}): ${cleanParticipants.join(', ')}${polaroidQty > 0 ? ` | Add-on: ${polaroidQty}x Foto Polaroid` : ''}`;
         const initialStatus = isReserveOnly ? 'pending' : 'payment_pending';
 
         const insertRes = await client.query(
@@ -1037,7 +1109,7 @@ module.exports = async function handler(req, res) {
             addressDisplay,
             initialStatus,
             verifiedTotal,
-            JSON.stringify([itemObj]),
+            JSON.stringify(itemsList),
             JSON.stringify(shipObj),
             cleanNotes || null,
             cleanPhone,
@@ -1045,6 +1117,7 @@ module.exports = async function handler(req, res) {
           ]
         );
 
+        const polaroidNoteSuffix = polaroidQty > 0 ? ` + ${polaroidQty}x Foto Polaroid` : '';
         await recordOrderStatusHistory(client, {
           orderId,
           fromStatus: null,
@@ -1052,8 +1125,8 @@ module.exports = async function handler(req, res) {
           actorType: 'customer',
           actorName: buyerEmail,
           note: isReserveOnly
-            ? `Kursi dikunci sementara untuk ${qty}x ${tierMeta.label} (${cleanParticipants.join(', ')}) — batas bayar QRIS ${timeoutMinutes} menit`
-            : `Pembelian ${qty}x ${tierMeta.label} (${cleanParticipants.join(', ')}) beserta bukti pembayaran QRIS`
+            ? `Kursi dikunci sementara untuk ${qty}x ${tierMeta.label}${polaroidNoteSuffix} (${cleanParticipants.join(', ')}) — batas bayar QRIS ${timeoutMinutes} menit`
+            : `Pembelian ${qty}x ${tierMeta.label}${polaroidNoteSuffix} (${cleanParticipants.join(', ')}) beserta bukti pembayaran QRIS`
         });
 
         return {
@@ -1061,6 +1134,8 @@ module.exports = async function handler(req, res) {
           config,
           tierMeta,
           verifiedTotal,
+          polaroidQty,
+          polaroidTotal,
           isReserveOnly,
           paymentExpiresAt,
           timeoutMinutes
@@ -1080,6 +1155,9 @@ module.exports = async function handler(req, res) {
         const safeOrderId = escapeHtml(order.id);
         const safeTier = escapeHtml(tierMeta.label);
         const safeParticipants = cleanParticipants.map((p, idx) => `${idx + 1}. ${escapeHtml(p)}`).join('<br/>');
+        const polaroidEmailLine = createdOrder.polaroidQty > 0
+          ? `<p style="margin:0 0 6px 0;"><strong>Tambahan Foto Polaroid:</strong> ${createdOrder.polaroidQty} Foto (Rp ${createdOrder.polaroidTotal.toLocaleString('id-ID')})</p>`
+          : '';
 
         await dispatchBackgroundTask(async () => {
           const transporter = env.createMailTransport();
@@ -1101,6 +1179,7 @@ module.exports = async function handler(req, res) {
                     <p style="margin:0 0 6px 0;"><strong>Kategori Tiket:</strong> ${safeTier} (&times;${qty})</p>
                     <p style="margin:0 0 6px 0;"><strong>Daftar Peserta:</strong><br/>${safeParticipants}</p>
                     ${tierMeta.includesMerch ? `<p style="margin:0 0 6px 0;"><strong>Paket Merch:</strong> ${escapeHtml(config.merchBundleDesc)} (Diambil di lokasi bioskop)</p>` : ''}
+                    ${polaroidEmailLine}
                     <p style="margin:6px 0 0 0;color:#0284c7;font-size:1.05rem;"><strong>Total Dibayar: Rp ${verifiedTotal.toLocaleString('id-ID')}</strong></p>
                   </div>
                   <p>Setelah diverifikasi Admin, status pesanan Anda di halaman <strong>Profil &gt; Riwayat Pesanan</strong> akan berubah menjadi Terverifikasi dan cukup ditunjukkan ke panitia saat registrasi di bioskop.</p>
@@ -1117,6 +1196,7 @@ module.exports = async function handler(req, res) {
                 <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1e293b;">
                   <h2 style="color: #0284c7;">Pesanan Tiket Nobar Masuk (#${safeOrderId})</h2>
                   <p><strong>Kategori:</strong> ${safeTier} (&times;${qty})</p>
+                  ${polaroidEmailLine}
                   <p><strong>Pembeli:</strong> ${safeName} (${escapeHtml(buyerEmail)} / ${escapeHtml(cleanPhone)})</p>
                   <p><strong>Daftar Peserta:</strong><br/>${safeParticipants}</p>
                   <p><strong>Total Transfer:</strong> Rp ${verifiedTotal.toLocaleString('id-ID')}</p>

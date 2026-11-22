@@ -1213,6 +1213,7 @@ module.exports = async (req, res) => {
                       <p style="margin:0.6rem 0 0.2rem 0;font-weight:bold;color:#0369a1;">Daftar Peserta:</p>
                       ${participantsList}
                       ${nbTicket.includesMerch ? '<p style="margin:0.6rem 0 0 0;color:#b45309;font-weight:bold;">🎁 Termasuk Photocard &amp; Poster Eksklusif (diambil langsung di bioskop)</p>' : ''}
+                      ${(parseInt(nbTicket.polaroidQty, 10) || 0) > 0 ? `<p style="margin:0.45rem 0 0 0;color:#0369a1;font-weight:bold;">📸 Tambahan Foto Polaroid: ${parseInt(nbTicket.polaroidQty, 10)} Foto (diambil / sesi foto di lokasi bioskop)</p>` : ''}
                     </div>
                     ${qrPngBuffer ? `
                     <div style="background:#f8fafc; border:2px dashed #0284c7; border-radius:12px; padding:1.4rem; text-align:center; margin:1.25rem 0;">

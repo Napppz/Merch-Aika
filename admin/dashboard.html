@@ -1123,9 +1123,13 @@
             <label>Jam Acara *</label>
             <input type="text" id="nobarTimeInput" placeholder="Contoh: 14:00 WIB - Selesai" />
           </div>
-          <div class="form-group" style="grid-column: 1 / -1;">
+          <div class="form-group">
             <label>Lokasi Bioskop &amp; Studio *</label>
             <input type="text" id="nobarLocationInput" placeholder="Contoh: CGV Grand Indonesia Jakarta, Audi 3" />
+          </div>
+          <div class="form-group">
+            <label>Link Google Maps Bioskop</label>
+            <input type="url" id="nobarMapsUrlInput" placeholder="https://maps.app.goo.gl/7yF59NSdjGyyNP6X9" />
           </div>
           <div class="form-group" style="grid-column: 1 / -1; background:rgba(3,9,31,0.55); border:1px solid var(--card-border); border-radius:12px; padding:1rem;">
             <label style="color:var(--aqua); font-weight:800; margin-bottom:0.6rem; display:block;">Foto Poster Film / Banner Event Nobar</label>
@@ -1180,6 +1184,20 @@
           <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
             <label style="color:#fde047; line-height:1.35; margin-bottom:0.45rem;">⏱️ Batas Bayar Tiket (Menit) *</label>
             <input type="number" id="nobarPaymentTimeoutInput" min="10" max="1440" value="45" title="Kursi dilepas otomatis jika bukti bayar QRIS belum diunggah lewat batas waktu ini (disarankan 30–60 menit)" />
+          </div>
+          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+            <label style="color:#7dd3fc; line-height:1.35; margin-bottom:0.45rem;">📸 Harga Foto Polaroid (Rp)</label>
+            <input type="number" id="nobarPricePolaroidInput" min="1000" value="60000" placeholder="60000" />
+          </div>
+          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+            <label style="color:#7dd3fc; line-height:1.35; margin-bottom:0.45rem;">Maks Foto Polaroid / Order</label>
+            <input type="number" id="nobarMaxPolaroidInput" min="1" max="50" value="10" />
+          </div>
+          <div class="form-group" style="display:flex; flex-direction:column; justify-content:flex-end; height:100%; margin-bottom:0;">
+            <label style="display:flex; align-items:center; gap:0.55rem; cursor:pointer; background:rgba(3,9,31,0.7); border:1px solid var(--card-border); padding:0.72rem 0.9rem; border-radius:8px; color:var(--white); font-size:0.84rem; font-weight:700;">
+              <input type="checkbox" id="nobarPolaroidEnabledInput" checked style="width:16px; height:16px; accent-color:var(--aqua);" />
+              <span>Aktifkan Add-on Polaroid</span>
+            </label>
           </div>
         </div>
 
@@ -2844,6 +2862,8 @@
         document.getElementById('nobarDateInput').value = cfg.eventDate || '';
         document.getElementById('nobarTimeInput').value = cfg.eventTime || '';
         document.getElementById('nobarLocationInput').value = cfg.cinemaLocation || '';
+        const mapsUrlEl = document.getElementById('nobarMapsUrlInput');
+        if (mapsUrlEl) mapsUrlEl.value = cfg.cinemaMapsUrl || 'https://maps.app.goo.gl/7yF59NSdjGyyNP6X9';
         document.getElementById('nobarPriceVipInput').value = cfg.priceVip || 250000;
         document.getElementById('nobarPriceRegInput').value = cfg.priceRegular || 75000;
         document.getElementById('nobarPriceMerchInput').value = cfg.priceRegularMerch || 135000;
@@ -2852,6 +2872,12 @@
         document.getElementById('nobarMaxRegInput').value = cfg.maxRegularPerOrder || 5;
         const timeoutEl = document.getElementById('nobarPaymentTimeoutInput');
         if (timeoutEl) timeoutEl.value = cfg.paymentTimeoutMinutes || 45;
+        const polPriceEl = document.getElementById('nobarPricePolaroidInput');
+        if (polPriceEl) polPriceEl.value = cfg.pricePolaroid || 60000;
+        const polMaxEl = document.getElementById('nobarMaxPolaroidInput');
+        if (polMaxEl) polMaxEl.value = cfg.maxPolaroidPerOrder || 10;
+        const polEnabledEl = document.getElementById('nobarPolaroidEnabledInput');
+        if (polEnabledEl) polEnabledEl.checked = cfg.polaroidEnabled !== false;
         document.getElementById('nobarMerchDescInput').value = cfg.merchBundleDesc || '';
         document.getElementById('nobarVipPerkInput').value = cfg.vipPerk || '';
         document.getElementById('nobarNotesInput').value = cfg.eventNotes || '';
@@ -2887,7 +2913,7 @@
             <div class="stat-card">
               <div class="stat-label">Rincian Kategori Aktif</div>
               <div class="stat-value" style="font-size:1.15rem;">VIP: ${st.tierBreakdown?.vip?.total || 0} | Biasa: ${st.tierBreakdown?.regular?.total || 0} | +Merch: ${st.tierBreakdown?.regular_merch?.total || 0}</div>
-              <div style="font-size:0.76rem;color:var(--text-muted);margin-top:4px;">Total Kursi Dipesan: ${(st.vipTaken || 0) + (st.regularTaken || 0)} kursi</div>
+              <div style="font-size:0.76rem;color:var(--text-muted);margin-top:4px;">Total Kursi: ${(st.vipTaken || 0) + (st.regularTaken || 0)} • Polaroid: <strong style="color:var(--aqua);">${st.polaroidTotalOrdered || 0} foto</strong></div>
             </div>
             <div class="stat-card">
               <div class="stat-label">Kehadiran &amp; Check-in QR</div>
@@ -2924,6 +2950,7 @@
           eventDate: document.getElementById('nobarDateInput').value.trim(),
           eventTime: document.getElementById('nobarTimeInput').value.trim(),
           cinemaLocation: document.getElementById('nobarLocationInput').value.trim(),
+          cinemaMapsUrl: document.getElementById('nobarMapsUrlInput')?.value.trim() || 'https://maps.app.goo.gl/7yF59NSdjGyyNP6X9',
           priceVip: parseInt(document.getElementById('nobarPriceVipInput').value, 10) || 250000,
           priceRegular: parseInt(document.getElementById('nobarPriceRegInput').value, 10) || 75000,
           priceRegularMerch: parseInt(document.getElementById('nobarPriceMerchInput').value, 10) || 135000,
@@ -2931,6 +2958,9 @@
           regularQuota: parseInt(document.getElementById('nobarRegQuotaInput').value, 10) || 40,
           maxRegularPerOrder: parseInt(document.getElementById('nobarMaxRegInput').value, 10) || 5,
           paymentTimeoutMinutes: parseInt(document.getElementById('nobarPaymentTimeoutInput')?.value, 10) || 45,
+          polaroidEnabled: document.getElementById('nobarPolaroidEnabledInput')?.checked !== false,
+          pricePolaroid: parseInt(document.getElementById('nobarPricePolaroidInput')?.value, 10) || 60000,
+          maxPolaroidPerOrder: parseInt(document.getElementById('nobarMaxPolaroidInput')?.value, 10) || 10,
           merchBundleDesc: document.getElementById('nobarMerchDescInput').value.trim(),
           vipPerk: document.getElementById('nobarVipPerkInput').value.trim(),
           eventNotes: document.getElementById('nobarNotesInput').value.trim(),
@@ -3015,6 +3045,7 @@
             <td>
               ${tierBadge}
               ${a.includesMerch ? '<div style="font-size:0.72rem;color:var(--gold);margin-top:3px;">+ Photocard &amp; Poster</div>' : ''}
+              ${(parseInt(a.polaroidQty, 10) || 0) > 0 ? `<div style="font-size:0.72rem;color:#7dd3fc;margin-top:3px;font-weight:700;">📸 +${parseInt(a.polaroidQty, 10)} Foto Polaroid</div>` : ''}
             </td>
             <td style="font-size:0.82rem;color:var(--white);line-height:1.45;">${participantsHtml}</td>
             <td style="font-weight:800;color:var(--aqua);">${a.qty} Kursi</td>
@@ -3054,12 +3085,13 @@
         return;
       }
 
-      const headers = ['No', 'Order ID', 'Kategori Tiket', 'Nama Peserta', 'Urutan Kursi di Pesanan', 'Termasuk Merch (Photocard & Poster)', 'Status Pembayaran', 'Email Akun', 'No HP', 'Total Pesanan (Rp)', 'Tanggal Pesan'];
+      const headers = ['No', 'Order ID', 'Kategori Tiket', 'Nama Peserta', 'Urutan Kursi di Pesanan', 'Termasuk Merch (Photocard & Poster)', 'Tambahan Foto Polaroid (Per Pesanan)', 'Status Pembayaran', 'Email Akun', 'No HP', 'Total Pesanan (Rp)', 'Tanggal Pesan'];
       const rows = [headers.join(',')];
       let counter = 1;
 
       for (const a of list) {
         const parts = Array.isArray(a.participants) && a.participants.length ? a.participants : [a.customerName];
+        const polCount = Math.max(0, parseInt(a.polaroidQty, 10) || 0);
         parts.forEach((pName, idx) => {
           const cols = [
             counter++,
@@ -3068,6 +3100,7 @@
             pName,
             `${idx + 1} dari ${a.qty}`,
             a.includesMerch ? 'Ya (Photocard & Poster)' : 'Tidak',
+            polCount > 0 ? `${polCount} Foto` : '0',
             a.status,
             a.email,
             a.phone || '-',
@@ -3355,6 +3388,11 @@
           ${(nbTicket.participants || []).map(p => `<li>${escapeHtml(p)}</li>`).join('')}
         </ol>
         <div><strong>Aturan Kursi:</strong> ${escapeHtml(nbTicket.seatRule || '-')}</div>
+        ${(parseInt(nbTicket.polaroidQty, 10) || 0) > 0 ? `
+          <div style="margin-top:0.35rem; color:#7dd3fc; font-weight:700;">
+            📸 Tambahan Foto Polaroid: <strong>${parseInt(nbTicket.polaroidQty, 10)} Foto</strong> (${formatPrice(nbTicket.polaroidTotal || 0)})
+          </div>
+        ` : ''}
         ${nbTicket.includesMerch ? `
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-top:0.35rem;">
             <div>
@@ -4734,6 +4772,11 @@
             <div><strong>Daftar Nama Peserta:</strong></div>
             ${participantsList}
             <div style="font-size:0.78rem; color:var(--text-muted);">Pemesan: ${escapeHtml(o.customerName)} (${escapeHtml(o.phone || o.email)})</div>
+            ${(parseInt(o.polaroidQty, 10) || 0) > 0 ? `
+              <div style="margin-top:0.45rem; color:#7dd3fc; font-weight:800;">
+                📸 Tambahan Foto Polaroid: ${parseInt(o.polaroidQty, 10)} Foto
+              </div>
+            ` : ''}
             ${o.includesMerch ? `
               <div style="margin-top:0.5rem; padding-top:0.45rem; border-top:1px dashed rgba(255,255,255,0.15); color:${o.merchClaimed ? '#4ade80' : '#fde047'}; font-weight:700;">
                 🎁 Paket Merch (Photocard &amp; Poster): ${o.merchClaimed ? 'SUDAH DIAMBIL ✓' : 'BELUM DIAMBIL — Serahkan sekarang!'}

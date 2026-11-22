@@ -161,7 +161,18 @@ function aggregatePhysicalItemQuantities(itemsRaw) {
 
   const qtyByProductId = new Map();
   for (const it of items) {
-    if (!it || !it.id || it.is_photopack || it.category === 'Photopack') continue;
+    if (
+      !it ||
+      !it.id ||
+      it.is_photopack ||
+      it.category === 'Photopack' ||
+      it.is_nobar ||
+      it.is_nobar_addon ||
+      it.category === 'Tiket Nobar' ||
+      it.category === 'Add-on Nobar'
+    ) {
+      continue;
+    }
     const qty = Math.max(1, parseInt(it.qty, 10) || 1);
     qtyByProductId.set(it.id, (qtyByProductId.get(it.id) || 0) + qty);
   }

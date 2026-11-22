@@ -511,6 +511,7 @@
             <div><strong>Jumlah Tiket:</strong> ${parseInt(nobarTicket.qty, 10) || 1} Kursi</div>
             <div><strong>Daftar Nama Peserta:</strong> ${(nobarTicket.participants || []).map((p, idx) => `${idx + 1}. ${escapeHtml(p)}`).join(' • ')}</div>
             ${nobarTicket.includesMerch ? `<div><strong>Paket Merch:</strong> <span style="color:var(--gold);">${escapeHtml(nobarTicket.merchBundle || 'Photocard & Poster')} (Diambil langsung di lokasi bioskop)</span></div>` : ''}
+            ${(parseInt(nobarTicket.polaroidQty, 10) || 0) > 0 ? `<div><strong>Tambahan Opsional:</strong> <span style="color:var(--aqua);">📸 ${parseInt(nobarTicket.polaroidQty, 10)}x Foto Polaroid</span></div>` : ''}
             ${safeQrUrl ? `
               <div style="margin:0.9rem 0 0.4rem; padding:1rem; background:#ffffff; border-radius:12px; text-align:center; color:#0f172a;">
                 <div style="font-weight:800; color:#0284c7; font-size:0.86rem; margin-bottom:0.5rem;">
