@@ -333,20 +333,21 @@
     }
 
     .figma-tier-showcase {
-      background: linear-gradient(155deg, rgba(10, 56, 114, 0.36), rgba(7, 26, 62, 0.82));
-      border: 1px solid var(--nobar-border);
+      background: linear-gradient(155deg, #0b2352 0%, #07193e 100%);
+      border: 1.5px solid #1d4ed8;
       border-radius: 16px;
       padding: 2.25rem 2.25rem 2.5rem;
       display: flex;
       flex-direction: column;
       transition: var(--transition);
       cursor: pointer;
+      box-shadow: 0 12px 32px rgba(29, 78, 216, 0.22);
     }
 
     .figma-tier-showcase:hover {
-      border-color: rgba(41, 182, 246, 0.6);
+      border-color: #38bdf8;
       transform: translateY(-3px);
-      box-shadow: var(--shadow-blue);
+      box-shadow: 0 16px 40px rgba(56, 189, 248, 0.28);
     }
 
     .figma-tier-showcase.vip-showcase {
@@ -539,8 +540,8 @@
 
     .tier-option-card {
       position: relative;
-      background: var(--nobar-surface-inner);
-      border: 1.5px solid var(--nobar-border);
+      background: linear-gradient(145deg, #0b2352 0%, #081b42 100%);
+      border: 1.5px solid #1d4ed8;
       border-radius: 10px;
       padding: 1.65rem 1.85rem;
       cursor: pointer;
@@ -548,17 +549,19 @@
       display: flex;
       align-items: center;
       gap: 1.5rem;
+      box-shadow: 0 6px 20px rgba(29, 78, 216, 0.16);
     }
 
     .tier-option-card:hover:not(.disabled) {
-      border-color: rgba(41, 182, 246, 0.65);
+      border-color: #38bdf8;
       transform: translateY(-1px);
+      box-shadow: 0 10px 26px rgba(56, 189, 248, 0.22);
     }
 
     .tier-option-card.selected {
-      background: rgba(21, 101, 192, 0.28);
-      border: 2px solid var(--aqua);
-      box-shadow: 0 0 26px rgba(41, 182, 246, 0.22);
+      background: linear-gradient(145deg, #102e6b 0%, #0b2352 100%);
+      border: 2px solid #38bdf8;
+      box-shadow: 0 0 28px rgba(56, 189, 248, 0.28);
     }
 
     .tier-option-card.vip-card {
