@@ -141,26 +141,21 @@
     }
 
     html {
-      scroll-behavior: smooth;
+      scroll-behavior: auto !important;
     }
 
     #detailEventSection,
     #compareTiersSection,
     #beliTiketSection {
-      scroll-margin-top: 96px;
-      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), filter 0.65s ease;
+      scroll-margin-top: 92px;
     }
 
-    .kimi-scroll-arriving {
-      animation: kimiSectionArrive 0.85s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    @keyframes kimiSectionArrive {
-      0% {
-        transform: translateY(14px);
-      }
-      100% {
-        transform: translateY(0);
+    @media (max-width: 768px) {
+      .figma-card,
+      .figma-step-card,
+      .figma-contact-card {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
       }
     }
 
@@ -2253,7 +2248,7 @@
     let nobarDialogOnClose = null;
     let activeSmoothScrollRaf = null;
 
-    function smoothScrollToSection(targetIdOrEl, ev, durationMs = 920) {
+    function smoothScrollToSection(targetIdOrEl, ev, durationMs) {
       if (ev && typeof ev.preventDefault === 'function') {
         ev.preventDefault();
       }
@@ -2267,10 +2262,15 @@
         activeSmoothScrollRaf = null;
       }
 
-      const navOffset = 94;
-      const startY = window.pageYOffset || document.documentElement.scrollTop || 0;
+      const isMobile = (window.innerWidth || 1024) < 768;
+      const navOffset = isMobile ? 76 : 94;
+      const startY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
       const targetRect = targetEl.getBoundingClientRect();
-      const maxScrollY = Math.max(0, (document.documentElement.scrollHeight || document.body.scrollHeight) - window.innerHeight);
+      const docHeight = Math.max(
+        document.body.scrollHeight || 0,
+        document.documentElement.scrollHeight || 0
+      );
+      const maxScrollY = Math.max(0, docHeight - window.innerHeight);
       const destY = Math.max(0, Math.min(maxScrollY, startY + targetRect.top - navOffset));
       const distance = destY - startY;
 
@@ -2278,40 +2278,56 @@
         return false;
       }
 
-      // Custom cubic easing (easeInOutCubic) for silky cinematic glide
-      const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+      const effectiveDuration = durationMs || Math.min(860, Math.max(540, Math.abs(distance) * (isMobile ? 0.48 : 0.55)));
+      // Silky easeOutQuart / easeInOutCubic hybrid without start-stop stutter
+      const easeGlide = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
       let startTime = null;
+      let prevTime = null;
 
-      const cancelOnUserWheel = () => {
+      const cleanupListeners = () => {
+        window.removeEventListener('wheel', cancelOnUserInput);
+        window.removeEventListener('touchmove', cancelOnUserInput);
+      };
+
+      const cancelOnUserInput = () => {
         if (activeSmoothScrollRaf) {
           cancelAnimationFrame(activeSmoothScrollRaf);
           activeSmoothScrollRaf = null;
         }
-        window.removeEventListener('wheel', cancelOnUserWheel, { passive: true });
-        window.removeEventListener('touchstart', cancelOnUserWheel, { passive: true });
+        cleanupListeners();
       };
 
-      window.addEventListener('wheel', cancelOnUserWheel, { passive: true });
-      window.addEventListener('touchstart', cancelOnUserWheel, { passive: true });
-
-      targetEl.classList.remove('kimi-scroll-arriving');
+      setTimeout(() => {
+        if (activeSmoothScrollRaf) {
+          window.addEventListener('wheel', cancelOnUserInput, { passive: true });
+          window.addEventListener('touchmove', cancelOnUserInput, { passive: true });
+        }
+      }, 90);
 
       const step = (timestamp) => {
-        if (!startTime) startTime = timestamp;
-        const elapsed = timestamp - startTime;
-        const progress = Math.min(1, elapsed / durationMs);
-        const eased = easeInOutCubic(progress);
+        if (!startTime) {
+          startTime = timestamp;
+          prevTime = timestamp;
+        }
+        // Clamp large initial frame gap on mobile touch tap
+        const dt = timestamp - prevTime;
+        prevTime = timestamp;
+        if (dt > 100) {
+          startTime += (dt - 16.67);
+        }
 
-        window.scrollTo(0, Math.round(startY + distance * eased));
+        const elapsed = Math.max(0, timestamp - startTime);
+        const progress = Math.min(1, elapsed / effectiveDuration);
+        const eased = easeGlide(progress);
+        const nextY = startY + distance * eased;
+
+        window.scrollTo(0, nextY);
 
         if (progress < 1) {
           activeSmoothScrollRaf = requestAnimationFrame(step);
         } else {
           activeSmoothScrollRaf = null;
-          window.removeEventListener('wheel', cancelOnUserWheel, { passive: true });
-          window.removeEventListener('touchstart', cancelOnUserWheel, { passive: true });
-          targetEl.classList.add('kimi-scroll-arriving');
-          setTimeout(() => targetEl.classList.remove('kimi-scroll-arriving'), 900);
+          cleanupListeners();
         }
       };
 
@@ -3876,6 +3892,10 @@
       function renderFrame() {
         if (typeof document !== 'undefined' && document.hidden) {
           rafId = null;
+          return;
+        }
+        if (activeSmoothScrollRaf) {
+          rafId = requestAnimationFrame(renderFrame);
           return;
         }
         frame++;
