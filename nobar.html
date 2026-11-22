@@ -568,8 +568,6 @@
     }
 
     .tier-option-card.vip-card.selected {
-      border: 2px solid var(--gold);
-      box-shadow: 0 0 28px rgba(255, 213, 79, 0.28);
       opacity: 1;
       border: 2.5px solid var(--gold);
       box-shadow: 0 0 30px rgba(255, 213, 79, 0.34);
@@ -2046,16 +2044,14 @@
   </aside>
 
   <!-- CENTERED CUSTOM NOTIFICATION & CONFIRM MODAL -->
-  <div class="nobar-dialog-overlay" id="nobarDialogOverlay" role="dialog" aria-modal="true"
-    aria-labelledby="nobarDialogTitle" onclick="if(event.target===this) closeNobarDialog(false)">
+  <div class="nobar-dialog-overlay" id="nobarDialogOverlay" role="dialog" aria-modal="true" aria-labelledby="nobarDialogTitle" onclick="if(event.target===this) closeNobarDialog(false)">
     <div class="nobar-dialog-card variant-info" id="nobarDialogCard">
       <div class="nobar-dialog-icon" id="nobarDialogIcon"></div>
       <div class="nobar-dialog-tag" id="nobarDialogTag">PEMBERITAHUAN</div>
       <h3 class="nobar-dialog-title" id="nobarDialogTitle">Informasi Tiket Nobar</h3>
       <p class="nobar-dialog-msg" id="nobarDialogMsg"></p>
       <div class="nobar-dialog-actions" id="nobarDialogActions">
-        <button type="button" class="nobar-dialog-btn primary" id="nobarDialogConfirmBtn"
-          onclick="closeNobarDialog(true)">Mengerti</button>
+        <button type="button" class="nobar-dialog-btn primary" id="nobarDialogConfirmBtn" onclick="closeNobarDialog(true)">Mengerti</button>
       </div>
     </div>
   </div>
@@ -2466,7 +2462,6 @@
 
     function updateQtyOptionsForTier() {
       const qtySelect = document.getElementById('nobarQtySelect');
-      if (!nobarConfig || !nobarStats) return;
       if (!qtySelect) return;
 
       if (selectedTier === 'vip') {
@@ -2475,15 +2470,11 @@
         qtySelect.disabled = true;
       } else {
         qtySelect.disabled = false;
-        const maxAllowed = Math.min(
-          nobarConfig.maxRegularPerOrder || 5,
-          Math.max(1, nobarStats.regularRemaining || 1)
-        );
         const maxAllowed = (nobarConfig && nobarStats)
           ? Math.min(
-            nobarConfig.maxRegularPerOrder || 5,
-            Math.max(1, nobarStats.regularRemaining || 1)
-          )
+              nobarConfig.maxRegularPerOrder || 5,
+              Math.max(1, nobarStats.regularRemaining || 1)
+            )
           : 5;
         const prevVal = parseInt(qtySelect.value, 10) || 1;
         let opts = '';
@@ -2499,8 +2490,6 @@
     }
 
     function selectNobarTier(tier) {
-      if (!nobarConfig || !nobarStats) return;
-
       if (activeReservation && (activeReservation.orderId || activeReservation.id)) {
         if (tier !== activeReservation.tier) {
           showNobarAlert(
@@ -2537,894 +2526,859 @@
       }
 
       if (tier === 'vip') {
-        if (nobarStats.isVipSoldOut) {
-          showNobarAlert('Maaf, kuota Tiket VIP (Kursi di sebelah Kak Aika) sudah habis terisi.', {
-            variant: 'vip',
-            tag: 'TIKET VIP EKSKLUSIF',
-            title: 'Kuota Tiket VIP Habis'
-          });
-          if (nobarStats.isVipSoldOut || (nobarUserStats && nobarUserStats.hasVipTicket)) {
-            const info = getVipUnavailableDialogInfo();
-            showNobarAlert(info.message, info.options);
-            return;
-          }
-          if (nobarUserStats && nobarUserStats.hasVipTicket) {
-            showNobarAlert('Akun Anda sudah memiliki pesanan Tiket VIP. Pembelian VIP dibatasi maksimal 1 tiket per akun.', {
-              variant: 'vip',
-              tag: 'MAKS 1 / AKUN',
-              title: 'Batas Pembelian Tiket VIP'
-            });
-            return;
-          }
-        } else {
-          if (nobarStats.isRegularSoldOut) {
-            showNobarAlert('Maaf, kuota kursi Tiket Regular / Regular+ sudah habis.', {
-              variant: 'error',
-              tag: 'SOLD OUT',
-              title: 'Kuota Kursi Habis'
-            });
-            return;
-          }
-        }
-
-        selectedTier = tier;
-        ['vip', 'regular', 'regular_merch'].forEach(t => {
-          const el = document.getElementById('tierCard-' + t);
-          if (el) el.classList.toggle('selected', t === tier);
-        });
-
-        hideNobarPaymentStep();
-        updateQtyOptionsForTier();
-      }
-
-      function handleNobarQtyChange() {
-        if (activeReservation && (activeReservation.orderId || activeReservation.id)) {
-          return;
-        }
-        hideNobarPaymentStep();
-        renderParticipantInputs();
-        updateNobarSummary();
-      }
-
-      function hideNobarPaymentStep() {
-        const payPanel = document.getElementById('nobarPaymentPanel');
-        if (payPanel) payPanel.style.display = 'none';
-        stopNobarCountdown();
-      }
-
-      function stopNobarCountdown() {
-        if (nobarCountdownTimerId) {
-          clearInterval(nobarCountdownTimerId);
-          nobarCountdownTimerId = null;
-        }
-      }
-
-      function startNobarCountdown(expiresAtIso, orderId) {
-        stopNobarCountdown();
-        const badgeEl = document.getElementById('reservationInvoiceBadge');
-        const deadlineEl = document.getElementById('reservationDeadlineText');
-        const clockEl = document.getElementById('reservationCountdownClock');
-        const boxEl = document.getElementById('nobarPaymentCountdownBox');
-        const submitBtn = document.getElementById('btnSubmitNobar');
-
-        if (badgeEl) badgeEl.textContent = '#' + (orderId || '-');
-        const expMs = Date.parse(expiresAtIso);
-        if (!Number.isFinite(expMs)) return;
-
-        if (deadlineEl) {
-          deadlineEl.textContent = new Date(expMs).toLocaleTimeString('id-ID', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-          }) + ' WIB';
-        }
-
-        const tick = () => {
-          const diffSec = Math.max(0, Math.floor((expMs - Date.now()) / 1000));
-          const mins = Math.floor(diffSec / 60);
-          const secs = diffSec % 60;
-          const hrs = Math.floor(mins / 60);
-          const remMins = mins % 60;
-
-          if (clockEl) {
-            clockEl.textContent = hrs > 0
-              ? `${String(hrs).padStart(2, '0')}:${String(remMins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
-              : `${String(remMins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-            if (diffSec <= 300) {
-              clockEl.style.color = '#f87171';
-              clockEl.style.borderColor = 'rgba(239,68,68,0.65)';
-            } else {
-              clockEl.style.color = '#fde047';
-              clockEl.style.borderColor = 'rgba(245,158,11,0.6)';
-            }
-          }
-
-          if (diffSec <= 0) {
-            stopNobarCountdown();
-            if (boxEl) {
-              boxEl.style.borderColor = 'rgba(239,68,68,0.7)';
-              boxEl.style.background = 'rgba(239,68,68,0.14)';
-            }
-            if (submitBtn) {
-              submitBtn.disabled = true;
-              submitBtn.textContent = 'Waktu Pembayaran Habis — Kursi Dilepas';
-            }
-            activeReservation = null;
-            setTimeout(() => {
-              hideNobarPaymentStep();
-              loadNobarPageData();
-              showNobarAlert(
-                'Batas waktu pembayaran tiket telah habis. Kursi dikembalikan ke kuota publik. Silakan pesan ulang jika kuota masih tersedia.',
-                {
-                  variant: 'warning',
-                  tag: 'WAKTU PEMBAYARAN HABIS',
-                  title: 'Reservasi Kursi Dilepas'
-                }
-              );
-            }, 300);
-          }
-        };
-
-        tick();
-        nobarCountdownTimerId = setInterval(tick, 1000);
-      }
-
-      function openPaymentPanelForReservation(reservation) {
-        if (!reservation) return;
-        activeReservation = reservation;
-        selectedTier = reservation.tier || selectedTier;
-
-        const labelMap = {
-          vip: 'Tiket VIP (Kursi di Sebelah Kak Aika)',
-          regular: 'Tiket Regular',
-          regular_merch: 'Tiket Regular+ (Termasuk Paket Merch)'
-        };
-
-        const resvPolQty = Math.max(0, parseInt(reservation.polaroidQty, 10) || 0);
-        const resvPolPrice = Number(reservation.polaroidUnitPrice) || (nobarConfig && nobarConfig.pricePolaroid) || 60000;
-        const resvPolTotal = Number(reservation.polaroidTotal) || (resvPolQty * resvPolPrice);
-        polaroidQty = resvPolQty;
-        updatePolaroidUi();
-
-        const partListEl = document.getElementById('summaryParticipantsList');
-        if (partListEl) {
-          partListEl.textContent = (reservation.participants || []).join(', ');
-        }
-        document.getElementById('summaryTierLabel').textContent = labelMap[reservation.tier] || reservation.tierLabel || 'Tiket Nobar';
-        document.getElementById('summaryUnitPrice').textContent = formatRpLabel(reservation.unitPrice || 0);
-        document.getElementById('summaryQty').textContent = `${reservation.qty || 1} Tiket`;
-        document.getElementById('summaryTotalAmount').textContent = formatRpLabel(reservation.total || 0);
-
-        const merchRow = document.getElementById('summaryMerchRow');
-        if (reservation.includesMerch || reservation.tier === 'vip' || reservation.tier === 'regular_merch') {
-          merchRow.style.display = 'flex';
-          document.getElementById('summaryMerchDesc').textContent = reservation.merchBundle || (nobarConfig && nobarConfig.merchBundleDesc) || 'Photocard & Poster';
-        } else {
-          merchRow.style.display = 'none';
-        }
-
-        const polRow = document.getElementById('summaryPolaroidRow');
-        if (polRow) {
-          if (resvPolQty > 0) {
-            polRow.style.display = 'flex';
-            document.getElementById('summaryPolaroidLabel').textContent = `Tambahan Foto Polaroid (${resvPolQty} × ${formatRpLabel(resvPolPrice)})`;
-            document.getElementById('summaryPolaroidAmount').textContent = formatRpLabel(resvPolTotal);
-          } else {
-            polRow.style.display = 'none';
-          }
-        }
-
-        const submitBtn = document.getElementById('btnSubmitNobar');
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.style.opacity = '1';
-          submitBtn.style.cursor = 'pointer';
-          submitBtn.textContent = 'Kirim Pembelian & Bukti Pembayaran Tiket';
-        }
-
-        const payPanel = document.getElementById('nobarPaymentPanel');
-        if (payPanel) {
-          payPanel.style.display = 'block';
-        }
-
-        startNobarCountdown(reservation.paymentExpiresAt, reservation.orderId || reservation.id);
-      }
-
-      async function cancelNobarReservation() {
-        if (!activeReservation || !(activeReservation.orderId || activeReservation.id)) {
-          hideNobarPaymentStep();
-          return;
-        }
-        const oid = activeReservation.orderId || activeReservation.id;
-        const confirmed = await showNobarConfirm(
-          `Batalkan kunci kursi sementara untuk reservasi #${oid} agar Anda dapat mengubah pilihan tiket?`,
-          {
-            variant: 'error',
-            tag: 'KONFIRMASI PEMBATALAN',
-            title: 'Batalkan Reservasi Kursi?',
-            confirmText: 'Ya, Batalkan',
-            cancelText: 'Kembali'
-          }
-        );
-        if (!confirmed) {
-          return;
-        }
-        const cancelBtn = document.getElementById('btnCancelReservation');
-        if (cancelBtn) cancelBtn.disabled = true;
-        try {
-          const res = await fetch('/api/nobar', {
-            method: 'POST',
-            headers: getSessionAuthHeaders(),
-            body: JSON.stringify({ action: 'cancel_reservation', orderId: oid })
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'Gagal membatalkan reservasi');
-
-          activeReservation = null;
-          compressedProofDataUrl = '';
-          const prevEl = document.getElementById('nobarProofPreview');
-          if (prevEl) prevEl.innerHTML = '';
-          const btnText = document.getElementById('nobarProofBtnText');
-          if (btnText) btnText.textContent = 'Pilih Gambar Bukti Transfer (JPG / PNG / WebP)';
-          const resumeBanner = document.getElementById('activeReservationResumeBanner');
-          if (resumeBanner) resumeBanner.style.display = 'none';
-
-          hideNobarPaymentStep();
-          await loadNobarPageData();
-          const tierContainer = document.getElementById('tierCardsContainer');
-          if (tierContainer) {
-            tierContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        } catch (err) {
-          showNobarAlert(err.message);
-        } finally {
-          if (cancelBtn) cancelBtn.disabled = false;
-        }
-      }
-
-      async function confirmNobarTicketSelection() {
-        currentSessionUser = getLoggedUser();
-        if (!currentSessionUser) {
-          showNobarAlert('Silakan login ke akun Anda terlebih dahulu untuk membeli Tiket Nobar Bioskop.', {
-            variant: 'info',
-            tag: 'AKUN PEMBELI',
-            title: 'Login Akun Diperlukan',
-            buttonText: 'Masuk ke Akun →',
-            onClose: () => {
-              window.location.href = 'login.html?redirect=nobar.html';
-            }
-          });
-          return;
-        }
-
-        if (!nobarDataFreshLoaded || !nobarConfig || !nobarStats) {
-          await loadNobarPageData();
-        }
-
-        if (!nobarConfig || !nobarConfig.isOpen) {
-          showNobarAlert('Penjualan tiket saat ini sedang ditutup.', {
-            variant: 'error',
-            tag: 'STATUS EVENT',
-            title: 'Penjualan Tiket Ditutup'
-          });
-          return;
-        }
-
-        if (activeReservation && (activeReservation.orderId || activeReservation.id)) {
-          openPaymentPanelForReservation(activeReservation);
-          const payPanel = document.getElementById('nobarPaymentPanel');
-          if (payPanel) payPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          return;
-        }
-
-        if (selectedTier === 'vip' && nobarUserStats && nobarUserStats.hasVipTicket) {
+        if (nobarStats.isVipSoldOut || (nobarUserStats && nobarUserStats.hasVipTicket)) {
           const info = getVipUnavailableDialogInfo();
           showNobarAlert(info.message, info.options);
           return;
         }
-
-        const participantInputs = Array.from(document.querySelectorAll('input.participant-name-input'));
-        const participants = [];
-        for (let i = 0; i < participantInputs.length; i++) {
-          const val = participantInputs[i].value.trim();
-          if (!val) {
-            showNobarAlert(`Mohon isi Nama Lengkap Peserta #${i + 1} terlebih dahulu sebelum lanjut ke pembayaran QRIS.`, {
-              variant: 'warning',
-              tag: 'STEP 02 / 02',
-              title: 'Data Peserta Belum Lengkap',
-              onClose: () => participantInputs[i].focus()
-            });
-            return;
-          }
-          participants.push(val);
-        }
-
-        const phone = document.getElementById('nobarPhone').value.trim();
-        if (!phone || phone.replace(/\D/g, '').length < 8) {
-          showNobarAlert('Mohon isi Nomor WhatsApp aktif terlebih dahulu sebelum lanjut ke pembayaran QRIS.', {
-            variant: 'warning',
-            tag: 'STEP 02 / 02',
-            title: 'Nomor WhatsApp Wajib Diisi',
-            onClose: () => document.getElementById('nobarPhone').focus()
+      } else {
+        if (nobarStats.isRegularSoldOut) {
+          showNobarAlert('Maaf, kuota kursi Tiket Regular / Regular+ sudah habis.', {
+            variant: 'error',
+            tag: 'SOLD OUT',
+            title: 'Kuota Kursi Habis'
           });
           return;
         }
+      }
+    }
 
-        const qty = Math.max(1, parseInt(document.getElementById('nobarQtySelect').value, 10) || 1);
-        const selectedPolaroidQty = nobarConfig.polaroidEnabled === false ? 0 : Math.max(0, parseInt(polaroidQty, 10) || 0);
-        const notes = '';
+    function handleNobarQtyChange() {
+      if (activeReservation && (activeReservation.orderId || activeReservation.id)) {
+        return;
+      }
+      hideNobarPaymentStep();
+      renderParticipantInputs();
+      updateNobarSummary();
+    }
 
-        const confirmBtn = document.getElementById('btnConfirmTicketStep');
-        const origHtml = confirmBtn ? confirmBtn.innerHTML : '';
-        if (confirmBtn) {
-          confirmBtn.disabled = true;
-          confirmBtn.textContent = 'Mengunci Kursi Sementara...';
+    function hideNobarPaymentStep() {
+      const payPanel = document.getElementById('nobarPaymentPanel');
+      if (payPanel) payPanel.style.display = 'none';
+      stopNobarCountdown();
+    }
+
+    function stopNobarCountdown() {
+      if (nobarCountdownTimerId) {
+        clearInterval(nobarCountdownTimerId);
+        nobarCountdownTimerId = null;
+      }
+    }
+
+    function startNobarCountdown(expiresAtIso, orderId) {
+      stopNobarCountdown();
+      const badgeEl = document.getElementById('reservationInvoiceBadge');
+      const deadlineEl = document.getElementById('reservationDeadlineText');
+      const clockEl = document.getElementById('reservationCountdownClock');
+      const boxEl = document.getElementById('nobarPaymentCountdownBox');
+      const submitBtn = document.getElementById('btnSubmitNobar');
+
+      if (badgeEl) badgeEl.textContent = '#' + (orderId || '-');
+      const expMs = Date.parse(expiresAtIso);
+      if (!Number.isFinite(expMs)) return;
+
+      if (deadlineEl) {
+        deadlineEl.textContent = new Date(expMs).toLocaleTimeString('id-ID', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        }) + ' WIB';
+      }
+
+      const tick = () => {
+        const diffSec = Math.max(0, Math.floor((expMs - Date.now()) / 1000));
+        const mins = Math.floor(diffSec / 60);
+        const secs = diffSec % 60;
+        const hrs = Math.floor(mins / 60);
+        const remMins = mins % 60;
+
+        if (clockEl) {
+          clockEl.textContent = hrs > 0
+            ? `${String(hrs).padStart(2, '0')}:${String(remMins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+            : `${String(remMins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+          if (diffSec <= 300) {
+            clockEl.style.color = '#f87171';
+            clockEl.style.borderColor = 'rgba(239,68,68,0.65)';
+          } else {
+            clockEl.style.color = '#fde047';
+            clockEl.style.borderColor = 'rgba(245,158,11,0.6)';
+          }
         }
 
-        try {
-          const res = await fetch('/api/nobar', {
-            method: 'POST',
-            headers: getSessionAuthHeaders(),
-            body: JSON.stringify({
-              action: 'reserve',
-              tier: selectedTier,
-              qty,
-              polaroidQty: selectedPolaroidQty,
-              participants,
-              phone,
-              notes
-            })
-          });
-          const data = await res.json();
-          if (!res.ok) {
-            throw new Error(data.error || 'Gagal mengunci kursi tiket');
+        if (diffSec <= 0) {
+          stopNobarCountdown();
+          if (boxEl) {
+            boxEl.style.borderColor = 'rgba(239,68,68,0.7)';
+            boxEl.style.background = 'rgba(239,68,68,0.14)';
           }
-
-          const unitPrice = selectedTier === 'vip'
-            ? nobarConfig.priceVip
-            : selectedTier === 'regular_merch'
-              ? nobarConfig.priceRegularMerch
-              : nobarConfig.priceRegular;
-          const polPrice = nobarConfig.pricePolaroid || 60000;
-          const polTotal = selectedPolaroidQty * polPrice;
-
-          const reservationObj = {
-            orderId: data.id,
-            id: data.id,
-            tier: selectedTier,
-            qty,
-            unitPrice,
-            ticketSubtotal: unitPrice * qty,
-            polaroidQty: selectedPolaroidQty,
-            polaroidUnitPrice: polPrice,
-            polaroidTotal: polTotal,
-            total: Number(data.total) || ((unitPrice * qty) + polTotal),
-            participants,
-            phone,
-            notes,
-            includesMerch: selectedTier === 'vip' || selectedTier === 'regular_merch',
-            merchBundle: nobarConfig.merchBundleDesc || '',
-            paymentExpiresAt: data.paymentExpiresAt,
-            paymentTimeoutMinutes: data.paymentTimeoutMinutes || nobarConfig.paymentTimeoutMinutes || 45
-          };
-
-          await loadNobarPageData();
-          openPaymentPanelForReservation(reservationObj);
-          const payPanel = document.getElementById('nobarPaymentPanel');
-          if (payPanel) {
-            setTimeout(() => {
-              payPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 60);
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Waktu Pembayaran Habis — Kursi Dilepas';
           }
-        } catch (err) {
-          showNobarAlert(err.message);
-          loadNobarPageData();
-        } finally {
-          if (confirmBtn) {
-            confirmBtn.disabled = false;
-            if (origHtml) confirmBtn.innerHTML = origHtml;
-          }
+          activeReservation = null;
+          setTimeout(() => {
+            hideNobarPaymentStep();
+            loadNobarPageData();
+            showNobarAlert(
+              'Batas waktu pembayaran tiket telah habis. Kursi dikembalikan ke kuota publik. Silakan pesan ulang jika kuota masih tersedia.',
+              {
+                variant: 'warning',
+                tag: 'WAKTU PEMBAYARAN HABIS',
+                title: 'Reservasi Kursi Dilepas'
+              }
+            );
+          }, 300);
+        }
+      };
+
+      tick();
+      nobarCountdownTimerId = setInterval(tick, 1000);
+    }
+
+    function openPaymentPanelForReservation(reservation) {
+      if (!reservation) return;
+      activeReservation = reservation;
+      selectedTier = reservation.tier || selectedTier;
+
+      const labelMap = {
+        vip: 'Tiket VIP (Kursi di Sebelah Kak Aika)',
+        regular: 'Tiket Regular',
+        regular_merch: 'Tiket Regular+ (Termasuk Paket Merch)'
+      };
+
+      const resvPolQty = Math.max(0, parseInt(reservation.polaroidQty, 10) || 0);
+      const resvPolPrice = Number(reservation.polaroidUnitPrice) || (nobarConfig && nobarConfig.pricePolaroid) || 60000;
+      const resvPolTotal = Number(reservation.polaroidTotal) || (resvPolQty * resvPolPrice);
+      polaroidQty = resvPolQty;
+      updatePolaroidUi();
+
+      const partListEl = document.getElementById('summaryParticipantsList');
+      if (partListEl) {
+        partListEl.textContent = (reservation.participants || []).join(', ');
+      }
+      document.getElementById('summaryTierLabel').textContent = labelMap[reservation.tier] || reservation.tierLabel || 'Tiket Nobar';
+      document.getElementById('summaryUnitPrice').textContent = formatRpLabel(reservation.unitPrice || 0);
+      document.getElementById('summaryQty').textContent = `${reservation.qty || 1} Tiket`;
+      document.getElementById('summaryTotalAmount').textContent = formatRpLabel(reservation.total || 0);
+
+      const merchRow = document.getElementById('summaryMerchRow');
+      if (reservation.includesMerch || reservation.tier === 'vip' || reservation.tier === 'regular_merch') {
+        merchRow.style.display = 'flex';
+        document.getElementById('summaryMerchDesc').textContent = reservation.merchBundle || (nobarConfig && nobarConfig.merchBundleDesc) || 'Photocard & Poster';
+      } else {
+        merchRow.style.display = 'none';
+      }
+
+      const polRow = document.getElementById('summaryPolaroidRow');
+      if (polRow) {
+        if (resvPolQty > 0) {
+          polRow.style.display = 'flex';
+          document.getElementById('summaryPolaroidLabel').textContent = `Tambahan Foto Polaroid (${resvPolQty} × ${formatRpLabel(resvPolPrice)})`;
+          document.getElementById('summaryPolaroidAmount').textContent = formatRpLabel(resvPolTotal);
+        } else {
+          polRow.style.display = 'none';
         }
       }
 
-      function updateNobarSummary() {
-        const labelMap = {
-          vip: 'Tiket VIP',
-          regular: 'Tiket Regular',
-          regular_merch: 'Tiket Regular+'
-        };
-        const confirmBtn = document.getElementById('btnConfirmTicketStep');
-        if (confirmBtn && !activeReservation && (!nobarConfig || nobarConfig.isOpen)) {
-          const btnTierName = labelMap[selectedTier] || 'Tiket Regular';
-          confirmBtn.innerHTML = `<span>Lanjut ke pembayaran (${btnTierName})</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`;
+      const submitBtn = document.getElementById('btnSubmitNobar');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        submitBtn.style.cursor = 'pointer';
+        submitBtn.textContent = 'Kirim Pembelian & Bukti Pembayaran Tiket';
+      }
+
+      const payPanel = document.getElementById('nobarPaymentPanel');
+      if (payPanel) {
+        payPanel.style.display = 'block';
+      }
+
+      startNobarCountdown(reservation.paymentExpiresAt, reservation.orderId || reservation.id);
+    }
+
+    async function cancelNobarReservation() {
+      if (!activeReservation || !(activeReservation.orderId || activeReservation.id)) {
+        hideNobarPaymentStep();
+        return;
+      }
+      const oid = activeReservation.orderId || activeReservation.id;
+      const confirmed = await showNobarConfirm(
+        `Batalkan kunci kursi sementara untuk reservasi #${oid} agar Anda dapat mengubah pilihan tiket?`,
+        {
+          variant: 'error',
+          tag: 'KONFIRMASI PEMBATALAN',
+          title: 'Batalkan Reservasi Kursi?',
+          confirmText: 'Ya, Batalkan',
+          cancelText: 'Kembali'
+        }
+      );
+      if (!confirmed) {
+        return;
+      }
+      const cancelBtn = document.getElementById('btnCancelReservation');
+      if (cancelBtn) cancelBtn.disabled = true;
+      try {
+        const res = await fetch('/api/nobar', {
+          method: 'POST',
+          headers: getSessionAuthHeaders(),
+          body: JSON.stringify({ action: 'cancel_reservation', orderId: oid })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal membatalkan reservasi');
+
+        activeReservation = null;
+        compressedProofDataUrl = '';
+        const prevEl = document.getElementById('nobarProofPreview');
+        if (prevEl) prevEl.innerHTML = '';
+        const btnText = document.getElementById('nobarProofBtnText');
+        if (btnText) btnText.textContent = 'Pilih Gambar Bukti Transfer (JPG / PNG / WebP)';
+        const resumeBanner = document.getElementById('activeReservationResumeBanner');
+        if (resumeBanner) resumeBanner.style.display = 'none';
+
+        hideNobarPaymentStep();
+        await loadNobarPageData();
+        const tierContainer = document.getElementById('tierCardsContainer');
+        if (tierContainer) {
+          tierContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      } catch (err) {
+        showNobarAlert(err.message);
+      } finally {
+        if (cancelBtn) cancelBtn.disabled = false;
+      }
+    }
+
+    async function confirmNobarTicketSelection() {
+      currentSessionUser = getLoggedUser();
+      if (!currentSessionUser) {
+        showNobarAlert('Silakan login ke akun Anda terlebih dahulu untuk membeli Tiket Nobar Bioskop.', {
+          variant: 'info',
+          tag: 'AKUN PEMBELI',
+          title: 'Login Akun Diperlukan',
+          buttonText: 'Masuk ke Akun →',
+          onClose: () => {
+            window.location.href = 'login.html?redirect=nobar.html';
+          }
+        });
+        return;
+      }
+
+      if (!nobarDataFreshLoaded || !nobarConfig || !nobarStats) {
+        await loadNobarPageData();
+      }
+
+      if (!nobarConfig || !nobarConfig.isOpen) {
+        showNobarAlert('Penjualan tiket saat ini sedang ditutup.', {
+          variant: 'error',
+          tag: 'STATUS EVENT',
+          title: 'Penjualan Tiket Ditutup'
+        });
+        return;
+      }
+
+      if (activeReservation && (activeReservation.orderId || activeReservation.id)) {
+        openPaymentPanelForReservation(activeReservation);
+        const payPanel = document.getElementById('nobarPaymentPanel');
+        if (payPanel) payPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+
+      if (selectedTier === 'vip' && nobarUserStats && nobarUserStats.hasVipTicket) {
+        const info = getVipUnavailableDialogInfo();
+        showNobarAlert(info.message, info.options);
+        return;
+      }
+
+      const participantInputs = Array.from(document.querySelectorAll('input.participant-name-input'));
+      const participants = [];
+      for (let i = 0; i < participantInputs.length; i++) {
+        const val = participantInputs[i].value.trim();
+        if (!val) {
+          showNobarAlert(`Mohon isi Nama Lengkap Peserta #${i + 1} terlebih dahulu sebelum lanjut ke pembayaran QRIS.`, {
+            variant: 'warning',
+            tag: 'STEP 02 / 02',
+            title: 'Data Peserta Belum Lengkap',
+            onClose: () => participantInputs[i].focus()
+          });
+          return;
+        }
+        participants.push(val);
+      }
+
+      const phone = document.getElementById('nobarPhone').value.trim();
+      if (!phone || phone.replace(/\D/g, '').length < 8) {
+        showNobarAlert('Mohon isi Nomor WhatsApp aktif terlebih dahulu sebelum lanjut ke pembayaran QRIS.', {
+          variant: 'warning',
+          tag: 'STEP 02 / 02',
+          title: 'Nomor WhatsApp Wajib Diisi',
+          onClose: () => document.getElementById('nobarPhone').focus()
+        });
+        return;
+      }
+
+      const qty = Math.max(1, parseInt(document.getElementById('nobarQtySelect').value, 10) || 1);
+      const selectedPolaroidQty = nobarConfig.polaroidEnabled === false ? 0 : Math.max(0, parseInt(polaroidQty, 10) || 0);
+      const notes = '';
+
+      const confirmBtn = document.getElementById('btnConfirmTicketStep');
+      const origHtml = confirmBtn ? confirmBtn.innerHTML : '';
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Mengunci Kursi Sementara...';
+      }
+
+      try {
+        const res = await fetch('/api/nobar', {
+          method: 'POST',
+          headers: getSessionAuthHeaders(),
+          body: JSON.stringify({
+            action: 'reserve',
+            tier: selectedTier,
+            qty,
+            polaroidQty: selectedPolaroidQty,
+            participants,
+            phone,
+            notes
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Gagal mengunci kursi tiket');
         }
 
-        if (!nobarConfig) return;
-        const qty = Math.max(1, parseInt(document.getElementById('nobarQtySelect').value, 10) || 1);
         const unitPrice = selectedTier === 'vip'
           ? nobarConfig.priceVip
           : selectedTier === 'regular_merch'
             ? nobarConfig.priceRegularMerch
             : nobarConfig.priceRegular;
-        const ticketSubtotal = unitPrice * qty;
-        const polCount = nobarConfig.polaroidEnabled === false ? 0 : Math.max(0, parseInt(polaroidQty, 10) || 0);
-        const polUnitPrice = nobarConfig.pricePolaroid || 60000;
-        const polSubtotal = polCount * polUnitPrice;
-        const total = ticketSubtotal + polSubtotal;
+        const polPrice = nobarConfig.pricePolaroid || 60000;
+        const polTotal = selectedPolaroidQty * polPrice;
 
-        const shortNameMap = {
-          vip: 'VIP',
-          regular: 'Regular',
-          regular_merch: 'Regular+'
+        const reservationObj = {
+          orderId: data.id,
+          id: data.id,
+          tier: selectedTier,
+          qty,
+          unitPrice,
+          ticketSubtotal: unitPrice * qty,
+          polaroidQty: selectedPolaroidQty,
+          polaroidUnitPrice: polPrice,
+          polaroidTotal: polTotal,
+          total: Number(data.total) || ((unitPrice * qty) + polTotal),
+          participants,
+          phone,
+          notes,
+          includesMerch: selectedTier === 'vip' || selectedTier === 'regular_merch',
+          merchBundle: nobarConfig.merchBundleDesc || '',
+          paymentExpiresAt: data.paymentExpiresAt,
+          paymentTimeoutMinutes: data.paymentTimeoutMinutes || nobarConfig.paymentTimeoutMinutes || 45
         };
-        const labelMap = {
-          vip: 'Tiket VIP',
-          regular: 'Tiket Regular',
-          regular_merch: 'Tiket Regular+'
-        };
 
-        const step1TicketLabelEl = document.getElementById('step1TicketLineLabel');
-        const step1TicketAmountEl = document.getElementById('step1TicketLineAmount');
-        const step1PolRowEl = document.getElementById('step1PolaroidRow');
-        const step1PolLabelEl = document.getElementById('step1PolaroidLineLabel');
-        const step1PolAmountEl = document.getElementById('step1PolaroidLineAmount');
-        const step1TotalEl = document.getElementById('step1PreviewTotal');
-
-        if (step1TicketLabelEl) {
-          step1TicketLabelEl.textContent = `${qty} tiket ${shortNameMap[selectedTier] || 'Regular'} × ${formatRpLabel(unitPrice)}`;
+        await loadNobarPageData();
+        openPaymentPanelForReservation(reservationObj);
+        const payPanel = document.getElementById('nobarPaymentPanel');
+        if (payPanel) {
+          setTimeout(() => {
+            payPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 60);
         }
-        if (step1TicketAmountEl) {
-          step1TicketAmountEl.textContent = formatRpLabel(ticketSubtotal);
-        }
-        if (step1PolRowEl) {
-          step1PolRowEl.style.display = polCount > 0 ? 'flex' : 'none';
-        }
-        if (step1PolLabelEl) {
-          step1PolLabelEl.textContent = `${polCount} foto Polaroid × ${formatRpLabel(polUnitPrice)}`;
-        }
-        if (step1PolAmountEl) {
-          step1PolAmountEl.textContent = formatRpLabel(polSubtotal);
-        }
-        if (step1TotalEl) {
-          step1TotalEl.textContent = formatRpLabel(total);
-        }
-
-        document.getElementById('summaryTierLabel').textContent = labelMap[selectedTier] || 'Tiket Nobar';
-        document.getElementById('summaryUnitPrice').textContent = formatRpLabel(unitPrice);
-        document.getElementById('summaryQty').textContent = `${qty} Tiket`;
-        document.getElementById('summaryTotalAmount').textContent = formatRpLabel(total);
-
-        const merchRow = document.getElementById('summaryMerchRow');
-        if (selectedTier === 'regular_merch' || selectedTier === 'vip') {
-          merchRow.style.display = 'flex';
-          document.getElementById('summaryMerchDesc').textContent = nobarConfig.merchBundleDesc || 'Photocard & Poster';
-        } else {
-          merchRow.style.display = 'none';
-        }
-
-        const polSummaryRow = document.getElementById('summaryPolaroidRow');
-        if (polSummaryRow) {
-          if (polCount > 0) {
-            polSummaryRow.style.display = 'flex';
-            document.getElementById('summaryPolaroidLabel').textContent = `Tambahan Foto Polaroid (${polCount} × ${formatRpLabel(polUnitPrice)})`;
-            document.getElementById('summaryPolaroidAmount').textContent = formatRpLabel(polSubtotal);
-          } else {
-            polSummaryRow.style.display = 'none';
-          }
+      } catch (err) {
+        showNobarAlert(err.message);
+        loadNobarPageData();
+      } finally {
+        if (confirmBtn) {
+          confirmBtn.disabled = false;
+          if (origHtml) confirmBtn.innerHTML = origHtml;
         }
       }
+    }
 
-      function getRemainingLevelClass(remain, kind = 'regular') {
-        const cleanRemain = Math.max(0, parseInt(remain, 10) || 0);
-        if (kind === 'vip') {
-          if (cleanRemain <= 0) return 'full';
-          if (cleanRemain === 1) return 'warn';
-          return 'ok';
+    function updateNobarSummary() {
+      const labelMap = {
+        vip: 'Tiket VIP',
+        regular: 'Tiket Regular',
+        regular_merch: 'Tiket Regular+'
+      };
+      const confirmBtn = document.getElementById('btnConfirmTicketStep');
+      if (confirmBtn && !activeReservation && (!nobarConfig || nobarConfig.isOpen)) {
+        const btnTierName = labelMap[selectedTier] || 'Tiket Regular';
+        confirmBtn.innerHTML = `<span>Lanjut ke pembayaran (${btnTierName})</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`;
+      }
+
+      if (!nobarConfig) return;
+      const qty = Math.max(1, parseInt(document.getElementById('nobarQtySelect').value, 10) || 1);
+      const unitPrice = selectedTier === 'vip'
+        ? nobarConfig.priceVip
+        : selectedTier === 'regular_merch'
+          ? nobarConfig.priceRegularMerch
+          : nobarConfig.priceRegular;
+      const ticketSubtotal = unitPrice * qty;
+      const polCount = nobarConfig.polaroidEnabled === false ? 0 : Math.max(0, parseInt(polaroidQty, 10) || 0);
+      const polUnitPrice = nobarConfig.pricePolaroid || 60000;
+      const polSubtotal = polCount * polUnitPrice;
+      const total = ticketSubtotal + polSubtotal;
+
+      const shortNameMap = {
+        vip: 'VIP',
+        regular: 'Regular',
+        regular_merch: 'Regular+'
+      };
+
+      const step1TicketLabelEl = document.getElementById('step1TicketLineLabel');
+      const step1TicketAmountEl = document.getElementById('step1TicketLineAmount');
+      const step1PolRowEl = document.getElementById('step1PolaroidRow');
+      const step1PolLabelEl = document.getElementById('step1PolaroidLineLabel');
+      const step1PolAmountEl = document.getElementById('step1PolaroidLineAmount');
+      const step1TotalEl = document.getElementById('step1PreviewTotal');
+
+      if (step1TicketLabelEl) {
+        step1TicketLabelEl.textContent = `${qty} tiket ${shortNameMap[selectedTier] || 'Regular'} × ${formatRpLabel(unitPrice)}`;
+      }
+      if (step1TicketAmountEl) {
+        step1TicketAmountEl.textContent = formatRpLabel(ticketSubtotal);
+      }
+      if (step1PolRowEl) {
+        step1PolRowEl.style.display = polCount > 0 ? 'flex' : 'none';
+      }
+      if (step1PolLabelEl) {
+        step1PolLabelEl.textContent = `${polCount} foto Polaroid × ${formatRpLabel(polUnitPrice)}`;
+      }
+      if (step1PolAmountEl) {
+        step1PolAmountEl.textContent = formatRpLabel(polSubtotal);
+      }
+      if (step1TotalEl) {
+        step1TotalEl.textContent = formatRpLabel(total);
+      }
+
+      document.getElementById('summaryTierLabel').textContent = labelMap[selectedTier] || 'Tiket Nobar';
+      document.getElementById('summaryUnitPrice').textContent = formatRpLabel(unitPrice);
+      document.getElementById('summaryQty').textContent = `${qty} Tiket`;
+      document.getElementById('summaryTotalAmount').textContent = formatRpLabel(total);
+
+      const merchRow = document.getElementById('summaryMerchRow');
+      if (selectedTier === 'regular_merch' || selectedTier === 'vip') {
+        merchRow.style.display = 'flex';
+        document.getElementById('summaryMerchDesc').textContent = nobarConfig.merchBundleDesc || 'Photocard & Poster';
+      } else {
+        merchRow.style.display = 'none';
+      }
+
+      const polSummaryRow = document.getElementById('summaryPolaroidRow');
+      if (polSummaryRow) {
+        if (polCount > 0) {
+          polSummaryRow.style.display = 'flex';
+          document.getElementById('summaryPolaroidLabel').textContent = `Tambahan Foto Polaroid (${polCount} × ${formatRpLabel(polUnitPrice)})`;
+          document.getElementById('summaryPolaroidAmount').textContent = formatRpLabel(polSubtotal);
+        } else {
+          polSummaryRow.style.display = 'none';
         }
-        if (cleanRemain <= 10) return 'full';
-        if (cleanRemain <= 30) return 'warn';
+      }
+    }
+
+    function getRemainingLevelClass(remain, kind = 'regular') {
+      const cleanRemain = Math.max(0, parseInt(remain, 10) || 0);
+      if (kind === 'vip') {
+        if (cleanRemain <= 0) return 'full';
+        if (cleanRemain === 1) return 'warn';
         return 'ok';
       }
+      if (cleanRemain <= 10) return 'full';
+      if (cleanRemain <= 30) return 'warn';
+      return 'ok';
+    }
 
-      function setAvailabilitySlot(leftId, totalId, remain, quota, kind = 'regular') {
-        const leftEl = document.getElementById(leftId);
-        const totalEl = document.getElementById(totalId);
-        const cleanRemain = Math.max(0, parseInt(remain, 10) || 0);
-        const cleanQuota = Math.max(1, parseInt(quota, 10) || 1);
-        if (leftEl) {
-          leftEl.textContent = String(cleanRemain).padStart(2, '0');
-          leftEl.className = 'remain ' + getRemainingLevelClass(cleanRemain, kind);
-        }
-        if (totalEl) {
-          totalEl.textContent = '/' + String(cleanQuota).padStart(2, '0');
-        }
+    function setAvailabilitySlot(leftId, totalId, remain, quota, kind = 'regular') {
+      const leftEl = document.getElementById(leftId);
+      const totalEl = document.getElementById(totalId);
+      const cleanRemain = Math.max(0, parseInt(remain, 10) || 0);
+      const cleanQuota = Math.max(1, parseInt(quota, 10) || 1);
+      if (leftEl) {
+        leftEl.textContent = String(cleanRemain).padStart(2, '0');
+        leftEl.className = 'remain ' + getRemainingLevelClass(cleanRemain, kind);
+      }
+      if (totalEl) {
+        totalEl.textContent = '/' + String(cleanQuota).padStart(2, '0');
+      }
+    }
+
+    function applyNobarData(data, { fromCache = false } = {}) {
+      if (!data || !data.config || !data.stats) return;
+      nobarConfig = data.config;
+      nobarStats = data.stats;
+      nobarUserStats = data.userStats || {};
+      if (!fromCache) {
+        nobarDataFreshLoaded = true;
       }
 
-      function applyNobarData(data, { fromCache = false } = {}) {
-        if (!data || !data.config || !data.stats) return;
-        nobarConfig = data.config;
-        nobarStats = data.stats;
-        nobarUserStats = data.userStats || {};
-        if (!fromCache) {
-          nobarDataFreshLoaded = true;
-        }
+      const errBox = document.getElementById('nobarLoadErrorAlert');
+      if (errBox && !fromCache) errBox.style.display = 'none';
 
-        const errBox = document.getElementById('nobarLoadErrorAlert');
-        if (errBox && !fromCache) errBox.style.display = 'none';
+      const timeoutHintEl = document.getElementById('step1TimeoutHint');
+      if (timeoutHintEl) {
+        const mins = nobarConfig.paymentTimeoutMinutes || 45;
+        timeoutHintEl.textContent = `⏱️ Batas bayar ${mins} menit`;
+      }
 
-        const timeoutHintEl = document.getElementById('step1TimeoutHint');
-        if (timeoutHintEl) {
-          const mins = nobarConfig.paymentTimeoutMinutes || 45;
-          timeoutHintEl.textContent = `⏱️ Batas bayar ${mins} menit`;
-        }
-
-        if (!fromCache) {
-          const resumeBanner = document.getElementById('activeReservationResumeBanner');
-          if (nobarUserStats.activePendingReservation) {
-            const resv = nobarUserStats.activePendingReservation;
-            activeReservation = resv;
-            selectedTier = resv.tier || selectedTier;
-            polaroidQty = Math.max(0, parseInt(resv.polaroidQty, 10) || 0);
-            if (resumeBanner) {
-              const polResumeText = polaroidQty > 0 ? ` + ${polaroidQty}x Foto Polaroid` : '';
-              resumeBanner.style.display = 'block';
-              resumeBanner.innerHTML = `
+      if (!fromCache) {
+        const resumeBanner = document.getElementById('activeReservationResumeBanner');
+        if (nobarUserStats.activePendingReservation) {
+          const resv = nobarUserStats.activePendingReservation;
+          activeReservation = resv;
+          selectedTier = resv.tier || selectedTier;
+          polaroidQty = Math.max(0, parseInt(resv.polaroidQty, 10) || 0);
+          if (resumeBanner) {
+            const polResumeText = polaroidQty > 0 ? ` + ${polaroidQty}x Foto Polaroid` : '';
+            resumeBanner.style.display = 'block';
+            resumeBanner.innerHTML = `
               ⏱️ Anda memiliki reservasi tiket yang sedang dikunci sementara (<strong>#${escapeNobarHtml(resv.orderId)}</strong> — ${escapeNobarHtml(resv.tierLabel)} &times;${resv.qty}${polResumeText}).
               Silakan selesaikan pembayaran QRIS &amp; upload bukti sebelum batas waktu habis, atau klik <strong>Batalkan Reservasi</strong> di bawah untuk memesan ulang.
             `;
+          }
+          openPaymentPanelForReservation(resv);
+        } else {
+          activeReservation = null;
+          if (resumeBanner) resumeBanner.style.display = 'none';
+        }
+      }
+
+      // Hero & Info Card
+      document.getElementById('nobarEventTitle').textContent = nobarConfig.eventTitle;
+      const heroSubEl = document.getElementById('nobarHeroSubtitle');
+      if (heroSubEl) {
+        heroSubEl.textContent = `${nobarConfig.eventDate}, ${nobarConfig.eventTime} · ${nobarConfig.cinemaLocation}`;
+      }
+      document.getElementById('nobarMovieTitle').textContent = nobarConfig.movieTitle;
+      document.getElementById('nobarDateTime').textContent = `${nobarConfig.eventDate} • ${nobarConfig.eventTime}`;
+      document.getElementById('nobarCinemaLocation').textContent = nobarConfig.cinemaLocation;
+      document.getElementById('nobarEventNotes').textContent = nobarConfig.eventNotes || '';
+
+      const mapsLinkEl = document.getElementById('nobarMapsLink');
+      if (mapsLinkEl) {
+        const rawMapsUrl = String(nobarConfig.cinemaMapsUrl || '').trim();
+        mapsLinkEl.href = /^https?:\/\//i.test(rawMapsUrl)
+          ? rawMapsUrl
+          : 'https://maps.app.goo.gl/7yF59NSdjGyyNP6X9';
+      }
+
+      const bannerEl = document.getElementById('nobarBannerImg');
+      if (bannerEl) {
+        const nextSrc = (typeof sanitizeStoreImageUrl === 'function' ? sanitizeStoreImageUrl(nobarConfig.bannerImage) : nobarConfig.bannerImage) || '/images/Profil/charlotta-seo.jpg';
+        if (bannerEl.getAttribute('src') !== nextSrc) {
+          bannerEl.setAttribute('src', nextSrc);
+        }
+      }
+
+      const pill = document.getElementById('nobarStatusPill');
+      const pillText = document.getElementById('nobarStatusText');
+      const closedAlert = document.getElementById('nobarClosedAlert');
+      const submitBtn = document.getElementById('btnSubmitNobar');
+      const confirmBtn = document.getElementById('btnConfirmTicketStep');
+
+      pill.style.opacity = '1';
+      const isAllSoldOut = nobarStats.isVipSoldOut && nobarStats.isRegularSoldOut;
+      if (!nobarConfig.isOpen || (isAllSoldOut && !activeReservation)) {
+        pill.className = 'nobar-status-pill closed';
+        pillText.textContent = isAllSoldOut ? 'TIKET HABIS TERJUAL (SOLD OUT)' : 'PENJUALAN TIKET DITUTUP';
+        closedAlert.style.display = 'block';
+        submitBtn.disabled = true;
+        submitBtn.textContent = isAllSoldOut ? 'Tiket Sudah Habis Terjual' : 'Penjualan Tiket Ditutup';
+        if (confirmBtn && !activeReservation) {
+          confirmBtn.disabled = true;
+        }
+      } else {
+        pill.className = 'nobar-status-pill open';
+        pillText.textContent = 'PENJUALAN TIKET DIBUKA';
+        closedAlert.style.display = 'none';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Kirim Pembelian & Bukti Pembayaran Tiket';
+        if (confirmBtn) {
+          confirmBtn.disabled = false;
+          confirmBtn.innerHTML = activeReservation
+            ? '<span>Lanjutkan ke pembayaran QRIS</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>'
+            : '<span>Lanjut ke pembayaran</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+        }
+      }
+
+      // Realtime Availability Counters
+      setAvailabilitySlot('availRegLeft', 'availRegTotal', nobarStats.regularRemaining, nobarConfig.regularQuota, 'regular');
+      setAvailabilitySlot('availVipLeft', 'availVipTotal', nobarStats.vipRemaining, nobarConfig.vipQuota, 'vip');
+
+      const availNoteEl = document.getElementById('availRealtimeNote');
+      if (availNoteEl) {
+        availNoteEl.textContent = `*Ketersediaan slot diupdate secara realtime · Kuota Tiket Regular & Regular+ gabungan (${nobarStats.regularRemaining} kursi tersedia dari ${nobarConfig.regularQuota})`;
+      }
+
+      // Comparison Cards + Step 01 Prices
+      document.getElementById('cmpPrice-regular').textContent = formatIdrLabel(nobarConfig.priceRegular);
+      document.getElementById('cmpPrice-regular_merch').textContent = formatIdrLabel(nobarConfig.priceRegularMerch);
+      document.getElementById('cmpPrice-vip').textContent = formatIdrLabel(nobarConfig.priceVip);
+      document.getElementById('tierPrice-regular').textContent = formatIdrLabel(nobarConfig.priceRegular);
+      document.getElementById('tierPrice-regular_merch').textContent = formatIdrLabel(nobarConfig.priceRegularMerch);
+      document.getElementById('tierPrice-vip').textContent = formatIdrLabel(nobarConfig.priceVip);
+
+      const cmpDescReg = document.getElementById('cmpDesc-regular');
+      if (cmpDescReg && nobarConfig.regularPerk) {
+        cmpDescReg.textContent = nobarConfig.regularPerk;
+      }
+      const cmpDescMerch = document.getElementById('cmpDesc-regular_merch');
+      if (cmpDescMerch && nobarConfig.merchBundleDesc) {
+        cmpDescMerch.textContent = nobarConfig.merchBundleDesc;
+      }
+      const cmpMerchVip = document.getElementById('cmpMerchVip');
+      if (cmpMerchVip && nobarConfig.merchBundleDesc) {
+        cmpMerchVip.textContent = nobarConfig.merchBundleDesc;
+      }
+      const cmpDescVip = document.getElementById('cmpDesc-vip');
+      if (cmpDescVip && nobarConfig.vipPerk) {
+        cmpDescVip.textContent = nobarConfig.vipPerk;
+      }
+
+      // Step 01 Availability Badges
+      const vipLevel = getRemainingLevelClass(nobarStats.vipRemaining, 'vip');
+      const vipBadgeState = vipLevel === 'full' ? 'low' : vipLevel;
+      const vipCard = document.getElementById('tierCard-vip');
+      const vipBadge = document.getElementById('tierBadge-vip');
+      if (nobarStats.isVipSoldOut) {
+        vipCard.classList.add('disabled');
+        vipBadge.className = 'tier-badge soldout';
+        vipBadge.textContent = (nobarStats.vipVerified >= nobarConfig.vipQuota)
+          ? 'Kuota VIP Penuh'
+          : 'Slot VIP Sedang Dikunci';
+      } else if (nobarUserStats.hasVipTicket) {
+        vipCard.classList.add('disabled');
+        vipBadge.className = 'tier-badge soldout';
+        vipBadge.textContent = 'Sudah Dibeli Akun Ini';
+      } else {
+        vipCard.classList.remove('disabled');
+        vipBadge.className = 'tier-badge vip ' + vipBadgeState;
+        vipBadge.textContent = `Sisa ${nobarStats.vipRemaining} tiket`;
+      }
+
+      const regLevel = getRemainingLevelClass(nobarStats.regularRemaining);
+      const regBadgeState = regLevel === 'full' ? 'low' : regLevel;
+      ['regular', 'regular_merch'].forEach(t => {
+        const card = document.getElementById('tierCard-' + t);
+        const badge = document.getElementById('tierBadge-' + t);
+        if (nobarStats.isRegularSoldOut) {
+          card.classList.add('disabled');
+          badge.className = 'tier-badge soldout';
+          badge.textContent = 'Kuota Habis';
+        } else {
+          card.classList.remove('disabled');
+          badge.className = 'tier-badge merch ' + regBadgeState;
+          badge.textContent = `Sisa ${nobarStats.regularRemaining} tiket`;
+        }
+      });
+
+      // Only auto-switch initial tier if the user has NOT explicitly chosen a tier
+      if (!userExplicitlyPickedTier && !activeReservation) {
+        if ((selectedTier === 'regular' || selectedTier === 'regular_merch') && nobarStats.isRegularSoldOut && !nobarStats.isVipSoldOut && !nobarUserStats.hasVipTicket) {
+          selectedTier = 'vip';
+        }
+      }
+
+      ['vip', 'regular', 'regular_merch'].forEach(t => {
+        const el = document.getElementById('tierCard-' + t);
+        if (el) el.classList.toggle('selected', t === selectedTier);
+      });
+
+      updateQtyOptionsForTier();
+    }
+
+    function hydrateNobarFromCache() {
+      try {
+        const raw = localStorage.getItem(NOBAR_CACHE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.config && parsed.stats) {
+          applyNobarData({ config: parsed.config, stats: parsed.stats, userStats: {} }, { fromCache: true });
+        }
+      } catch (_) {}
+    }
+
+    async function loadNobarPageData() {
+      currentSessionUser = getLoggedUser();
+      const guestNotice = document.getElementById('guestLoginNotice');
+      if (guestNotice) {
+        guestNotice.style.display = currentSessionUser ? 'none' : 'block';
+      }
+
+      if (currentSessionUser) {
+        fetch('/api/user-profile?email=' + encodeURIComponent(currentSessionUser.email), {
+          headers: getSessionAuthHeaders()
+        })
+          .then(r => r.ok ? r.json() : null)
+          .then(prof => {
+            const phoneEl = document.getElementById('nobarPhone');
+            if (prof && prof.phone && phoneEl && !phoneEl.value) {
+              phoneEl.value = prof.phone;
             }
-            openPaymentPanelForReservation(resv);
-          } else {
-            activeReservation = null;
-            if (resumeBanner) resumeBanner.style.display = 'none';
-          }
-        }
+          })
+          .catch(() => {});
+      }
 
-        // Hero & Info Card
-        document.getElementById('nobarEventTitle').textContent = nobarConfig.eventTitle;
-        const heroSubEl = document.getElementById('nobarHeroSubtitle');
-        if (heroSubEl) {
-          heroSubEl.textContent = `${nobarConfig.eventDate}, ${nobarConfig.eventTime} · ${nobarConfig.cinemaLocation}`;
-        }
-        document.getElementById('nobarMovieTitle').textContent = nobarConfig.movieTitle;
-        document.getElementById('nobarDateTime').textContent = `${nobarConfig.eventDate} • ${nobarConfig.eventTime}`;
-        document.getElementById('nobarCinemaLocation').textContent = nobarConfig.cinemaLocation;
-        document.getElementById('nobarEventNotes').textContent = nobarConfig.eventNotes || '';
+      try {
+        const res = await fetch('/api/nobar?t=' + Date.now(), {
+          headers: getSessionAuthHeaders()
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal memuat info event nobar');
 
-        const mapsLinkEl = document.getElementById('nobarMapsLink');
-        if (mapsLinkEl) {
-          const rawMapsUrl = String(nobarConfig.cinemaMapsUrl || '').trim();
-          mapsLinkEl.href = /^https?:\/\//i.test(rawMapsUrl)
-            ? rawMapsUrl
-            : 'https://maps.app.goo.gl/7yF59NSdjGyyNP6X9';
+        applyNobarData(data, { fromCache: false });
+        try {
+          localStorage.setItem(NOBAR_CACHE_KEY, JSON.stringify({
+            config: data.config,
+            stats: data.stats,
+            cachedAt: Date.now()
+          }));
+        } catch (_) {}
+      } catch (err) {
+        console.error('Error loading nobar data:', err);
+        const errBox = document.getElementById('nobarLoadErrorAlert');
+        const errMsg = document.getElementById('nobarLoadErrorMsg');
+        if (errBox && !nobarConfig) {
+          if (errMsg) errMsg.textContent = 'Gagal memuat info event nobar: ' + (err.message || 'Koneksi terputus');
+          errBox.style.display = 'block';
         }
+      }
+    }
 
-        const bannerEl = document.getElementById('nobarBannerImg');
-        if (bannerEl) {
-          const nextSrc = (typeof sanitizeStoreImageUrl === 'function' ? sanitizeStoreImageUrl(nobarConfig.bannerImage) : nobarConfig.bannerImage) || '/images/Profil/charlotta-seo.jpg';
-          if (bannerEl.getAttribute('src') !== nextSrc) {
-            bannerEl.setAttribute('src', nextSrc);
-          }
-        }
-
-        const pill = document.getElementById('nobarStatusPill');
-        const pillText = document.getElementById('nobarStatusText');
-        const closedAlert = document.getElementById('nobarClosedAlert');
-        const submitBtn = document.getElementById('btnSubmitNobar');
-        const confirmBtn = document.getElementById('btnConfirmTicketStep');
-
-        pill.style.opacity = '1';
-        const isAllSoldOut = nobarStats.isVipSoldOut && nobarStats.isRegularSoldOut;
-        if (!nobarConfig.isOpen || (isAllSoldOut && !activeReservation)) {
-          pill.className = 'nobar-status-pill closed';
-          pillText.textContent = isAllSoldOut ? 'TIKET HABIS TERJUAL (SOLD OUT)' : 'PENJUALAN TIKET DITUTUP';
-          closedAlert.style.display = 'block';
-          submitBtn.disabled = true;
-          submitBtn.textContent = isAllSoldOut ? 'Tiket Sudah Habis Terjual' : 'Penjualan Tiket Ditutup';
-          if (confirmBtn && !activeReservation) {
-            confirmBtn.disabled = true;
-          }
-        } else {
-          pill.className = 'nobar-status-pill open';
-          pillText.textContent = 'PENJUALAN TIKET DIBUKA';
-          closedAlert.style.display = 'none';
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Kirim Pembelian & Bukti Pembayaran Tiket';
-          if (confirmBtn) {
-            confirmBtn.disabled = false;
-            confirmBtn.innerHTML = activeReservation
-              ? '<span>Lanjutkan ke pembayaran QRIS</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>'
-              : '<span>Lanjut ke pembayaran</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
-          }
-        }
-
-        // Realtime Availability Counters
-        setAvailabilitySlot('availRegLeft', 'availRegTotal', nobarStats.regularRemaining, nobarConfig.regularQuota, 'regular');
-        setAvailabilitySlot('availVipLeft', 'availVipTotal', nobarStats.vipRemaining, nobarConfig.vipQuota, 'vip');
-
-        const availNoteEl = document.getElementById('availRealtimeNote');
-        if (availNoteEl) {
-          availNoteEl.textContent = `*Ketersediaan slot diupdate secara realtime · Kuota Tiket Regular & Regular+ gabungan (${nobarStats.regularRemaining} kursi tersedia dari ${nobarConfig.regularQuota})`;
-        }
-
-        // Comparison Cards + Step 01 Prices
-        document.getElementById('cmpPrice-regular').textContent = formatIdrLabel(nobarConfig.priceRegular);
-        document.getElementById('cmpPrice-regular_merch').textContent = formatIdrLabel(nobarConfig.priceRegularMerch);
-        document.getElementById('cmpPrice-vip').textContent = formatIdrLabel(nobarConfig.priceVip);
-        document.getElementById('tierPrice-regular').textContent = formatIdrLabel(nobarConfig.priceRegular);
-        document.getElementById('tierPrice-regular_merch').textContent = formatIdrLabel(nobarConfig.priceRegularMerch);
-        document.getElementById('tierPrice-vip').textContent = formatIdrLabel(nobarConfig.priceVip);
-
-        const cmpDescReg = document.getElementById('cmpDesc-regular');
-        if (cmpDescReg && nobarConfig.regularPerk) {
-          cmpDescReg.textContent = nobarConfig.regularPerk;
-        }
-        const cmpDescMerch = document.getElementById('cmpDesc-regular_merch');
-        if (cmpDescMerch && nobarConfig.merchBundleDesc) {
-          cmpDescMerch.textContent = nobarConfig.merchBundleDesc;
-        }
-        const cmpMerchVip = document.getElementById('cmpMerchVip');
-        if (cmpMerchVip && nobarConfig.merchBundleDesc) {
-          cmpMerchVip.textContent = nobarConfig.merchBundleDesc;
-        }
-        const cmpDescVip = document.getElementById('cmpDesc-vip');
-        if (cmpDescVip && nobarConfig.vipPerk) {
-          cmpDescVip.textContent = nobarConfig.vipPerk;
-        }
-
-        // Step 01 Availability Badges
-        const vipLevel = getRemainingLevelClass(nobarStats.vipRemaining, 'vip');
-        const vipBadgeState = vipLevel === 'full' ? 'low' : vipLevel;
-        const vipCard = document.getElementById('tierCard-vip');
-        const vipBadge = document.getElementById('tierBadge-vip');
-        if (nobarStats.isVipSoldOut) {
-          vipCard.classList.add('disabled');
-          vipBadge.className = 'tier-badge soldout';
-          vipBadge.textContent = 'Kuota VIP Penuh';
-          vipBadge.textContent = (nobarStats.vipVerified >= nobarConfig.vipQuota)
-            ? 'Kuota VIP Penuh'
-            : 'Slot VIP Sedang Dikunci';
-        } else if (nobarUserStats.hasVipTicket) {
-          vipCard.classList.add('disabled');
-          vipBadge.className = 'tier-badge soldout';
-          vipBadge.textContent = 'Sudah Dibeli Akun Ini';
-        } else {
-          vipCard.classList.remove('disabled');
-          vipBadge.className = 'tier-badge vip ' + vipBadgeState;
-          vipBadge.textContent = `Sisa ${nobarStats.vipRemaining} tiket`;
-        }
-
-        const regLevel = getRemainingLevelClass(nobarStats.regularRemaining);
-        const regBadgeState = regLevel === 'full' ? 'low' : regLevel;
-        ['regular', 'regular_merch'].forEach(t => {
-          const card = document.getElementById('tierCard-' + t);
-          const badge = document.getElementById('tierBadge-' + t);
-          if (nobarStats.isRegularSoldOut) {
-            card.classList.add('disabled');
-            badge.className = 'tier-badge soldout';
-            badge.textContent = 'Kuota Habis';
-          } else {
-            card.classList.remove('disabled');
-            badge.className = 'tier-badge merch ' + regBadgeState;
-            badge.textContent = `Sisa ${nobarStats.regularRemaining} tiket`;
+    async function submitNobarBooking() {
+      currentSessionUser = getLoggedUser();
+      if (!currentSessionUser) {
+        showNobarAlert('Silakan login ke akun Anda terlebih dahulu untuk membeli Tiket Nobar Bioskop.', {
+          variant: 'info',
+          tag: 'AKUN PEMBELI',
+          title: 'Login Akun Diperlukan',
+          buttonText: 'Masuk ke Akun →',
+          onClose: () => {
+            window.location.href = 'login.html?redirect=nobar.html';
           }
         });
+        return;
+      }
 
-        // Auto-select valid initial tier
-        if (selectedTier === 'vip' && (nobarStats.isVipSoldOut || nobarUserStats.hasVipTicket)) {
-          selectedTier = 'regular';
-          // Only auto-switch initial tier if the user has NOT explicitly chosen a tier
-          if (!userExplicitlyPickedTier && !activeReservation) {
-            if ((selectedTier === 'regular' || selectedTier === 'regular_merch') && nobarStats.isRegularSoldOut && !nobarStats.isVipSoldOut && !nobarUserStats.hasVipTicket) {
-              selectedTier = 'vip';
-            }
-          }
-          if ((selectedTier === 'regular' || selectedTier === 'regular_merch') && nobarStats.isRegularSoldOut && !nobarStats.isVipSoldOut && !nobarUserStats.hasVipTicket) {
-            selectedTier = 'vip';
-          }
+      if (!nobarConfig || !nobarConfig.isOpen) {
+        showNobarAlert('Penjualan tiket saat ini sedang ditutup.', {
+          variant: 'error',
+          tag: 'STATUS EVENT',
+          title: 'Penjualan Tiket Ditutup'
+        });
+        return;
+      }
 
-          ['vip', 'regular', 'regular_merch'].forEach(t => {
-            const el = document.getElementById('tierCard-' + t);
-            if (el) el.classList.toggle('selected', t === selectedTier);
+      const qty = Math.max(1, parseInt(document.getElementById('nobarQtySelect').value, 10) || 1);
+      const selectedPolaroidQty = nobarConfig.polaroidEnabled === false ? 0 : Math.max(0, parseInt(polaroidQty, 10) || 0);
+      const phone = document.getElementById('nobarPhone').value.trim();
+      const notes = '';
+
+      const participantInputs = Array.from(document.querySelectorAll('input.participant-name-input'));
+      const participants = [];
+      for (let i = 0; i < participantInputs.length; i++) {
+        const val = participantInputs[i].value.trim();
+        if (!val) {
+          showNobarAlert(`Mohon isi Nama Lengkap Peserta #${i + 1} terlebih dahulu.`, {
+            variant: 'warning',
+            tag: 'STEP 02 / 02',
+            title: 'Data Peserta Belum Lengkap',
+            onClose: () => participantInputs[i].focus()
+          });
+          return;
+        }
+        participants.push(val);
+      }
+
+      if (!phone || phone.replace(/\D/g, '').length < 8) {
+        showNobarAlert('Mohon isi Nomor WhatsApp aktif terlebih dahulu.', {
+          variant: 'warning',
+          tag: 'STEP 02 / 02',
+          title: 'Nomor WhatsApp Wajib Diisi',
+          onClose: () => document.getElementById('nobarPhone').focus()
+        });
+        return;
+      }
+
+      if (!compressedProofDataUrl) {
+        showNobarAlert('Pembelian tiket nobar harus langsung dibayar. Mohon unggah screenshot bukti transfer QRIS Anda terlebih dahulu.', {
+          variant: 'warning',
+          tag: 'BUKTI PEMBAYARAN QRIS',
+          title: 'Unggah Bukti Transfer',
+          buttonText: 'Pilih Gambar Bukti',
+          onClose: () => document.getElementById('nobarProofInput').click()
+        });
+        return;
+      }
+
+      const btn = document.getElementById('btnSubmitNobar');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Memproses Tiket & Mengunggah Bukti Bayar...';
+
+      try {
+        let savedOrder = null;
+
+        if (activeReservation && (activeReservation.orderId || activeReservation.id)) {
+          const oid = activeReservation.orderId || activeReservation.id;
+          const res = await fetch('/api/payment-proof', {
+            method: 'POST',
+            headers: getSessionAuthHeaders(),
+            body: JSON.stringify({
+              orderId: oid,
+              base64Image: compressedProofDataUrl,
+              email: currentSessionUser.email,
+              customerName: participants[0] || currentSessionUser.username || currentSessionUser.email,
+              proofType: 'initial'
+            })
+          });
+          const proofData = await res.json();
+          if (!res.ok) {
+            throw new Error(proofData.error || 'Gagal mengunggah bukti pembayaran tiket');
+          }
+          savedOrder = proofData.order || { id: oid };
+        } else {
+          const res = await fetch('/api/nobar', {
+            method: 'POST',
+            headers: getSessionAuthHeaders(),
+            body: JSON.stringify({
+              tier: selectedTier,
+              qty,
+              polaroidQty: selectedPolaroidQty,
+              participants,
+              phone,
+              notes,
+              paymentProof: compressedProofDataUrl
+            })
           });
 
-          updateQtyOptionsForTier();
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || 'Gagal memproses pembelian tiket nobar');
+          }
+          savedOrder = data;
         }
 
-        function hydrateNobarFromCache() {
-          try {
-            const raw = localStorage.getItem(NOBAR_CACHE_KEY);
-            if (!raw) return;
-            const parsed = JSON.parse(raw);
-            if (parsed && parsed.config && parsed.stats) {
-              applyNobarData({ config: parsed.config, stats: parsed.stats, userStats: {} }, { fromCache: true });
-            }
-          } catch (_) { }
-        }
+        stopNobarCountdown();
+        activeReservation = null;
 
-        async function loadNobarPageData() {
-          currentSessionUser = getLoggedUser();
-          const guestNotice = document.getElementById('guestLoginNotice');
-          if (guestNotice) {
-            guestNotice.style.display = currentSessionUser ? 'none' : 'block';
-          }
+        const orderForStorage = { ...savedOrder };
+        delete orderForStorage.payment_proof;
+        try {
+          sessionStorage.setItem('last_order', JSON.stringify(orderForStorage));
+          localStorage.setItem('last_order', JSON.stringify(orderForStorage));
+          sessionStorage.setItem('last_order_id', orderForStorage.id);
+        } catch (_) {}
 
-          if (currentSessionUser) {
-            fetch('/api/user-profile?email=' + encodeURIComponent(currentSessionUser.email), {
-              headers: getSessionAuthHeaders()
-            })
-              .then(r => r.ok ? r.json() : null)
-              .then(prof => {
-                const phoneEl = document.getElementById('nobarPhone');
-                if (prof && prof.phone && phoneEl && !phoneEl.value) {
-                  phoneEl.value = prof.phone;
-                }
-              })
-              .catch(() => { });
-          }
+        window.location.href = 'order-success.html?id=' + encodeURIComponent(orderForStorage.id || '');
+      } catch (err) {
+        showNobarAlert(err.message);
+        btn.disabled = false;
+        btn.textContent = originalText;
+        loadNobarPageData();
+      }
+    }
 
-          try {
-            const res = await fetch('/api/nobar?t=' + Date.now(), {
-              headers: getSessionAuthHeaders()
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Gagal memuat info event nobar');
-
-            applyNobarData(data, { fromCache: false });
-            try {
-              localStorage.setItem(NOBAR_CACHE_KEY, JSON.stringify({
-                config: data.config,
-                stats: data.stats,
-                cachedAt: Date.now()
-              }));
-            } catch (_) { }
-          } catch (err) {
-            console.error('Error loading nobar data:', err);
-            const errBox = document.getElementById('nobarLoadErrorAlert');
-            const errMsg = document.getElementById('nobarLoadErrorMsg');
-            if (errBox && !nobarConfig) {
-              if (errMsg) errMsg.textContent = 'Gagal memuat info event nobar: ' + (err.message || 'Koneksi terputus');
-              errBox.style.display = 'block';
-            }
-          }
-        }
-
-        async function submitNobarBooking() {
-          currentSessionUser = getLoggedUser();
-          if (!currentSessionUser) {
-            showNobarAlert('Silakan login ke akun Anda terlebih dahulu untuk membeli Tiket Nobar Bioskop.', {
-              variant: 'info',
-              tag: 'AKUN PEMBELI',
-              title: 'Login Akun Diperlukan',
-              buttonText: 'Masuk ke Akun →',
-              onClose: () => {
-                window.location.href = 'login.html?redirect=nobar.html';
-              }
-            });
-            return;
-          }
-
-          if (!nobarConfig || !nobarConfig.isOpen) {
-            showNobarAlert('Penjualan tiket saat ini sedang ditutup.', {
-              variant: 'error',
-              tag: 'STATUS EVENT',
-              title: 'Penjualan Tiket Ditutup'
-            });
-            return;
-          }
-
-          const qty = Math.max(1, parseInt(document.getElementById('nobarQtySelect').value, 10) || 1);
-          const selectedPolaroidQty = nobarConfig.polaroidEnabled === false ? 0 : Math.max(0, parseInt(polaroidQty, 10) || 0);
-          const phone = document.getElementById('nobarPhone').value.trim();
-          const notes = '';
-
-          const participantInputs = Array.from(document.querySelectorAll('input.participant-name-input'));
-          const participants = [];
-          for (let i = 0; i < participantInputs.length; i++) {
-            const val = participantInputs[i].value.trim();
-            if (!val) {
-              showNobarAlert(`Mohon isi Nama Lengkap Peserta #${i + 1} terlebih dahulu.`, {
-                variant: 'warning',
-                tag: 'STEP 02 / 02',
-                title: 'Data Peserta Belum Lengkap',
-                onClose: () => participantInputs[i].focus()
-              });
-              return;
-            }
-            participants.push(val);
-          }
-
-          if (!phone || phone.replace(/\D/g, '').length < 8) {
-            showNobarAlert('Mohon isi Nomor WhatsApp aktif terlebih dahulu.', {
-              variant: 'warning',
-              tag: 'STEP 02 / 02',
-              title: 'Nomor WhatsApp Wajib Diisi',
-              onClose: () => document.getElementById('nobarPhone').focus()
-            });
-            return;
-          }
-
-          if (!compressedProofDataUrl) {
-            showNobarAlert('Pembelian tiket nobar harus langsung dibayar. Mohon unggah screenshot bukti transfer QRIS Anda terlebih dahulu.', {
-              variant: 'warning',
-              tag: 'BUKTI PEMBAYARAN QRIS',
-              title: 'Unggah Bukti Transfer',
-              buttonText: 'Pilih Gambar Bukti',
-              onClose: () => document.getElementById('nobarProofInput').click()
-            });
-            return;
-          }
-
-          const btn = document.getElementById('btnSubmitNobar');
-          const originalText = btn.textContent;
-          btn.disabled = true;
-          btn.textContent = 'Memproses Tiket & Mengunggah Bukti Bayar...';
-
-          try {
-            let savedOrder = null;
-
-            if (activeReservation && (activeReservation.orderId || activeReservation.id)) {
-              const oid = activeReservation.orderId || activeReservation.id;
-              const res = await fetch('/api/payment-proof', {
-                method: 'POST',
-                headers: getSessionAuthHeaders(),
-                body: JSON.stringify({
-                  orderId: oid,
-                  base64Image: compressedProofDataUrl,
-                  email: currentSessionUser.email,
-                  customerName: participants[0] || currentSessionUser.username || currentSessionUser.email,
-                  proofType: 'initial'
-                })
-              });
-              const proofData = await res.json();
-              if (!res.ok) {
-                throw new Error(proofData.error || 'Gagal mengunggah bukti pembayaran tiket');
-              }
-              savedOrder = proofData.order || { id: oid };
-            } else {
-              const res = await fetch('/api/nobar', {
-                method: 'POST',
-                headers: getSessionAuthHeaders(),
-                body: JSON.stringify({
-                  tier: selectedTier,
-                  qty,
-                  polaroidQty: selectedPolaroidQty,
-                  participants,
-                  phone,
-                  notes,
-                  paymentProof: compressedProofDataUrl
-                })
-              });
-
-              const data = await res.json();
-              if (!res.ok) {
-                throw new Error(data.error || 'Gagal memproses pembelian tiket nobar');
-              }
-              savedOrder = data;
-            }
-
-            stopNobarCountdown();
-            activeReservation = null;
-
-            const orderForStorage = { ...savedOrder };
-            delete orderForStorage.payment_proof;
-            try {
-              sessionStorage.setItem('last_order', JSON.stringify(orderForStorage));
-              localStorage.setItem('last_order', JSON.stringify(orderForStorage));
-              sessionStorage.setItem('last_order_id', orderForStorage.id);
-            } catch (_) { }
-
-            window.location.href = 'order-success.html?id=' + encodeURIComponent(orderForStorage.id || '');
-          } catch (err) {
-            showNobarAlert(err.message);
-            btn.disabled = false;
-            btn.textContent = originalText;
-            loadNobarPageData();
-          }
-        }
-
-        hydrateNobarFromCache();
-        document.addEventListener('DOMContentLoaded', loadNobarPageData);
+    hydrateNobarFromCache();
+    document.addEventListener('DOMContentLoaded', loadNobarPageData);
   </script>
 
   <!-- MOBILE BOTTOM NAVIGATION BAR -->
