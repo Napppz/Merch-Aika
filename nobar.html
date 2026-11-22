@@ -1036,6 +1036,240 @@
       color: var(--text-muted);
     }
 
+    /* ── CENTERED CUSTOM NOTIFICATION & CONFIRM MODAL ── */
+    .nobar-dialog-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10080;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.15rem;
+      background: rgba(2, 7, 24, 0.82);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.24s ease, visibility 0.24s ease;
+    }
+
+    .nobar-dialog-overlay.show {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .nobar-dialog-card {
+      width: 100%;
+      max-width: 430px;
+      background: linear-gradient(165deg, rgba(12, 42, 92, 0.96) 0%, rgba(4, 12, 36, 0.99) 100%);
+      border: 1.5px solid rgba(41, 182, 246, 0.42);
+      border-radius: 22px;
+      padding: 2rem 1.85rem 1.7rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 26px 68px rgba(0, 0, 0, 0.72), 0 0 42px rgba(41, 182, 246, 0.16);
+      transform: translateY(16px) scale(0.95);
+      transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .nobar-dialog-overlay.show .nobar-dialog-card {
+      transform: translateY(0) scale(1);
+    }
+
+    .nobar-dialog-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #0284c7, #29b6f6, #38bdf8);
+    }
+
+    .nobar-dialog-card.variant-vip {
+      border-color: rgba(192, 132, 252, 0.55);
+      box-shadow: 0 26px 68px rgba(0, 0, 0, 0.75), 0 0 46px rgba(147, 51, 234, 0.28);
+    }
+
+    .nobar-dialog-card.variant-vip::before {
+      background: linear-gradient(90deg, #7e22ce, #c084fc, #fde047);
+    }
+
+    .nobar-dialog-card.variant-warning {
+      border-color: rgba(245, 158, 11, 0.5);
+      box-shadow: 0 26px 68px rgba(0, 0, 0, 0.75), 0 0 42px rgba(245, 158, 11, 0.18);
+    }
+
+    .nobar-dialog-card.variant-warning::before {
+      background: linear-gradient(90deg, #d97706, #fde047, #f59e0b);
+    }
+
+    .nobar-dialog-card.variant-error {
+      border-color: rgba(248, 113, 113, 0.52);
+      box-shadow: 0 26px 68px rgba(0, 0, 0, 0.75), 0 0 42px rgba(239, 68, 68, 0.2);
+    }
+
+    .nobar-dialog-card.variant-error::before {
+      background: linear-gradient(90deg, #dc2626, #f87171, #ef4444);
+    }
+
+    .nobar-dialog-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      margin: 0 auto 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(41, 182, 246, 0.14);
+      border: 1px solid rgba(41, 182, 246, 0.38);
+      color: var(--aqua);
+      box-shadow: 0 10px 26px rgba(41, 182, 246, 0.18);
+    }
+
+    .nobar-dialog-card.variant-vip .nobar-dialog-icon {
+      background: linear-gradient(145deg, rgba(111, 24, 188, 0.35), rgba(234, 179, 8, 0.18));
+      border-color: rgba(192, 132, 252, 0.55);
+      color: #fde047;
+      box-shadow: 0 10px 28px rgba(111, 24, 188, 0.35);
+    }
+
+    .nobar-dialog-card.variant-warning .nobar-dialog-icon {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: rgba(245, 158, 11, 0.45);
+      color: #fde047;
+      box-shadow: 0 10px 26px rgba(245, 158, 11, 0.18);
+    }
+
+    .nobar-dialog-card.variant-error .nobar-dialog-icon {
+      background: rgba(239, 68, 68, 0.16);
+      border-color: rgba(248, 113, 113, 0.45);
+      color: #f87171;
+      box-shadow: 0 10px 26px rgba(239, 68, 68, 0.2);
+    }
+
+    .nobar-dialog-tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.75rem;
+      border-radius: 50px;
+      margin-bottom: 0.65rem;
+      background: rgba(41, 182, 246, 0.14);
+      color: var(--aqua);
+      border: 1px solid rgba(41, 182, 246, 0.3);
+    }
+
+    .nobar-dialog-card.variant-vip .nobar-dialog-tag {
+      background: rgba(147, 51, 234, 0.22);
+      color: #e9d5ff;
+      border-color: rgba(192, 132, 252, 0.42);
+    }
+
+    .nobar-dialog-card.variant-warning .nobar-dialog-tag {
+      background: rgba(245, 158, 11, 0.16);
+      color: #fde68a;
+      border-color: rgba(245, 158, 11, 0.38);
+    }
+
+    .nobar-dialog-card.variant-error .nobar-dialog-tag {
+      background: rgba(239, 68, 68, 0.16);
+      color: #fecaca;
+      border-color: rgba(248, 113, 113, 0.38);
+    }
+
+    .nobar-dialog-title {
+      font-size: 1.26rem;
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+      margin: 0 0 0.6rem;
+    }
+
+    .nobar-dialog-msg {
+      font-size: 0.94rem;
+      color: rgba(214, 232, 248, 0.9);
+      line-height: 1.62;
+      margin: 0 0 1.55rem;
+      word-break: break-word;
+    }
+
+    .nobar-dialog-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .nobar-dialog-btn {
+      flex: 1;
+      min-width: 135px;
+      max-width: 240px;
+      min-height: 46px;
+      padding: 0.75rem 1.4rem;
+      border-radius: 87px;
+      font-family: var(--nobar-font);
+      font-size: 0.94rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      border: 1px solid transparent;
+    }
+
+    .nobar-dialog-btn.primary {
+      background: linear-gradient(135deg, #0284c7, #29b6f6);
+      color: var(--white);
+      border-color: rgba(125, 211, 252, 0.4);
+      box-shadow: 0 8px 24px rgba(41, 182, 246, 0.28);
+    }
+
+    .nobar-dialog-btn.primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 28px rgba(41, 182, 246, 0.4);
+    }
+
+    .nobar-dialog-card.variant-vip .nobar-dialog-btn.primary {
+      background: linear-gradient(135deg, #7e22ce, #4d108c);
+      border-color: rgba(216, 180, 254, 0.55);
+      box-shadow: 0 8px 24px rgba(111, 24, 188, 0.42);
+    }
+
+    .nobar-dialog-card.variant-warning .nobar-dialog-btn.primary {
+      background: linear-gradient(135deg, #071e3e, #135a86);
+      border-color: rgba(253, 224, 71, 0.5);
+      color: #fde047;
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.22);
+    }
+
+    .nobar-dialog-card.variant-error .nobar-dialog-btn.primary {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      border-color: rgba(252, 165, 165, 0.45);
+      box-shadow: 0 8px 24px rgba(239, 68, 68, 0.32);
+    }
+
+    .nobar-dialog-btn.secondary {
+      background: rgba(7, 26, 62, 0.75);
+      border-color: rgba(144, 184, 216, 0.32);
+      color: var(--text-muted);
+    }
+
+    .nobar-dialog-btn.secondary:hover {
+      border-color: var(--aqua);
+      color: var(--white);
+      background: rgba(13, 45, 96, 0.85);
+    }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 1060px) {
       .figma-event-grid {
@@ -1803,6 +2037,19 @@
     </div>
   </aside>
 
+  <!-- CENTERED CUSTOM NOTIFICATION & CONFIRM MODAL -->
+  <div class="nobar-dialog-overlay" id="nobarDialogOverlay" role="dialog" aria-modal="true" aria-labelledby="nobarDialogTitle" onclick="if(event.target===this) closeNobarDialog(false)">
+    <div class="nobar-dialog-card variant-info" id="nobarDialogCard">
+      <div class="nobar-dialog-icon" id="nobarDialogIcon"></div>
+      <div class="nobar-dialog-tag" id="nobarDialogTag">PEMBERITAHUAN</div>
+      <h3 class="nobar-dialog-title" id="nobarDialogTitle">Informasi Tiket Nobar</h3>
+      <p class="nobar-dialog-msg" id="nobarDialogMsg"></p>
+      <div class="nobar-dialog-actions" id="nobarDialogActions">
+        <button type="button" class="nobar-dialog-btn primary" id="nobarDialogConfirmBtn" onclick="closeNobarDialog(true)">Mengerti</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/cart.js"></script>
   <script src="js/main.js"></script>
   <script>
@@ -1816,6 +2063,177 @@
     let currentSessionUser = null;
     let activeReservation = null;
     let nobarCountdownTimerId = null;
+    let nobarDialogResolver = null;
+    let nobarDialogOnClose = null;
+
+    function getNobarDialogIconSvg(variant) {
+      if (variant === 'vip') {
+        return '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>';
+      }
+      if (variant === 'error') {
+        return '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+      }
+      if (variant === 'warning') {
+        return '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+      }
+      return '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+    }
+
+    function inferNobarDialogMeta(msg) {
+      const text = String(msg || '');
+      if (/Tiket VIP/i.test(text)) {
+        return {
+          variant: 'vip',
+          tag: 'TIKET VIP EKSKLUSIF',
+          title: /dikunci|antrean/i.test(text)
+            ? 'Slot Tiket VIP Sedang Dikunci'
+            : /habis/i.test(text)
+              ? 'Kuota Tiket VIP Habis'
+              : 'Informasi Tiket VIP'
+        };
+      }
+      if (/reservasi.*aktif|belum dibayar/i.test(text)) {
+        return {
+          variant: 'warning',
+          tag: 'RESERVASI AKTIF',
+          title: 'Kursi Sedang Dikunci Sementara'
+        };
+      }
+      if (/batas waktu pembayaran/i.test(text)) {
+        return {
+          variant: 'warning',
+          tag: 'WAKTU PEMBAYARAN HABIS',
+          title: 'Reservasi Kursi Dilepas'
+        };
+      }
+      if (/login/i.test(text)) {
+        return {
+          variant: 'info',
+          tag: 'AKUN PEMBELI',
+          title: 'Login Akun Diperlukan'
+        };
+      }
+      if (/Mohon isi|wajib diisi|unggah screenshot/i.test(text)) {
+        return {
+          variant: 'warning',
+          tag: 'LENGKAPI DATA',
+          title: 'Data Pesanan Belum Lengkap'
+        };
+      }
+      if (/ditutup|habis/i.test(text)) {
+        return {
+          variant: 'error',
+          tag: 'STATUS KUOTA',
+          title: 'Tiket Tidak Tersedia'
+        };
+      }
+      return {
+        variant: 'warning',
+        tag: 'PEMBERITAHUAN',
+        title: 'Informasi Tiket Nobar'
+      };
+    }
+
+    function closeNobarDialog(confirmed = false) {
+      const overlay = document.getElementById('nobarDialogOverlay');
+      if (overlay) overlay.classList.remove('show');
+      const resolve = nobarDialogResolver;
+      const cb = nobarDialogOnClose;
+      nobarDialogResolver = null;
+      nobarDialogOnClose = null;
+      if (typeof cb === 'function') {
+        setTimeout(() => cb(confirmed), 40);
+      }
+      if (typeof resolve === 'function') {
+        resolve(Boolean(confirmed));
+      }
+    }
+
+    function showNobarAlert(message, opts = {}) {
+      const cleanMsg = String(message || 'Terjadi kendala pada pemesanan tiket.').replace(/^⏱️\s*/, '');
+      const inferred = inferNobarDialogMeta(cleanMsg);
+      const variant = opts.variant || inferred.variant;
+      const tag = opts.tag || inferred.tag;
+      const title = opts.title || inferred.title;
+      const btnText = opts.buttonText || 'Mengerti';
+
+      const overlay = document.getElementById('nobarDialogOverlay');
+      const card = document.getElementById('nobarDialogCard');
+      const iconEl = document.getElementById('nobarDialogIcon');
+      const tagEl = document.getElementById('nobarDialogTag');
+      const titleEl = document.getElementById('nobarDialogTitle');
+      const msgEl = document.getElementById('nobarDialogMsg');
+      const actionsEl = document.getElementById('nobarDialogActions');
+
+      if (!overlay || !card) return Promise.resolve(true);
+
+      card.className = 'nobar-dialog-card variant-' + variant;
+      if (iconEl) iconEl.innerHTML = getNobarDialogIconSvg(variant);
+      if (tagEl) tagEl.textContent = tag;
+      if (titleEl) titleEl.textContent = title;
+      if (msgEl) msgEl.textContent = cleanMsg;
+      if (actionsEl) {
+        actionsEl.innerHTML = `<button type="button" class="nobar-dialog-btn primary" id="nobarDialogConfirmBtn" onclick="closeNobarDialog(true)">${escapeNobarHtml(btnText)}</button>`;
+      }
+
+      nobarDialogOnClose = typeof opts.onClose === 'function' ? opts.onClose : null;
+      overlay.classList.add('show');
+      setTimeout(() => {
+        document.getElementById('nobarDialogConfirmBtn')?.focus();
+      }, 30);
+
+      return new Promise(resolve => {
+        nobarDialogResolver = resolve;
+      });
+    }
+
+    function showNobarConfirm(message, opts = {}) {
+      const cleanMsg = String(message || '');
+      const variant = opts.variant || 'warning';
+      const tag = opts.tag || 'KONFIRMASI';
+      const title = opts.title || 'Konfirmasi Tindakan';
+      const confirmText = opts.confirmText || 'Ya, Lanjutkan';
+      const cancelText = opts.cancelText || 'Batal';
+
+      const overlay = document.getElementById('nobarDialogOverlay');
+      const card = document.getElementById('nobarDialogCard');
+      const iconEl = document.getElementById('nobarDialogIcon');
+      const tagEl = document.getElementById('nobarDialogTag');
+      const titleEl = document.getElementById('nobarDialogTitle');
+      const msgEl = document.getElementById('nobarDialogMsg');
+      const actionsEl = document.getElementById('nobarDialogActions');
+
+      if (!overlay || !card) return Promise.resolve(false);
+
+      card.className = 'nobar-dialog-card variant-' + variant;
+      if (iconEl) iconEl.innerHTML = getNobarDialogIconSvg(variant);
+      if (tagEl) tagEl.textContent = tag;
+      if (titleEl) titleEl.textContent = title;
+      if (msgEl) msgEl.textContent = cleanMsg;
+      if (actionsEl) {
+        actionsEl.innerHTML = `
+          <button type="button" class="nobar-dialog-btn secondary" onclick="closeNobarDialog(false)">${escapeNobarHtml(cancelText)}</button>
+          <button type="button" class="nobar-dialog-btn primary" id="nobarDialogConfirmBtn" onclick="closeNobarDialog(true)">${escapeNobarHtml(confirmText)}</button>
+        `;
+      }
+
+      nobarDialogOnClose = null;
+      overlay.classList.add('show');
+      setTimeout(() => {
+        document.getElementById('nobarDialogConfirmBtn')?.focus();
+      }, 30);
+
+      return new Promise(resolve => {
+        nobarDialogResolver = resolve;
+      });
+    }
+
+    document.addEventListener('keydown', (ev) => {
+      const overlay = document.getElementById('nobarDialogOverlay');
+      if (overlay && overlay.classList.contains('show') && ev.key === 'Escape') {
+        closeNobarDialog(false);
+      }
+    });
 
     function formatIdrLabel(n) {
       return 'IDR ' + (Number(n) || 0).toLocaleString('id-ID');
@@ -1901,7 +2319,11 @@
       } catch (err) {
         compressedProofDataUrl = '';
         btnText.textContent = 'Pilih Gambar Bukti Transfer (JPG / PNG / WebP)';
-        alert(err.message || 'Gagal memuat bukti transfer');
+        showNobarAlert(err.message || 'Gagal memuat bukti transfer', {
+          variant: 'error',
+          tag: 'UNGGAH BUKTI',
+          title: 'Gagal Memproses Gambar'
+        });
       }
     }
 
@@ -1976,9 +2398,18 @@
     function changePolaroidQty(delta) {
       if (!nobarConfig || nobarConfig.polaroidEnabled === false) return;
       if (activeReservation && (activeReservation.orderId || activeReservation.id)) {
-        alert(`Anda memiliki reservasi kursi aktif (#${activeReservation.orderId || activeReservation.id}). Klik "✕ Batalkan Reservasi & Ubah Pilihan" pada panel pembayaran jika ingin mengubah tambahan foto.`);
-        const payPanel = document.getElementById('nobarPaymentPanel');
-        if (payPanel) payPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        showNobarAlert(
+          `Anda memiliki reservasi kursi aktif (#${activeReservation.orderId || activeReservation.id}). Klik "✕ Batalkan Reservasi & Ubah Pilihan" pada panel pembayaran jika ingin mengubah tambahan foto.`,
+          {
+            variant: 'warning',
+            tag: 'RESERVASI AKTIF',
+            title: 'Kursi Sedang Dikunci Sementara',
+            onClose: () => {
+              const payPanel = document.getElementById('nobarPaymentPanel');
+              if (payPanel) payPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }
+        );
         return;
       }
       const maxPol = Math.max(1, nobarConfig.maxPolaroidPerOrder || 10);
@@ -2020,7 +2451,19 @@
 
       if (activeReservation && (activeReservation.orderId || activeReservation.id)) {
         if (tier !== activeReservation.tier) {
-          alert(`Anda memiliki reservasi kursi aktif (#${activeReservation.orderId || activeReservation.id}). Klik "✕ Batalkan Reservasi & Ubah Pilihan" pada panel pembayaran jika ingin mengganti kategori tiket.`);
+          showNobarAlert(
+            `Anda memiliki reservasi kursi aktif (#${activeReservation.orderId || activeReservation.id}). Klik "✕ Batalkan Reservasi & Ubah Pilihan" pada panel pembayaran jika ingin mengganti kategori tiket.`,
+            {
+              variant: 'warning',
+              tag: 'RESERVASI AKTIF',
+              title: 'Kursi Sedang Dikunci Sementara',
+              onClose: () => {
+                const payPanel = document.getElementById('nobarPaymentPanel');
+                if (payPanel) payPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }
+          );
+          return;
         }
         const payPanel = document.getElementById('nobarPaymentPanel');
         if (payPanel) payPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2029,16 +2472,28 @@
 
       if (tier === 'vip') {
         if (nobarStats.isVipSoldOut) {
-          alert('Maaf, kuota Tiket VIP (Kursi di sebelah Kak Aika) sudah habis terisi.');
+          showNobarAlert('Maaf, kuota Tiket VIP (Kursi di sebelah Kak Aika) sudah habis terisi.', {
+            variant: 'vip',
+            tag: 'TIKET VIP EKSKLUSIF',
+            title: 'Kuota Tiket VIP Habis'
+          });
           return;
         }
         if (nobarUserStats && nobarUserStats.hasVipTicket) {
-          alert('Akun Anda sudah memiliki pesanan Tiket VIP. Pembelian VIP dibatasi maksimal 1 tiket per akun.');
+          showNobarAlert('Akun Anda sudah memiliki pesanan Tiket VIP. Pembelian VIP dibatasi maksimal 1 tiket per akun.', {
+            variant: 'vip',
+            tag: 'MAKS 1 / AKUN',
+            title: 'Batas Pembelian Tiket VIP'
+          });
           return;
         }
       } else {
         if (nobarStats.isRegularSoldOut) {
-          alert('Maaf, kuota kursi Tiket Regular / Regular+ sudah habis.');
+          showNobarAlert('Maaf, kuota kursi Tiket Regular / Regular+ sudah habis.', {
+            variant: 'error',
+            tag: 'SOLD OUT',
+            title: 'Kuota Kursi Habis'
+          });
           return;
         }
       }
@@ -2127,9 +2582,16 @@
           }
           activeReservation = null;
           setTimeout(() => {
-            alert('⏱️ Batas waktu pembayaran tiket telah habis. Kursi dikembalikan ke kuota publik. Silakan pesan ulang jika kuota masih tersedia.');
             hideNobarPaymentStep();
             loadNobarPageData();
+            showNobarAlert(
+              'Batas waktu pembayaran tiket telah habis. Kursi dikembalikan ke kuota publik. Silakan pesan ulang jika kuota masih tersedia.',
+              {
+                variant: 'warning',
+                tag: 'WAKTU PEMBAYARAN HABIS',
+                title: 'Reservasi Kursi Dilepas'
+              }
+            );
           }, 300);
         }
       };
@@ -2205,7 +2667,17 @@
         return;
       }
       const oid = activeReservation.orderId || activeReservation.id;
-      if (!confirm(`Batalkan kunci kursi sementara untuk reservasi #${oid} agar Anda dapat mengubah pilihan tiket?`)) {
+      const confirmed = await showNobarConfirm(
+        `Batalkan kunci kursi sementara untuk reservasi #${oid} agar Anda dapat mengubah pilihan tiket?`,
+        {
+          variant: 'error',
+          tag: 'KONFIRMASI PEMBATALAN',
+          title: 'Batalkan Reservasi Kursi?',
+          confirmText: 'Ya, Batalkan',
+          cancelText: 'Kembali'
+        }
+      );
+      if (!confirmed) {
         return;
       }
       const cancelBtn = document.getElementById('btnCancelReservation');
@@ -2235,7 +2707,7 @@
           tierContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       } catch (err) {
-        alert(err.message);
+        showNobarAlert(err.message);
       } finally {
         if (cancelBtn) cancelBtn.disabled = false;
       }
@@ -2244,13 +2716,24 @@
     async function confirmNobarTicketSelection() {
       currentSessionUser = getLoggedUser();
       if (!currentSessionUser) {
-        alert('Silakan login ke akun Anda terlebih dahulu untuk membeli Tiket Nobar Bioskop.');
-        window.location.href = 'login.html?redirect=nobar.html';
+        showNobarAlert('Silakan login ke akun Anda terlebih dahulu untuk membeli Tiket Nobar Bioskop.', {
+          variant: 'info',
+          tag: 'AKUN PEMBELI',
+          title: 'Login Akun Diperlukan',
+          buttonText: 'Masuk ke Akun →',
+          onClose: () => {
+            window.location.href = 'login.html?redirect=nobar.html';
+          }
+        });
         return;
       }
 
       if (!nobarConfig || !nobarConfig.isOpen) {
-        alert('Penjualan tiket saat ini sedang ditutup.');
+        showNobarAlert('Penjualan tiket saat ini sedang ditutup.', {
+          variant: 'error',
+          tag: 'STATUS EVENT',
+          title: 'Penjualan Tiket Ditutup'
+        });
         return;
       }
 
@@ -2266,8 +2749,12 @@
       for (let i = 0; i < participantInputs.length; i++) {
         const val = participantInputs[i].value.trim();
         if (!val) {
-          alert(`Mohon isi Nama Lengkap Peserta #${i + 1} terlebih dahulu sebelum lanjut ke pembayaran QRIS.`);
-          participantInputs[i].focus();
+          showNobarAlert(`Mohon isi Nama Lengkap Peserta #${i + 1} terlebih dahulu sebelum lanjut ke pembayaran QRIS.`, {
+            variant: 'warning',
+            tag: 'STEP 02 / 02',
+            title: 'Data Peserta Belum Lengkap',
+            onClose: () => participantInputs[i].focus()
+          });
           return;
         }
         participants.push(val);
@@ -2275,8 +2762,12 @@
 
       const phone = document.getElementById('nobarPhone').value.trim();
       if (!phone || phone.replace(/\D/g, '').length < 8) {
-        alert('Mohon isi Nomor WhatsApp aktif terlebih dahulu sebelum lanjut ke pembayaran QRIS.');
-        document.getElementById('nobarPhone').focus();
+        showNobarAlert('Mohon isi Nomor WhatsApp aktif terlebih dahulu sebelum lanjut ke pembayaran QRIS.', {
+          variant: 'warning',
+          tag: 'STEP 02 / 02',
+          title: 'Nomor WhatsApp Wajib Diisi',
+          onClose: () => document.getElementById('nobarPhone').focus()
+        });
         return;
       }
 
@@ -2347,7 +2838,7 @@
           }, 60);
         }
       } catch (err) {
-        alert(err.message);
+        showNobarAlert(err.message);
         loadNobarPageData();
       } finally {
         if (confirmBtn) {
@@ -2700,13 +3191,24 @@
     async function submitNobarBooking() {
       currentSessionUser = getLoggedUser();
       if (!currentSessionUser) {
-        alert('Silakan login ke akun Anda terlebih dahulu untuk membeli Tiket Nobar Bioskop.');
-        window.location.href = 'login.html?redirect=nobar.html';
+        showNobarAlert('Silakan login ke akun Anda terlebih dahulu untuk membeli Tiket Nobar Bioskop.', {
+          variant: 'info',
+          tag: 'AKUN PEMBELI',
+          title: 'Login Akun Diperlukan',
+          buttonText: 'Masuk ke Akun →',
+          onClose: () => {
+            window.location.href = 'login.html?redirect=nobar.html';
+          }
+        });
         return;
       }
 
       if (!nobarConfig || !nobarConfig.isOpen) {
-        alert('Penjualan tiket saat ini sedang ditutup.');
+        showNobarAlert('Penjualan tiket saat ini sedang ditutup.', {
+          variant: 'error',
+          tag: 'STATUS EVENT',
+          title: 'Penjualan Tiket Ditutup'
+        });
         return;
       }
 
@@ -2720,22 +3222,35 @@
       for (let i = 0; i < participantInputs.length; i++) {
         const val = participantInputs[i].value.trim();
         if (!val) {
-          alert(`Mohon isi Nama Lengkap Peserta #${i + 1} terlebih dahulu.`);
-          participantInputs[i].focus();
+          showNobarAlert(`Mohon isi Nama Lengkap Peserta #${i + 1} terlebih dahulu.`, {
+            variant: 'warning',
+            tag: 'STEP 02 / 02',
+            title: 'Data Peserta Belum Lengkap',
+            onClose: () => participantInputs[i].focus()
+          });
           return;
         }
         participants.push(val);
       }
 
       if (!phone || phone.replace(/\D/g, '').length < 8) {
-        alert('Mohon isi Nomor WhatsApp aktif terlebih dahulu.');
-        document.getElementById('nobarPhone').focus();
+        showNobarAlert('Mohon isi Nomor WhatsApp aktif terlebih dahulu.', {
+          variant: 'warning',
+          tag: 'STEP 02 / 02',
+          title: 'Nomor WhatsApp Wajib Diisi',
+          onClose: () => document.getElementById('nobarPhone').focus()
+        });
         return;
       }
 
       if (!compressedProofDataUrl) {
-        alert('Pembelian tiket nobar harus langsung dibayar. Mohon unggah screenshot bukti transfer QRIS Anda terlebih dahulu.');
-        document.getElementById('nobarProofInput').click();
+        showNobarAlert('Pembelian tiket nobar harus langsung dibayar. Mohon unggah screenshot bukti transfer QRIS Anda terlebih dahulu.', {
+          variant: 'warning',
+          tag: 'BUKTI PEMBAYARAN QRIS',
+          title: 'Unggah Bukti Transfer',
+          buttonText: 'Pilih Gambar Bukti',
+          onClose: () => document.getElementById('nobarProofInput').click()
+        });
         return;
       }
 
@@ -2800,7 +3315,7 @@
 
         window.location.href = 'order-success.html?id=' + encodeURIComponent(orderForStorage.id || '');
       } catch (err) {
-        alert(err.message);
+        showNobarAlert(err.message);
         btn.disabled = false;
         btn.textContent = originalText;
         loadNobarPageData();
