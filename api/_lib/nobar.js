@@ -47,7 +47,7 @@ const DEFAULT_NOBAR_CONFIG = {
   pricePolaroid: 60000,
   maxPolaroidPerOrder: 10,
   vipPerk: 'Duduk eksklusif tepat di samping Kak Aika (Kuota 2 Orang) + Photocard & Poster',
-  regularPerk: '1x Tiket Masuk Nobar Bioskop (Kursi diambil saat event berlangsung, siapa cepat dia dapat)',
+  regularPerk: 'Postcard Freebies (@wutheringwave.id)',
   merchBundleDesc: 'Photocard Eksklusif + Poster Nobar Aika Sesilia (Tanpa Ukuran Baju • Ambil di Lokasi)'
 };
 

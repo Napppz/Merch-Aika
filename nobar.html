@@ -1827,7 +1827,7 @@
             </div>
             <div class="figma-perk-item">
               <img src="images/nobar/perk-postcard.svg" alt="" width="28.9156" height="28" class="figma-perk-icon" />
-              <span id="cmpDesc-regular">Postcard Freebies (@wutheringwave.id) · Kursi sesuai urutan kedatangan</span>
+              <span id="cmpDesc-regular">Postcard Freebies (@wutheringwave.id)</span>
             </div>
           </div>
         </div>
@@ -3424,10 +3424,6 @@
       document.getElementById('tierPrice-regular_merch').textContent = formatIdrLabel(nobarConfig.priceRegularMerch);
       document.getElementById('tierPrice-vip').textContent = formatIdrLabel(nobarConfig.priceVip);
 
-      const cmpDescReg = document.getElementById('cmpDesc-regular');
-      if (cmpDescReg && nobarConfig.regularPerk) {
-        cmpDescReg.textContent = nobarConfig.regularPerk;
-      }
       const cmpDescMerch = document.getElementById('cmpDesc-regular_merch');
       if (cmpDescMerch && nobarConfig.merchBundleDesc) {
         cmpDescMerch.textContent = nobarConfig.merchBundleDesc;
