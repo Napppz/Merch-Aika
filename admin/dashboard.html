@@ -1090,16 +1090,51 @@
         </div>
       </div>
 
+      <!-- EVENT & ARCHIVE SWITCHER BAR -->
+      <div class="stat-card" id="nobarEventSelectorBar" style="margin-bottom:1.25rem; padding:1rem 1.25rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; border-color:rgba(41,182,246,0.38);">
+        <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; flex:1; min-width:260px;">
+          <label for="nobarEventSelect" style="font-size:0.84rem; font-weight:800; color:var(--aqua); white-space:nowrap;">🎬 Pilih Event / Arsip:</label>
+          <select id="nobarEventSelect" onchange="onAdminNobarEventSelectChange()" style="flex:1; min-width:240px; max-width:440px; background:rgba(3,9,31,0.85); border:1px solid rgba(41,182,246,0.45); color:var(--white); padding:0.55rem 0.9rem; border-radius:8px; font-family:var(--font-body); font-size:0.86rem; font-weight:700;">
+            <option value="">Memuat daftar event...</option>
+          </select>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.65rem; flex-wrap:wrap;">
+          <button type="button" class="btn-primary" onclick="openNewNobarEventModal()" style="padding:0.6rem 1.15rem; border-radius:8px; font-size:0.84rem; font-weight:800; background:linear-gradient(135deg,#2563eb,#7c3aed); border:none; box-shadow:0 4px 16px rgba(99,102,241,0.35);">
+            ✨ Buat Event Nobar Baru (Arsipkan Lama)
+          </button>
+        </div>
+      </div>
+
+      <!-- ARCHIVE VIEW NOTICE -->
+      <div id="nobarArchiveModeNotice" style="display:none; margin-bottom:1.25rem; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.45); border-radius:12px; padding:0.9rem 1.25rem; color:#fde68a; font-size:0.85rem; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+        <div id="nobarArchiveModeText">📦 Sedang melihat arsip event lama.</div>
+        <div style="display:flex; align-items:center; gap:0.55rem; flex-wrap:wrap;">
+          <button type="button" id="btnActivateArchivedNobar" class="btn-primary" onclick="activateArchivedNobarEvent()" style="display:none; padding:0.5rem 0.95rem; border-radius:8px; font-size:0.8rem; font-weight:800; background:linear-gradient(135deg,#10b981,#0284c7); border:none;">
+            🔄 Aktifkan Event Ini (Arsipkan yg Aktif)
+          </button>
+          <button type="button" id="btnDeleteArchivedNobar" class="btn-del" onclick="deleteArchivedNobarEvent()" style="display:none; padding:0.48rem 0.85rem; border-radius:8px; font-size:0.8rem; font-weight:700;">
+            🗑 Hapus Arsip Ini
+          </button>
+          <button type="button" class="btn-secondary" onclick="switchBackToActiveNobarEvent()" style="padding:0.45rem 0.9rem; border-radius:8px; font-size:0.8rem; font-weight:700; border-color:rgba(253,224,71,0.5); color:#fde047;">
+            ← Kembali ke Event Aktif
+          </button>
+        </div>
+      </div>
+
       <!-- NOBAR QUOTA STATS -->
       <div class="stats-grid" id="nobarStatsGrid" style="margin-bottom:1.8rem;"></div>
 
       <!-- NOBAR CONFIGURATION FORM -->
-      <div class="stat-card" style="margin-bottom:2rem;">
-        <div class="admin-toolbar" style="margin-bottom:1rem;">
+      <div class="stat-card" id="nobarConfigCard" style="margin-bottom:2rem;">
+        <div class="admin-toolbar" style="margin-bottom:1rem; flex-wrap:wrap; gap:0.75rem;">
           <h2>Pengaturan Event, Harga &amp; Kuota Tiket Nobar</h2>
-          <div style="display:flex; align-items:center; gap:0.75rem;">
-            <label style="display:inline-flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:800; color:var(--white); background:rgba(3,9,31,0.7); border:1px solid var(--card-border); padding:0.5rem 0.95rem; border-radius:50px;">
-              <input type="checkbox" id="nobarIsOpen" checked style="width:18px; height:18px; accent-color:#22c55e;" />
+          <div style="display:flex; align-items:center; gap:0.65rem; flex-wrap:wrap;">
+            <label style="display:inline-flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:800; color:var(--white); background:rgba(3,9,31,0.7); border:1px solid var(--card-border); padding:0.5rem 0.95rem; border-radius:50px; font-size:0.82rem;" title="Matikan jika film/event sudah selesai agar banner & menu Nobar hilang dari halaman utama">
+              <input type="checkbox" id="nobarShowInStorefront" checked style="width:17px; height:17px; accent-color:#38bdf8;" />
+              <span id="nobarStorefrontStatusLabel">Halaman Utama: TAMPIL</span>
+            </label>
+            <label style="display:inline-flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:800; color:var(--white); background:rgba(3,9,31,0.7); border:1px solid var(--card-border); padding:0.5rem 0.95rem; border-radius:50px; font-size:0.82rem;">
+              <input type="checkbox" id="nobarIsOpen" checked style="width:17px; height:17px; accent-color:#22c55e;" />
               <span id="nobarOpenStatusLabel">Penjualan Tiket: DIBUKA</span>
             </label>
             <button class="btn-primary" id="saveNobarConfigBtn" onclick="saveAdminNobarConfig()">Simpan Pengaturan Nobar</button>
@@ -1733,6 +1768,69 @@
         <button class="btn-edit" id="downloadOrderExcelBtn" style="display:none">Excel Invoice</button>
         <button class="btn-ghost" onclick="closeOrderModal()">Tutup</button>
         <button class="btn-primary" id="markPaidBtn">💾 Update Status</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATE NEW NOBAR EVENT (ARCHIVE PREVIOUS) MODAL -->
+  <div class="modal-overlay" id="newNobarEventModal" onclick="if(event.target===this) closeNewNobarEventModal()">
+    <div class="modal" style="max-width:580px; width:95%;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+        <div>
+          <h2 style="margin:0; font-size:1.2rem; color:var(--aqua);">✨ Buat Event Nobar Baru</h2>
+          <p style="margin:4px 0 0; font-size:0.8rem; color:var(--text-muted); line-height:1.45;">
+            Event Nobar lama akan otomatis disimpan ke <strong>Arsip</strong> (semua data peserta, Polaroid, &amp; riwayat transaksi tetap aman). Kuota event baru dimulai dari 0 dan pembeli VIP lama bisa membeli VIP lagi.
+          </p>
+        </div>
+        <button type="button" class="btn-ghost" onclick="closeNewNobarEventModal()" style="padding:0.35rem 0.7rem; border-radius:50%;">✕</button>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.85rem;">
+        <div class="form-group" style="grid-column:1 / -1;">
+          <label>Judul Event Nobar Baru *</label>
+          <input type="text" id="newNobarEventTitle" placeholder="Contoh: Nobar Suzume Bersama Aika Sesilia" />
+        </div>
+        <div class="form-group" style="grid-column:1 / -1;">
+          <label>Judul Film Baru *</label>
+          <input type="text" id="newNobarMovieTitle" placeholder="Contoh: Suzume no Tojimari" />
+        </div>
+        <div class="form-group">
+          <label>Tanggal Event</label>
+          <input type="text" id="newNobarDate" placeholder="Contoh: Minggu, 20 Desember 2026" />
+        </div>
+        <div class="form-group">
+          <label>Jam Acara</label>
+          <input type="text" id="newNobarTime" placeholder="Contoh: 14:00 WIB - Selesai" />
+        </div>
+        <div class="form-group" style="grid-column:1 / -1;">
+          <label>Lokasi Bioskop &amp; Studio</label>
+          <input type="text" id="newNobarLocation" placeholder="Contoh: CGV Grand Indonesia Jakarta" />
+        </div>
+        <div class="form-group">
+          <label>Kuota Kursi VIP</label>
+          <input type="number" id="newNobarVipQuota" min="1" max="20" value="2" />
+        </div>
+        <div class="form-group">
+          <label>Kuota Kursi Reguler</label>
+          <input type="number" id="newNobarRegQuota" min="1" max="1000" value="40" />
+        </div>
+        <div class="form-group" style="grid-column:1 / -1; display:flex; gap:1rem; flex-wrap:wrap; margin-top:0.25rem;">
+          <label style="display:inline-flex; align-items:center; gap:0.45rem; cursor:pointer; font-size:0.84rem; color:var(--white); font-weight:700;">
+            <input type="checkbox" id="newNobarShowStorefront" checked style="width:16px; height:16px; accent-color:#38bdf8;" />
+            <span>Tampilkan di Halaman Utama</span>
+          </label>
+          <label style="display:inline-flex; align-items:center; gap:0.45rem; cursor:pointer; font-size:0.84rem; color:var(--white); font-weight:700;">
+            <input type="checkbox" id="newNobarIsOpen" checked style="width:16px; height:16px; accent-color:#22c55e;" />
+            <span>Langsung Buka Penjualan Tiket</span>
+          </label>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:0.65rem; margin-top:1.25rem;">
+        <button type="button" class="btn-secondary" onclick="closeNewNobarEventModal()">Batal</button>
+        <button type="button" class="btn-primary" id="submitNewNobarEventBtn" onclick="submitCreateNewNobarEvent()" style="background:linear-gradient(135deg,#2563eb,#7c3aed); border:none;">
+          ✨ Arsipkan Lama &amp; Buat Event Baru
+        </button>
       </div>
     </div>
   </div>
@@ -2771,7 +2869,8 @@
 
     
     // ── NOBAR BIOSKOP ADMIN MANAGEMENT ──
-    let adminNobarData = { config: null, stats: null, attendees: [] };
+    let adminNobarData = { config: null, viewedConfig: null, stats: null, attendees: [], eventsList: [], viewingEventId: null, isViewingArchive: false };
+    let selectedAdminNobarEventId = '';
     let pendingNobarBannerDataUrl = null;
 
     async function handleAdminNobarBannerChange(e) {
@@ -2837,15 +2936,211 @@
       }
     }
 
-    async function loadAdminNobar() {
+    function onAdminNobarEventSelectChange() {
+      const sel = document.getElementById('nobarEventSelect');
+      selectedAdminNobarEventId = sel ? sel.value : '';
+      loadAdminNobar(selectedAdminNobarEventId);
+    }
+
+    function switchBackToActiveNobarEvent() {
+      selectedAdminNobarEventId = (adminNobarData && adminNobarData.config && adminNobarData.config.eventId) || '';
+      loadAdminNobar(selectedAdminNobarEventId);
+    }
+
+    async function activateArchivedNobarEvent() {
+      const targetId = selectedAdminNobarEventId;
+      if (!targetId || targetId === 'all') return;
+      const viewedTitle = (adminNobarData && adminNobarData.viewedConfig && adminNobarData.viewedConfig.eventTitle) || targetId;
+      const activeTitle = (adminNobarData && adminNobarData.config && adminNobarData.config.eventTitle) || 'Event Aktif';
+      if (!confirm(`🔄 Aktifkan kembali event "${viewedTitle}"?\n\nEvent yang sedang aktif sekarang ("${activeTitle}") akan otomatis dipindahkan ke Arsip (semua data & tiketnya tetap aman disimpan).`)) {
+        return;
+      }
+      const btn = document.getElementById('btnActivateArchivedNobar');
+      const orig = btn ? btn.textContent : '';
+      if (btn) { btn.disabled = true; btn.textContent = 'Mengaktifkan...'; }
       try {
-        const res = await adminFetch('/api/nobar?admin=true&t=' + Date.now());
+        const res = await adminFetch('/api/nobar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'activate_archived_event',
+            eventId: targetId,
+            isOpen: true,
+            showInStorefront: true
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal mengaktifkan event arsip');
+        selectedAdminNobarEventId = (data.config && data.config.eventId) || targetId;
+        showToast('✅ ' + (data.message || 'Event arsip berhasil diaktifkan kembali!'));
+        await loadAdminNobar(selectedAdminNobarEventId);
+      } catch (err) {
+        showToast('Error: ' + err.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = orig; }
+      }
+    }
+
+    async function deleteArchivedNobarEvent() {
+      const targetId = selectedAdminNobarEventId;
+      if (!targetId || targetId === 'all') return;
+      const viewedTitle = (adminNobarData && adminNobarData.viewedConfig && adminNobarData.viewedConfig.eventTitle) || targetId;
+      const count = (adminNobarData && Array.isArray(adminNobarData.attendees)) ? adminNobarData.attendees.length : 0;
+      if (!confirm(`🗑 Hapus arsip "${viewedTitle}" dari daftar arsip?${count > 0 ? `\n\nEvent ini memiliki ${count} riwayat pesanan tiket. Pesanan tersebut juga akan ikut dihapus jika Anda lanjut.` : ''}`)) {
+        return;
+      }
+      try {
+        const res = await adminFetch('/api/nobar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'delete_archived_event',
+            eventId: targetId,
+            deleteOrders: count > 0
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal menghapus arsip event');
+        showToast('🗑 ' + (data.message || 'Arsip berhasil dihapus'));
+        selectedAdminNobarEventId = (adminNobarData && adminNobarData.config && adminNobarData.config.eventId) || '';
+        await loadAdminNobar(selectedAdminNobarEventId);
+      } catch (err) {
+        showToast('Error: ' + err.message);
+      }
+    }
+
+    function openNewNobarEventModal() {
+      const cfg = (adminNobarData && adminNobarData.config) || {};
+      const modal = document.getElementById('newNobarEventModal');
+      if (!modal) return;
+      document.getElementById('newNobarEventTitle').value = '';
+      document.getElementById('newNobarMovieTitle').value = '';
+      document.getElementById('newNobarDate').value = '';
+      document.getElementById('newNobarTime').value = '';
+      document.getElementById('newNobarLocation').value = cfg.cinemaLocation || '';
+      document.getElementById('newNobarVipQuota').value = cfg.vipQuota || 2;
+      document.getElementById('newNobarRegQuota').value = cfg.regularQuota || 40;
+      document.getElementById('newNobarShowStorefront').checked = true;
+      document.getElementById('newNobarIsOpen').checked = true;
+      modal.classList.add('show');
+      setTimeout(() => document.getElementById('newNobarEventTitle')?.focus(), 50);
+    }
+
+    function closeNewNobarEventModal() {
+      const modal = document.getElementById('newNobarEventModal');
+      if (modal) modal.classList.remove('show');
+    }
+
+    async function submitCreateNewNobarEvent() {
+      const title = (document.getElementById('newNobarEventTitle')?.value || '').trim();
+      const movie = (document.getElementById('newNobarMovieTitle')?.value || '').trim();
+      if (!title || !movie) {
+        showToast('Judul Event Nobar Baru dan Judul Film wajib diisi.');
+        return;
+      }
+      const btn = document.getElementById('submitNewNobarEventBtn');
+      const origText = btn ? btn.textContent : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Mengarsipkan & Membuat Event...';
+      }
+      try {
+        const res = await adminFetch('/api/nobar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'create_new_event',
+            eventTitle: title,
+            movieTitle: movie,
+            eventDate: (document.getElementById('newNobarDate')?.value || '').trim() || 'Segera Diumumkan',
+            eventTime: (document.getElementById('newNobarTime')?.value || '').trim() || 'Segera Diumumkan',
+            cinemaLocation: (document.getElementById('newNobarLocation')?.value || '').trim(),
+            vipQuota: parseInt(document.getElementById('newNobarVipQuota')?.value, 10) || 2,
+            regularQuota: parseInt(document.getElementById('newNobarRegQuota')?.value, 10) || 40,
+            showInStorefront: Boolean(document.getElementById('newNobarShowStorefront')?.checked),
+            isOpen: Boolean(document.getElementById('newNobarIsOpen')?.checked)
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal membuat event nobar baru');
+        closeNewNobarEventModal();
+        selectedAdminNobarEventId = (data.config && data.config.eventId) || '';
+        showToast(data.message || 'Event Nobar baru berhasil dibuat!');
+        await loadAdminNobar(selectedAdminNobarEventId);
+      } catch (err) {
+        showToast('Error: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = origText;
+        }
+      }
+    }
+
+    async function loadAdminNobar(targetEventId) {
+      try {
+        const chosenId = targetEventId !== undefined ? targetEventId : selectedAdminNobarEventId;
+        const qs = new URLSearchParams({ admin: 'true', t: String(Date.now()) });
+        if (chosenId) qs.set('eventId', chosenId);
+        const res = await adminFetch('/api/nobar?' + qs.toString());
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Gagal memuat data Nobar');
 
         adminNobarData = data;
         const cfg = data.config || {};
+        const viewedCfg = data.viewedConfig || cfg;
         const st = data.stats || {};
+        const isArchiveView = Boolean(data.isViewingArchive) || data.viewingEventId === 'all';
+        selectedAdminNobarEventId = data.viewingEventId || cfg.eventId || '';
+
+        // Populate Event & Archive Dropdown
+        const evSelect = document.getElementById('nobarEventSelect');
+        if (evSelect && Array.isArray(data.eventsList)) {
+          const opts = data.eventsList.map(ev => {
+            const prefix = ev.isActive ? '🟢 [AKTIF] ' : '📦 [ARSIP] ';
+            const countTxt = ` (${ev.activeSeats || 0} kursi / ${ev.orderCount || 0} order)`;
+            return `<option value="${escapeHtml(ev.eventId)}">${prefix}${escapeHtml(ev.eventTitle || ev.movieTitle || ev.eventId)}${countTxt}</option>`;
+          });
+          opts.push('<option value="all">📊 Semua Event Nobar (Gabungan)</option>');
+          evSelect.innerHTML = opts.join('');
+          evSelect.value = selectedAdminNobarEventId;
+        }
+
+        const archiveNotice = document.getElementById('nobarArchiveModeNotice');
+        const archiveNoticeText = document.getElementById('nobarArchiveModeText');
+        const configCard = document.getElementById('nobarConfigCard');
+        const btnActivateArchive = document.getElementById('btnActivateArchivedNobar');
+        const btnDeleteArchive = document.getElementById('btnDeleteArchivedNobar');
+        if (archiveNotice) {
+          if (isArchiveView) {
+            archiveNotice.style.display = 'flex';
+            const isSingleArchive = Boolean(data.isViewingArchive) && data.viewingEventId !== 'all';
+            if (btnActivateArchive) btnActivateArchive.style.display = isSingleArchive ? 'inline-flex' : 'none';
+            if (btnDeleteArchive) btnDeleteArchive.style.display = isSingleArchive ? 'inline-flex' : 'none';
+            if (archiveNoticeText) {
+              archiveNoticeText.innerHTML = data.viewingEventId === 'all'
+                ? '📊 Sedang melihat <strong>Gabungan Seluruh Event Nobar</strong> (Event Aktif + Semua Arsip). Pengaturan event disembunyikan sementara.'
+                : `📦 Sedang melihat <strong>Arsip Event Lama: ${escapeHtml(viewedCfg.eventTitle || viewedCfg.movieTitle)}</strong> (${escapeHtml(viewedCfg.eventDate || '-')}). Anda bisa mengaktifkannya kembali kapan saja (event aktif saat ini akan otomatis diarsipkan).`;
+            }
+            if (configCard) configCard.style.display = 'none';
+          } else {
+            archiveNotice.style.display = 'none';
+            if (btnActivateArchive) btnActivateArchive.style.display = 'none';
+            if (btnDeleteArchive) btnDeleteArchive.style.display = 'none';
+            if (configCard) configCard.style.display = 'block';
+          }
+        }
+
+        const storefrontEl = document.getElementById('nobarShowInStorefront');
+        const storefrontLbl = document.getElementById('nobarStorefrontStatusLabel');
+        const isShownInStorefront = cfg.showInStorefront !== false;
+        if (storefrontEl) {
+          storefrontEl.checked = isShownInStorefront;
+          storefrontEl.onchange = () => {
+            if (storefrontLbl) storefrontLbl.textContent = storefrontEl.checked ? 'Halaman Utama: TAMPIL' : 'Halaman Utama: DISEMBUNYIKAN';
+          };
+        }
+        if (storefrontLbl) storefrontLbl.textContent = isShownInStorefront ? 'Halaman Utama: TAMPIL' : 'Halaman Utama: DISEMBUNYIKAN';
 
         const isOpenEl = document.getElementById('nobarIsOpen');
         const openLbl = document.getElementById('nobarOpenStatusLabel');
@@ -2899,19 +3194,23 @@
 
         const statsEl = document.getElementById('nobarStatsGrid');
         if (statsEl) {
+          const isAllMode = data.viewingEventId === 'all';
+          const evCountLabel = isAllMode ? ` (${viewedCfg.totalEventsCount || (data.eventsList ? data.eventsList.length : 1)} Event)` : '';
+          const displayVipQuota = st.vipQuota || viewedCfg.vipQuota || 2;
+          const displayRegQuota = st.regularQuota || viewedCfg.regularQuota || 40;
           statsEl.innerHTML = `
             <div class="stat-card" style="border-color:rgba(234,179,8,0.45);">
-              <div class="stat-label">Tiket VIP</div>
-              <div class="stat-value" style="color:var(--gold);">${st.vipVerified || 0} / ${cfg.vipQuota || 2}</div>
-              <div style="font-size:0.76rem;color:var(--text-muted);margin-top:4px;">Antrean Verifikasi: ${st.vipPending || 0} • Sisa: ${st.vipRemaining || 0}</div>
+              <div class="stat-label">${isAllMode ? 'Total Tiket VIP' + evCountLabel : 'Tiket VIP'}</div>
+              <div class="stat-value" style="color:var(--gold);">${st.vipVerified || 0} / ${displayVipQuota}</div>
+              <div style="font-size:0.76rem;color:var(--text-muted);margin-top:4px;">${isAllMode ? `Antrean Verifikasi: ${st.vipPending || 0} • Akumulasi Kapasitas VIP` : `Antrean Verifikasi: ${st.vipPending || 0} • Sisa: ${st.vipRemaining || 0}`}</div>
             </div>
             <div class="stat-card">
-              <div class="stat-label">Tiket Reguler</div>
-              <div class="stat-value" style="color:var(--aqua);">${st.regularTaken || 0} / ${cfg.regularQuota || 40}</div>
-              <div style="font-size:0.76rem;color:var(--text-muted);margin-top:4px;">Terverifikasi: ${st.regularVerified || 0} • Sisa Kursi: ${st.regularRemaining || 0}</div>
+              <div class="stat-label">${isAllMode ? 'Total Tiket Reguler' + evCountLabel : 'Tiket Reguler'}</div>
+              <div class="stat-value" style="color:var(--aqua);">${st.regularTaken || 0} / ${displayRegQuota}</div>
+              <div style="font-size:0.76rem;color:var(--text-muted);margin-top:4px;">${isAllMode ? `Terverifikasi: ${st.regularVerified || 0} • Total Kapasitas Gabungan` : `Terverifikasi: ${st.regularVerified || 0} • Sisa Kursi: ${st.regularRemaining || 0}`}</div>
             </div>
             <div class="stat-card">
-              <div class="stat-label">Rincian Kategori Aktif</div>
+              <div class="stat-label">${isAllMode ? 'Total Kategori Semua Event' : 'Rincian Kategori Aktif'}</div>
               <div class="stat-value" style="font-size:1.15rem;">VIP: ${st.tierBreakdown?.vip?.total || 0} | Biasa: ${st.tierBreakdown?.regular?.total || 0} | +Merch: ${st.tierBreakdown?.regular_merch?.total || 0}</div>
               <div style="font-size:0.76rem;color:var(--text-muted);margin-top:4px;">Total Kursi: ${(st.vipTaken || 0) + (st.regularTaken || 0)} • Polaroid: <strong style="color:var(--aqua);">${st.polaroidTotalOrdered || 0} foto</strong></div>
             </div>
@@ -2921,9 +3220,9 @@
               <div style="font-size:0.76rem;color:var(--text-muted);margin-top:4px;">${st.checkedInOrders || 0} dari ${st.verifiedOrders || 0} transaksi terverifikasi sudah Check-in</div>
             </div>
             <div class="stat-card">
-              <div class="stat-label">Pendapatan Tiket Terverifikasi</div>
+              <div class="stat-label">${isAllMode ? 'Total Omzet Nobar (Semua Event)' : 'Pendapatan Tiket Terverifikasi'}</div>
               <div class="stat-value" style="color:#4ade80;">${formatPrice(verifiedRevenue)}</div>
-              <div style="font-size:0.76rem;color:var(--text-muted);margin-top:4px;">Penjualan: <strong>${cfg.isOpen ? 'DIBUKA' : 'DITUTUP'}</strong> • Kunci Kursi: <strong>${cfg.paymentTimeoutMinutes || 45} mnt</strong></div>
+              <div style="font-size:0.76rem;color:var(--text-muted);margin-top:4px;">${isAllMode ? 'Mode: <strong>REKAP GABUNGAN (READ-ONLY)</strong>' : isArchiveView ? 'Mode: <strong>ARSIP / REKAP</strong>' : `Halaman Utama: <strong>${isShownInStorefront ? 'TAMPIL' : 'DISEMBUNYIKAN'}</strong> • Tiket: <strong>${cfg.isOpen ? 'DIBUKA' : 'DITUTUP'}</strong>`}</div>
             </div>
           `;
         }
@@ -2945,6 +3244,7 @@
       try {
         const payload = {
           isOpen: document.getElementById('nobarIsOpen').checked,
+          showInStorefront: document.getElementById('nobarShowInStorefront')?.checked !== false,
           eventTitle: document.getElementById('nobarEventTitleInput').value.trim(),
           movieTitle: document.getElementById('nobarMovieTitleInput').value.trim(),
           eventDate: document.getElementById('nobarDateInput').value.trim(),
@@ -3041,7 +3341,10 @@
 
         return `
           <tr>
-            <td style="font-family:monospace;color:var(--aqua);font-size:0.8rem">${safeOid}</td>
+            <td style="font-family:monospace;color:var(--aqua);font-size:0.8rem">
+              ${safeOid}
+              ${adminNobarData.viewingEventId === 'all' && a.eventTitle ? `<div style="font-family:var(--font-body);font-size:0.7rem;color:#c084fc;margin-top:3px;font-weight:700;">🎬 ${escapeHtml(a.eventTitle)}</div>` : ''}
+            </td>
             <td>
               ${tierBadge}
               ${a.includesMerch ? '<div style="font-size:0.72rem;color:var(--gold);margin-top:3px;">+ Photocard &amp; Poster</div>' : ''}
@@ -3085,7 +3388,7 @@
         return;
       }
 
-      const headers = ['No', 'Order ID', 'Kategori Tiket', 'Nama Peserta', 'Urutan Kursi di Pesanan', 'Termasuk Merch (Photocard & Poster)', 'Tambahan Foto Polaroid (Per Pesanan)', 'Status Pembayaran', 'Email Akun', 'No HP', 'Total Pesanan (Rp)', 'Tanggal Pesan'];
+      const headers = ['No', 'Event Nobar', 'Order ID', 'Kategori Tiket', 'Nama Peserta', 'Urutan Kursi di Pesanan', 'Termasuk Merch (Photocard & Poster)', 'Tambahan Foto Polaroid (Per Pesanan)', 'Status Pembayaran', 'Email Akun', 'No HP', 'Total Pesanan (Rp)', 'Tanggal Pesan'];
       const rows = [headers.join(',')];
       let counter = 1;
 
@@ -3095,6 +3398,7 @@
         parts.forEach((pName, idx) => {
           const cols = [
             counter++,
+            a.eventTitle || (adminNobarData.viewedConfig && adminNobarData.viewedConfig.eventTitle) || 'Event Nobar',
             a.orderId,
             a.tierLabel,
             pName,
@@ -3111,11 +3415,16 @@
         });
       }
 
+      const evSlug = String((adminNobarData.viewedConfig && adminNobarData.viewedConfig.eventTitle) || 'nobar-aika')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 36) || 'nobar-aika';
       const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `daftar-peserta-nobar-aika-${new Date().toISOString().slice(0, 10)}.csv`;
+      link.download = `daftar-peserta-${evSlug}-${new Date().toISOString().slice(0, 10)}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -3722,22 +4031,33 @@
     async function deleteAllNobarOrders() {
       const count = (adminNobarData && Array.isArray(adminNobarData.attendees)) ? adminNobarData.attendees.length : 0;
       if (count === 0) {
-        showToast('ℹ️ Belum ada pesanan tiket Nobar untuk dihapus.');
+        showToast('ℹ️ Belum ada pesanan tiket Nobar pada event ini untuk dihapus.');
         return;
       }
-      if (!confirm(`⚠️ Yakin ingin MENGHAPUS SEMUA (${count}) pesanan tiket Nobar secara permanen?\n\nKuota kursi VIP & Reguler akan kembali penuh dan urutan Invoice hari ini akan di-reset kembali mulai dari 01.`)) {
+      const targetEvId = selectedAdminNobarEventId || (adminNobarData.config && adminNobarData.config.eventId) || 'nobar-event-1';
+      const targetEvName = targetEvId === 'all'
+        ? 'SEMUA EVENT (TERMASUK ARSIP LAMA)'
+        : ((adminNobarData.viewedConfig && adminNobarData.viewedConfig.eventTitle) || targetEvId);
+
+      if (!confirm(`⚠️ Yakin ingin MENGHAPUS ${count} pesanan tiket pada "${targetEvName}" secara permanen?\n\nArsip event lainnya TIDAK akan ikut terhapus.`)) {
         return;
       }
       try {
-        await Orders.delete('ALL_NOBAR');
-        showToast('🗑 Semua pesanan tiket Nobar berhasil dihapus!');
+        const res = await adminFetch('/api/nobar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'delete_event_orders', eventId: targetEvId })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal menghapus pesanan event ini');
+        showToast('🗑 ' + (data.message || 'Pesanan tiket pada event ini berhasil dihapus!'));
         if (!isNobarAdmin) {
           renderOrders(currentOrderFilter);
           renderDashboard();
         }
-        await loadAdminNobar();
+        await loadAdminNobar(targetEvId);
       } catch (e) {
-        showToast('⚠ Gagal menghapus semua tiket: ' + e.message);
+        showToast('⚠ Gagal menghapus tiket: ' + e.message);
       }
     }
 

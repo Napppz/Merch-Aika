@@ -1696,7 +1696,7 @@
         <span class="kimi-musubi-line right"></span>
       </div>
       <p class="figma-hero-subtitle" id="nobarHeroSubtitle">Menyinkronkan jadwal &amp; lokasi bioskop...</p>
-      <a href="#detailEventSection" class="figma-pill-btn scroll-down-btn" onclick="return smoothScrollToSection('detailEventSection', event)">
+      <a href="#detailEventSection" id="heroScrollDownBtn" data-custom-smooth-scroll="true" class="figma-pill-btn scroll-down-btn" onclick="return smoothScrollToSection('detailEventSection', event)">
         <span>Scroll Down</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1715,6 +1715,31 @@
         style="padding:0.45rem 1rem; border-radius:8px; font-size:0.84rem; font-weight:700; border-color:rgba(248,113,113,0.55); color:#fecaca;">🔄
         Muat Ulang Info Event</button>
     </div>
+
+    <!-- EVENT ENDED / HIDDEN FROM STOREFRONT PANEL -->
+    <section id="nobarEventEndedPanel" style="display:none; max-width:680px; margin:0 auto 4.5rem; text-align:center;">
+      <div class="figma-card" style="padding:3rem 2.25rem; border-color:rgba(56,189,248,0.35);">
+        <div style="width:68px; height:68px; margin:0 auto 1.25rem; border-radius:20px; background:rgba(56,189,248,0.14); border:1px solid rgba(56,189,248,0.4); display:flex; align-items:center; justify-content:center; color:#7dd3fc;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
+            <path d="M13 5v2" /><path d="M13 17v2" /><path d="M13 11v2" />
+          </svg>
+        </div>
+        <h2 style="font-size:1.55rem; color:var(--white); margin:0 0 0.75rem; font-weight:700;">Event Nobar Telah Berakhir</h2>
+        <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.65; margin:0 0 1.85rem;">
+          Saat ini belum ada jadwal Nonton Bareng terbaru yang dibuka. Terima kasih untuk kalian yang sudah ikut meramaikan event kemarin!
+          Riwayat pembelian dan E-Tiket dari nobar sebelumnya tetap tersimpan aman di halaman Profil Anda.
+        </p>
+        <div style="display:flex; gap:0.85rem; justify-content:center; flex-wrap:wrap;">
+          <a href="profile.html?tab=orders" class="figma-pill-btn" style="background:linear-gradient(135deg,#0284c7,#2563eb); border-color:#38bdf8;">
+            <span>Lihat Riwayat &amp; E-Tiket Saya</span>
+          </a>
+          <a href="shop.html" class="figma-pill-btn">
+            <span>Belanja Merch Aika Sesilia →</span>
+          </a>
+        </div>
+      </div>
+    </section>
 
     <!-- 2. EVENT POSTER + DETAILS + REALTIME AVAILABILITY -->
     <section class="figma-event-grid" id="detailEventSection">
@@ -1776,7 +1801,7 @@
     <section class="figma-compare-section" id="compareTiersSection">
       <div class="figma-section-header">
         <h2 class="figma-section-heading">Perbedaan Jenis Tiket</h2>
-        <a href="#beliTiketSection" class="figma-pill-btn" onclick="return smoothScrollToSection('beliTiketSection', event)">
+        <a href="#beliTiketSection" data-custom-smooth-scroll="true" class="figma-pill-btn" onclick="return smoothScrollToSection('beliTiketSection', event)">
           <span>Beli Tiket</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -3335,7 +3360,29 @@
       const submitBtn = document.getElementById('btnSubmitNobar');
       const confirmBtn = document.getElementById('btnConfirmTicketStep');
 
+      const isHiddenFromStorefront = nobarConfig.showInStorefront === false;
+      const endedPanel = document.getElementById('nobarEventEndedPanel');
+      const detailSec = document.getElementById('detailEventSection');
+      const compareSec = document.getElementById('compareTiersSection');
+      const buySec = document.getElementById('beliTiketSection');
+      const scrollDownBtn = document.getElementById('heroScrollDownBtn');
+
+      if (endedPanel) endedPanel.style.display = isHiddenFromStorefront ? 'block' : 'none';
+      if (detailSec) detailSec.style.display = isHiddenFromStorefront ? 'none' : '';
+      if (compareSec) compareSec.style.display = isHiddenFromStorefront ? 'none' : '';
+      if (buySec) buySec.style.display = isHiddenFromStorefront ? 'none' : '';
+      if (scrollDownBtn) scrollDownBtn.style.display = isHiddenFromStorefront ? 'none' : '';
+
       pill.style.opacity = '1';
+      if (isHiddenFromStorefront) {
+        pill.className = 'nobar-status-pill closed';
+        pillText.textContent = 'BELUM ADA EVENT NOBAR AKTIF';
+        if (heroSubEl) {
+          heroSubEl.textContent = 'Nantikan pengumuman jadwal Nonton Bareng selanjutnya bersama Aika Sesilia!';
+        }
+        return;
+      }
+
       const isAllSoldOut = nobarStats.isVipSoldOut && nobarStats.isRegularSoldOut;
       if (!nobarConfig.isOpen || (isAllSoldOut && !activeReservation)) {
         pill.className = 'nobar-status-pill closed';

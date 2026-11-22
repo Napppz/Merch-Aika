@@ -20,8 +20,13 @@ const {
   generateNobarQrDataUrl
 } = require('./nobar-qr');
 
+const LEGACY_EVENT_ID = 'nobar-event-1';
+
 const DEFAULT_NOBAR_CONFIG = {
+  eventId: LEGACY_EVENT_ID,
   isOpen: true,
+  showInStorefront: true,
+  createdAt: null,
   eventTitle: 'Nobar Spesial Bioskop Bersama Aika Sesilia',
   movieTitle: 'Segera Diumumkan (TBA)',
   eventDate: 'Segera Diumumkan',
@@ -73,14 +78,32 @@ function sanitizeMapsUrl(rawUrl) {
   return DEFAULT_NOBAR_CONFIG.cinemaMapsUrl;
 }
 
+function generateNobarEventId(seedTitle = '') {
+  const slug = String(seedTitle || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 24);
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const rand = Math.random().toString(36).slice(2, 6);
+  return `nobar-${y}${m}${d}-${slug || 'event'}-${rand}`;
+}
+
 function sanitizeNobarConfig(raw = {}) {
   const src = typeof raw === 'object' && raw !== null ? raw : {};
   const rawTimeout = parseInt(src.paymentTimeoutMinutes, 10);
   const paymentTimeoutMinutes = Number.isFinite(rawTimeout)
     ? Math.max(10, Math.min(1440, rawTimeout))
     : DEFAULT_NOBAR_CONFIG.paymentTimeoutMinutes;
+  const cleanEventId = String(src.eventId || DEFAULT_NOBAR_CONFIG.eventId).trim().slice(0, 80) || LEGACY_EVENT_ID;
   return {
+    eventId: cleanEventId,
     isOpen: src.isOpen !== undefined ? Boolean(src.isOpen) : DEFAULT_NOBAR_CONFIG.isOpen,
+    showInStorefront: src.showInStorefront !== undefined ? Boolean(src.showInStorefront) : DEFAULT_NOBAR_CONFIG.showInStorefront,
+    createdAt: src.createdAt ? String(src.createdAt) : null,
     eventTitle: String(src.eventTitle || DEFAULT_NOBAR_CONFIG.eventTitle).trim().slice(0, 160),
     movieTitle: String(src.movieTitle || DEFAULT_NOBAR_CONFIG.movieTitle).trim().slice(0, 140),
     eventDate: String(src.eventDate || DEFAULT_NOBAR_CONFIG.eventDate).trim().slice(0, 100),
@@ -118,6 +141,37 @@ async function getNobarConfig(runner = db) {
   }
 }
 
+async function getNobarEventsArchive(runner = db) {
+  await runner.query('CREATE TABLE IF NOT EXISTS settings (key VARCHAR(50) PRIMARY KEY, value TEXT);');
+  const res = await runner.query("SELECT value FROM settings WHERE key = 'nobar_events_archive'");
+  if (!res.rows.length || !res.rows[0].value) {
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(res.rows[0].value);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter(item => item && typeof item === 'object' && item.eventId)
+      .map(item => ({
+        ...sanitizeNobarConfig(item),
+        archivedAt: item.archivedAt || null,
+        summary: item.summary && typeof item.summary === 'object' ? item.summary : null
+      }));
+  } catch (_) {
+    return [];
+  }
+}
+
+async function saveNobarEventsArchive(runner, archiveList) {
+  const cleanList = Array.isArray(archiveList) ? archiveList.slice(0, 50) : [];
+  await runner.query(
+    `INSERT INTO settings (key, value)
+     VALUES ('nobar_events_archive', $1)
+     ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+    [JSON.stringify(cleanList)]
+  );
+}
+
 function parseShippingObj(rawShipping) {
   if (!rawShipping) return {};
   if (typeof rawShipping === 'object') return rawShipping;
@@ -128,13 +182,19 @@ function parseShippingObj(rawShipping) {
   }
 }
 
-async function computeNobarStats(runner = db, config = DEFAULT_NOBAR_CONFIG, currentUserEmail = null) {
+async function computeNobarStats(runner = db, config = DEFAULT_NOBAR_CONFIG, currentUserEmail = null, options = {}) {
   const { rows } = await runner.query(
     `SELECT id, "customerName", email, phone, status, total, shipping, payment_proof, notes, date
      FROM orders
      WHERE shipping::text LIKE '%"isNobar"%'
      ORDER BY date ASC`
   );
+
+  const filterEventId = options && options.eventId !== undefined
+    ? String(options.eventId || '').trim()
+    : (config.eventId || LEGACY_EVENT_ID);
+  const includeAllEvents = filterEventId === 'all';
+  const eventOrderCounts = {};
 
   let vipVerified = 0;
   let vipPending = 0;
@@ -167,8 +227,23 @@ async function computeNobarStats(runner = db, config = DEFAULT_NOBAR_CONFIG, cur
     if (!ship.isNobar || !ship.nobarTicket) continue;
 
     const ticket = ship.nobarTicket;
-    const tier = TIER_DEFINITIONS[ticket.tier] ? ticket.tier : 'regular';
+    const ticketEventId = String(ticket.eventId || (ticket.eventSnapshot && ticket.eventSnapshot.eventId) || LEGACY_EVENT_ID).trim();
+    const ticketEventTitle = String((ticket.eventSnapshot && ticket.eventSnapshot.eventTitle) || config.eventTitle || 'Event Nobar').trim();
     const qty = Math.max(1, parseInt(ticket.qty, 10) || 1);
+
+    if (!eventOrderCounts[ticketEventId]) {
+      eventOrderCounts[ticketEventId] = { orders: 0, activeSeats: 0 };
+    }
+    eventOrderCounts[ticketEventId].orders += 1;
+    if (st !== 'cancelled') {
+      eventOrderCounts[ticketEventId].activeSeats += qty;
+    }
+
+    if (!includeAllEvents && ticketEventId !== filterEventId) {
+      continue;
+    }
+
+    const tier = TIER_DEFINITIONS[ticket.tier] ? ticket.tier : 'regular';
     const polaroidQty = Math.max(0, parseInt(ticket.polaroidQty, 10) || 0);
     const polaroidUnitPrice = polaroidQty > 0
       ? (Number(ticket.polaroidUnitPrice) || config.pricePolaroid || 60000)
@@ -260,6 +335,8 @@ async function computeNobarStats(runner = db, config = DEFAULT_NOBAR_CONFIG, cur
 
     attendees.push({
       orderId: row.id,
+      eventId: ticketEventId,
+      eventTitle: ticketEventTitle,
       customerName: row.customerName,
       email: row.email,
       phone: row.phone || '',
@@ -323,7 +400,8 @@ async function computeNobarStats(runner = db, config = DEFAULT_NOBAR_CONFIG, cur
       regularTicketsBought: userRegularTicketsBought,
       activePendingReservation
     },
-    attendees
+    attendees,
+    eventOrderCounts
   };
 }
 
@@ -472,10 +550,41 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      const { stats, userStats, attendees } = await computeNobarStats(
+      const isAdminRequest = Boolean(req.query && req.query.admin === 'true' && adminAuth);
+      const requestedEventId = isAdminRequest && req.query && req.query.eventId
+        ? String(req.query.eventId).trim()
+        : config.eventId;
+
+      let archiveList = [];
+      let viewedConfig = config;
+      let isViewingArchive = false;
+
+      if (isAdminRequest) {
+        archiveList = await getNobarEventsArchive(db);
+        if (requestedEventId === 'all') {
+          const allEventConfigs = [config, ...archiveList];
+          viewedConfig = {
+            ...config,
+            eventId: 'all',
+            eventTitle: `Semua Event Nobar (${allEventConfigs.length} Event)`,
+            vipQuota: allEventConfigs.reduce((sum, ev) => sum + (parseInt(ev.vipQuota, 10) || 2), 0),
+            regularQuota: allEventConfigs.reduce((sum, ev) => sum + (parseInt(ev.regularQuota, 10) || 40), 0),
+            totalEventsCount: allEventConfigs.length
+          };
+        } else if (requestedEventId && requestedEventId !== config.eventId) {
+          const matchedArchive = archiveList.find(ev => ev.eventId === requestedEventId);
+          if (matchedArchive) {
+            viewedConfig = matchedArchive;
+            isViewingArchive = true;
+          }
+        }
+      }
+
+      const { stats, userStats, attendees, eventOrderCounts } = await computeNobarStats(
         db,
-        config,
-        userAuth ? userAuth.email : null
+        viewedConfig,
+        userAuth ? userAuth.email : null,
+        { eventId: isAdminRequest ? (requestedEventId || config.eventId) : config.eventId }
       );
 
       const payload = {
@@ -484,7 +593,37 @@ module.exports = async function handler(req, res) {
         userStats
       };
 
-      if (req.query && req.query.admin === 'true' && adminAuth) {
+      if (isAdminRequest) {
+        const eventsList = [
+          {
+            eventId: config.eventId,
+            eventTitle: config.eventTitle,
+            movieTitle: config.movieTitle,
+            eventDate: config.eventDate,
+            cinemaLocation: config.cinemaLocation,
+            isActive: true,
+            isOpen: config.isOpen,
+            showInStorefront: config.showInStorefront !== false,
+            createdAt: config.createdAt || null,
+            orderCount: (eventOrderCounts[config.eventId] && eventOrderCounts[config.eventId].orders) || 0,
+            activeSeats: (eventOrderCounts[config.eventId] && eventOrderCounts[config.eventId].activeSeats) || 0
+          },
+          ...archiveList.map(ev => ({
+            eventId: ev.eventId,
+            eventTitle: ev.eventTitle,
+            movieTitle: ev.movieTitle,
+            eventDate: ev.eventDate,
+            cinemaLocation: ev.cinemaLocation,
+            isActive: false,
+            archivedAt: ev.archivedAt || null,
+            orderCount: (eventOrderCounts[ev.eventId] && eventOrderCounts[ev.eventId].orders) || 0,
+            activeSeats: (eventOrderCounts[ev.eventId] && eventOrderCounts[ev.eventId].activeSeats) || 0
+          }))
+        ];
+        payload.viewedConfig = viewedConfig;
+        payload.viewingEventId = requestedEventId || config.eventId;
+        payload.isViewingArchive = isViewingArchive;
+        payload.eventsList = eventsList;
         payload.attendees = attendees;
       }
 
@@ -512,6 +651,8 @@ module.exports = async function handler(req, res) {
       const nextConfig = sanitizeNobarConfig({
         ...current,
         ...incoming,
+        eventId: current.eventId || LEGACY_EVENT_ID,
+        createdAt: current.createdAt || new Date().toISOString(),
         bannerImage
       });
 
@@ -522,7 +663,7 @@ module.exports = async function handler(req, res) {
         [JSON.stringify(nextConfig)]
       );
 
-      const { stats, attendees } = await computeNobarStats(db, nextConfig, null);
+      const { stats, attendees } = await computeNobarStats(db, nextConfig, null, { eventId: nextConfig.eventId });
       return res.status(200).json({
         success: true,
         message: 'Pengaturan Event Nobar Bioskop berhasil disimpan',
@@ -535,6 +676,249 @@ module.exports = async function handler(req, res) {
     if (req.method === 'POST') {
       const body = req.body || {};
       const action = String(body.action || '').trim().toLowerCase();
+
+      // ── ADMIN ACTION 0: CREATE NEW NOBAR EVENT & ARCHIVE PREVIOUS EVENT ──
+      if (action === 'create_new_event') {
+        const adminUser = requireAdmin(req, res);
+        if (!adminUser) return;
+
+        const newTitle = String(body.eventTitle || '').trim();
+        const newMovie = String(body.movieTitle || '').trim();
+        if (!newTitle || !newMovie) {
+          return res.status(400).json({ error: 'Judul Event Nobar dan Judul Film baru wajib diisi.' });
+        }
+
+        const result = await db.withTransaction(async (client) => {
+          await client.query("SELECT pg_advisory_xact_lock(hashtext('nobar:ticket_booking'))");
+
+          const currentConfig = await getNobarConfig(client);
+          const archiveList = await getNobarEventsArchive(client);
+          const currentStatsPack = await computeNobarStats(client, currentConfig, null, { eventId: currentConfig.eventId });
+          const verifiedRevenue = (currentStatsPack.attendees || [])
+            .filter(a => ['paid', 'shipped', 'completed'].includes(String(a.status || '').toLowerCase()))
+            .reduce((sum, a) => sum + (Number(a.total) || 0), 0);
+
+          const archivedEntry = {
+            ...currentConfig,
+            isOpen: false,
+            showInStorefront: false,
+            archivedAt: new Date().toISOString(),
+            summary: {
+              vipVerified: currentStatsPack.stats.vipVerified,
+              regularVerified: currentStatsPack.stats.regularVerified,
+              polaroidTotalOrdered: currentStatsPack.stats.polaroidTotalOrdered,
+              verifiedOrders: currentStatsPack.stats.verifiedOrders,
+              verifiedSeats: currentStatsPack.stats.verifiedSeats,
+              verifiedRevenue
+            }
+          };
+
+          const dedupedArchive = [
+            archivedEntry,
+            ...archiveList.filter(ev => ev.eventId !== currentConfig.eventId)
+          ];
+          await saveNobarEventsArchive(client, dedupedArchive);
+
+          const nextEventId = generateNobarEventId(newMovie || newTitle);
+          const nextConfig = sanitizeNobarConfig({
+            ...currentConfig,
+            eventId: nextEventId,
+            createdAt: new Date().toISOString(),
+            eventTitle: newTitle,
+            movieTitle: newMovie,
+            eventDate: body.eventDate !== undefined ? String(body.eventDate).trim() : 'Segera Diumumkan',
+            eventTime: body.eventTime !== undefined ? String(body.eventTime).trim() : 'Segera Diumumkan',
+            cinemaLocation: body.cinemaLocation !== undefined ? String(body.cinemaLocation).trim() : currentConfig.cinemaLocation,
+            cinemaMapsUrl: body.cinemaMapsUrl !== undefined ? String(body.cinemaMapsUrl).trim() : currentConfig.cinemaMapsUrl,
+            vipQuota: body.vipQuota !== undefined ? body.vipQuota : currentConfig.vipQuota,
+            regularQuota: body.regularQuota !== undefined ? body.regularQuota : currentConfig.regularQuota,
+            priceVip: body.priceVip !== undefined ? body.priceVip : currentConfig.priceVip,
+            priceRegular: body.priceRegular !== undefined ? body.priceRegular : currentConfig.priceRegular,
+            priceRegularMerch: body.priceRegularMerch !== undefined ? body.priceRegularMerch : currentConfig.priceRegularMerch,
+            pricePolaroid: body.pricePolaroid !== undefined ? body.pricePolaroid : currentConfig.pricePolaroid,
+            isOpen: body.isOpen !== undefined ? Boolean(body.isOpen) : true,
+            showInStorefront: body.showInStorefront !== undefined ? Boolean(body.showInStorefront) : true,
+            bannerImage: body.keepBanner ? currentConfig.bannerImage : DEFAULT_NOBAR_CONFIG.bannerImage
+          });
+
+          await client.query(
+            `INSERT INTO settings (key, value)
+             VALUES ('nobar_config', $1)
+             ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+            [JSON.stringify(nextConfig)]
+          );
+
+          return { nextConfig, archivedEntry };
+        });
+
+        return res.status(201).json({
+          success: true,
+          message: `Event Nobar baru "${result.nextConfig.eventTitle}" berhasil dibuat! Event lama "${result.archivedEntry.eventTitle}" telah disimpan ke Arsip.`,
+          config: result.nextConfig,
+          archivedEvent: result.archivedEntry
+        });
+      }
+
+      // ── ADMIN ACTION 0B: DELETE ORDERS FOR A SPECIFIC EVENT ONLY ──
+      if (action === 'delete_event_orders') {
+        const adminUser = requireAdmin(req, res);
+        if (!adminUser) return;
+
+        const activeConfig = await getNobarConfig(db);
+        const targetEventId = String(body.eventId || activeConfig.eventId || LEGACY_EVENT_ID).trim();
+
+        const deletedCount = await db.withTransaction(async (client) => {
+          await client.query("SELECT pg_advisory_xact_lock(hashtext('nobar:ticket_booking'))");
+          const rowsRes = await client.query(
+            `SELECT id, shipping FROM orders WHERE shipping::text LIKE '%"isNobar"%'`
+          );
+          const idsToDelete = [];
+          for (const row of rowsRes.rows) {
+            const ship = parseShippingObj(row.shipping);
+            if (!ship.isNobar || !ship.nobarTicket) continue;
+            const ticketEvId = String(ship.nobarTicket.eventId || (ship.nobarTicket.eventSnapshot && ship.nobarTicket.eventSnapshot.eventId) || LEGACY_EVENT_ID).trim();
+            if (targetEventId === 'all' || ticketEvId === targetEventId) {
+              idsToDelete.push(row.id);
+            }
+          }
+          if (idsToDelete.length > 0) {
+            await client.query('DELETE FROM orders WHERE id = ANY($1::text[])', [idsToDelete]);
+          }
+          return idsToDelete.length;
+        });
+
+        return res.status(200).json({
+          success: true,
+          deletedCount,
+          eventId: targetEventId,
+          message: `${deletedCount} pesanan tiket pada event ini berhasil dihapus (arsip event lain tetap aman).`
+        });
+      }
+
+      // ── ADMIN ACTION 0C: ACTIVATE AN ARCHIVED EVENT (SWAP WITH CURRENT ACTIVE EVENT) ──
+      if (action === 'activate_archived_event') {
+        const adminUser = requireAdmin(req, res);
+        if (!adminUser) return;
+
+        const targetEventId = String(body.eventId || '').trim();
+        if (!targetEventId) {
+          return res.status(400).json({ error: 'Event ID arsip wajib diisi.' });
+        }
+
+        const result = await db.withTransaction(async (client) => {
+          await client.query("SELECT pg_advisory_xact_lock(hashtext('nobar:ticket_booking'))");
+
+          const currentConfig = await getNobarConfig(client);
+          if (currentConfig.eventId === targetEventId) {
+            return { restoredConfig: currentConfig, archivedPrevious: null, alreadyActive: true };
+          }
+
+          const archiveList = await getNobarEventsArchive(client);
+          const targetIdx = archiveList.findIndex(ev => ev.eventId === targetEventId);
+          if (targetIdx < 0) {
+            throw createHttpError(404, 'Event arsip tidak ditemukan.');
+          }
+
+          const targetArchived = archiveList[targetIdx];
+          const currentStatsPack = await computeNobarStats(client, currentConfig, null, { eventId: currentConfig.eventId });
+          const verifiedRevenue = (currentStatsPack.attendees || [])
+            .filter(a => ['paid', 'shipped', 'completed'].includes(String(a.status || '').toLowerCase()))
+            .reduce((sum, a) => sum + (Number(a.total) || 0), 0);
+
+          const archivedPrevious = {
+            ...currentConfig,
+            isOpen: false,
+            showInStorefront: false,
+            archivedAt: new Date().toISOString(),
+            summary: {
+              vipVerified: currentStatsPack.stats.vipVerified,
+              regularVerified: currentStatsPack.stats.regularVerified,
+              polaroidTotalOrdered: currentStatsPack.stats.polaroidTotalOrdered,
+              verifiedOrders: currentStatsPack.stats.verifiedOrders,
+              verifiedSeats: currentStatsPack.stats.verifiedSeats,
+              verifiedRevenue
+            }
+          };
+
+          const remainingArchive = archiveList.filter(ev => ev.eventId !== targetEventId && ev.eventId !== currentConfig.eventId);
+          await saveNobarEventsArchive(client, [archivedPrevious, ...remainingArchive]);
+
+          const restoredConfig = sanitizeNobarConfig({
+            ...targetArchived,
+            eventId: targetArchived.eventId,
+            isOpen: body.isOpen !== undefined ? Boolean(body.isOpen) : true,
+            showInStorefront: body.showInStorefront !== undefined ? Boolean(body.showInStorefront) : true
+          });
+
+          await client.query(
+            `INSERT INTO settings (key, value)
+             VALUES ('nobar_config', $1)
+             ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+            [JSON.stringify(restoredConfig)]
+          );
+
+          return { restoredConfig, archivedPrevious, alreadyActive: false };
+        });
+
+        return res.status(200).json({
+          success: true,
+          message: result.alreadyActive
+            ? `Event "${result.restoredConfig.eventTitle}" sudah menjadi event aktif.`
+            : `Event "${result.restoredConfig.eventTitle}" berhasil diaktifkan kembali! Event sebelumnya ("${result.archivedPrevious.eventTitle}") telah dipindahkan ke Arsip.`,
+          config: result.restoredConfig,
+          archivedPrevious: result.archivedPrevious
+        });
+      }
+
+      // ── ADMIN ACTION 0D: REMOVE AN ARCHIVED EVENT FROM ARCHIVE LIST ──
+      if (action === 'delete_archived_event') {
+        const adminUser = requireAdmin(req, res);
+        if (!adminUser) return;
+
+        const targetEventId = String(body.eventId || '').trim();
+        const alsoDeleteOrders = Boolean(body.deleteOrders);
+        if (!targetEventId) {
+          return res.status(400).json({ error: 'Event ID arsip wajib diisi.' });
+        }
+
+        const outcome = await db.withTransaction(async (client) => {
+          await client.query("SELECT pg_advisory_xact_lock(hashtext('nobar:ticket_booking'))");
+          const currentConfig = await getNobarConfig(client);
+          if (currentConfig.eventId === targetEventId) {
+            throw createHttpError(400, 'Tidak bisa menghapus event yang sedang aktif. Aktifkan event lain terlebih dahulu.');
+          }
+          const archiveList = await getNobarEventsArchive(client);
+          const matched = archiveList.find(ev => ev.eventId === targetEventId);
+          if (!matched) {
+            throw createHttpError(404, 'Event arsip tidak ditemukan.');
+          }
+          await saveNobarEventsArchive(client, archiveList.filter(ev => ev.eventId !== targetEventId));
+
+          let deletedOrders = 0;
+          if (alsoDeleteOrders) {
+            const rowsRes = await client.query(
+              `SELECT id, shipping FROM orders WHERE shipping::text LIKE '%"isNobar"%'`
+            );
+            const idsToDelete = [];
+            for (const row of rowsRes.rows) {
+              const ship = parseShippingObj(row.shipping);
+              if (!ship.isNobar || !ship.nobarTicket) continue;
+              const ticketEvId = String(ship.nobarTicket.eventId || (ship.nobarTicket.eventSnapshot && ship.nobarTicket.eventSnapshot.eventId) || LEGACY_EVENT_ID).trim();
+              if (ticketEvId === targetEventId) idsToDelete.push(row.id);
+            }
+            if (idsToDelete.length > 0) {
+              await client.query('DELETE FROM orders WHERE id = ANY($1::text[])', [idsToDelete]);
+              deletedOrders = idsToDelete.length;
+            }
+          }
+          return { title: matched.eventTitle, deletedOrders };
+        });
+
+        return res.status(200).json({
+          success: true,
+          message: `Arsip "${outcome.title}" berhasil dihapus${outcome.deletedOrders > 0 ? ` beserta ${outcome.deletedOrders} pesanan tiketnya` : ''}.`
+        });
+      }
 
       // ── ADMIN ACTION 1: PREVIEW / VERIFY QR CODE FOR CHECK-IN ──
       if (action === 'verify_qr') {
@@ -585,6 +969,18 @@ module.exports = async function handler(req, res) {
         }
 
         const summary = formatTicketSummaryForCheckin(orderRow, shipObj);
+        const activeConfig = await getNobarConfig(db);
+        const ticketEventId = String(shipObj.nobarTicket.eventId || (shipObj.nobarTicket.eventSnapshot && shipObj.nobarTicket.eventSnapshot.eventId) || LEGACY_EVENT_ID).trim();
+        if (ticketEventId !== (activeConfig.eventId || LEGACY_EVENT_ID)) {
+          const oldEventName = (shipObj.nobarTicket.eventSnapshot && shipObj.nobarTicket.eventSnapshot.eventTitle) || ticketEventId;
+          return res.status(200).json({
+            valid: false,
+            checkInStatus: 'wrong_event',
+            canCheckIn: false,
+            message: `Tiket ini berasal dari event Nobar lama ("${oldEventName}"), bukan untuk event aktif ("${activeConfig.eventTitle}").`,
+            order: summary
+          });
+        }
         const st = String(orderRow.status || '').toLowerCase();
 
         if (st === 'cancelled') {
@@ -662,6 +1058,13 @@ module.exports = async function handler(req, res) {
             if (!sigCheck.valid) {
               throw createHttpError(403, 'QR Code E-Tiket tidak sah / tanda tangan keamanan tidak cocok!');
             }
+          }
+
+          const activeConfig = await getNobarConfig(client);
+          const ticketEventId = String(shipObj.nobarTicket.eventId || (shipObj.nobarTicket.eventSnapshot && shipObj.nobarTicket.eventSnapshot.eventId) || LEGACY_EVENT_ID).trim();
+          if (ticketEventId !== (activeConfig.eventId || LEGACY_EVENT_ID)) {
+            const oldEventName = (shipObj.nobarTicket.eventSnapshot && shipObj.nobarTicket.eventSnapshot.eventTitle) || ticketEventId;
+            throw createHttpError(400, `Tiket ini berasal dari event Nobar lama ("${oldEventName}") dan tidak berlaku untuk event aktif ("${activeConfig.eventTitle}").`);
           }
 
           const st = String(orderRow.status || '').toLowerCase();
@@ -949,7 +1352,7 @@ module.exports = async function handler(req, res) {
         await client.query("SELECT pg_advisory_xact_lock(hashtext('nobar:ticket_booking'))");
 
         const config = await getNobarConfig(client);
-        if (!config.isOpen) {
+        if (!config.isOpen || config.showInStorefront === false) {
           throw createHttpError(400, 'Maaf, penjualan Tiket Nobar Bioskop saat ini sedang ditutup oleh Admin.');
         }
 
@@ -1064,6 +1467,7 @@ module.exports = async function handler(req, res) {
           isDp: false,
           isNobar: true,
           nobarTicket: {
+            eventId: config.eventId || LEGACY_EVENT_ID,
             tier,
             tierLabel: tierMeta.label,
             shortLabel: tierMeta.shortLabel,
@@ -1084,6 +1488,7 @@ module.exports = async function handler(req, res) {
                 ? 'Kursi VIP di samping Kak Aika (2 pembeli pertama yang pembayarannya diverifikasi Admin)'
                 : 'Ambil kursi saat event berlangsung di lokasi (siapa cepat dia dapat)',
             eventSnapshot: {
+              eventId: config.eventId || LEGACY_EVENT_ID,
               eventTitle: config.eventTitle,
               movieTitle: config.movieTitle,
               eventDate: config.eventDate,

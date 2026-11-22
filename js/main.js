@@ -1309,7 +1309,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initTypingEffect();
   initSmoothScroll();
+  syncStorefrontNobarVisibility();
 });
+
+// ── SYNC NOBAR VISIBILITY ON HOMEPAGE & NAVBAR ──
+function applyStorefrontNobarVisibility(cfg) {
+  if (!cfg || typeof cfg !== 'object') return;
+  const visible = cfg.showInStorefront !== false;
+  const isNobarPage = /nobar\.html$/i.test(window.location.pathname || '');
+
+  // Toggle navbar link "Nobar Bioskop" on storefront pages
+  if (!isNobarPage) {
+    document.querySelectorAll('.navbar .nav-links a[href*="nobar.html"]').forEach((link) => {
+      const li = link.closest('li');
+      if (li) {
+        li.style.display = visible ? '' : 'none';
+      } else {
+        link.style.display = visible ? '' : 'none';
+      }
+    });
+  }
+
+  // Toggle & sync promo banner on index.html
+  const banner = document.getElementById('nobarPromoBanner');
+  if (banner) {
+    banner.style.display = visible ? '' : 'none';
+    if (visible) {
+      const h2 = banner.querySelector('h2');
+      if (h2 && cfg.eventTitle) {
+        h2.textContent = cfg.eventTitle;
+      }
+    }
+  }
+}
+
+async function syncStorefrontNobarVisibility() {
+  const CACHE_KEY = 'aika_nobar_storefront_v1';
+  const hasNobarUi = Boolean(
+    document.getElementById('nobarPromoBanner') ||
+    document.querySelector('.navbar .nav-links a[href*="nobar.html"]')
+  );
+  if (!hasNobarUi) return;
+
+  try {
+    const cachedRaw = localStorage.getItem(CACHE_KEY);
+    if (cachedRaw) {
+      const cached = JSON.parse(cachedRaw);
+      if (cached && typeof cached === 'object') {
+        applyStorefrontNobarVisibility(cached);
+      }
+    }
+  } catch (_) {}
+
+  try {
+    const res = await fetch('/api/nobar?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && data.config) {
+      applyStorefrontNobarVisibility(data.config);
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          showInStorefront: data.config.showInStorefront !== false,
+          isOpen: Boolean(data.config.isOpen),
+          eventTitle: data.config.eventTitle || ''
+        }));
+      } catch (_) {}
+    }
+  } catch (_) {}
+}
 
 // Polyfill for smooth scroll in some browsers
 if (!('scrollBehavior' in document.documentElement.style)) {
@@ -1365,6 +1432,7 @@ function initSmoothScroll() {
   document.addEventListener('click', function (e) {
     const anchor = e.target.closest('a[href^="#"]');
     if (!anchor) return;
+    if (anchor.hasAttribute('data-custom-smooth-scroll')) return;
 
     const targetId = anchor.getAttribute('href');
     if (targetId === '#') return;
