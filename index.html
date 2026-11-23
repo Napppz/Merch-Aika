@@ -89,85 +89,50 @@
     </div>
   </nav>
 
+  <!-- ANIMATED SWIMMING SHARKS & DEEP OCEAN BACKDROP -->
+  <div class="ocean-shark-backdrop" aria-hidden="true">
+    <canvas id="homeOceanCanvas" class="ocean-shark-canvas"></canvas>
+  </div>
+
   <style>
     /* User Nav styles centralized in css/style.css */
 
-    /* ── Shark Animation ── */
-    .sharks {
+    /* ── DEEP OCEAN SWIMMING SHARKS BACKDROP ── */
+    .ocean-shark-backdrop {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .ocean-shark-canvas {
       position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
-      top: 0;
-      left: 0;
-      overflow: hidden;
       pointer-events: none;
+      z-index: 0;
+      transform: translateZ(0);
+    }
+
+    .hero,
+    #nobarPromoBanner,
+    .leaderboard,
+    .featured,
+    .about,
+    .contact,
+    footer,
+    .footer {
+      position: relative;
       z-index: 1;
-      opacity: 0.4;
     }
 
-    .shark {
-      position: absolute;
-      font-size: 6rem;
-      filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.5)) grayscale(100%) brightness(0.4) contrast(1.2) sepia(1.5) hue-rotate(200deg);
-      animation: swim linear infinite;
-      will-change: transform;
-      opacity: 0.7;
-      transform: scaleX(-1);
-      /* Face right */
-    }
-
-    .shark.s1 {
-      top: 15%;
-      left: -20%;
-      animation-duration: 28s;
-      animation-delay: 0s;
-      font-size: 8rem;
-    }
-
-    .shark.s2 {
-      top: 40%;
-      left: -20%;
-      animation-duration: 35s;
-      animation-delay: 5s;
-      font-size: 6rem;
-    }
-
-    .shark.s3 {
-      top: 70%;
-      left: -20%;
-      animation-duration: 25s;
-      animation-delay: 10s;
-      font-size: 7rem;
-    }
-
-    .shark.s4 {
-      top: 25%;
-      left: -20%;
-      animation-duration: 32s;
-      animation-delay: 15s;
-      font-size: 5rem;
-    }
-
-    @keyframes swim {
-      0% {
-        transform: scaleX(-1) translate(0, 0px) rotate(-5deg);
-      }
-
-      25% {
-        transform: scaleX(-1) translate(-25vw, -30px) rotate(0deg);
-      }
-
-      50% {
-        transform: scaleX(-1) translate(-50vw, 15px) rotate(5deg);
-      }
-
-      75% {
-        transform: scaleX(-1) translate(-75vw, -10px) rotate(0deg);
-      }
-
-      100% {
-        transform: scaleX(-1) translate(-120vw, 0px) rotate(-5deg);
-      }
+    .hero-bg {
+      background:
+        radial-gradient(ellipse at 20% 48%, rgba(21, 101, 192, 0.24) 0%, transparent 60%),
+        radial-gradient(ellipse at 82% 18%, rgba(41, 182, 246, 0.14) 0%, transparent 52%),
+        linear-gradient(180deg, rgba(3, 9, 31, 0.26) 0%, rgba(7, 26, 62, 0.2) 100%);
     }
   </style>
 
@@ -175,14 +140,6 @@
   <!-- HERO -->
   <section class="hero">
     <div class="hero-bg">
-      <!-- Shark Animation -->
-      <div class="sharks">
-        <div class="shark s1">🦈</div>
-        <div class="shark s2">🦈</div>
-        <div class="shark s3">🦈</div>
-        <div class="shark s4">🦈</div>
-      </div>
-
       <div class="wave-overlay"></div>
     </div>
     <div class="hero-content">
@@ -535,6 +492,531 @@
       `;
       }
     }
+
+    // ── CANVAS ARTICULATED SWIMMING SHARKS + BIOLUMINESCENT DEEP OCEAN BACKDROP ──
+    (function initHomeOceanSharks() {
+      const canvas = document.getElementById('homeOceanCanvas');
+      if (!canvas || typeof canvas.getContext !== 'function') return;
+      const ctx = canvas.getContext('2d', { alpha: true });
+      if (!ctx) return;
+
+      const prefersReducedMotion = typeof window.matchMedia === 'function'
+        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      let w = window.innerWidth || 1440;
+      let h = window.innerHeight || 800;
+      let lastInitW = 0;
+      let lastInitH = 0;
+      let rafId = null;
+      let resizeTimer = null;
+      let lastTime = 0;
+
+      let sharks = [];
+      let bubbles = [];
+      let motes = [];
+      let rays = [];
+
+      const MOTE_COLORS = [
+        '125, 211, 252',
+        '186, 230, 253',
+        '56, 189, 248',
+        '224, 242, 254'
+      ];
+
+      function createShark(depthLayer, initialSpread = false, slotIndex = 0, totalSlots = 1) {
+        const isMobile = w < 768;
+        const sizeScale = isMobile ? 0.68 : 1;
+        const dir = Math.random() < 0.55 ? 1 : -1;
+
+        let length, speed, alpha, rimAlpha, waveSpeed, waveAmp, driftAmp;
+        if (depthLayer === 0) {
+          // Far deep silhouettes
+          length = (95 + Math.random() * 45) * sizeScale;
+          speed = (20 + Math.random() * 14) * (isMobile ? 0.8 : 1);
+          alpha = 0.24 + Math.random() * 0.1;
+          rimAlpha = 0.16;
+          waveSpeed = 2.6 + Math.random() * 0.7;
+          waveAmp = 0.048;
+          driftAmp = 14 + Math.random() * 16;
+        } else if (depthLayer === 1) {
+          // Mid-depth graceful cruisers
+          length = (155 + Math.random() * 65) * sizeScale;
+          speed = (34 + Math.random() * 18) * (isMobile ? 0.8 : 1);
+          alpha = 0.36 + Math.random() * 0.12;
+          rimAlpha = 0.34;
+          waveSpeed = 3.1 + Math.random() * 0.8;
+          waveAmp = 0.056;
+          driftAmp = 22 + Math.random() * 22;
+        } else {
+          // Foreground hero silhouette
+          length = (240 + Math.random() * 75) * sizeScale;
+          speed = (48 + Math.random() * 18) * (isMobile ? 0.78 : 1);
+          alpha = 0.44 + Math.random() * 0.1;
+          rimAlpha = 0.48;
+          waveSpeed = 2.8 + Math.random() * 0.6;
+          waveAmp = 0.062;
+          driftAmp = 26 + Math.random() * 24;
+        }
+
+        const margin = length * 0.95 + 60;
+        let x;
+        if (initialSpread) {
+          const bandW = (w + margin) / Math.max(1, totalSlots);
+          x = slotIndex * bandW + Math.random() * bandW - margin * 0.4;
+        } else {
+          x = dir === 1 ? -margin : w + margin;
+        }
+
+        const minY = Math.max(95, h * 0.12);
+        const maxY = Math.max(minY + 80, h * 0.88);
+        const baseY = minY + Math.random() * (maxY - minY);
+
+        return {
+          depthLayer,
+          dir,
+          x,
+          y: baseY,
+          baseY,
+          length,
+          speed,
+          alpha,
+          rimAlpha,
+          phase: Math.random() * Math.PI * 2,
+          waveSpeed,
+          waveAmp,
+          driftPhase: Math.random() * Math.PI * 2,
+          driftFreq: 0.32 + Math.random() * 0.25,
+          driftAmp,
+          pitch: 0,
+          bubbleCooldown: 0.3 + Math.random() * 0.9
+        };
+      }
+
+      function createBubble(x, y, fromShark = false) {
+        return {
+          x: x !== undefined ? x : Math.random() * w,
+          y: y !== undefined ? y : h + Math.random() * 80,
+          r: fromShark ? (1.1 + Math.random() * 2.2) : (1.2 + Math.random() * 2.8),
+          vy: fromShark ? (18 + Math.random() * 26) : (14 + Math.random() * 22),
+          wobblePhase: Math.random() * Math.PI * 2,
+          wobbleSpeed: 1.4 + Math.random() * 1.6,
+          wobbleAmp: fromShark ? (6 + Math.random() * 10) : (8 + Math.random() * 14),
+          alpha: fromShark ? (0.34 + Math.random() * 0.26) : (0.16 + Math.random() * 0.2),
+          fromShark
+        };
+      }
+
+      function setupScene(forceRebuild = false) {
+        const nextW = window.innerWidth || 1440;
+        const nextH = window.innerHeight || 800;
+        const isMobile = nextW < 768;
+
+        if (!forceRebuild && isMobile && nextW === lastInitW && Math.abs(nextH - lastInitH) < 150) {
+          return;
+        }
+
+        w = nextW;
+        h = nextH;
+        lastInitW = w;
+        lastInitH = h;
+
+        const isLowPower = isMobile || (typeof navigator !== 'undefined' && navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
+        const maxDpr = isLowPower ? 1.25 : 2;
+        const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        if (typeof ctx.resetTransform === 'function') ctx.resetTransform();
+        ctx.scale(dpr, dpr);
+
+        // Ambient underwater light shafts
+        rays = [];
+        const rayCount = isMobile ? 3 : 4;
+        for (let i = 0; i < rayCount; i++) {
+          rays.push({
+            x: (w / (rayCount + 0.5)) * (i + 0.45),
+            topW: 70 + Math.random() * 90,
+            botW: 190 + Math.random() * 160,
+            slant: 110 + Math.random() * 110,
+            phase: Math.random() * Math.PI * 2,
+            speed: 0.22 + Math.random() * 0.16,
+            alpha: 0.028 + Math.random() * 0.022
+          });
+        }
+
+        // Bioluminescent ocean motes
+        motes = [];
+        const moteCount = isMobile
+          ? Math.min(Math.floor(w / 10), 36)
+          : Math.min(Math.floor(w / 18), 75);
+        for (let i = 0; i < moteCount; i++) {
+          motes.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            r: 0.65 + Math.random() * 1.45,
+            vx: (Math.random() - 0.5) * 6,
+            vy: -(3 + Math.random() * 7),
+            baseAlpha: 0.16 + Math.random() * 0.36,
+            twinkleSpeed: 0.9 + Math.random() * 1.6,
+            twinkleOffset: Math.random() * Math.PI * 2,
+            rgb: MOTE_COLORS[i % MOTE_COLORS.length]
+          });
+        }
+
+        // Ambient rising bubbles
+        bubbles = [];
+        const bubbleCount = isMobile ? 12 : 24;
+        for (let i = 0; i < bubbleCount; i++) {
+          const b = createBubble(Math.random() * w, Math.random() * h, false);
+          bubbles.push(b);
+        }
+
+        // Parallax school of swimming sharks (sorted back -> front)
+        sharks = [];
+        const layers = isMobile ? [0, 0, 1, 2] : [0, 0, 1, 1, 1, 2];
+        for (let i = 0; i < layers.length; i++) {
+          sharks.push(createShark(layers[i], true, i, layers.length));
+        }
+        sharks.sort((a, b) => a.depthLayer - b.depthLayer);
+      }
+
+      // Apply fluid spine undulation from snout (xn=+0.50, u=0) to tail tip (xn=-0.63, u=1)
+      function flexPoint(xn, yn, L, phase, amp) {
+        const u = Math.max(0, (0.5 - xn) / 1.13);
+        const u2 = u * u;
+        const wave = Math.sin(phase - u * 4.3);
+        const foreshorten = Math.cos(phase - 4.3) * 0.032 * u2;
+        return {
+          x: (xn + foreshorten) * L,
+          y: (yn + wave * amp * u2) * L
+        };
+      }
+
+      function drawArticulatedShark(s) {
+        const L = s.length;
+        const p = (xn, yn) => flexPoint(xn, yn, L, s.phase, s.waveAmp);
+        const pecSway = Math.sin(s.phase * 0.5 + 0.6) * 0.016;
+
+        ctx.save();
+        ctx.translate(s.x, s.y);
+        ctx.rotate(s.pitch);
+        ctx.scale(s.dir, 1);
+
+        // 1. Far-side pectoral fin (subtle background wing for 3D depth)
+        const fp0 = p(0.23, 0.082);
+        const fp1 = p(0.15, 0.165 + pecSway * 0.6);
+        const fp2 = p(0.165, 0.09);
+        ctx.beginPath();
+        ctx.moveTo(fp0.x, fp0.y);
+        ctx.quadraticCurveTo((fp0.x + fp1.x) * 0.52, fp1.y * 0.86, fp1.x, fp1.y);
+        ctx.quadraticCurveTo(fp2.x - 0.02 * L, fp1.y * 0.72, fp2.x, fp2.y);
+        ctx.closePath();
+        ctx.fillStyle = `rgba(6, 28, 66, ${s.alpha * 0.85})`;
+        ctx.fill();
+
+        // 2. Main shark silhouette + dorsal, caudal, anal, and pelvic fins
+        const snout = p(0.50, 0.01);
+        const head1 = p(0.39, -0.055);
+        const head2 = p(0.24, -0.102);
+        const dorsalFront = p(0.13, -0.116);
+        const dorsalCtrl1 = p(0.055, -0.215);
+        const dorsalTip = p(-0.045, -0.295);
+        const dorsalCtrl2 = p(-0.015, -0.175);
+        const dorsalRear = p(-0.058, -0.102);
+
+        const backMid = p(-0.17, -0.08);
+        const d2Front = p(-0.245, -0.066);
+        const d2Tip = p(-0.298, -0.114);
+        const d2Rear = p(-0.306, -0.052);
+
+        const tailBaseTop = p(-0.405, -0.028);
+        const tailUpCtrl = p(-0.505, -0.135);
+        const tailUpTip = p(-0.635, -0.255);
+        const tailNotchCtrl = p(-0.545, -0.095);
+        const tailNotch = p(-0.495, 0.004);
+        const tailLowTip = p(-0.565, 0.168);
+        const tailLowCtrl = p(-0.475, 0.095);
+        const tailBaseBot = p(-0.40, 0.032);
+
+        const analRear = p(-0.315, 0.05);
+        const analTip = p(-0.338, 0.094);
+        const analFront = p(-0.265, 0.062);
+
+        const pelvicRear = p(-0.155, 0.088);
+        const pelvicTip = p(-0.195, 0.146);
+        const pelvicFront = p(-0.092, 0.098);
+
+        const bellyMid = p(0.08, 0.112);
+        const chest = p(0.25, 0.094);
+        const jaw = p(0.36, 0.066);
+        const underSnout = p(0.45, 0.045);
+
+        const bodyGrad = ctx.createLinearGradient(0, -0.24 * L, 0, 0.18 * L);
+        if (s.depthLayer === 0) {
+          bodyGrad.addColorStop(0, `rgba(18, 72, 140, ${s.alpha})`);
+          bodyGrad.addColorStop(0.55, `rgba(10, 42, 92, ${s.alpha * 0.96})`);
+          bodyGrad.addColorStop(1, `rgba(5, 22, 56, ${s.alpha * 0.82})`);
+        } else if (s.depthLayer === 1) {
+          bodyGrad.addColorStop(0, `rgba(34, 134, 212, ${s.alpha})`);
+          bodyGrad.addColorStop(0.52, `rgba(14, 62, 128, ${s.alpha * 0.98})`);
+          bodyGrad.addColorStop(1, `rgba(6, 28, 68, ${s.alpha * 0.85})`);
+        } else {
+          bodyGrad.addColorStop(0, `rgba(48, 168, 240, ${s.alpha})`);
+          bodyGrad.addColorStop(0.48, `rgba(17, 74, 148, ${s.alpha})`);
+          bodyGrad.addColorStop(1, `rgba(6, 26, 64, ${s.alpha * 0.86})`);
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(snout.x, snout.y);
+        ctx.quadraticCurveTo(head1.x, head1.y, head2.x, head2.y);
+        ctx.quadraticCurveTo(0.185 * L, -0.113 * L, dorsalFront.x, dorsalFront.y);
+        // 1st dorsal fin
+        ctx.quadraticCurveTo(dorsalCtrl1.x, dorsalCtrl1.y, dorsalTip.x, dorsalTip.y);
+        ctx.quadraticCurveTo(dorsalCtrl2.x, dorsalCtrl2.y, dorsalRear.x, dorsalRear.y);
+        // Back to 2nd dorsal fin
+        ctx.quadraticCurveTo(backMid.x, backMid.y, d2Front.x, d2Front.y);
+        ctx.lineTo(d2Tip.x, d2Tip.y);
+        ctx.quadraticCurveTo(d2Rear.x + 0.01 * L, d2Rear.y - 0.01 * L, d2Rear.x, d2Rear.y);
+        // Peduncle to crescent caudal fin
+        ctx.lineTo(tailBaseTop.x, tailBaseTop.y);
+        ctx.quadraticCurveTo(tailUpCtrl.x, tailUpCtrl.y, tailUpTip.x, tailUpTip.y);
+        ctx.quadraticCurveTo(tailNotchCtrl.x, tailNotchCtrl.y, tailNotch.x, tailNotch.y);
+        ctx.quadraticCurveTo(tailNotch.x - 0.02 * L, tailLowTip.y * 0.55, tailLowTip.x, tailLowTip.y);
+        ctx.quadraticCurveTo(tailLowCtrl.x, tailLowCtrl.y, tailBaseBot.x, tailBaseBot.y);
+        // Anal fin
+        ctx.lineTo(analRear.x, analRear.y);
+        ctx.lineTo(analTip.x, analTip.y);
+        ctx.lineTo(analFront.x, analFront.y);
+        // Pelvic fin
+        ctx.lineTo(pelvicRear.x, pelvicRear.y);
+        ctx.lineTo(pelvicTip.x, pelvicTip.y);
+        ctx.lineTo(pelvicFront.x, pelvicFront.y);
+        // Belly & sleek underslung jaw back to snout
+        ctx.quadraticCurveTo(bellyMid.x, bellyMid.y, chest.x, chest.y);
+        ctx.quadraticCurveTo(0.31 * L, 0.084 * L, jaw.x, jaw.y);
+        ctx.quadraticCurveTo(underSnout.x, underSnout.y, snout.x, snout.y);
+        ctx.closePath();
+
+        ctx.fillStyle = bodyGrad;
+        ctx.fill();
+
+        // 3. Soft bioluminescent aqua rim light along the dorsal spine & upper tail
+        const rimGrad = ctx.createLinearGradient(snout.x, snout.y, tailUpTip.x, tailUpTip.y);
+        rimGrad.addColorStop(0, `rgba(186, 230, 253, ${s.rimAlpha})`);
+        rimGrad.addColorStop(0.45, `rgba(56, 189, 248, ${s.rimAlpha * 0.85})`);
+        rimGrad.addColorStop(1, `rgba(129, 140, 248, ${s.rimAlpha * 0.35})`);
+
+        ctx.beginPath();
+        ctx.moveTo(snout.x, snout.y);
+        ctx.quadraticCurveTo(head1.x, head1.y, head2.x, head2.y);
+        ctx.quadraticCurveTo(0.185 * L, -0.113 * L, dorsalFront.x, dorsalFront.y);
+        ctx.quadraticCurveTo(dorsalCtrl1.x, dorsalCtrl1.y, dorsalTip.x, dorsalTip.y);
+        ctx.quadraticCurveTo(dorsalCtrl2.x, dorsalCtrl2.y, dorsalRear.x, dorsalRear.y);
+        ctx.quadraticCurveTo(backMid.x, backMid.y, d2Front.x, d2Front.y);
+        ctx.lineTo(d2Tip.x, d2Tip.y);
+        ctx.lineTo(d2Rear.x, d2Rear.y);
+        ctx.lineTo(tailBaseTop.x, tailBaseTop.y);
+        ctx.quadraticCurveTo(tailUpCtrl.x, tailUpCtrl.y, tailUpTip.x, tailUpTip.y);
+        ctx.strokeStyle = rimGrad;
+        ctx.lineWidth = Math.max(1, L * 0.0085);
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // 4. Swept foreground pectoral fin
+        const pecFront = p(0.175, 0.068);
+        const pecCtrl1 = p(0.10, 0.165 + pecSway);
+        const pecTip = p(-0.045, 0.252 + pecSway * 1.4);
+        const pecCtrl2 = p(0.04, 0.145 + pecSway * 0.6);
+        const pecRear = p(0.055, 0.092);
+
+        const pecGrad = ctx.createLinearGradient(pecFront.x, pecFront.y, pecTip.x, pecTip.y);
+        pecGrad.addColorStop(0, `rgba(26, 112, 188, ${s.alpha * 1.05})`);
+        pecGrad.addColorStop(1, `rgba(8, 36, 82, ${s.alpha * 0.85})`);
+
+        ctx.beginPath();
+        ctx.moveTo(pecFront.x, pecFront.y);
+        ctx.quadraticCurveTo(pecCtrl1.x, pecCtrl1.y, pecTip.x, pecTip.y);
+        ctx.quadraticCurveTo(pecCtrl2.x, pecCtrl2.y, pecRear.x, pecRear.y);
+        ctx.closePath();
+        ctx.fillStyle = pecGrad;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(pecFront.x, pecFront.y);
+        ctx.quadraticCurveTo(pecCtrl1.x, pecCtrl1.y, pecTip.x, pecTip.y);
+        ctx.strokeStyle = `rgba(125, 211, 252, ${s.rimAlpha * 0.6})`;
+        ctx.lineWidth = Math.max(0.8, L * 0.006);
+        ctx.stroke();
+
+        // 5. Delicate gill slits & subtle eye glint on mid/foreground sharks
+        if (s.depthLayer >= 1) {
+          ctx.strokeStyle = `rgba(125, 211, 252, ${s.rimAlpha * 0.45})`;
+          ctx.lineWidth = Math.max(0.8, L * 0.0055);
+          for (let g = 0; g < 3; g++) {
+            const gx = 0.235 + g * 0.019;
+            const gt = p(gx, -0.006);
+            const gb = p(gx - 0.006, 0.044);
+            ctx.beginPath();
+            ctx.moveTo(gt.x, gt.y);
+            ctx.quadraticCurveTo(gt.x - 0.006 * L, (gt.y + gb.y) * 0.5, gb.x, gb.y);
+            ctx.stroke();
+          }
+
+          const eye = p(0.385, -0.014);
+          ctx.fillStyle = `rgba(186, 230, 253, ${s.rimAlpha * 0.85})`;
+          ctx.beginPath();
+          ctx.arc(eye.x, eye.y, Math.max(1.2, L * 0.0085), 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.restore();
+      }
+
+      function renderFrame(timestamp) {
+        if (typeof document !== 'undefined' && document.hidden) {
+          rafId = null;
+          lastTime = 0;
+          return;
+        }
+
+        const now = timestamp || performance.now();
+        const dt = lastTime ? Math.min(0.05, (now - lastTime) / 1000) : 0.016;
+        lastTime = now;
+        const sec = now * 0.001;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // 1. Subtle underwater caustic light rays from above
+        for (let i = 0; i < rays.length; i++) {
+          const r = rays[i];
+          const sway = Math.sin(sec * r.speed + r.phase) * 32;
+          const xTop = r.x + sway;
+          const rayGrad = ctx.createLinearGradient(xTop, 0, xTop + r.slant, h * 0.82);
+          rayGrad.addColorStop(0, `rgba(56, 189, 248, ${r.alpha})`);
+          rayGrad.addColorStop(0.55, `rgba(41, 182, 246, ${r.alpha * 0.45})`);
+          rayGrad.addColorStop(1, 'rgba(3, 9, 31, 0)');
+
+          ctx.fillStyle = rayGrad;
+          ctx.beginPath();
+          ctx.moveTo(xTop - r.topW * 0.5, 0);
+          ctx.lineTo(xTop + r.topW * 0.5, 0);
+          ctx.lineTo(xTop + r.slant + r.botW * 0.5, h * 0.85);
+          ctx.lineTo(xTop + r.slant - r.botW * 0.5, h * 0.85);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        // 2. Drifting bioluminescent ocean motes
+        for (let i = 0; i < motes.length; i++) {
+          const m = motes[i];
+          if (!prefersReducedMotion) {
+            m.x += m.vx * dt;
+            m.y += m.vy * dt;
+            if (m.y < -10) {
+              m.y = h + 10;
+              m.x = Math.random() * w;
+            }
+            if (m.x < -10) m.x = w + 10;
+            if (m.x > w + 10) m.x = -10;
+          }
+          const alpha = Math.max(0.06, Math.min(0.75, m.baseAlpha + 0.22 * Math.sin(sec * m.twinkleSpeed + m.twinkleOffset)));
+          ctx.fillStyle = `rgba(${m.rgb}, ${alpha})`;
+          ctx.beginPath();
+          ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 3. Articulated swimming sharks across 3 parallax depths
+        for (let i = 0; i < sharks.length; i++) {
+          const s = sharks[i];
+          if (!prefersReducedMotion) {
+            const vx = s.speed * s.dir;
+            s.x += vx * dt;
+            s.phase += s.waveSpeed * dt;
+            s.driftPhase += s.driftFreq * dt;
+
+            const vy = Math.cos(s.driftPhase) * s.driftAmp * s.driftFreq;
+            s.y = s.baseY + Math.sin(s.driftPhase) * s.driftAmp;
+            const targetPitch = Math.atan2(vy, Math.abs(vx)) * s.dir;
+            s.pitch += (targetPitch - s.pitch) * Math.min(1, dt * 4);
+
+            // Emit subtle trailing micro-bubbles from mid/foreground shark tails
+            if (s.depthLayer >= 1 && bubbles.length < 44) {
+              s.bubbleCooldown -= dt;
+              if (s.bubbleCooldown <= 0) {
+                s.bubbleCooldown = 0.55 + Math.random() * 1.1;
+                const tailX = s.x - s.dir * s.length * 0.56;
+                const tailY = s.y + (Math.random() - 0.5) * s.length * 0.14;
+                if (tailX > -20 && tailX < w + 20) {
+                  bubbles.push(createBubble(tailX, tailY, true));
+                }
+              }
+            }
+
+            const margin = s.length * 0.95 + 70;
+            if ((s.dir === 1 && s.x > w + margin) || (s.dir === -1 && s.x < -margin)) {
+              sharks[i] = createShark(s.depthLayer, false);
+            }
+          }
+
+          drawArticulatedShark(sharks[i]);
+        }
+
+        // 4. Translucent rising micro-bubbles
+        for (let i = bubbles.length - 1; i >= 0; i--) {
+          const b = bubbles[i];
+          if (!prefersReducedMotion) {
+            b.y -= b.vy * dt;
+            b.wobblePhase += b.wobbleSpeed * dt;
+          }
+          const bx = b.x + Math.sin(b.wobblePhase) * b.wobbleAmp;
+
+          if (b.y < -15) {
+            if (b.fromShark) {
+              bubbles.splice(i, 1);
+            } else {
+              bubbles[i] = createBubble(Math.random() * w, h + 15 + Math.random() * 40, false);
+            }
+            continue;
+          }
+
+          ctx.strokeStyle = `rgba(186, 230, 253, ${b.alpha})`;
+          ctx.lineWidth = 0.85;
+          ctx.beginPath();
+          ctx.arc(bx, b.y, b.r, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.fillStyle = `rgba(224, 242, 254, ${b.alpha * 0.9})`;
+          ctx.beginPath();
+          ctx.arc(bx - b.r * 0.32, b.y - b.r * 0.32, Math.max(0.45, b.r * 0.28), 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        if (!prefersReducedMotion) {
+          rafId = requestAnimationFrame(renderFrame);
+        }
+      }
+
+      window.addEventListener('resize', () => {
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          setupScene(false);
+          if (prefersReducedMotion) renderFrame(performance.now());
+        }, 150);
+      });
+
+      if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden && !rafId && !prefersReducedMotion) {
+            lastTime = 0;
+            rafId = requestAnimationFrame(renderFrame);
+          }
+        });
+      }
+
+      setupScene(true);
+      rafId = requestAnimationFrame(renderFrame);
+    })();
   </script>
 
 
