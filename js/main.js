@@ -388,7 +388,7 @@ function renderProductCard(p, compact = false) {
           </div>
           <div style="display:flex; gap:0.4rem; align-items:center;">
             <button class="btn-ghost" data-pid="${safeIdAttr}" style="padding:0.5rem 0.75rem; font-size:0.8rem; border-radius:8px;" onclick="event.stopPropagation(); openProductDetail(this.dataset.pid)">
-              👁️ Detail
+              Detail
             </button>
             ${isPhotopack ? `
               <button class="btn-primary" style="padding:0.5rem 0.85rem; font-size:0.82rem; border-radius:8px; display:inline-flex; align-items:center; gap:4px; font-weight:700; background:linear-gradient(135deg, #0284c7, #2563eb); border:none; box-shadow:0 4px 14px rgba(2,132,199,0.35); cursor:pointer;" onclick="event.stopPropagation(); window.location.href='checkout-photopack.html?id=${encodeURIComponent(p.id)}'">
