@@ -524,10 +524,15 @@
 
     /* ── ORDERS ── */
     .status-badge {
-      padding: 3px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 12px;
       border-radius: 50px;
       font-size: 0.75rem;
       font-weight: 700;
+      line-height: 1.25;
+      white-space: nowrap;
     }
 
     .status-paid {
@@ -3348,10 +3353,10 @@
               ${safeOid}
               ${adminNobarData.viewingEventId === 'all' && a.eventTitle ? `<div style="font-family:var(--font-body);font-size:0.7rem;color:#c084fc;margin-top:3px;font-weight:700;">🎬 ${escapeHtml(a.eventTitle)}</div>` : ''}
             </td>
-            <td>
+            <td style="white-space:nowrap;">
               ${tierBadge}
-              ${a.includesMerch ? '<div style="font-size:0.72rem;color:var(--gold);margin-top:3px;">+ Photocard &amp; Poster</div>' : ''}
-              ${(parseInt(a.polaroidQty, 10) || 0) > 0 ? `<div style="font-size:0.72rem;color:#7dd3fc;margin-top:3px;font-weight:700;">📸 +${parseInt(a.polaroidQty, 10)} Foto Polaroid</div>` : ''}
+              ${a.includesMerch ? '<div style="font-size:0.72rem;color:var(--gold);margin-top:4px;white-space:nowrap;">+ Photocard &amp; Poster</div>' : ''}
+              ${(parseInt(a.polaroidQty, 10) || 0) > 0 ? `<div style="font-size:0.72rem;color:#7dd3fc;margin-top:3px;font-weight:700;white-space:nowrap;">📸 +${parseInt(a.polaroidQty, 10)} Foto Polaroid</div>` : ''}
             </td>
             <td style="font-size:0.82rem;color:var(--white);line-height:1.45;">${participantsHtml}</td>
             <td style="font-weight:800;color:var(--aqua);">${a.qty} Kursi</td>
@@ -3709,7 +3714,7 @@
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-top:0.35rem;">
             <div>
               <strong>Paket Merch Bundel:</strong> <span style="color:var(--gold);">${escapeHtml(nbTicket.merchBundle || 'Photocard & Poster')}</span>
-              ${nbTicket.merchClaimed ? '<span style="color:#4ade80;font-weight:700;"> (Sudah Diambil ✓)</span>' : '<span style="color:#fde68a;"> (Diambil di lokasi bioskop)</span>'}
+              ${nbTicket.merchClaimed ? '<span style="color:#4ade80;font-weight:700;"> (Sudah Diambil ✓)</span>' : (/lokasi/i.test(String(nbTicket.merchBundle || '')) ? '' : '<span style="color:#fde68a;"> (Diambil di lokasi bioskop)</span>')}
             </div>
             ${['paid', 'completed'].includes(String(order.status || '').toLowerCase()) ? `
               <button type="button" class="btn-secondary" onclick="toggleNobarMerchClaimed('${safeOrderId}', ${!nbTicket.merchClaimed})" style="padding:0.25rem 0.7rem;font-size:0.74rem;border-color:${nbTicket.merchClaimed ? 'rgba(148,163,184,0.4)' : 'rgba(234,179,8,0.5)'};color:${nbTicket.merchClaimed ? 'var(--text-muted)' : '#fde047'};">

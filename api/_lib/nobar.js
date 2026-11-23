@@ -1583,7 +1583,7 @@ module.exports = async function handler(req, res) {
                     <p style="margin:0 0 6px 0;"><strong>No. Invoice Tiket:</strong> #${safeOrderId}</p>
                     <p style="margin:0 0 6px 0;"><strong>Kategori Tiket:</strong> ${safeTier} (&times;${qty})</p>
                     <p style="margin:0 0 6px 0;"><strong>Daftar Peserta:</strong><br/>${safeParticipants}</p>
-                    ${tierMeta.includesMerch ? `<p style="margin:0 0 6px 0;"><strong>Paket Merch:</strong> ${escapeHtml(config.merchBundleDesc)} (Diambil di lokasi bioskop)</p>` : ''}
+                    ${tierMeta.includesMerch ? `<p style="margin:0 0 6px 0;"><strong>Paket Merch:</strong> ${escapeHtml(config.merchBundleDesc)}${/lokasi/i.test(String(config.merchBundleDesc || '')) ? '' : ' (Diambil di lokasi bioskop)'}</p>` : ''}
                     ${polaroidEmailLine}
                     <p style="margin:6px 0 0 0;color:#0284c7;font-size:1.05rem;"><strong>Total Dibayar: Rp ${verifiedTotal.toLocaleString('id-ID')}</strong></p>
                   </div>
