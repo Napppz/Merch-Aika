@@ -299,21 +299,22 @@
     }
 
     th {
-      background: rgba(3, 9, 31, 0.6);
-      padding: 1rem 1.2rem;
+      background: rgba(3, 9, 31, 0.65);
+      padding: 0.85rem 1rem;
       text-align: left;
-      font-size: 0.8rem;
+      font-size: 0.74rem;
       color: var(--aqua);
       font-weight: 700;
       letter-spacing: 0.05em;
       text-transform: uppercase;
+      white-space: nowrap;
       border-bottom: 1px solid var(--card-border);
     }
 
     td {
-      padding: 1rem 1.2rem;
+      padding: 0.85rem 1rem;
       border-bottom: 1px solid rgba(41, 182, 246, 0.08);
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       color: var(--text-muted);
       vertical-align: middle;
     }
@@ -362,17 +363,26 @@
 
     .action-btns {
       display: flex;
-      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 0.45rem;
     }
 
     .btn-edit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      white-space: nowrap;
+      flex-shrink: 0;
       background: rgba(41, 182, 246, 0.15);
       border: 1px solid rgba(41, 182, 246, 0.3);
       color: var(--aqua);
-      padding: 5px 12px;
-      border-radius: 6px;
+      padding: 6px 12px;
+      border-radius: 7px;
       cursor: pointer;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
+      line-height: 1.2;
       font-family: var(--font-body);
       font-weight: 700;
       transition: var(--transition);
@@ -383,13 +393,20 @@
     }
 
     .btn-del {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      white-space: nowrap;
+      flex-shrink: 0;
       background: rgba(239, 68, 68, 0.15);
       border: 1px solid rgba(239, 68, 68, 0.3);
       color: #fc8181;
-      padding: 5px 12px;
-      border-radius: 6px;
+      padding: 6px 12px;
+      border-radius: 7px;
       cursor: pointer;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
+      line-height: 1.2;
       font-family: var(--font-body);
       font-weight: 700;
       transition: var(--transition);
@@ -945,7 +962,14 @@
         <span class="nav-icon">🛍️</span> Produk
       </a>
       <a href="#" onclick="showTab('nobar')" id="nav-nobar">
-        <span class="nav-icon"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg></span> Nobar Bioskop
+        <span class="nav-icon"><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path
+              d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
+            <path d="M13 5v2" />
+            <path d="M13 17v2" />
+            <path d="M13 11v2" />
+          </svg></span> Nobar Bioskop
       </a>
       <a href="#" onclick="showTab('orders')" id="nav-orders">
         <span class="nav-icon">📦</span> Pesanan
@@ -1083,47 +1107,70 @@
     <section class="admin-section" id="tab-nobar">
       <div class="admin-header">
         <div>
-          <h1><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg> Manajemen Event Nobar Bioskop</h1>
-          <p>Atur kuota kursi VIP (2 orang di samping Kak Aika), kuota kursi reguler gabungan, harga 3 opsi tiket, dan daftar hadir peserta.</p>
+          <h1><svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path
+                d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
+              <path d="M13 5v2" />
+              <path d="M13 17v2" />
+              <path d="M13 11v2" />
+            </svg> Manajemen Event Nobar Bioskop</h1>
+          <p>Atur kuota kursi VIP (2 orang di samping Kak Aika), kuota kursi reguler gabungan, harga 3 opsi tiket, dan
+            daftar hadir peserta.</p>
         </div>
         <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
-          <button type="button" class="btn-primary" onclick="openNobarQrScanner()" style="padding:0.65rem 1.25rem; border-radius:8px; font-size:0.86rem; font-weight:800; background:linear-gradient(135deg,#10b981,#0284c7); border:none; box-shadow:0 4px 16px rgba(16,185,129,0.35);">
+          <button type="button" class="btn-primary" onclick="openNobarQrScanner()"
+            style="padding:0.65rem 1.25rem; border-radius:8px; font-size:0.86rem; font-weight:800; background:linear-gradient(135deg,#10b981,#0284c7); border:none; box-shadow:0 4px 16px rgba(16,185,129,0.35);">
             📷 Scan QR Check-in Tiket
           </button>
-          <button type="button" class="btn-secondary superadmin-only" onclick="openNobarAccountsSettings()" style="padding:0.6rem 1.05rem; border-radius:8px; font-size:0.84rem; font-weight:700; border-color:rgba(253,224,71,0.45); color:#fde047;">
+          <button type="button" class="btn-secondary superadmin-only" onclick="openNobarAccountsSettings()"
+            style="padding:0.6rem 1.05rem; border-radius:8px; font-size:0.84rem; font-weight:700; border-color:rgba(253,224,71,0.45); color:#fde047;">
             🔑 Kelola Akun Panitia
           </button>
-          <a href="../nobar.html" target="_blank" class="btn-secondary" style="text-decoration:none; padding:0.6rem 1.1rem; border-radius:8px; font-size:0.84rem; font-weight:700;">Lihat Halaman Nobar ↗</a>
-          <button class="btn-primary" onclick="exportNobarAttendeesCSV()" style="padding:0.6rem 1.1rem; border-radius:8px; font-size:0.84rem; font-weight:700;">Export CSV Daftar Peserta</button>
+          <a href="../nobar.html" target="_blank" class="btn-secondary"
+            style="text-decoration:none; padding:0.6rem 1.1rem; border-radius:8px; font-size:0.84rem; font-weight:700;">Lihat
+            Halaman Nobar ↗</a>
+          <button class="btn-primary" onclick="exportNobarAttendeesCSV()"
+            style="padding:0.6rem 1.1rem; border-radius:8px; font-size:0.84rem; font-weight:700;">Export CSV Daftar
+            Peserta</button>
         </div>
       </div>
 
       <!-- EVENT & ARCHIVE SWITCHER BAR -->
-      <div class="stat-card" id="nobarEventSelectorBar" style="margin-bottom:1.25rem; padding:1rem 1.25rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; border-color:rgba(41,182,246,0.38);">
+      <div class="stat-card" id="nobarEventSelectorBar"
+        style="margin-bottom:1.25rem; padding:1rem 1.25rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; border-color:rgba(41,182,246,0.38);">
         <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; flex:1; min-width:260px;">
-          <label for="nobarEventSelect" style="font-size:0.84rem; font-weight:800; color:var(--aqua); white-space:nowrap;">🎬 Pilih Event / Arsip:</label>
-          <select id="nobarEventSelect" onchange="onAdminNobarEventSelectChange()" style="flex:1; min-width:240px; max-width:440px; background:rgba(3,9,31,0.85); border:1px solid rgba(41,182,246,0.45); color:var(--white); padding:0.55rem 0.9rem; border-radius:8px; font-family:var(--font-body); font-size:0.86rem; font-weight:700;">
+          <label for="nobarEventSelect"
+            style="font-size:0.84rem; font-weight:800; color:var(--aqua); white-space:nowrap;">🎬 Pilih Event /
+            Arsip:</label>
+          <select id="nobarEventSelect" onchange="onAdminNobarEventSelectChange()"
+            style="flex:1; min-width:240px; max-width:440px; background:rgba(3,9,31,0.85); border:1px solid rgba(41,182,246,0.45); color:var(--white); padding:0.55rem 0.9rem; border-radius:8px; font-family:var(--font-body); font-size:0.86rem; font-weight:700;">
             <option value="">Memuat daftar event...</option>
           </select>
         </div>
         <div style="display:flex; align-items:center; gap:0.65rem; flex-wrap:wrap;">
-          <button type="button" class="btn-primary" onclick="openNewNobarEventModal()" style="padding:0.6rem 1.15rem; border-radius:8px; font-size:0.84rem; font-weight:800; background:linear-gradient(135deg,#2563eb,#7c3aed); border:none; box-shadow:0 4px 16px rgba(99,102,241,0.35);">
+          <button type="button" class="btn-primary" onclick="openNewNobarEventModal()"
+            style="padding:0.6rem 1.15rem; border-radius:8px; font-size:0.84rem; font-weight:800; background:linear-gradient(135deg,#2563eb,#7c3aed); border:none; box-shadow:0 4px 16px rgba(99,102,241,0.35);">
             ✨ Buat Event Nobar Baru (Arsipkan Lama)
           </button>
         </div>
       </div>
 
       <!-- ARCHIVE VIEW NOTICE -->
-      <div id="nobarArchiveModeNotice" style="display:none; margin-bottom:1.25rem; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.45); border-radius:12px; padding:0.9rem 1.25rem; color:#fde68a; font-size:0.85rem; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+      <div id="nobarArchiveModeNotice"
+        style="display:none; margin-bottom:1.25rem; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.45); border-radius:12px; padding:0.9rem 1.25rem; color:#fde68a; font-size:0.85rem; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
         <div id="nobarArchiveModeText">📦 Sedang melihat arsip event lama.</div>
         <div style="display:flex; align-items:center; gap:0.55rem; flex-wrap:wrap;">
-          <button type="button" id="btnActivateArchivedNobar" class="btn-primary" onclick="activateArchivedNobarEvent()" style="display:none; padding:0.5rem 0.95rem; border-radius:8px; font-size:0.8rem; font-weight:800; background:linear-gradient(135deg,#10b981,#0284c7); border:none;">
+          <button type="button" id="btnActivateArchivedNobar" class="btn-primary" onclick="activateArchivedNobarEvent()"
+            style="display:none; padding:0.5rem 0.95rem; border-radius:8px; font-size:0.8rem; font-weight:800; background:linear-gradient(135deg,#10b981,#0284c7); border:none;">
             🔄 Aktifkan Event Ini (Arsipkan yg Aktif)
           </button>
-          <button type="button" id="btnDeleteArchivedNobar" class="btn-del" onclick="deleteArchivedNobarEvent()" style="display:none; padding:0.48rem 0.85rem; border-radius:8px; font-size:0.8rem; font-weight:700;">
+          <button type="button" id="btnDeleteArchivedNobar" class="btn-del" onclick="deleteArchivedNobarEvent()"
+            style="display:none; padding:0.48rem 0.85rem; border-radius:8px; font-size:0.8rem; font-weight:700;">
             🗑 Hapus Arsip Ini
           </button>
-          <button type="button" class="btn-secondary" onclick="switchBackToActiveNobarEvent()" style="padding:0.45rem 0.9rem; border-radius:8px; font-size:0.8rem; font-weight:700; border-color:rgba(253,224,71,0.5); color:#fde047;">
+          <button type="button" class="btn-secondary" onclick="switchBackToActiveNobarEvent()"
+            style="padding:0.45rem 0.9rem; border-radius:8px; font-size:0.8rem; font-weight:700; border-color:rgba(253,224,71,0.5); color:#fde047;">
             ← Kembali ke Event Aktif
           </button>
         </div>
@@ -1137,19 +1184,25 @@
         <div class="admin-toolbar" style="margin-bottom:1rem; flex-wrap:wrap; gap:0.75rem;">
           <h2>Pengaturan Event, Harga &amp; Kuota Tiket Nobar</h2>
           <div style="display:flex; align-items:center; gap:0.65rem; flex-wrap:wrap;">
-            <label style="display:inline-flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:800; color:var(--white); background:rgba(3,9,31,0.7); border:1px solid var(--card-border); padding:0.5rem 0.95rem; border-radius:50px; font-size:0.82rem;" title="Matikan jika film/event sudah selesai agar banner & menu Nobar hilang dari halaman utama">
-              <input type="checkbox" id="nobarShowInStorefront" checked style="width:17px; height:17px; accent-color:#38bdf8;" />
+            <label
+              style="display:inline-flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:800; color:var(--white); background:rgba(3,9,31,0.7); border:1px solid var(--card-border); padding:0.5rem 0.95rem; border-radius:50px; font-size:0.82rem;"
+              title="Matikan jika film/event sudah selesai agar banner & menu Nobar hilang dari halaman utama">
+              <input type="checkbox" id="nobarShowInStorefront" checked
+                style="width:17px; height:17px; accent-color:#38bdf8;" />
               <span id="nobarStorefrontStatusLabel">Halaman Utama: TAMPIL</span>
             </label>
-            <label style="display:inline-flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:800; color:var(--white); background:rgba(3,9,31,0.7); border:1px solid var(--card-border); padding:0.5rem 0.95rem; border-radius:50px; font-size:0.82rem;">
+            <label
+              style="display:inline-flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:800; color:var(--white); background:rgba(3,9,31,0.7); border:1px solid var(--card-border); padding:0.5rem 0.95rem; border-radius:50px; font-size:0.82rem;">
               <input type="checkbox" id="nobarIsOpen" checked style="width:17px; height:17px; accent-color:#22c55e;" />
               <span id="nobarOpenStatusLabel">Penjualan Tiket: DIBUKA</span>
             </label>
-            <button class="btn-primary" id="saveNobarConfigBtn" onclick="saveAdminNobarConfig()">Simpan Pengaturan Nobar</button>
+            <button class="btn-primary" id="saveNobarConfigBtn" onclick="saveAdminNobarConfig()">Simpan Pengaturan
+              Nobar</button>
           </div>
         </div>
 
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; margin-bottom:1rem;">
+        <div
+          style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; margin-bottom:1rem;">
           <div class="form-group">
             <label>Judul Event Nobar *</label>
             <input type="text" id="nobarEventTitleInput" placeholder="Nobar Spesial Bioskop Bersama Aika Sesilia" />
@@ -1174,88 +1227,128 @@
             <label>Link Google Maps Bioskop</label>
             <input type="url" id="nobarMapsUrlInput" placeholder="https://maps.app.goo.gl/7yF59NSdjGyyNP6X9" />
           </div>
-          <div class="form-group" style="grid-column: 1 / -1; background:rgba(3,9,31,0.55); border:1px solid var(--card-border); border-radius:12px; padding:1rem;">
-            <label style="color:var(--aqua); font-weight:800; margin-bottom:0.6rem; display:block;">Foto Poster Film / Banner Event Nobar</label>
+          <div class="form-group"
+            style="grid-column: 1 / -1; background:rgba(3,9,31,0.55); border:1px solid var(--card-border); border-radius:12px; padding:1rem;">
+            <label style="color:var(--aqua); font-weight:800; margin-bottom:0.6rem; display:block;">Foto Poster Film /
+              Banner Event Nobar</label>
             <div style="display:flex; gap:1.25rem; align-items:center; flex-wrap:wrap;">
-              <div style="width:115px; border-radius:12px; overflow:hidden; border:2px solid rgba(41,182,246,0.4); background:rgba(3,9,31,0.9); flex-shrink:0; display:flex; align-items:center; justify-content:center;">
-                <img id="nobarBannerPreviewImg" src="/images/Profil/charlotta-seo.jpg" alt="Preview Poster Nobar" style="width:100%; height:auto; max-height:170px; object-fit:contain; display:block;" />
+              <div
+                style="width:115px; border-radius:12px; overflow:hidden; border:2px solid rgba(41,182,246,0.4); background:rgba(3,9,31,0.9); flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+                <img id="nobarBannerPreviewImg" src="/images/Profil/charlotta-seo.jpg" alt="Preview Poster Nobar"
+                  style="width:100%; height:auto; max-height:170px; object-fit:contain; display:block;" />
               </div>
               <div style="flex:1; min-width:240px;">
-                <input type="file" id="nobarBannerFileInput" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleAdminNobarBannerChange(event)" />
+                <input type="file" id="nobarBannerFileInput" accept="image/jpeg,image/png,image/webp"
+                  style="display:none;" onchange="handleAdminNobarBannerChange(event)" />
                 <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin-bottom:0.6rem;">
-                  <button type="button" class="btn-primary" onclick="document.getElementById('nobarBannerFileInput').click()" style="padding:0.55rem 1.1rem; font-size:0.83rem;">
+                  <button type="button" class="btn-primary"
+                    onclick="document.getElementById('nobarBannerFileInput').click()"
+                    style="padding:0.55rem 1.1rem; font-size:0.83rem;">
                     Upload Foto Poster Film
                   </button>
-                  <button type="button" class="btn-secondary" onclick="resetAdminNobarBanner()" style="padding:0.55rem 0.95rem; font-size:0.82rem; border-color:var(--card-border); color:var(--text-muted);">
+                  <button type="button" class="btn-secondary" onclick="resetAdminNobarBanner()"
+                    style="padding:0.55rem 0.95rem; font-size:0.82rem; border-color:var(--card-border); color:var(--text-muted);">
                     Reset Default
                   </button>
                 </div>
-                <input type="text" id="nobarBannerUrlInput" placeholder="Atau tempel URL gambar poster (otomatis terisi saat upload)" oninput="if(this.value.trim()) document.getElementById('nobarBannerPreviewImg').src = this.value.trim();" style="font-size:0.82rem; padding:0.55rem 0.8rem;" />
-                <div id="nobarBannerUploadStatus" style="font-size:0.76rem; color:var(--text-muted); margin-top:0.35rem;">
-                  Pilih foto poster dari komputer/HP Anda lalu klik tombol <strong>Simpan Pengaturan Nobar</strong> di kanan atas.
+                <input type="text" id="nobarBannerUrlInput"
+                  placeholder="Atau tempel URL gambar poster (otomatis terisi saat upload)"
+                  oninput="if(this.value.trim()) document.getElementById('nobarBannerPreviewImg').src = this.value.trim();"
+                  style="font-size:0.82rem; padding:0.55rem 0.8rem;" />
+                <div id="nobarBannerUploadStatus"
+                  style="font-size:0.76rem; color:var(--text-muted); margin-top:0.35rem;">
+                  Pilih foto poster dari komputer/HP Anda lalu klik tombol <strong>Simpan Pengaturan Nobar</strong> di
+                  kanan atas.
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(185px, 1fr)); gap:1rem; margin-bottom:1.15rem; padding-top:1rem; border-top:1px solid var(--card-border); align-items:stretch;">
-          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+        <div
+          style="display:grid; grid-template-columns:repeat(auto-fit, minmax(185px, 1fr)); gap:1rem; margin-bottom:1.15rem; padding-top:1rem; border-top:1px solid var(--card-border); align-items:stretch;">
+          <div class="form-group"
+            style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
             <label style="color:var(--gold); line-height:1.35; margin-bottom:0.45rem;">1. Harga Tiket VIP (Rp) *</label>
             <input type="number" id="nobarPriceVipInput" min="1000" placeholder="250000" />
           </div>
-          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
-            <label style="color:var(--aqua); line-height:1.35; margin-bottom:0.45rem;">2. Harga Tiket Biasa (Rp) *</label>
+          <div class="form-group"
+            style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+            <label style="color:var(--aqua); line-height:1.35; margin-bottom:0.45rem;">2. Harga Tiket Biasa (Rp)
+              *</label>
             <input type="number" id="nobarPriceRegInput" min="1000" placeholder="75000" />
           </div>
-          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
-            <label style="color:#38bdf8; line-height:1.35; margin-bottom:0.45rem;">3. Harga Tiket Biasa + Merch (Rp) *</label>
+          <div class="form-group"
+            style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+            <label style="color:#38bdf8; line-height:1.35; margin-bottom:0.45rem;">3. Harga Tiket Biasa + Merch (Rp)
+              *</label>
             <input type="number" id="nobarPriceMerchInput" min="1000" placeholder="135000" />
           </div>
-          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
-            <label style="color:var(--gold); line-height:1.35; margin-bottom:0.45rem;">Kuota Kursi VIP (Samping Aika) *</label>
+          <div class="form-group"
+            style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+            <label style="color:var(--gold); line-height:1.35; margin-bottom:0.45rem;">Kuota Kursi VIP (Samping Aika)
+              *</label>
             <input type="number" id="nobarVipQuotaInput" min="1" max="20" value="2" />
           </div>
-          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
-            <label style="color:var(--aqua); line-height:1.35; margin-bottom:0.45rem;">Kuota Kursi Reguler Gabungan *</label>
-            <input type="number" id="nobarRegQuotaInput" min="1" max="1000" value="40" title="Gabungan kuota kursi Tiket Biasa dan Tiket Biasa + Merch" />
+          <div class="form-group"
+            style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+            <label style="color:var(--aqua); line-height:1.35; margin-bottom:0.45rem;">Kuota Kursi Reguler Gabungan
+              *</label>
+            <input type="number" id="nobarRegQuotaInput" min="1" max="1000" value="40"
+              title="Gabungan kuota kursi Tiket Biasa dan Tiket Biasa + Merch" />
           </div>
-          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+          <div class="form-group"
+            style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
             <label style="line-height:1.35; margin-bottom:0.45rem;">Maks Tiket Reguler / Transaksi *</label>
             <input type="number" id="nobarMaxRegInput" min="1" max="20" value="5" />
           </div>
-          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
-            <label style="color:#fde047; line-height:1.35; margin-bottom:0.45rem;">⏱️ Batas Bayar Tiket (Menit) *</label>
-            <input type="number" id="nobarPaymentTimeoutInput" min="10" max="1440" value="45" title="Kursi dilepas otomatis jika bukti bayar QRIS belum diunggah lewat batas waktu ini (disarankan 30–60 menit)" />
+          <div class="form-group"
+            style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+            <label style="color:#fde047; line-height:1.35; margin-bottom:0.45rem;">⏱️ Batas Bayar Tiket (Menit)
+              *</label>
+            <input type="number" id="nobarPaymentTimeoutInput" min="10" max="1440" value="45"
+              title="Kursi dilepas otomatis jika bukti bayar QRIS belum diunggah lewat batas waktu ini (disarankan 30–60 menit)" />
           </div>
-          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+          <div class="form-group"
+            style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
             <label style="color:#7dd3fc; line-height:1.35; margin-bottom:0.45rem;">📸 Harga Foto Polaroid (Rp)</label>
             <input type="number" id="nobarPricePolaroidInput" min="1000" value="60000" placeholder="60000" />
           </div>
-          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+          <div class="form-group"
+            style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
             <label style="color:#7dd3fc; line-height:1.35; margin-bottom:0.45rem;">Maks Foto Polaroid / Order</label>
             <input type="number" id="nobarMaxPolaroidInput" min="1" max="50" value="10" />
           </div>
-          <div class="form-group" style="display:flex; flex-direction:column; justify-content:flex-end; height:100%; margin-bottom:0;">
-            <label style="display:flex; align-items:center; gap:0.55rem; cursor:pointer; background:rgba(3,9,31,0.7); border:1px solid var(--card-border); padding:0.72rem 0.9rem; border-radius:8px; color:var(--white); font-size:0.84rem; font-weight:700;">
-              <input type="checkbox" id="nobarPolaroidEnabledInput" checked style="width:16px; height:16px; accent-color:var(--aqua);" />
+          <div class="form-group"
+            style="display:flex; flex-direction:column; justify-content:flex-end; height:100%; margin-bottom:0;">
+            <label
+              style="display:flex; align-items:center; gap:0.55rem; cursor:pointer; background:rgba(3,9,31,0.7); border:1px solid var(--card-border); padding:0.72rem 0.9rem; border-radius:8px; color:var(--white); font-size:0.84rem; font-weight:700;">
+              <input type="checkbox" id="nobarPolaroidEnabledInput" checked
+                style="width:16px; height:16px; accent-color:var(--aqua);" />
               <span>Aktifkan Add-on Polaroid</span>
             </label>
           </div>
         </div>
 
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:1rem; padding-top:0.9rem; border-top:1px dashed rgba(41,182,246,0.2); align-items:stretch;">
-          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+        <div
+          style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:1rem; padding-top:0.9rem; border-top:1px dashed rgba(41,182,246,0.2); align-items:stretch;">
+          <div class="form-group"
+            style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
             <label style="line-height:1.35; margin-bottom:0.45rem;">Isi Paket Merch Bundel (Tanpa Ukuran Baju)</label>
-            <input type="text" id="nobarMerchDescInput" placeholder="Photocard Eksklusif + Poster Nobar Aika Sesilia (Ambil di Lokasi)" />
+            <input type="text" id="nobarMerchDescInput"
+              placeholder="Photocard Eksklusif + Poster Nobar Aika Sesilia (Ambil di Lokasi)" />
           </div>
-          <div class="form-group" style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
+          <div class="form-group"
+            style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
             <label style="line-height:1.35; margin-bottom:0.45rem;">Benefit Tiket VIP</label>
-            <input type="text" id="nobarVipPerkInput" placeholder="Duduk eksklusif tepat di samping Kak Aika (Kuota 2 Orang) + Photocard & Poster" />
+            <input type="text" id="nobarVipPerkInput"
+              placeholder="Duduk eksklusif tepat di samping Kak Aika (Kuota 2 Orang) + Photocard & Poster" />
           </div>
           <div class="form-group" style="grid-column: 1 / -1; margin-bottom:0;">
-            <label style="line-height:1.35; margin-bottom:0.45rem;">Catatan / Ketentuan Event (Ditampilkan di Halaman Pembelian)</label>
-            <input type="text" id="nobarNotesInput" placeholder="Kursi diambil saat event berlangsung (siapa cepat dia dapat). Merch diambil langsung di lokasi tanpa ongkir." />
+            <label style="line-height:1.35; margin-bottom:0.45rem;">Catatan / Ketentuan Event (Ditampilkan di Halaman
+              Pembelian)</label>
+            <input type="text" id="nobarNotesInput"
+              placeholder="Kursi diambil saat event berlangsung (siapa cepat dia dapat). Merch diambil langsung di lokasi tanpa ongkir." />
           </div>
         </div>
       </div>
@@ -1265,32 +1358,28 @@
         <div class="admin-toolbar" style="margin-bottom:1rem; flex-wrap:wrap; gap:0.85rem;">
           <div>
             <h2>Daftar Peserta &amp; Pembeli Tiket Nobar</h2>
-            <p style="color:var(--text-muted); font-size:0.83rem; margin-top:2px;" id="nobarAttendeeCountLabel">0 pesanan tiket</p>
+            <p style="color:var(--text-muted); font-size:0.83rem; margin-top:2px;" id="nobarAttendeeCountLabel">0
+              pesanan tiket</p>
           </div>
           <div style="display:flex; gap:0.65rem; align-items:center; flex-wrap:wrap;">
             <div style="position:relative; min-width:250px;">
-              <input
-                type="text"
-                id="nobarParticipantSearch"
-                oninput="renderAdminNobarTable()"
+              <input type="text" id="nobarParticipantSearch" oninput="renderAdminNobarTable()"
                 placeholder="🔍 Cari nama peserta, pembeli, HP, Invoice..."
-                style="width:100%; background:rgba(3,9,31,0.75); border:1px solid var(--card-border); color:var(--white); padding:0.55rem 2rem 0.55rem 0.85rem; border-radius:8px; font-family:var(--font-body); font-size:0.84rem;"
-              />
-              <button
-                type="button"
-                id="clearNobarSearchBtn"
+                style="width:100%; background:rgba(3,9,31,0.75); border:1px solid var(--card-border); color:var(--white); padding:0.55rem 2rem 0.55rem 0.85rem; border-radius:8px; font-family:var(--font-body); font-size:0.84rem;" />
+              <button type="button" id="clearNobarSearchBtn"
                 onclick="const el=document.getElementById('nobarParticipantSearch'); if(el){el.value=''; renderAdminNobarTable(); el.focus();}"
                 title="Bersihkan pencarian"
-                style="display:none; position:absolute; right:7px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.88rem; padding:2px 5px;"
-              >✕</button>
+                style="display:none; position:absolute; right:7px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.88rem; padding:2px 5px;">✕</button>
             </div>
-            <select id="nobarTierFilter" onchange="renderAdminNobarTable()" style="background:var(--card-bg); border:1px solid var(--card-border); color:var(--white); padding:0.55rem 0.9rem; border-radius:8px; font-family:var(--font-body);">
+            <select id="nobarTierFilter" onchange="renderAdminNobarTable()"
+              style="background:var(--card-bg); border:1px solid var(--card-border); color:var(--white); padding:0.55rem 0.9rem; border-radius:8px; font-family:var(--font-body);">
               <option value="all">Semua Kategori Tiket</option>
               <option value="vip">1. Tiket VIP</option>
               <option value="regular">2. Tiket Biasa</option>
               <option value="regular_merch">3. Tiket Biasa + Merch</option>
             </select>
-            <button type="button" class="btn-del" onclick="deleteAllNobarOrders()" style="padding:0.55rem 0.9rem; border-radius:8px; font-size:0.82rem; font-weight:700; white-space:nowrap;">
+            <button type="button" class="btn-del" onclick="deleteAllNobarOrders()"
+              style="padding:0.55rem 0.9rem; border-radius:8px; font-size:0.82rem; font-weight:700; white-space:nowrap;">
               🗑 Hapus Semua Tiket
             </button>
           </div>
@@ -1504,22 +1593,28 @@
           <div class="admin-toolbar" style="margin-bottom:0.75rem">
             <div>
               <h2>🎫 Akun Panitia / Admin Nobar Bioskop</h2>
-              <p style="font-size:0.84rem; color:var(--text-muted); margin-top:0.25rem;">Buat akun login khusus untuk panitia Nobar di lokasi. Panitia hanya dapat mengakses tab <strong>Nobar Bioskop</strong> (verifikasi bayar tiket &amp; scan QR check-in), tidak bisa membuka data toko/produk/keuangan.</p>
+              <p style="font-size:0.84rem; color:var(--text-muted); margin-top:0.25rem;">Buat akun login khusus untuk
+                panitia Nobar di lokasi. Panitia hanya dapat mengakses tab <strong>Nobar Bioskop</strong> (verifikasi
+                bayar tiket &amp; scan QR check-in), tidak bisa membuka data toko/produk/keuangan.</p>
             </div>
-            <button type="button" class="btn-secondary" onclick="loadNobarAdminAccounts()" style="border-color:var(--card-border); color:var(--text-muted)">🔄 Refresh</button>
+            <button type="button" class="btn-secondary" onclick="loadNobarAdminAccounts()"
+              style="border-color:var(--card-border); color:var(--text-muted)">🔄 Refresh</button>
           </div>
 
-          <form onsubmit="event.preventDefault(); createNobarAdminAccount();" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:1rem; align-items:end; background:rgba(3,9,31,0.45); border:1px solid var(--card-border); border-radius:12px; padding:1rem; margin-bottom:1.2rem;">
+          <form onsubmit="event.preventDefault(); createNobarAdminAccount();"
+            style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:1rem; align-items:end; background:rgba(3,9,31,0.45); border:1px solid var(--card-border); border-radius:12px; padding:1rem; margin-bottom:1.2rem;">
             <div class="form-group" style="margin-bottom:0;">
               <label for="newNobarAdminUsername">Username Panitia *</label>
               <input type="text" id="newNobarAdminUsername" placeholder="Contoh: panitia_nobar1" autocomplete="off" />
             </div>
             <div class="form-group" style="margin-bottom:0;">
               <label for="newNobarAdminPassword">Password Login *</label>
-              <input type="password" id="newNobarAdminPassword" placeholder="Minimal 8 karakter" autocomplete="new-password" />
+              <input type="password" id="newNobarAdminPassword" placeholder="Minimal 8 karakter"
+                autocomplete="new-password" />
             </div>
             <div>
-              <button type="submit" class="btn-primary" id="createNobarAdminBtn" style="width:100%; padding:0.75rem 1rem; font-weight:700;">
+              <button type="submit" class="btn-primary" id="createNobarAdminBtn"
+                style="width:100%; padding:0.75rem 1rem; font-weight:700;">
                 + Tambah Akun Panitia
               </button>
             </div>
@@ -1537,12 +1632,17 @@
                 </tr>
               </thead>
               <tbody id="nobarAdminAccountsTableBody">
-                <tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:1rem;">Memuat daftar akun panitia...</td></tr>
+                <tr>
+                  <td colspan="5" style="text-align:center; color:var(--text-muted); padding:1rem;">Memuat daftar akun
+                    panitia...</td>
+                </tr>
               </tbody>
             </table>
           </div>
           <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">
-            💡 Panitia login menggunakan halaman admin yang sama (<code style="color:var(--aqua);">/login.html?role=admin</code>). Username bersifat sensitif huruf besar/kecil sesuai yang Anda daftarkan di atas.
+            💡 Panitia login menggunakan halaman admin yang sama (<code
+              style="color:var(--aqua);">/login.html?role=admin</code>). Username bersifat sensitif huruf besar/kecil
+            sesuai yang Anda daftarkan di atas.
           </p>
         </div>
 
@@ -1772,7 +1872,8 @@
       <h2 id="orderModalTitle">📦 Detail Pesanan</h2>
       <div id="orderDetailContent"></div>
       <div class="modal-footer" style="flex-wrap:wrap;gap:0.5rem;">
-        <button class="btn-del" id="deleteOrderModalBtn" style="display:none;margin-right:auto;">🗑 Hapus Pesanan</button>
+        <button class="btn-del" id="deleteOrderModalBtn" style="display:none;margin-right:auto;">🗑 Hapus
+          Pesanan</button>
         <button class="btn-edit" id="downloadOrderExcelBtn" style="display:none">Excel Invoice</button>
         <button class="btn-ghost" onclick="closeOrderModal()">Tutup</button>
         <button class="btn-primary" id="markPaidBtn">💾 Update Status</button>
@@ -1787,10 +1888,12 @@
         <div>
           <h2 style="margin:0; font-size:1.2rem; color:var(--aqua);">✨ Buat Event Nobar Baru</h2>
           <p style="margin:4px 0 0; font-size:0.8rem; color:var(--text-muted); line-height:1.45;">
-            Event Nobar lama akan otomatis disimpan ke <strong>Arsip</strong> (semua data peserta, Polaroid, &amp; riwayat transaksi tetap aman). Kuota event baru dimulai dari 0 dan pembeli VIP lama bisa membeli VIP lagi.
+            Event Nobar lama akan otomatis disimpan ke <strong>Arsip</strong> (semua data peserta, Polaroid, &amp;
+            riwayat transaksi tetap aman). Kuota event baru dimulai dari 0 dan pembeli VIP lama bisa membeli VIP lagi.
           </p>
         </div>
-        <button type="button" class="btn-ghost" onclick="closeNewNobarEventModal()" style="padding:0.35rem 0.7rem; border-radius:50%;">✕</button>
+        <button type="button" class="btn-ghost" onclick="closeNewNobarEventModal()"
+          style="padding:0.35rem 0.7rem; border-radius:50%;">✕</button>
       </div>
 
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.85rem;">
@@ -1823,11 +1926,14 @@
           <input type="number" id="newNobarRegQuota" min="1" max="1000" value="40" />
         </div>
         <div class="form-group" style="grid-column:1 / -1; display:flex; gap:1rem; flex-wrap:wrap; margin-top:0.25rem;">
-          <label style="display:inline-flex; align-items:center; gap:0.45rem; cursor:pointer; font-size:0.84rem; color:var(--white); font-weight:700;">
-            <input type="checkbox" id="newNobarShowStorefront" checked style="width:16px; height:16px; accent-color:#38bdf8;" />
+          <label
+            style="display:inline-flex; align-items:center; gap:0.45rem; cursor:pointer; font-size:0.84rem; color:var(--white); font-weight:700;">
+            <input type="checkbox" id="newNobarShowStorefront" checked
+              style="width:16px; height:16px; accent-color:#38bdf8;" />
             <span>Tampilkan di Halaman Utama</span>
           </label>
-          <label style="display:inline-flex; align-items:center; gap:0.45rem; cursor:pointer; font-size:0.84rem; color:var(--white); font-weight:700;">
+          <label
+            style="display:inline-flex; align-items:center; gap:0.45rem; cursor:pointer; font-size:0.84rem; color:var(--white); font-weight:700;">
             <input type="checkbox" id="newNobarIsOpen" checked style="width:16px; height:16px; accent-color:#22c55e;" />
             <span>Langsung Buka Penjualan Tiket</span>
           </label>
@@ -1836,7 +1942,8 @@
 
       <div style="display:flex; justify-content:flex-end; gap:0.65rem; margin-top:1.25rem;">
         <button type="button" class="btn-secondary" onclick="closeNewNobarEventModal()">Batal</button>
-        <button type="button" class="btn-primary" id="submitNewNobarEventBtn" onclick="submitCreateNewNobarEvent()" style="background:linear-gradient(135deg,#2563eb,#7c3aed); border:none;">
+        <button type="button" class="btn-primary" id="submitNewNobarEventBtn" onclick="submitCreateNewNobarEvent()"
+          style="background:linear-gradient(135deg,#2563eb,#7c3aed); border:none;">
           ✨ Arsipkan Lama &amp; Buat Event Baru
         </button>
       </div>
@@ -1849,45 +1956,62 @@
       <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; margin-bottom:0.85rem;">
         <div>
           <h2 style="margin:0; font-size:1.2rem; color:var(--aqua);">📷 Scan QR Check-in Nobar Bioskop</h2>
-          <p style="margin:3px 0 0; font-size:0.78rem; color:var(--text-muted);">Arahkan kamera ke QR Code E-Tiket peserta atau cari manual lewat nomor Invoice.</p>
+          <p style="margin:3px 0 0; font-size:0.78rem; color:var(--text-muted);">Arahkan kamera ke QR Code E-Tiket
+            peserta atau cari manual lewat nomor Invoice.</p>
         </div>
-        <button type="button" class="btn-ghost" onclick="closeNobarQrScanner()" style="padding:0.35rem 0.7rem; border-radius:50%;">✕</button>
+        <button type="button" class="btn-ghost" onclick="closeNobarQrScanner()"
+          style="padding:0.35rem 0.7rem; border-radius:50%;">✕</button>
       </div>
 
       <!-- AUTO CHECK-IN & CAMERA CONTROLS -->
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.6rem; background:rgba(3,9,31,0.65); border:1px solid var(--card-border); border-radius:10px; padding:0.7rem 0.9rem; margin-bottom:0.9rem;">
-        <label style="display:inline-flex; align-items:center; gap:0.5rem; font-size:0.82rem; font-weight:700; color:var(--white); cursor:pointer;">
+      <div
+        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.6rem; background:rgba(3,9,31,0.65); border:1px solid var(--card-border); border-radius:10px; padding:0.7rem 0.9rem; margin-bottom:0.9rem;">
+        <label
+          style="display:inline-flex; align-items:center; gap:0.5rem; font-size:0.82rem; font-weight:700; color:var(--white); cursor:pointer;">
           <input type="checkbox" id="qrAutoCheckInToggle" style="width:16px; height:16px; accent-color:#22c55e;" />
           <span>⚡ Auto Check-in otomatis saat QR valid</span>
         </label>
         <div style="display:flex; gap:0.45rem; flex-wrap:wrap;">
-          <button type="button" class="btn-secondary" onclick="switchNobarScannerCamera()" style="padding:0.35rem 0.75rem; font-size:0.76rem; border-radius:8px;">
+          <button type="button" class="btn-secondary" onclick="switchNobarScannerCamera()"
+            style="padding:0.35rem 0.75rem; font-size:0.76rem; border-radius:8px;">
             🔄 Ganti Kamera
           </button>
-          <input type="file" id="qrUploadImageInput" accept="image/*" style="display:none;" onchange="scanQrFromUploadedImage(event)" />
-          <button type="button" class="btn-secondary" onclick="document.getElementById('qrUploadImageInput').click()" style="padding:0.35rem 0.75rem; font-size:0.76rem; border-radius:8px; border-color:rgba(41,182,246,0.45); color:var(--aqua);">
+          <input type="file" id="qrUploadImageInput" accept="image/*" style="display:none;"
+            onchange="scanQrFromUploadedImage(event)" />
+          <button type="button" class="btn-secondary" onclick="document.getElementById('qrUploadImageInput').click()"
+            style="padding:0.35rem 0.75rem; font-size:0.76rem; border-radius:8px; border-color:rgba(41,182,246,0.45); color:var(--aqua);">
             🖼 Scan Foto QR
           </button>
         </div>
       </div>
 
       <!-- CAMERA VIEWPORT -->
-      <div id="qrCameraBox" style="position:relative; width:100%; background:#020617; border:2px solid rgba(41,182,246,0.45); border-radius:14px; overflow:hidden; margin-bottom:0.9rem; min-height:240px; display:flex; align-items:center; justify-content:center;">
-        <video id="qrScannerVideo" playsinline muted style="width:100%; max-height:320px; object-fit:cover; display:block;"></video>
+      <div id="qrCameraBox"
+        style="position:relative; width:100%; background:#020617; border:2px solid rgba(41,182,246,0.45); border-radius:14px; overflow:hidden; margin-bottom:0.9rem; min-height:240px; display:flex; align-items:center; justify-content:center;">
+        <video id="qrScannerVideo" playsinline muted
+          style="width:100%; max-height:320px; object-fit:cover; display:block;"></video>
         <canvas id="qrScannerCanvas" style="display:none;"></canvas>
         <!-- Viewfinder Guide Box -->
-        <div style="position:absolute; inset:0; pointer-events:none; display:flex; align-items:center; justify-content:center;">
-          <div style="width:190px; height:190px; border:2.5px dashed rgba(41,182,246,0.85); border-radius:16px; box-shadow:0 0 0 9999px rgba(2,6,23,0.42);"></div>
+        <div
+          style="position:absolute; inset:0; pointer-events:none; display:flex; align-items:center; justify-content:center;">
+          <div
+            style="width:190px; height:190px; border:2.5px dashed rgba(41,182,246,0.85); border-radius:16px; box-shadow:0 0 0 9999px rgba(2,6,23,0.42);">
+          </div>
         </div>
-        <div id="qrCameraStatusMsg" style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); background:rgba(3,9,31,0.85); color:var(--aqua); font-size:0.76rem; font-weight:700; padding:4px 12px; border-radius:50px; border:1px solid rgba(41,182,246,0.35); white-space:nowrap;">
+        <div id="qrCameraStatusMsg"
+          style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); background:rgba(3,9,31,0.85); color:var(--aqua); font-size:0.76rem; font-weight:700; padding:4px 12px; border-radius:50px; border:1px solid rgba(41,182,246,0.35); white-space:nowrap;">
           Mengaktifkan kamera...
         </div>
       </div>
 
       <!-- MANUAL INPUT / FALLBACK -->
-      <form onsubmit="event.preventDefault(); verifyManualNobarQr();" style="display:flex; gap:0.5rem; margin-bottom:1rem;">
-        <input type="text" id="qrManualCodeInput" placeholder="Atau ketik Invoice ID (misal: INV-20261121-01) / kode AIKANOBAR..." style="flex:1; background:rgba(3,9,31,0.75); border:1px solid var(--card-border); color:var(--white); padding:0.65rem 0.9rem; border-radius:8px; font-family:monospace; font-size:0.84rem;" />
-        <button type="submit" class="btn-primary" style="padding:0.65rem 1.1rem; border-radius:8px; font-size:0.84rem; font-weight:700; white-space:nowrap;">
+      <form onsubmit="event.preventDefault(); verifyManualNobarQr();"
+        style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+        <input type="text" id="qrManualCodeInput"
+          placeholder="Atau ketik Invoice ID (misal: INV-20261121-01) / kode AIKANOBAR..."
+          style="flex:1; background:rgba(3,9,31,0.75); border:1px solid var(--card-border); color:var(--white); padding:0.65rem 0.9rem; border-radius:8px; font-family:monospace; font-size:0.84rem;" />
+        <button type="submit" class="btn-primary"
+          style="padding:0.65rem 1.1rem; border-radius:8px; font-size:0.84rem; font-weight:700; white-space:nowrap;">
           Cek Tiket
         </button>
       </form>
@@ -1927,11 +2051,13 @@
       <form onsubmit="event.preventDefault(); submitNobarAdminPasswordReset();">
         <div class="form-group">
           <label for="nobarResetNewPassword">Password Baru *</label>
-          <input type="password" id="nobarResetNewPassword" placeholder="Minimal 8 karakter" autocomplete="new-password" />
+          <input type="password" id="nobarResetNewPassword" placeholder="Minimal 8 karakter"
+            autocomplete="new-password" />
         </div>
         <div class="form-group">
           <label for="nobarResetConfirmPassword">Konfirmasi Password Baru *</label>
-          <input type="password" id="nobarResetConfirmPassword" placeholder="Ulangi password baru" autocomplete="new-password" />
+          <input type="password" id="nobarResetConfirmPassword" placeholder="Ulangi password baru"
+            autocomplete="new-password" />
         </div>
         <div class="modal-footer">
           <button type="button" class="btn-ghost" onclick="closeNobarAdminPwdModal()">Batal</button>
@@ -2875,7 +3001,7 @@
     }
 
 
-    
+
     // ── NOBAR BIOSKOP ADMIN MANAGEMENT ──
     let adminNobarData = { config: null, viewedConfig: null, stats: null, attendees: [], eventsList: [], viewingEventId: null, isViewingArchive: false };
     let selectedAdminNobarEventId = '';
@@ -3344,12 +3470,12 @@
 
         const participantsHtml = (a.participants || []).map((p, idx) => {
           const isMatch = searchQuery && String(p || '').toLowerCase().includes(searchQuery);
-          return `<div style="${isMatch ? 'background:rgba(234,179,8,0.22);color:#fde047;padding:1px 6px;border-radius:4px;display:inline-block;' : ''}"><strong>#${idx + 1}:</strong> ${escapeHtml(p)}</div>`;
-        }).join('<br>');
+          return `<div style="white-space:nowrap;">${isMatch ? `<span style="background:rgba(234,179,8,0.22);color:#fde047;padding:1px 6px;border-radius:4px;display:inline-block;"><strong>#${idx + 1}:</strong> ${escapeHtml(p)}</span>` : `<strong>#${idx + 1}:</strong> ${escapeHtml(p)}`}</div>`;
+        }).join('');
 
         return `
           <tr>
-            <td style="font-family:monospace;color:var(--aqua);font-size:0.8rem">
+            <td style="font-family:monospace;color:var(--aqua);font-size:0.8rem;white-space:nowrap;">
               ${safeOid}
               ${adminNobarData.viewingEventId === 'all' && a.eventTitle ? `<div style="font-family:var(--font-body);font-size:0.7rem;color:#c084fc;margin-top:3px;font-weight:700;">🎬 ${escapeHtml(a.eventTitle)}</div>` : ''}
             </td>
@@ -3359,8 +3485,8 @@
               ${(parseInt(a.polaroidQty, 10) || 0) > 0 ? `<div style="font-size:0.72rem;color:#7dd3fc;margin-top:3px;font-weight:700;white-space:nowrap;">📸 +${parseInt(a.polaroidQty, 10)} Foto Polaroid</div>` : ''}
             </td>
             <td style="font-size:0.82rem;color:var(--white);line-height:1.45;">${participantsHtml}</td>
-            <td style="font-weight:800;color:var(--aqua);">${a.qty} Kursi</td>
-            <td style="font-size:0.8rem;">
+            <td style="font-weight:800;color:var(--aqua);white-space:nowrap;">${a.qty} Kursi</td>
+            <td style="font-size:0.8rem;line-height:1.45;white-space:nowrap;">
               <div style="color:var(--white);font-weight:700;">${escapeHtml(a.customerName)}</div>
               <div style="color:var(--text-muted);font-size:0.74rem;">${escapeHtml(a.email)}</div>
               <div style="color:var(--aqua);font-size:0.74rem;">${escapeHtml(a.phone || '-')}</div>
@@ -3369,14 +3495,14 @@
             <td>
               ${statusBadge(a.status, true)}
               ${a.status === 'pending' && !a.hasPaymentProof && a.paymentExpiresAt
-                ? `<div style="margin-top:4px;font-size:0.7rem;color:#fde047;">⏱️ Batas bayar s/d ${new Date(a.paymentExpiresAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</div>`
-                : ''}
+            ? `<div style="margin-top:4px;font-size:0.7rem;color:#fde047;">⏱️ Batas bayar s/d ${new Date(a.paymentExpiresAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</div>`
+            : ''}
               ${a.checkedIn && a.checkedInAt
-                ? `<div style="margin-top:4px;font-size:0.7rem;color:#4ade80;">✓ Check-in ${new Date(a.checkedInAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</div>`
-                : ''}
+            ? `<div style="margin-top:4px;font-size:0.7rem;color:#4ade80;">✓ Check-in ${new Date(a.checkedInAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</div>`
+            : ''}
               ${a.includesMerch && (a.status === 'paid' || a.status === 'completed')
-                ? `<div style="margin-top:2px;font-size:0.69rem;color:${a.merchClaimed ? '#4ade80' : '#fbbf24'};">${a.merchClaimed ? '🎁 Merch Diambil ✓' : '🎁 Merch Belum Diambil'}</div>`
-                : ''}
+            ? `<div style="margin-top:2px;font-size:0.69rem;color:${a.merchClaimed ? '#4ade80' : '#fbbf24'};">${a.merchClaimed ? '🎁 Merch Diambil ✓' : '🎁 Merch Belum Diambil'}</div>`
+            : ''}
             </td>
             <td>
               <div class="action-btns">
@@ -3457,15 +3583,15 @@
         let shipObj = {};
         try { shipObj = typeof o.shipping === 'string' ? JSON.parse(o.shipping) : (o.shipping || {}); } catch (e) { }
         const isNobarOrder = Boolean(shipObj.isNobar);
-      const nbTicket = shipObj.nobarTicket || null;
-      const isDp = !isNobarOrder && (shipObj.paymentScheme === 'dp50' || shipObj.isDp);
+        const nbTicket = shipObj.nobarTicket || null;
+        const isDp = !isNobarOrder && (shipObj.paymentScheme === 'dp50' || shipObj.isDp);
         const dpAmount = Number(shipObj.dpAmount) || Math.ceil((Number(o.total) || 0) * 0.5);
         const remainingAmount = Number(shipObj.remainingAmount) || Math.max(0, (Number(o.total) || 0) - dpAmount);
         const safeOid = escapeHtml(o.id);
 
         return `
     <tr>
-      <td style="font-family:monospace;color:var(--aqua);font-size:0.8rem">${safeOid}</td>
+      <td style="font-family:monospace;color:var(--aqua);font-size:0.8rem;white-space:nowrap;">${safeOid}</td>
       <td class="td-name">
         ${escapeHtml(o.customerName)}<br>
         <span style="font-size:0.75rem;color:var(--text-muted)">${escapeHtml(o.email)}</span>
@@ -3583,27 +3709,27 @@
           showToast(order.error || 'Gagal memuat detail pesanan');
           return;
         }
-      if (!order) return;
-      const content = document.getElementById('orderDetailContent');
+        if (!order) return;
+        const content = document.getElementById('orderDetailContent');
 
-      let shipObj = {};
-      try { shipObj = typeof order.shipping === 'string' ? JSON.parse(order.shipping) : (order.shipping || {}); } catch (e) { }
-      const isNobarOrder = Boolean(shipObj.isNobar);
-      const nbTicket = shipObj.nobarTicket || null;
-      const isDp = !isNobarOrder && (shipObj.paymentScheme === 'dp50' || shipObj.isDp);
-      const dpAmount = Number(shipObj.dpAmount) || Math.ceil((Number(order.total) || 0) * 0.5);
-      const remainingAmount = Number(shipObj.remainingAmount) || Math.max(0, (Number(order.total) || 0) - dpAmount);
-      const buyerNote = (order.notes || order.note || (shipObj && (shipObj.notes || shipObj.note)) || '').trim();
-      const buyerPhone = (order.phone || '').trim();
+        let shipObj = {};
+        try { shipObj = typeof order.shipping === 'string' ? JSON.parse(order.shipping) : (order.shipping || {}); } catch (e) { }
+        const isNobarOrder = Boolean(shipObj.isNobar);
+        const nbTicket = shipObj.nobarTicket || null;
+        const isDp = !isNobarOrder && (shipObj.paymentScheme === 'dp50' || shipObj.isDp);
+        const dpAmount = Number(shipObj.dpAmount) || Math.ceil((Number(order.total) || 0) * 0.5);
+        const remainingAmount = Number(shipObj.remainingAmount) || Math.max(0, (Number(order.total) || 0) - dpAmount);
+        const buyerNote = (order.notes || order.note || (shipObj && (shipObj.notes || shipObj.note)) || '').trim();
+        const buyerPhone = (order.phone || '').trim();
 
-      const safeOrderId = escapeHtml(order.id);
-      const safeProofUrl = sanitizeImageUrl(order.payment_proof);
-      const safePelunasanUrl = sanitizeImageUrl(order.pelunasan_proof);
-      const pelunasanSt = String(shipObj.pelunasanStatus || 'unpaid');
-      const isInitialVerified = ['paid', 'shipped', 'completed'].includes(order.status);
+        const safeOrderId = escapeHtml(order.id);
+        const safeProofUrl = sanitizeImageUrl(order.payment_proof);
+        const safePelunasanUrl = sanitizeImageUrl(order.pelunasan_proof);
+        const pelunasanSt = String(shipObj.pelunasanStatus || 'unpaid');
+        const isInitialVerified = ['paid', 'shipped', 'completed'].includes(order.status);
 
-      // Render Bukti Pembayaran 1 (Awal / DP 50%)
-      const paymentProofHTML = safeProofUrl ? `
+        // Render Bukti Pembayaran 1 (Awal / DP 50%)
+        const paymentProofHTML = safeProofUrl ? `
     <div style="background:rgba(76,175,80,0.08);border:2px solid ${shipObj.reuploadRequested && order.status === 'pending' ? '#f59e0b' : '#4caf50'};border-radius:10px;padding:1.25rem;margin-bottom:1.2rem">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;flex-wrap:wrap;gap:0.5rem;">
         <h4 style="color:#4ade80;margin:0;font-size:0.93rem">📸 BUKTI PEMBAYARAN ${isNobarOrder ? 'QRIS TIKET NOBAR' : (isDp ? '1 — DP 50% (UANG MUKA)' : 'QRIS (100%)')}</h4>
@@ -3647,18 +3773,18 @@
     </div>
   ` : '');
 
-      // Render Bukti Pembayaran 2 (Pelunasan Sisa 50% untuk skema DP)
-      const pelunasanSectionHTML = isDp ? `
+        // Render Bukti Pembayaran 2 (Pelunasan Sisa 50% untuk skema DP)
+        const pelunasanSectionHTML = isDp ? `
     <div style="background:rgba(2,132,199,0.1);border:2px solid ${pelunasanSt === 'verified' ? '#22c55e' : pelunasanSt === 'pending_verification' ? '#38bdf8' : 'rgba(56,189,248,0.35)'};border-radius:10px;padding:1.25rem;margin-bottom:1.5rem">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.65rem;flex-wrap:wrap;gap:0.5rem;">
         <h4 style="color:#38bdf8;margin:0;font-size:0.93rem">💳 BUKTI PEMBAYARAN 2 — PELUNASAN SISA 50% (${formatPrice(remainingAmount)})</h4>
         ${pelunasanSt === 'verified'
-          ? '<span style="background:rgba(34,197,94,0.2);color:#4ade80;border:1px solid rgba(34,197,94,0.5);padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:bold;">✅ LUNAS 100%</span>'
-          : pelunasanSt === 'pending_verification'
-            ? '<span style="background:rgba(56,189,248,0.2);color:#7dd3fc;border:1px solid rgba(56,189,248,0.5);padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:bold;">⏳ Menunggu Verifikasi Pelunasan</span>'
-            : pelunasanSt === 'rejected'
-              ? '<span style="background:rgba(251,146,60,0.2);color:#fdba74;border:1px solid rgba(251,146,60,0.5);padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:bold;">⚠️ Ditolak — Menunggu Upload Ulang</span>'
-              : '<span style="background:rgba(148,163,184,0.16);color:var(--text-muted);border:1px solid rgba(148,163,184,0.35);padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:bold;">⏳ Belum Dilunasi</span>'}
+            ? '<span style="background:rgba(34,197,94,0.2);color:#4ade80;border:1px solid rgba(34,197,94,0.5);padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:bold;">✅ LUNAS 100%</span>'
+            : pelunasanSt === 'pending_verification'
+              ? '<span style="background:rgba(56,189,248,0.2);color:#7dd3fc;border:1px solid rgba(56,189,248,0.5);padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:bold;">⏳ Menunggu Verifikasi Pelunasan</span>'
+              : pelunasanSt === 'rejected'
+                ? '<span style="background:rgba(251,146,60,0.2);color:#fdba74;border:1px solid rgba(251,146,60,0.5);padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:bold;">⚠️ Ditolak — Menunggu Upload Ulang</span>'
+                : '<span style="background:rgba(148,163,184,0.16);color:var(--text-muted);border:1px solid rgba(148,163,184,0.35);padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:bold;">⏳ Belum Dilunasi</span>'}
       </div>
       ${safePelunasanUrl ? `
         <div style="background:var(--white);border-radius:8px;padding:0.85rem;text-align:center;margin-bottom:0.9rem;max-height:380px;overflow:auto">
@@ -3678,10 +3804,10 @@
       ` : `
         <p style="font-size:0.82rem;color:var(--text-muted);margin:0 0 0.75rem 0;line-height:1.45;">
           ${pelunasanSt === 'verified'
-          ? '✅ Pesanan ini telah ditandai <strong>Lunas 100%</strong> secara manual (COD / Tunai).'
-          : isInitialVerified
-            ? 'Pembeli belum mengunggah bukti pelunasan sisa 50%. Pembeli dapat mengunggahnya di <strong>Profil &gt; Riwayat Pesanan</strong>, atau Anda dapat menandai lunas manual jika dibayar tunai saat COD Event.'
-            : 'Menunggu verifikasi DP 50% pertama sebelum pembeli dapat mengunggah bukti pelunasan sisa 50%.'}
+            ? '✅ Pesanan ini telah ditandai <strong>Lunas 100%</strong> secara manual (COD / Tunai).'
+            : isInitialVerified
+              ? 'Pembeli belum mengunggah bukti pelunasan sisa 50%. Pembeli dapat mengunggahnya di <strong>Profil &gt; Riwayat Pesanan</strong>, atau Anda dapat menandai lunas manual jika dibayar tunai saat COD Event.'
+              : 'Menunggu verifikasi DP 50% pertama sebelum pembeli dapat mengunggah bukti pelunasan sisa 50%.'}
         </p>
         ${isInitialVerified && pelunasanSt !== 'verified' ? `
           <button class="btn-secondary" data-oid="${safeOrderId}" onclick="verifyPelunasan(this.dataset.oid, true)" style="border-color:#22c55e;color:#4ade80;padding:0.55rem 1rem;font-size:0.8rem;">
@@ -3692,8 +3818,8 @@
     </div>
   ` : '';
 
-      // isNobarOrder & nbTicket declared at top of viewOrder
-      const nobarDetailSectionHTML = isNobarOrder && nbTicket ? `
+        // isNobarOrder & nbTicket declared at top of viewOrder
+        const nobarDetailSectionHTML = isNobarOrder && nbTicket ? `
     <div style="background:rgba(2,132,199,0.12);border:1.5px solid ${nbTicket.tier === 'vip' ? '#fde047' : 'var(--aqua)'};border-radius:10px;padding:1.15rem;margin-bottom:1.25rem">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.6rem;">
         <h4 style="color:${nbTicket.tier === 'vip' ? '#fde047' : 'var(--aqua)'};margin:0;font-size:0.93rem">TIKET NOBAR BIOSKOP — ${escapeHtml(nbTicket.tierLabel || nbTicket.tier)}</h4>
@@ -3737,7 +3863,7 @@
     </div>
   ` : '';
 
-      content.innerHTML = `
+        content.innerHTML = `
     ${paymentProofHTML}
     ${pelunasanSectionHTML}
     ${nobarDetailSectionHTML}
@@ -3810,49 +3936,49 @@
       </div>
     `}
   `;
-      const modalTitleEl = document.getElementById('orderModalTitle');
-      if (modalTitleEl) {
-        modalTitleEl.textContent = isNobarOrder ? '🎟️ Detail Pesanan Tiket Nobar' : '📦 Detail Pesanan';
-      }
-      const delModalBtn = document.getElementById('deleteOrderModalBtn');
-      if (delModalBtn) {
-        delModalBtn.style.display = 'inline-flex';
-        delModalBtn.textContent = isNobarOrder ? '🗑 Hapus Tiket' : '🗑 Hapus Pesanan';
-        delModalBtn.onclick = () => deleteOrder(order.id, true);
-      }
-      const excelBtn = document.getElementById('downloadOrderExcelBtn');
-      if (excelBtn) {
-        excelBtn.style.display = 'inline-flex';
-        excelBtn.onclick = () => downloadOrderInvoice(order.id, 'excel');
-      }
-      const btn = document.getElementById('markPaidBtn');
-      btn.textContent = isNobarOrder ? '💾 Simpan Status Tiket & Kirim Email' : '💾 Update Status & Kirim Email';
-      btn.onclick = async () => {
-        const st = document.getElementById('updateStatus').value;
-        const resiEl = document.getElementById('updateResi');
-        const resiVal = resiEl ? resiEl.value : '';
-
-        try {
-          const updateRes = await adminFetch('/api/orders', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, status: st, resi: resiVal })
-          });
-          const updateData = await updateRes.json().catch(() => ({}));
-          if (!updateRes.ok) {
-            showToast('❌ ' + (updateData.error || 'Gagal memperbarui status pesanan'));
-            return;
-          }
-
-          showToast('✅ Status pesanan diperbarui & notifikasi email dikirim!');
-          closeOrderModal();
-          renderOrders(currentOrderFilter);
-          renderDashboard();
-          if (document.getElementById('tab-nobar')?.classList.contains('active')) loadAdminNobar();
-        } catch (err) {
-          showToast('❌ Error: ' + err.message);
+        const modalTitleEl = document.getElementById('orderModalTitle');
+        if (modalTitleEl) {
+          modalTitleEl.textContent = isNobarOrder ? '🎟️ Detail Pesanan Tiket Nobar' : '📦 Detail Pesanan';
         }
-      };
+        const delModalBtn = document.getElementById('deleteOrderModalBtn');
+        if (delModalBtn) {
+          delModalBtn.style.display = 'inline-flex';
+          delModalBtn.textContent = isNobarOrder ? '🗑 Hapus Tiket' : '🗑 Hapus Pesanan';
+          delModalBtn.onclick = () => deleteOrder(order.id, true);
+        }
+        const excelBtn = document.getElementById('downloadOrderExcelBtn');
+        if (excelBtn) {
+          excelBtn.style.display = 'inline-flex';
+          excelBtn.onclick = () => downloadOrderInvoice(order.id, 'excel');
+        }
+        const btn = document.getElementById('markPaidBtn');
+        btn.textContent = isNobarOrder ? '💾 Simpan Status Tiket & Kirim Email' : '💾 Update Status & Kirim Email';
+        btn.onclick = async () => {
+          const st = document.getElementById('updateStatus').value;
+          const resiEl = document.getElementById('updateResi');
+          const resiVal = resiEl ? resiEl.value : '';
+
+          try {
+            const updateRes = await adminFetch('/api/orders', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id, status: st, resi: resiVal })
+            });
+            const updateData = await updateRes.json().catch(() => ({}));
+            if (!updateRes.ok) {
+              showToast('❌ ' + (updateData.error || 'Gagal memperbarui status pesanan'));
+              return;
+            }
+
+            showToast('✅ Status pesanan diperbarui & notifikasi email dikirim!');
+            closeOrderModal();
+            renderOrders(currentOrderFilter);
+            renderDashboard();
+            if (document.getElementById('tab-nobar')?.classList.contains('active')) loadAdminNobar();
+          } catch (err) {
+            showToast('❌ Error: ' + err.message);
+          }
+        };
         document.getElementById('orderModal').classList.add('show');
       } catch (err) {
         console.error('viewOrder error:', err);
@@ -4393,8 +4519,8 @@
             <td><span style="display:inline-block;padding:3px 10px;border-radius:12px;background:rgba(41,182,246,0.14);border:1px solid rgba(41,182,246,0.35);color:var(--aqua);font-size:0.76rem;font-weight:700;">Nobar Only</span></td>
             <td>
               ${isActive
-                ? '<span style="display:inline-block;padding:3px 10px;border-radius:12px;background:rgba(34,197,94,0.16);border:1px solid rgba(34,197,94,0.4);color:#4ade80;font-size:0.76rem;font-weight:700;">● Aktif</span>'
-                : '<span style="display:inline-block;padding:3px 10px;border-radius:12px;background:rgba(248,113,113,0.15);border:1px solid rgba(248,113,113,0.4);color:#f87171;font-size:0.76rem;font-weight:700;">⏸ Nonaktif</span>'}
+            ? '<span style="display:inline-block;padding:3px 10px;border-radius:12px;background:rgba(34,197,94,0.16);border:1px solid rgba(34,197,94,0.4);color:#4ade80;font-size:0.76rem;font-weight:700;">● Aktif</span>'
+            : '<span style="display:inline-block;padding:3px 10px;border-radius:12px;background:rgba(248,113,113,0.15);border:1px solid rgba(248,113,113,0.4);color:#f87171;font-size:0.76rem;font-weight:700;">⏸ Nonaktif</span>'}
             </td>
             <td style="font-size:0.82rem;color:var(--text-muted);">${escapeHtml(lastLoginText)}</td>
             <td>
@@ -4810,7 +4936,7 @@
           osc.start();
           osc.stop(ctx.currentTime + 0.35);
         }
-      } catch (_) {}
+      } catch (_) { }
     }
 
     async function toggleNobarMerchClaimed(orderId, nextClaimed) {
@@ -4862,7 +4988,7 @@
       }
       if (qrVideoStream) {
         qrVideoStream.getTracks().forEach(t => {
-          try { t.stop(); } catch (_) {}
+          try { t.stop(); } catch (_) { }
         });
         qrVideoStream = null;
       }
