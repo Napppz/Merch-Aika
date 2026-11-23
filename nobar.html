@@ -101,8 +101,13 @@
     }
 
     @keyframes nobarCursorBlink {
-      0% { opacity: 1; }
-      100% { opacity: 0.2; }
+      0% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0.2;
+      }
     }
 
     .kimi-musubi-divider {
@@ -152,6 +157,7 @@
     }
 
     @media (max-width: 768px) {
+
       .figma-card,
       .figma-step-card,
       .figma-contact-card {
@@ -178,8 +184,15 @@
     }
 
     @keyframes pillArrowBounce {
-      0%, 100% { transform: translateY(-1.5px); }
-      50% { transform: translateY(3px); }
+
+      0%,
+      100% {
+        transform: translateY(-1.5px);
+      }
+
+      50% {
+        transform: translateY(3px);
+      }
     }
 
     /* ── FIGMA PILL BUTTON ── */
@@ -557,12 +570,14 @@
     }
 
     .figma-perk-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 1rem;
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr);
+      align-items: center;
+      column-gap: 1rem;
       padding: 1.25rem 0;
       border-top: 1px solid var(--nobar-divider);
       font-size: 1.05rem;
+      font-weight: 400;
       color: var(--text-main);
       line-height: 1.48;
       letter-spacing: -0.015em;
@@ -579,9 +594,15 @@
     }
 
     .figma-perk-icon {
-      flex-shrink: 0;
-      margin-top: 2px;
+      justify-self: center;
+      align-self: center;
+      max-width: 29px;
+      max-height: 30px;
+      width: auto;
+      height: auto;
+      margin-top: 0;
       opacity: 0.94;
+      display: block;
     }
 
     /* ── SECTION 4: BELI TIKET LAYOUT ── */
@@ -1713,7 +1734,10 @@
         </svg>
         <span id="nobarStatusText">MEMUAT STATUS EVENT...</span>
       </div>
-      <h1 class="figma-hero-title" id="nobarEventTitle" aria-label="Nonton Bareng Aika Sesilia"><span class="nobar-typewriter-wrap"><span class="nobar-typewriter-prefix" id="nobarTwPrefix"></span><span class="nobar-typewriter-highlight" id="nobarTwHighlight"></span><span class="nobar-typewriter-cursor" aria-hidden="true"></span></span></h1>
+      <h1 class="figma-hero-title" id="nobarEventTitle" aria-label="Nonton Bareng Aika Sesilia"><span
+          class="nobar-typewriter-wrap"><span class="nobar-typewriter-prefix" id="nobarTwPrefix"></span><span
+            class="nobar-typewriter-highlight" id="nobarTwHighlight"></span><span class="nobar-typewriter-cursor"
+            aria-hidden="true"></span></span></h1>
       <div class="kimi-musubi-divider" aria-hidden="true">
         <span class="kimi-musubi-line"></span>
         <span class="kimi-musubi-star">
@@ -1724,7 +1748,8 @@
         <span class="kimi-musubi-line right"></span>
       </div>
       <p class="figma-hero-subtitle" id="nobarHeroSubtitle">Menyinkronkan jadwal &amp; lokasi bioskop...</p>
-      <a href="#detailEventSection" id="heroScrollDownBtn" data-custom-smooth-scroll="true" class="figma-pill-btn scroll-down-btn" onclick="return smoothScrollToSection('detailEventSection', event)">
+      <a href="#detailEventSection" id="heroScrollDownBtn" data-custom-smooth-scroll="true"
+        class="figma-pill-btn scroll-down-btn" onclick="return smoothScrollToSection('detailEventSection', event)">
         <span>Scroll Down</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1747,19 +1772,27 @@
     <!-- EVENT ENDED / HIDDEN FROM STOREFRONT PANEL -->
     <section id="nobarEventEndedPanel" style="display:none; max-width:680px; margin:0 auto 4.5rem; text-align:center;">
       <div class="figma-card" style="padding:3rem 2.25rem; border-color:rgba(56,189,248,0.35);">
-        <div style="width:68px; height:68px; margin:0 auto 1.25rem; border-radius:20px; background:rgba(56,189,248,0.14); border:1px solid rgba(56,189,248,0.4); display:flex; align-items:center; justify-content:center; color:#7dd3fc;">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
-            <path d="M13 5v2" /><path d="M13 17v2" /><path d="M13 11v2" />
+        <div
+          style="width:68px; height:68px; margin:0 auto 1.25rem; border-radius:20px; background:rgba(56,189,248,0.14); border:1px solid rgba(56,189,248,0.4); display:flex; align-items:center; justify-content:center; color:#7dd3fc;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path
+              d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
+            <path d="M13 5v2" />
+            <path d="M13 17v2" />
+            <path d="M13 11v2" />
           </svg>
         </div>
-        <h2 style="font-size:1.55rem; color:var(--white); margin:0 0 0.75rem; font-weight:700;">Event Nobar Telah Berakhir</h2>
+        <h2 style="font-size:1.55rem; color:var(--white); margin:0 0 0.75rem; font-weight:700;">Event Nobar Telah
+          Berakhir</h2>
         <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.65; margin:0 0 1.85rem;">
-          Saat ini belum ada jadwal Nonton Bareng terbaru yang dibuka. Terima kasih untuk kalian yang sudah ikut meramaikan event kemarin!
+          Saat ini belum ada jadwal Nonton Bareng terbaru yang dibuka. Terima kasih untuk kalian yang sudah ikut
+          meramaikan event kemarin!
           Riwayat pembelian dan E-Tiket dari nobar sebelumnya tetap tersimpan aman di halaman Profil Anda.
         </p>
         <div style="display:flex; gap:0.85rem; justify-content:center; flex-wrap:wrap;">
-          <a href="profile.html?tab=orders" class="figma-pill-btn" style="background:linear-gradient(135deg,#0284c7,#2563eb); border-color:#38bdf8;">
+          <a href="profile.html?tab=orders" class="figma-pill-btn"
+            style="background:linear-gradient(135deg,#0284c7,#2563eb); border-color:#38bdf8;">
             <span>Lihat Riwayat &amp; E-Tiket Saya</span>
           </a>
           <a href="shop.html" class="figma-pill-btn">
@@ -1831,7 +1864,8 @@
     <section class="figma-compare-section" id="compareTiersSection">
       <div class="figma-section-header">
         <h2 class="figma-section-heading">Perbedaan Jenis Tiket</h2>
-        <a href="#beliTiketSection" data-custom-smooth-scroll="true" class="figma-pill-btn" onclick="return smoothScrollToSection('beliTiketSection', event)">
+        <a href="#beliTiketSection" data-custom-smooth-scroll="true" class="figma-pill-btn"
+          onclick="return smoothScrollToSection('beliTiketSection', event)">
           <span>Beli Tiket</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1860,7 +1894,7 @@
               <span id="cmpDesc-regular">Postcard Freebies (@wutheringwave.id)</span>
             </div>
             <div class="figma-perk-item">
-              <img src="images/nobar/perk-giveaway.svg" alt="" width="28" height="28" class="figma-perk-icon" />
+              <img src="images/nobar/perk-giveaway.svg" alt="" width="27" height="27" class="figma-perk-icon" />
               <span>Tiket Giveaway (Kesempatan Menang Hadiah Spesial)</span>
             </div>
           </div>
@@ -1884,15 +1918,15 @@
               <span>Postcard Freebies (@wutheringwave.id)</span>
             </div>
             <div class="figma-perk-item">
-              <img src="images/nobar/perk-poster.svg" alt="" width="28" height="28" class="figma-perk-icon" />
+              <img src="images/nobar/perk-poster.svg" alt="" width="24" height="28" class="figma-perk-icon" />
               <span>Poster Eksklusif A4 (@wutheringwave.id)</span>
             </div>
             <div class="figma-perk-item">
               <img src="images/nobar/perk-merch.svg" alt="" width="29" height="28.9996" class="figma-perk-icon" />
-              <span id="cmpDesc-regular_merch">Paket merch (Photocard + Poster Eksklusif dari Aika)</span>
+              <span id="cmpDesc-regular_merch">Photocard + Poster Eksklusif Aika Sesilia</span>
             </div>
             <div class="figma-perk-item">
-              <img src="images/nobar/perk-giveaway.svg" alt="" width="28" height="28" class="figma-perk-icon" />
+              <img src="images/nobar/perk-giveaway.svg" alt="" width="27" height="27" class="figma-perk-icon" />
               <span>Tiket Giveaway (Kesempatan Menang Hadiah Spesial)</span>
             </div>
           </div>
@@ -1916,19 +1950,19 @@
               <span>Postcard Freebies (@wutheringwave.id)</span>
             </div>
             <div class="figma-perk-item">
-              <img src="images/nobar/perk-poster.svg" alt="" width="28" height="28" class="figma-perk-icon" />
+              <img src="images/nobar/perk-poster.svg" alt="" width="24" height="28" class="figma-perk-icon" />
               <span>Poster Eksklusif A4 (@wutheringwave.id)</span>
             </div>
             <div class="figma-perk-item">
               <img src="images/nobar/perk-merch.svg" alt="" width="29" height="28.9996" class="figma-perk-icon" />
-              <span id="cmpMerchVip">Paket merch (Photocard + Poster Eksklusif dari Aika)</span>
+              <span id="cmpMerchVip">Photocard + Poster Eksklusif Aika Sesilia</span>
             </div>
             <div class="figma-perk-item">
-              <img src="images/nobar/perk-chair.svg" alt="" width="18.1096" height="31" class="figma-perk-icon" />
-              <span id="cmpDesc-vip">Kursi di sebelah Kak Aika</span>
+              <img src="images/nobar/perk-chair.svg" alt="" width="18.1096" height="30" class="figma-perk-icon" />
+              <span id="cmpDesc-vip">Duduk eksklusif tepat di samping Aika (Kuota 2 Orang)</span>
             </div>
             <div class="figma-perk-item">
-              <img src="images/nobar/perk-giveaway.svg" alt="" width="28" height="28" class="figma-perk-icon" />
+              <img src="images/nobar/perk-giveaway.svg" alt="" width="27" height="27" class="figma-perk-icon" />
               <span>Tiket Giveaway (Kesempatan Menang Hadiah Spesial)</span>
             </div>
           </div>
@@ -2292,14 +2326,16 @@
   </aside>
 
   <!-- CENTERED CUSTOM NOTIFICATION & CONFIRM MODAL -->
-  <div class="nobar-dialog-overlay" id="nobarDialogOverlay" role="dialog" aria-modal="true" aria-labelledby="nobarDialogTitle" onclick="if(event.target===this) closeNobarDialog(false)">
+  <div class="nobar-dialog-overlay" id="nobarDialogOverlay" role="dialog" aria-modal="true"
+    aria-labelledby="nobarDialogTitle" onclick="if(event.target===this) closeNobarDialog(false)">
     <div class="nobar-dialog-card variant-info" id="nobarDialogCard">
       <div class="nobar-dialog-icon" id="nobarDialogIcon"></div>
       <div class="nobar-dialog-tag" id="nobarDialogTag">PEMBERITAHUAN</div>
       <h3 class="nobar-dialog-title" id="nobarDialogTitle">Informasi Tiket Nobar</h3>
       <p class="nobar-dialog-msg" id="nobarDialogMsg"></p>
       <div class="nobar-dialog-actions" id="nobarDialogActions">
-        <button type="button" class="nobar-dialog-btn primary" id="nobarDialogConfirmBtn" onclick="closeNobarDialog(true)">Mengerti</button>
+        <button type="button" class="nobar-dialog-btn primary" id="nobarDialogConfirmBtn"
+          onclick="closeNobarDialog(true)">Mengerti</button>
       </div>
     </div>
   </div>
@@ -2808,9 +2844,9 @@
         qtySelect.disabled = false;
         const maxAllowed = (nobarConfig && nobarStats)
           ? Math.min(
-              nobarConfig.maxRegularPerOrder || 5,
-              Math.max(1, nobarStats.regularRemaining || 1)
-            )
+            nobarConfig.maxRegularPerOrder || 5,
+            Math.max(1, nobarStats.regularRemaining || 1)
+          )
           : 5;
         const prevVal = parseInt(qtySelect.value, 10) || 1;
         let opts = '';
@@ -3475,17 +3511,31 @@
       document.getElementById('tierPrice-regular_merch').textContent = formatIdrLabel(nobarConfig.priceRegularMerch);
       document.getElementById('tierPrice-vip').textContent = formatIdrLabel(nobarConfig.priceVip);
 
+      const cleanPerkCopy = (txt) => String(txt || '')
+        .replace(/\(\s+/g, '(')
+        .replace(/\s+\)/g, ')')
+        .replace(/\bEkslusif\b/gi, 'Eksklusif')
+        .replace(/\s*\([^)]*ambil\s+di\s+(lokasi|tempat)[^)]*\)/gi, '')
+        .replace(/\s*[•·-]\s*ambil\s+di\s+(lokasi|tempat)\b/gi, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+
+      const cleanedMerchDesc = cleanPerkCopy(nobarConfig.merchBundleDesc);
       const cmpDescMerch = document.getElementById('cmpDesc-regular_merch');
-      if (cmpDescMerch && nobarConfig.merchBundleDesc) {
-        cmpDescMerch.textContent = nobarConfig.merchBundleDesc;
+      if (cmpDescMerch && cleanedMerchDesc) {
+        cmpDescMerch.textContent = cleanedMerchDesc;
       }
       const cmpMerchVip = document.getElementById('cmpMerchVip');
-      if (cmpMerchVip && nobarConfig.merchBundleDesc) {
-        cmpMerchVip.textContent = nobarConfig.merchBundleDesc;
+      if (cmpMerchVip && cleanedMerchDesc) {
+        cmpMerchVip.textContent = cleanedMerchDesc;
       }
       const cmpDescVip = document.getElementById('cmpDesc-vip');
-      if (cmpDescVip && nobarConfig.vipPerk) {
-        cmpDescVip.textContent = nobarConfig.vipPerk;
+      if (cmpDescVip) {
+        const vipQuotaNum = nobarConfig.vipQuota || 2;
+        const cleanedVipPerk = cleanPerkCopy(nobarConfig.vipPerk)
+          .replace(/\s*\+\s*photocard.*$/i, '')
+          .trim();
+        cmpDescVip.textContent = cleanedVipPerk || `Duduk eksklusif tepat di samping Aika (Kuota ${vipQuotaNum} Orang)`;
       }
 
       // Step 01 Availability Badges
@@ -3548,7 +3598,7 @@
         if (parsed && parsed.config && parsed.stats) {
           applyNobarData({ config: parsed.config, stats: parsed.stats, userStats: {} }, { fromCache: true });
         }
-      } catch (_) {}
+      } catch (_) { }
     }
 
     async function loadNobarPageData() {
@@ -3569,7 +3619,7 @@
               phoneEl.value = prof.phone;
             }
           })
-          .catch(() => {});
+          .catch(() => { });
       }
 
       try {
@@ -3586,7 +3636,7 @@
             stats: data.stats,
             cachedAt: Date.now()
           }));
-        } catch (_) {}
+        } catch (_) { }
       } catch (err) {
         console.error('Error loading nobar data:', err);
         const errBox = document.getElementById('nobarLoadErrorAlert');
@@ -3721,7 +3771,7 @@
           sessionStorage.setItem('last_order', JSON.stringify(orderForStorage));
           localStorage.setItem('last_order', JSON.stringify(orderForStorage));
           sessionStorage.setItem('last_order_id', orderForStorage.id);
-        } catch (_) {}
+        } catch (_) { }
 
         window.location.href = 'order-success.html?id=' + encodeURIComponent(orderForStorage.id || '');
       } catch (err) {
