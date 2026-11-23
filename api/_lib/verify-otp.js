@@ -72,22 +72,22 @@ function recordSuccessVerify(key) {
 module.exports = async function handler(req, res) {
   // ─── SECURITY HEADERS ───
   const allowedOrigins = [
+    'https://www.merch-aika.my.id',
+    'https://merch-aika.my.id',
     'https://merch-aika.vercel.app',
     'https://aika-sesilia.vercel.app',
     'http://localhost:3000',
     'http://localhost:5000'
   ];
-  
+
   const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
+  if (origin && allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
   }
-  
+
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
   
   // Security headers
   res.setHeader('X-Content-Type-Options', 'nosniff');

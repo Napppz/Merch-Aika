@@ -1,0 +1,11 @@
+# Exclude internal tooling, docs, schema, and local dev server from static deployment
+db/
+scripts/
+docs/
+server.js
+README.md
+.env
+.env.local
+.env.example
+.vscode/
+.git/

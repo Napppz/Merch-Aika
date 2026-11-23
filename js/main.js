@@ -1289,7 +1289,7 @@ document.addEventListener('DOMContentLoaded', () => {
             form.reset();
           } else {
             console.log(response);
-            result.innerHTML = json.message;
+            result.textContent = (json && json.message) ? String(json.message) : '❌ Gagal mengirim pesan.';
             result.classList.add("error");
           }
         })

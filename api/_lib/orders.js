@@ -419,7 +419,9 @@ module.exports = async (req, res) => {
 
   try {
     if (method === 'GET') {
-      if (!requireAdmin(req, res)) return;
+      const adminUser = requireAdmin(req, res);
+      if (!adminUser) return;
+      const isNobarAdmin = adminUser.role === 'nobar_admin';
 
       await ensureOrderPaymentColumns(db);
       // Auto-cancel pesanan 'pending' tanpa bukti bayar yang sudah lewat 24 jam
@@ -428,12 +430,25 @@ module.exports = async (req, res) => {
       const { id } = req.query;
       const sql = id
         ? `SELECT ${ORDER_DETAIL_COLUMNS} FROM orders WHERE id = $1`
-        : `SELECT ${ORDER_LIST_COLUMNS} FROM orders ORDER BY date DESC`;
+        : isNobarAdmin
+          ? `SELECT ${ORDER_LIST_COLUMNS} FROM orders WHERE shipping::text LIKE '%"isNobar"%' ORDER BY date DESC`
+          : `SELECT ${ORDER_LIST_COLUMNS} FROM orders ORDER BY date DESC`;
       const params = id ? [id] : [];
       const { rows } = await db.query(sql, params);
       if (id) {
         if (!rows.length) return res.status(404).json({ error: 'Order not found' });
         const orderRow = rows[0];
+        if (isNobarAdmin) {
+          let rowShip = {};
+          try {
+            rowShip = typeof orderRow.shipping === 'string'
+              ? JSON.parse(orderRow.shipping || '{}')
+              : (orderRow.shipping || {});
+          } catch (_) {}
+          if (!rowShip.isNobar) {
+            return res.status(403).json({ error: 'Admin Nobar hanya dapat melihat detail pesanan tiket Nobar.' });
+          }
+        }
         let statusHistory = await getOrderStatusHistory(orderRow.id);
         if (!statusHistory.length) {
           statusHistory = buildFallbackHistory(orderRow);
@@ -453,7 +468,13 @@ module.exports = async (req, res) => {
 
       const { id, customerName, email, address, items, shipping, note, notes, phone } = req.body || {};
       const cleanName = String(customerName || '').trim();
-      const cleanEmail = String(email || '').trim();
+      const requestedEmail = String(email || '').trim().toLowerCase();
+
+      // Wajibkan login JWT milik pemilik akun (atau Full Admin) agar stok & kuota voucher tidak bisa dikunci pihak anonim
+      const auth = requireUserOrAdmin(req, res, requestedEmail || null);
+      if (!auth) return;
+      const cleanEmail = auth.type === 'user' ? String(auth.email).trim().toLowerCase() : requestedEmail;
+
       const cleanAddress = String(address || '').trim();
       const buyerNotes = (notes != null ? notes : (note != null ? note : '')).toString().trim();
       const buyerPhone = (phone != null ? phone : '').toString().trim();
@@ -905,6 +926,9 @@ module.exports = async (req, res) => {
 
         const isDpOrder = Boolean(shipData.paymentScheme === 'dp50' || shipData.isDp);
         const isNobarOrder = Boolean(shipData.isNobar);
+        if (adminUser.role === 'nobar_admin' && !isNobarOrder) {
+          throw createHttpError(403, 'Admin Nobar hanya dapat mengelola pesanan tiket Nobar.');
+        }
         let status = rawStatus || prevStatus;
         if (isNobarOrder && status === 'shipped') {
           throw createHttpError(400, 'Pesanan tiket Nobar Bioskop tidak memiliki status pengiriman ekspedisi / resi.');

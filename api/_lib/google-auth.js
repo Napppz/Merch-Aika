@@ -12,18 +12,25 @@ function hashPassword(password) {
   return crypto.createHmac('sha256', salt).update(password).digest('hex');
 }
 
+const ALLOWED_ORIGINS = new Set([
+  'https://www.merch-aika.my.id',
+  'https://merch-aika.my.id',
+  'https://merch-aika.vercel.app',
+  'https://aika-sesilia.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:5000'
+]);
+
 module.exports = async function handler(req, res) {
   // ─── SECURITY & CORS HEADERS ───
   const origin = req.headers.origin;
-  if (origin) {
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
   }
 
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
 
@@ -74,9 +81,15 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      // Validasi aud (Audience) jika GOOGLE_CLIENT_ID sudah dikonfigurasi
-      const configuredClientId = process.env.GOOGLE_CLIENT_ID;
-      if (configuredClientId && payload.aud !== configuredClientId) {
+      // Wajibkan GOOGLE_CLIENT_ID terkonfigurasi dan cocok dengan aud token
+      const configuredClientId = String(process.env.GOOGLE_CLIENT_ID || '').trim();
+      if (!configuredClientId) {
+        return res.status(503).json({
+          success: false,
+          error: 'Autentikasi Google belum dikonfigurasi di server'
+        });
+      }
+      if (payload.aud !== configuredClientId) {
         return res.status(401).json({
           success: false,
           error: 'Client ID token tidak cocok dengan konfigurasi server'
@@ -89,9 +102,12 @@ module.exports = async function handler(req, res) {
         name: payload.name || payload.given_name || payload.email.split('@')[0],
         picture: payload.picture || null
       };
-    } 
-    // 2. Mode Demo (untuk testing lokal jika Client ID belum dipasang)
-    else if (demoUser && (!process.env.GOOGLE_CLIENT_ID || process.env.ALLOW_DEMO_AUTH === 'true')) {
+    } else if (
+      demoUser &&
+      process.env.NODE_ENV !== 'production' &&
+      process.env.VERCEL_ENV !== 'production' &&
+      process.env.ALLOW_DEMO_AUTH === 'true'
+    ) {
       googleUser = {
         sub: demoUser.sub || `demo_google_${Date.now()}`,
         email: String(demoUser.email).trim().toLowerCase(),

@@ -3,26 +3,38 @@ const crypto = require('crypto');
 const { createMailTransport, getRequiredEnv } = require('./env');
 
 const transporter = createMailTransport();
+const ALLOWED_ORIGINS = new Set([
+  'https://www.merch-aika.my.id',
+  'https://merch-aika.my.id',
+  'https://merch-aika.vercel.app',
+  'https://aika-sesilia.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:5000'
+]);
 
 module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
-  const rawEmail = req.body.email;
+  const rawEmail = req.body && req.body.email;
   if (!rawEmail) return res.status(400).json({ error: 'Email diperlukan' });
   const email = String(rawEmail).trim().toLowerCase();
 
-  try {
-    // Cek apakah user ada
-    const userRes = await query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [email]);
-    if (userRes.rows.length === 0) {
-      return res.status(404).json({ error: 'Email tidak terdaftar di sistem kami.' });
-    }
+  const genericOkMessage = 'Jika email terdaftar, tautan reset password telah dikirim ke kotak masuk Anda.';
 
-    // Bikin Token Reset Acak (Hex)
-    const token = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 Menit
+  try {
+    // Cek apakah user ada (kembalikan respons generik agar email tidak bisa dienumerasi)
+    const userRes = await query('SELECT id FROM users WHERE LOWER(email) = LOWER($1)', [email]);
+    if (userRes.rows.length === 0) {
+      return res.status(200).json({ success: true, message: genericOkMessage });
+    }
 
     await query(`
       CREATE TABLE IF NOT EXISTS password_reset_tokens (
@@ -32,14 +44,31 @@ module.exports = async function handler(req, res) {
       );
     `);
 
+    // Cooldown 60 detik per email (expires_at diset 15 menit ke depan -> jika masih > 14 menit, tolak spam)
+    const recentReset = await query(
+      `SELECT expires_at FROM password_reset_tokens
+       WHERE LOWER(email) = LOWER($1)
+         AND expires_at > NOW() + INTERVAL '14 minutes'
+       LIMIT 1`,
+      [email]
+    );
+    if (recentReset.rows.length > 0) {
+      return res.status(429).json({ error: 'Permintaan reset terlalu cepat. Tunggu 1 menit sebelum mencoba lagi.' });
+    }
+
+    // Bikin Token Reset Acak (Hex)
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 Menit
+
     await query(`DELETE FROM password_reset_tokens WHERE LOWER(email) = LOWER($1)`, [email]);
     await query(`
       INSERT INTO password_reset_tokens (email, token, expires_at)
       VALUES ($1, $2, $3)
     `, [email, token, expiresAt]);
 
-    const host = req.headers.origin || req.headers.host || 'merch-aika.vercel.app';
-    const resetLink = `${host.startsWith('http') ? host : 'https://' + host}/login.html?reset=${token}`;
+    // Gunakan base URL terpercaya dari env (jangan pernah menggunakan req.headers.origin/host untuk mencegah Host Header Injection)
+    const baseUrl = String(process.env.PUBLIC_BASE_URL || 'https://www.merch-aika.my.id').trim().replace(/\/+$/, '');
+    const resetLink = `${baseUrl}/login.html?reset=${encodeURIComponent(token)}`;
     const emailUser = getRequiredEnv('EMAIL_USER');
 
     const mailOptions = {
@@ -125,14 +154,14 @@ module.exports = async function handler(req, res) {
 
     try {
       await transporter.sendMail(mailOptions);
-      res.status(200).json({ success: true, message: 'Reset link dikirim' });
+      res.status(200).json({ success: true, message: genericOkMessage });
     } catch (mailErr) {
       console.error('Nodemailer Error:', mailErr.message);
-      return res.status(500).json({ error: 'Gagal mengirim email (Masalah Kredensial/SMTP)' });
+      return res.status(500).json({ error: 'Gagal mengirim email reset password.' });
     }
 
   } catch (err) {
     console.error('Reset error:', err.message);
-    res.status(500).json({ error: err.message || 'Internal Server Error' });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };

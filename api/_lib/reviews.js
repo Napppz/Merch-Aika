@@ -1,6 +1,6 @@
 const db = require('./_db');
 const { getCache, setCache, invalidateCache } = require('./cache');
-const { hasR2Config, parseDataUrlImage, uploadImageBuffer } = require('./r2-storage');
+const { requireUserOrAdmin } = require('./user-auth');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -41,12 +41,12 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === 'POST') {
+      const auth = requireUserOrAdmin(req, res);
+      if (!auth) return;
+
       const { order_id, customer_name, rating, comment } = req.body || {};
       const cleanOrderId = typeof order_id === 'string' ? order_id.trim() : '';
       const cleanComment = typeof comment === 'string' ? comment.trim().slice(0, 600) : '';
-      const cleanCustomerName = typeof customer_name === 'string' && customer_name.trim()
-        ? customer_name.trim().slice(0, 100)
-        : 'Anonymous';
       const parsedRating = parseInt(rating, 10);
 
       if (!cleanOrderId || !Number.isInteger(parsedRating) || parsedRating < 1 || parsedRating > 5) {
@@ -56,6 +56,33 @@ module.exports = async (req, res) => {
       if (!cleanComment) {
         return res.status(400).json({ error: 'Pesan & kesan ulasan wajib diisi' });
       }
+
+      // Pastikan order ada, milik pengguna yang login (kecuali Full Admin), dan sudah dibayar/selesai
+      const orderRes = await db.query(
+        'SELECT id, email, status, "customerName" FROM orders WHERE id = $1',
+        [cleanOrderId]
+      );
+      if (!orderRes.rows.length) {
+        return res.status(404).json({ error: 'Pesanan tidak ditemukan' });
+      }
+
+      const targetOrder = orderRes.rows[0];
+      if (auth.type !== 'admin') {
+        const ownerEmail = String(targetOrder.email || '').trim().toLowerCase();
+        const callerEmail = String(auth.email || '').trim().toLowerCase();
+        if (!ownerEmail || ownerEmail !== callerEmail) {
+          return res.status(403).json({ error: 'Anda hanya dapat mengulas pesanan milik akun Anda sendiri' });
+        }
+      }
+
+      const orderStatus = String(targetOrder.status || '').toLowerCase();
+      if (!['paid', 'shipped', 'completed'].includes(orderStatus)) {
+        return res.status(400).json({ error: 'Ulasan hanya dapat dikirim untuk pesanan yang sudah terverifikasi atau selesai' });
+      }
+
+      const cleanCustomerName = typeof customer_name === 'string' && customer_name.trim()
+        ? customer_name.trim().slice(0, 100)
+        : (auth.username || targetOrder.customerName || 'Pelanggan').slice(0, 100);
 
       // Pastikan tabel reviews memiliki kolom avatar
       try {
@@ -68,18 +95,16 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Pesanan ini sudah diulas' });
       }
 
-      let avatarValue = req.body.avatar || '';
-
-      if (typeof avatarValue === 'string' && avatarValue.startsWith('data:image/') && hasR2Config()) {
-        const { buffer, mimeType } = parseDataUrlImage(avatarValue);
-        const uploaded = await uploadImageBuffer({
-          buffer,
-          mimeType,
-          fileName: `review-avatar-${cleanOrderId}`,
-          folder: 'review-avatars',
-          prefix: String(cleanOrderId)
-        });
-        avatarValue = uploaded.imageUrl;
+      // Ambil avatar resmi dari akun user di DB (tidak menerima upload file/URL bebas dari body review)
+      let avatarValue = '';
+      if (targetOrder.email) {
+        const userRes = await db.query(
+          'SELECT avatar FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1',
+          [targetOrder.email]
+        );
+        if (userRes.rows.length && typeof userRes.rows[0].avatar === 'string') {
+          avatarValue = userRes.rows[0].avatar;
+        }
       }
 
       const { rows } = await db.query(
@@ -97,6 +122,6 @@ module.exports = async (req, res) => {
     res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Internal Server Error', details: err.message });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };

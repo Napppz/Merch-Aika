@@ -181,6 +181,8 @@ function tryEnvAdminLogin(username, password, clientIp) {
 module.exports = async function handler(req, res) {
   // Security headers
   const allowedOrigins = [
+    'https://www.merch-aika.my.id',
+    'https://merch-aika.my.id',
     'https://merch-aika.vercel.app',
     'https://aika-sesilia.vercel.app',
     'http://localhost:3000',

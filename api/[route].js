@@ -42,22 +42,23 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Rute tidak lengkap' });
   }
 
-  if (route.startsWith('_') || route.includes('..') || INTERNAL_HELPER_MODULES.has(route)) {
-    return res.status(404).json({ error: `Endpoint /api/${route} tidak ditemukan di peladen` });
+  const normalizedRoute = String(route).trim();
+  if (!/^[a-z0-9-]+$/.test(normalizedRoute) || normalizedRoute.startsWith('_') || INTERNAL_HELPER_MODULES.has(normalizedRoute)) {
+    return res.status(404).json({ error: 'Endpoint tidak ditemukan' });
   }
 
   try {
     // Import dan jalankan file dari folder _lib
-    const fn = require(`./_lib/${route}.js`);
+    const fn = require(`./_lib/${normalizedRoute}.js`);
     if (typeof fn !== 'function') {
-      return res.status(404).json({ error: `Endpoint /api/${route} tidak ditemukan di peladen` });
+      return res.status(404).json({ error: 'Endpoint tidak ditemukan' });
     }
     return await fn(req, res);
   } catch (err) {
     if (err.code === 'MODULE_NOT_FOUND') {
-      return res.status(404).json({ error: `Endpoint /api/${route} tidak ditemukan di peladen` });
+      return res.status(404).json({ error: 'Endpoint tidak ditemukan' });
     }
-    console.error(`Error executing ${route}:`, err);
-    res.status(500).json({ error: err.message || 'Internal Server Error dari Global Router' });
+    console.error(`Error executing ${normalizedRoute}:`, err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };

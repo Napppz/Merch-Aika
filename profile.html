@@ -2385,6 +2385,25 @@
       return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     }
 
+    function renderSafeAvatar(container, src, username) {
+      if (!container) return;
+      const raw = String(src || '').trim();
+      const isSafe = /^https?:\/\//i.test(raw)
+        || /^data:image\/(jpeg|jpg|png|webp);base64,[a-z0-9+/=]+$/i.test(raw)
+        || raw.startsWith('/') || raw.startsWith('images/');
+      container.textContent = '';
+      if (isSafe) {
+        const img = document.createElement('img');
+        img.src = raw;
+        img.alt = String(username || 'User');
+        img.referrerPolicy = 'no-referrer';
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+        container.appendChild(img);
+      } else {
+        container.textContent = (String(username || 'U').charAt(0) || 'U').toUpperCase();
+      }
+    }
+
     async function loadAvatar() {
       const container = document.getElementById('profAvatarText');
       if (!container) return;
@@ -2392,11 +2411,7 @@
 
       // 1. Render cache immediately for smooth UX
       const cached = localStorage.getItem(cacheKey);
-      if (cached) {
-        container.innerHTML = `<img src="${cached}" alt="${currentUser.username}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
-      } else {
-        container.innerHTML = (currentUser.username || 'U').charAt(0).toUpperCase();
-      }
+      renderSafeAvatar(container, cached, currentUser.username);
 
       // 2. Always fetch real-time avatar from database API to guarantee Desktop & Mobile match
       try {
@@ -2405,11 +2420,11 @@
           const data = await res.json();
           if (data && data.avatar) {
             localStorage.setItem(cacheKey, data.avatar);
-            container.innerHTML = `<img src="${data.avatar}" alt="${currentUser.username}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+            renderSafeAvatar(container, data.avatar, currentUser.username);
             updateNavAvatar();
           } else if (data && !data.avatar) {
             localStorage.removeItem(cacheKey);
-            container.innerHTML = (currentUser.username || 'U').charAt(0).toUpperCase();
+            renderSafeAvatar(container, '', currentUser.username);
           }
         }
       } catch (err) {

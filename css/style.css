@@ -44,7 +44,7 @@ body {
   font-family: var(--font-body);
   background: var(--deep-ocean);
   color: var(--text-main);
-  overflow-x: hidden;
+  overflow-x: clip;
   line-height: 1.7;
 }
 
@@ -73,8 +73,9 @@ body {
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 1rem;
-  padding: 1rem 3rem;
+  padding: max(1rem, env(safe-area-inset-top, 0px)) max(3rem, env(safe-area-inset-right, 0px)) 1rem max(3rem, env(safe-area-inset-left, 0px));
   background: rgba(3, 9, 31, 0.85);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--card-border);
   transition: var(--transition);
@@ -203,6 +204,7 @@ body {
 /* ── HERO ── */
 .hero {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1623,53 +1625,38 @@ body.cart-open {
   line-height: 1.6;
 }
 
-@media (max-width: 768px) {
-  .product-modal-card {
-    grid-template-columns: 1fr;
-    gap: 1.2rem;
-    padding: 1.5rem;
-    max-height: 85vh;
-  }
+/* ── NOBAR PROMO BANNER (HOME) ── */
+.nobar-promo-banner {
+  max-width: 1300px;
+  margin: 2.5rem auto 0;
+  padding: 0 3rem;
+}
 
-  .product-modal-img-wrap {
-    max-height: 250px;
-    min-height: 200px;
-  }
+.nobar-promo-card {
+  background: linear-gradient(135deg, rgba(21, 101, 192, 0.35), rgba(3, 9, 31, 0.9));
+  border: 1px solid rgba(41, 182, 246, 0.45);
+  border-radius: 20px;
+  padding: 1.75rem 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow-blue);
+}
+
+.nobar-promo-copy {
+  flex: 1 1 260px;
+  min-width: 0;
 }
 
 /* ── RESPONSIVE ── */
-@media (max-width: 900px) {
-  .hero {
-    flex-direction: column;
-    text-align: center;
-    padding: 7rem 1.5rem 3rem;
-  }
-
-  .hero-circle {
-    width: 250px;
-    height: 250px;
-  }
-
-  .about-content {
-    grid-template-columns: 1fr;
-    gap: 3rem;
-  }
-
-  .about-visual {
-    order: -1;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 1024px) {
   .navbar {
     display: flex;
     justify-content: space-between;
     gap: 0.75rem;
-    padding: 0.9rem 1.5rem;
+    padding: max(0.9rem, env(safe-area-inset-top, 0px)) max(1.5rem, env(safe-area-inset-right, 0px)) 0.9rem max(1.5rem, env(safe-area-inset-left, 0px));
   }
 
   .nav-brand {
@@ -1694,51 +1681,72 @@ body.cart-open {
   }
 }
 
+@media (max-width: 900px) {
+  .hero {
+    flex-direction: column;
+    text-align: center;
+    padding: 7rem 1.5rem 3rem;
+  }
+
+  .hero-circle {
+    width: 250px;
+    height: 250px;
+  }
+
+  .about-content {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .about-visual {
+    order: -1;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .nobar-promo-banner {
+    padding: 0 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
   .navbar {
-    padding: 0.85rem 1.1rem;
+    padding: max(0.85rem, env(safe-area-inset-top, 0px)) max(1.1rem, env(safe-area-inset-right, 0px)) 0.85rem max(1.1rem, env(safe-area-inset-left, 0px));
     gap: 0.5rem;
   }
 
   .nav-brand {
-    font-size: 0.92rem;
+    font-size: 0.95rem;
     gap: 0.45rem;
   }
 
-  .nav-links {
-    gap: 0.85rem;
-  }
-
-  .nav-links a {
-    font-size: 0.8rem;
-    letter-spacing: 0.02em;
-  }
-}
-
-@media (max-width: 600px) {
-  .navbar {
-    padding: 1rem 1.2rem;
-  }
-
+  /* Sinkron dengan .mobile-bottom-nav yang tampil di <= 768px agar tidak terjadi navigasi ganda di tablet kecil */
   .nav-links {
     display: none;
   }
 
-  .featured,
-  .about,
-  .contact {
-    padding: 4rem 1.5rem;
+  .product-modal-card {
+    grid-template-columns: 1fr;
+    gap: 1.2rem;
+    padding: 1.5rem;
+    max-height: 85dvh;
   }
-}
 
-/* ── GLOBAL MOBILE & iOS POLISH ── */
-@media (max-width: 768px) {
+  .product-modal-img-wrap {
+    max-height: 250px;
+    min-height: 200px;
+  }
 
-  /* Prevent iOS Safari auto-zoom on form inputs */
-  input,
-  select,
-  textarea {
-    font-size: 16px !important;
+  /* Matikan backdrop-filter berat pada kartu di mobile/tablet kecil untuk 60fps yang mulus di Android & iOS */
+  .product-card,
+  .contact-card,
+  .stat-card-lb,
+  .float-badge,
+  .about-card {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 
   /* Smooth touch feedback */
@@ -1753,6 +1761,42 @@ body.cart-open {
   /* iOS safe area spacing */
   body {
     padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* Prevent iOS/iPadOS Safari auto-zoom on form inputs across all touch devices (phones + iPads) */
+@media (max-width: 768px), (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    padding: max(0.9rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) 0.9rem max(1rem, env(safe-area-inset-left, 0px));
+  }
+
+  .featured,
+  .about,
+  .contact {
+    padding: 4rem 1.25rem;
+  }
+
+  .nobar-promo-banner {
+    padding: 0 1rem;
+    margin-top: 1.75rem;
+  }
+
+  .nobar-promo-card {
+    padding: 1.35rem 1.2rem;
+    gap: 1.1rem;
+  }
+
+  .nobar-promo-card .btn-primary {
+    width: 100%;
+    justify-content: center;
   }
 }
 
@@ -2767,8 +2811,8 @@ body.cart-open {
 
 @media (max-width: 600px) {
   .lightbox-nav-btn {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     font-size: 1.35rem;
   }
 

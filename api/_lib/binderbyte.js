@@ -1,17 +1,35 @@
 const https = require('https');
+const { getRequiredEnv } = require('./env');
+
+const ALLOWED_ENDPOINTS = new Set(['province', 'city', 'cost']);
 
 module.exports = async (req, res) => {
-  const { endpoint, ...query } = req.query;
-  
-  if (!endpoint) {
-    return res.status(400).json({ error: 'endpoint is required (e.g., province, city, cost)' });
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const apiKey = '26e38b730ae551e040d1d2658fdc1f8b4313d243774975aacd3daa1289716c2f';
-  query.api_key = apiKey;
-  
-  const queryString = new URLSearchParams(query).toString();
-  const url = `https://api.binderbyte.com/v1/${endpoint}?${queryString}`;
+  const { endpoint, ...query } = req.query || {};
+  const cleanEndpoint = String(endpoint || '').trim().toLowerCase();
+
+  if (!cleanEndpoint || !ALLOWED_ENDPOINTS.has(cleanEndpoint)) {
+    return res.status(400).json({ error: 'endpoint tidak valid (diizinkan: province, city, cost)' });
+  }
+
+  let apiKey;
+  try {
+    apiKey = getRequiredEnv('BINDERBYTE_API_KEY');
+  } catch (err) {
+    return res.status(503).json({ error: 'Layanan cek ongkir belum dikonfigurasi' });
+  }
+
+  const safeParams = new URLSearchParams();
+  for (const [k, v] of Object.entries(query)) {
+    if (k === 'route' || k === 'api_key') continue;
+    if (v !== undefined && v !== null) safeParams.set(k, String(v));
+  }
+  safeParams.set('api_key', apiKey);
+
+  const url = `https://api.binderbyte.com/v1/${cleanEndpoint}?${safeParams.toString()}`;
 
   try {
     const response = await new Promise((resolve, reject) => {

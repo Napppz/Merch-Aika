@@ -58,7 +58,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=4" />
+  <link rel="stylesheet" href="css/style.css?v=5" />
 </head>
 
 <body class="has-bottom-nav">
@@ -167,10 +167,9 @@
   </section>
 
   <!-- NOBAR BIOSKOP PROMO BANNER -->
-  <section id="nobarPromoBanner" style="max-width:1300px; margin: 2.5rem auto 0; padding: 0 3rem;">
-    <div
-      style="background:linear-gradient(135deg, rgba(21,101,192,0.35), rgba(3,9,31,0.9)); border:1px solid rgba(41,182,246,0.45); border-radius:20px; padding:1.75rem 2.2rem; display:flex; align-items:center; justify-content:space-between; gap:1.5rem; flex-wrap:wrap; box-shadow:var(--shadow-blue);">
-      <div style="flex:1; min-width:260px;">
+  <section id="nobarPromoBanner" class="nobar-promo-banner">
+    <div class="nobar-promo-card">
+      <div class="nobar-promo-copy">
         <div
           style="display:inline-flex; align-items:center; gap:0.45rem; background:rgba(234,179,8,0.18); color:#fde047; border:1px solid rgba(234,179,8,0.45); padding:3px 11px; border-radius:50px; font-size:0.74rem; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:0.55rem;">
           <svg class="ui-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -439,14 +438,30 @@
       `;
 
         // Render table
+        const escapeLbHtml = (str) => String(str == null ? '' : str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+        const sanitizeLbAvatar = (url) => {
+          const raw = String(url || '').trim();
+          if (!raw) return '';
+          if (/^https?:\/\//i.test(raw)) return raw;
+          if (/^data:image\/(jpeg|jpg|png|webp);base64,[a-z0-9+/=]+$/i.test(raw)) return raw;
+          if (raw.startsWith('/') || raw.startsWith('images/')) return raw;
+          return '';
+        };
         const tbody = document.getElementById('leaderboardBody');
         tbody.innerHTML = data.map(user => {
           const rank = parseInt(user.rank) || 0;
           const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
-          const safeUsername = (user.username || 'Anonymous').replace(/</g, '&lt;');
-          const firstChar = safeUsername.charAt(0).toUpperCase();
-          const avatarHtml = user.avatar
-            ? `<span data-nosnippet><img src="${user.avatar}" alt="" role="presentation" loading="lazy" class="leaderboard-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="leaderboard-avatar" style="display:none">${firstChar}</div></span>`
+          const rawName = String(user.username || 'Anonymous');
+          const safeUsername = escapeLbHtml(rawName);
+          const firstChar = escapeLbHtml(rawName.charAt(0).toUpperCase());
+          const safeAvatar = sanitizeLbAvatar(user.avatar);
+          const avatarHtml = safeAvatar
+            ? `<span data-nosnippet><img src="${escapeLbHtml(safeAvatar)}" alt="" role="presentation" loading="lazy" referrerpolicy="no-referrer" class="leaderboard-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="leaderboard-avatar" style="display:none">${firstChar}</div></span>`
             : `<div class="leaderboard-avatar" data-nosnippet>${firstChar}</div>`;
 
           const totalSpent = parseInt(user.total_spent) || 0;

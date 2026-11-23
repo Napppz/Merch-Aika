@@ -13,9 +13,12 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
-  const { token, newPassword } = req.body;
+  const { token, newPassword } = req.body || {};
   if (!token || !newPassword) {
     return res.status(400).json({ error: 'Token dan password baru diperlukan' });
+  }
+  if (typeof newPassword !== 'string' || newPassword.length < 8) {
+    return res.status(400).json({ error: 'Password baru minimal 8 karakter' });
   }
 
   try {

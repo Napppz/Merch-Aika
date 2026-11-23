@@ -773,13 +773,13 @@
       <form id="registerForm2" onsubmit="return false;">
         <div class="form-step" id="step2">
           <p class="step-title">Buat Password</p>
-          <p class="step-subtitle">Minimal 6 karakter.</p>
+          <p class="step-subtitle">Minimal 8 karakter.</p>
 
           <div class="form-group">
             <label for="reg-password">Password</label>
             <div class="password-wrap input-icon-wrap">
               <span class="input-icon">🔒</span>
-              <input type="password" id="reg-password" name="password" placeholder="Minimal 6 karakter"
+              <input type="password" id="reg-password" name="password" placeholder="Minimal 8 karakter"
                 autocomplete="new-password" oninput="checkStrength()" />
               <button class="toggle-pw" type="button" onclick="togglePw('reg-password','pwToggle1')"
                 id="pwToggle1">👁</button>
@@ -1032,11 +1032,8 @@
       btn.disabled = true;
       btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:0.5rem"><span style="width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block"></span> Mengirim kode...</span>';
 
-      // Generate OTP
-      generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-
-      // Coba kirim via API — TUNGGU hasilnya
-      const result = await sendOtpEmail(email, generatedOtp);
+      // Kirim permintaan OTP — kode 6 digit dibuat secara aman di server
+      const result = await sendOtpEmail(email);
 
       // Reset button
       btn.disabled = false;
@@ -1055,41 +1052,28 @@
 
       // Tampilkan notif sukses di step 3
       setTimeout(() => {
-        if (result.demo) {
-          showAlert('⚠️ Mode Demo: Email tidak dikirim. Lihat kode di browser Console (F12).', 'success');
-        } else {
-          showAlert('✉️ Kode OTP berhasil dikirim ke ' + email + '. Periksa inbox (dan folder spam).', 'success');
-        }
+        showAlert('✉️ Kode OTP berhasil dikirim ke ' + email + '. Periksa inbox (dan folder spam).', 'success');
       }, 300);
     }
 
-    async function sendOtpEmail(email, otp) {
+    async function sendOtpEmail(email) {
       try {
         const res = await fetch('/api/send-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, otp })
+          body: JSON.stringify({ email })
         });
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
 
         if (!res.ok) {
           console.error('[OTP API Error]', data);
-          return { ok: false, message: '❌ ' + (data.detail || data.error || 'Gagal mengirim email OTP.') };
+          return { ok: false, message: '❌ ' + (data.error || 'Gagal mengirim email OTP.') };
         }
 
-        if (data.demo) {
-          // Mode demo — SMTP belum dikonfigurasi di Vercel
-          console.log('%c[DEMO] Kode OTP: ' + otp, 'background:#071a3e;color:#29b6f6;font-size:1.4em;font-weight:bold;padding:6px 12px;border-radius:6px');
-          return { ok: true, demo: true };
-        }
-
-        console.log('[OTP] Terkirim via email ke', email);
-        return { ok: true, demo: false };
-
+        return { ok: true };
       } catch (err) {
-        // API tidak tersedia (lokal / network error)
-        console.log('%c[LOKAL] OTP tidak terkirim via email.\nKode: ' + otp, 'background:#071a3e;color:#29b6f6;font-size:1.2em;font-weight:bold;padding:6px 12px;border-radius:6px');
-        return { ok: true, demo: true }; // Tetap OK di mode lokal
+        console.error('[OTP Network Error]', err);
+        return { ok: false, message: '❌ Tidak dapat terhubung ke server. Periksa koneksi internet Anda.' };
       }
     }
 
@@ -1145,20 +1129,17 @@
 
     async function resendCode() {
       const email = document.getElementById('reg-email').value.trim().toLowerCase();
-      generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
       const btn = document.getElementById('resendBtn');
       btn.disabled = true;
       btn.textContent = 'Mengirim...';
 
-      const result = await sendOtpEmail(email, generatedOtp);
+      const result = await sendOtpEmail(email);
 
-      if (result.ok && !result.demo) {
+      if (result.ok) {
         showAlert('✉️ Kode baru dikirim ke ' + email + '. Periksa inbox & folder spam.', 'success');
-      } else if (result.demo) {
-        showAlert('⚠️ Mode Demo: Lihat kode baru di browser Console (F12).', 'success');
       } else {
-        showAlert('Gagal mengirim ulang kode. Coba lagi.', 'error');
+        showAlert(result.message || 'Gagal mengirim ulang kode. Coba lagi.', 'error');
       }
 
       btn.innerHTML = 'Kirim Ulang (<span id="resend-countdown">60</span>s)';

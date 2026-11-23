@@ -10,10 +10,6 @@ function getTokenFromReq(req) {
     return req.body.token.trim();
   }
 
-  if (req.query && typeof req.query.token === 'string') {
-    return req.query.token.trim();
-  }
-
   return null;
 }
 
@@ -32,7 +28,7 @@ function verifyUserAuth(req) {
   return null;
 }
 
-function requireUserOrAdmin(req, res, targetEmail = null) {
+function requireUserOrAdmin(req, res, targetEmail = null, options = {}) {
   const auth = verifyUserAuth(req);
   if (!auth) {
     res.status(401).json({
@@ -42,8 +38,15 @@ function requireUserOrAdmin(req, res, targetEmail = null) {
     return null;
   }
 
-  // Admin memiliki hak akses penuh ke data user
+  // Full admin memiliki hak akses penuh; nobar_admin dibatasi kecuali endpoint mengizinkan eksplisit
   if (auth.type === 'admin') {
+    if (auth.role === 'nobar_admin' && !options.allowNobarAdmin) {
+      res.status(403).json({
+        success: false,
+        error: 'Akses ditolak: Akun admin khusus Nobar tidak memiliki akses ke data akun toko'
+      });
+      return null;
+    }
     req.admin = auth;
     req.userAuth = auth;
     return auth;

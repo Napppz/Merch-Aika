@@ -13,7 +13,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=2" />
+  <link rel="stylesheet" href="css/style.css?v=5" />
   <style>
     .photopack-checkout-container {
       max-width: 1000px;
@@ -29,6 +29,7 @@
       border: 1px solid var(--card-border);
       border-radius: var(--radius);
       padding: 2rem;
+      -webkit-backdrop-filter: blur(12px);
       backdrop-filter: blur(12px);
       box-shadow: var(--shadow-blue);
     }
@@ -250,6 +251,14 @@
       .photopack-checkout-container {
         grid-template-columns: 1fr;
         margin-top: 5rem;
+        padding: 0 1rem;
+        gap: 1.25rem;
+      }
+
+      .checkout-card {
+        padding: 1.35rem 1.15rem;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
       }
     }
   </style>

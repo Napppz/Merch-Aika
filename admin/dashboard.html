@@ -75,6 +75,7 @@
     body {
       display: flex;
       min-height: 100vh;
+      min-height: 100dvh;
     }
 
     /* ── SIDEBAR ── */
@@ -637,6 +638,7 @@
       body {
         display: block;
         min-height: 100vh;
+        min-height: 100dvh;
         padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
         -webkit-tap-highlight-color: transparent;
       }
@@ -2026,7 +2028,7 @@
       async add(order) {
         delete order.id;
         order.status = 'pending';
-        const res = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(order) });
+        const res = await adminFetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(order) });
         return await res.json();
       },
       async update(id, data) {

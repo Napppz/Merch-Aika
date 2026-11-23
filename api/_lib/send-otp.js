@@ -1,57 +1,95 @@
 // api/send-otp.js — Vercel Serverless Function
 // Mengirim kode OTP via email menggunakan Nodemailer / SMTP dengan standar Anti-Spam Gmail
 
+const crypto = require('crypto');
 const { query } = require('./_db');
 const { createMailTransport, getRequiredEnv } = require('./env');
 
 const transporter = createMailTransport();
+const ALLOWED_ORIGINS = new Set([
+  'https://www.merch-aika.my.id',
+  'https://merch-aika.my.id',
+  'https://merch-aika.vercel.app',
+  'https://aika-sesilia.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:5000'
+]);
+const EMAIL_REGEX = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
 
 module.exports = async function handler(req, res) {
   // ─── SECURITY & CORS HEADERS ───
   const origin = req.headers.origin;
-  if (origin) {
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
   }
-  
+
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  
+
   // Security headers
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
-  
+
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const rawEmail = req.body.email;
-  const rawOtp = req.body.otp;
+  const rawEmail = req.body && req.body.email;
 
-  if (!rawEmail || !rawOtp) {
-    return res.status(400).json({ error: 'email dan otp diperlukan' });
+  if (!rawEmail) {
+    return res.status(400).json({ error: 'email diperlukan' });
   }
 
   const cleanEmail = String(rawEmail).trim().toLowerCase();
-  const cleanOtp = String(rawOtp).trim();
+  if (!EMAIL_REGEX.test(cleanEmail) || cleanEmail.length > 254) {
+    return res.status(400).json({ error: 'Format email tidak valid' });
+  }
+
+  try {
+    // Tolak kirim OTP jika email sudah terdaftar dan terverifikasi
+    const existingUser = await query(
+      `SELECT verified FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1`,
+      [cleanEmail]
+    );
+    if (existingUser.rows.length > 0 && existingUser.rows[0].verified) {
+      return res.status(409).json({ error: 'Email sudah terdaftar dan terverifikasi. Silakan login.' });
+    }
+
+    // Cooldown berbasis database (minimal jeda 55 detik antar pengiriman OTP per email)
+    const recentOtp = await query(
+      `SELECT created_at FROM otp_codes
+       WHERE LOWER(email) = LOWER($1)
+         AND created_at > NOW() - INTERVAL '55 seconds'
+       LIMIT 1`,
+      [cleanEmail]
+    );
+    if (recentOtp.rows.length > 0) {
+      return res.status(429).json({ error: 'Tunggu 1 menit sebelum meminta kode OTP baru.' });
+    }
+  } catch (err) {
+    console.error('OTP pre-check DB error:', err.message);
+  }
+
+  // Generate 6-digit OTP secara aman di server (jangan pernah menerima OTP dari client)
+  const cleanOtp = String(crypto.randomInt(100000, 1000000));
 
   // Simpan OTP sementara di DB dengan expiry 10 menit
   try {
     await query(`DELETE FROM otp_codes WHERE LOWER(email) = LOWER($1)`, [cleanEmail]);
     await query(
-      `INSERT INTO otp_codes (email, code, expires_at)
-       VALUES ($1, $2, NOW() + INTERVAL '10 minutes')
+      `INSERT INTO otp_codes (email, code, expires_at, created_at)
+       VALUES ($1, $2, NOW() + INTERVAL '10 minutes', NOW())
        ON CONFLICT (email)
        DO UPDATE SET code = $2, expires_at = NOW() + INTERVAL '10 minutes', created_at = NOW()`,
       [cleanEmail, cleanOtp]
     );
   } catch (err) {
     console.error('DB OTP insert error:', err.message);
+    return res.status(500).json({ error: 'Gagal menyimpan kode verifikasi. Silakan coba lagi.' });
   }
 
   const emailUser = getRequiredEnv('EMAIL_USER');
@@ -148,6 +186,6 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ success: true, message: 'OTP dikirim via email' });
   } catch (err) {
     console.error('Email send error:', err.message);
-    return res.status(500).json({ error: 'Gagal mengirim email', detail: err.message });
+    return res.status(500).json({ error: 'Gagal mengirim email verifikasi. Silakan coba lagi.' });
   }
 };

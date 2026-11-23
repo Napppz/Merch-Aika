@@ -14,7 +14,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=2" />
+  <link rel="stylesheet" href="css/style.css?v=5" />
   <style>
     .checkout-layout {
       max-width: 1100px;
@@ -30,7 +30,13 @@
       border: 1px solid var(--card-border);
       border-radius: var(--radius);
       padding: 2rem;
+      -webkit-backdrop-filter: blur(10px);
       backdrop-filter: blur(10px);
+    }
+
+    .checkout-summary-sticky {
+      position: sticky;
+      top: 100px;
     }
 
     .checkout-section h2 {
@@ -466,6 +472,13 @@
 
       .checkout-section {
         padding: 1.5rem;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+      }
+
+      .checkout-summary-sticky {
+        position: static;
+        top: auto;
       }
     }
 
@@ -1226,7 +1239,7 @@
 
     <!-- RIGHT: ORDER SUMMARY -->
     <div>
-      <div class="checkout-section" style="position:sticky;top:100px">
+      <div class="checkout-section checkout-summary-sticky">
         <h2>🛍️ Ringkasan Pesanan</h2>
         ${(hasOutOfStockItem || hasExceedingStockItem) ? `
           <div style="background:rgba(239,68,68,0.15); border:1px solid #ef4444; border-radius:8px; padding:0.8rem; margin-bottom:1rem; color:#f87171; font-size:0.85rem; line-height:1.4;">

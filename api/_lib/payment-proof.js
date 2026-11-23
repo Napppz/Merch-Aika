@@ -72,8 +72,10 @@ module.exports = async (req, res) => {
     }
     const isDpOrder = Boolean(existingShipObj.paymentScheme === 'dp50' || existingShipObj.isDp);
 
-    // 2. Wajibkan autentikasi token JWT milik pemilik pesanan (atau Admin)
-    const auth = requireUserOrAdmin(req, res, existingOrder.email);
+    // 2. Wajibkan autentikasi token JWT milik pemilik pesanan (atau Admin sesuai scope)
+    const auth = requireUserOrAdmin(req, res, existingOrder.email, {
+      allowNobarAdmin: Boolean(existingShipObj.isNobar)
+    });
     if (!auth) return;
 
     // 3. Kunci status pesanan sesuai jenis bukti (awal vs pelunasan DP 50%)

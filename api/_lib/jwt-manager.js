@@ -43,33 +43,42 @@ function generateJWT(payload, expiryMs = JWT_EXPIRY) {
 
 function verifyJWT(token) {
   try {
+    if (typeof token !== 'string' || !token) return null;
     const parts = token.split('.');
     if (parts.length !== 3) return null;
-    
+
     const [encodedHeader, encodedPayload, signature] = parts;
-    
-    // Verify signature
+
+    // Validate header algorithm strictly
+    const header = JSON.parse(Buffer.from(encodedHeader, 'base64url').toString());
+    if (!header || header.alg !== 'HS256') {
+      return null;
+    }
+
+    // Verify signature using constant-time comparison
     const message = `${encodedHeader}.${encodedPayload}`;
     const expectedSignature = crypto
       .createHmac('sha256', JWT_SECRET)
       .update(message)
       .digest('base64url');
-    
-    if (signature !== expectedSignature) {
+
+    const sigBuf = Buffer.from(signature, 'utf8');
+    const expBuf = Buffer.from(expectedSignature, 'utf8');
+    if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
       console.log('❌ JWT Signature invalid');
       return null;
     }
-    
+
     // Decode payload
     const payload = JSON.parse(Buffer.from(encodedPayload, 'base64url').toString());
-    
-    // Check expiry
+
+    // Require numeric expiry claim and verify not expired
     const now = Math.floor(Date.now() / 1000);
-    if (payload.exp < now) {
-      console.log('❌ JWT Expired');
+    if (typeof payload.exp !== 'number' || !Number.isFinite(payload.exp) || payload.exp <= now) {
+      console.log('❌ JWT Expired or missing exp');
       return null;
     }
-    
+
     return payload;
   } catch (err) {
     console.error('JWT Verification error:', err.message);
