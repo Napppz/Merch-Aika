@@ -15,7 +15,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Manrope:wght@400;500;600;700;800&family=Nunito:wght@300;400;600;700;800&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=2" />
+  <link rel="stylesheet" href="css/style.css?v=4" />
   <style>
     :root {
       --nobar-surface: rgba(7, 26, 62, 0.72);
@@ -425,9 +425,17 @@
     }
 
     .figma-avail-note {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
       font-size: 0.78rem;
+      line-height: 1.45;
       color: var(--text-muted);
       letter-spacing: -0.01em;
+    }
+
+    .figma-avail-note-line {
+      display: block;
     }
 
     /* ── SECTION 3: PERBEDAAN JENIS TIKET ── */
@@ -1520,16 +1528,33 @@
         padding: 1rem 0;
       }
 
+      .figma-avail-title {
+        margin-bottom: 1.15rem;
+      }
+
       .figma-avail-grid {
-        gap: 0.65rem;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-bottom: 1.15rem;
+      }
+
+      .figma-avail-col {
+        gap: 0.4rem;
       }
 
       .figma-avail-label {
-        font-size: 0.82rem;
+        font-size: 0.9rem;
+        white-space: normal;
       }
 
       .figma-avail-num {
-        font-size: 1.55rem;
+        font-size: 1.85rem;
+      }
+
+      .figma-avail-note {
+        font-size: 0.74rem;
+        line-height: 1.45;
+        gap: 0.2rem;
       }
 
       .figma-compare-section {
@@ -1792,7 +1817,9 @@
                   id="availVipTotal">/--</span></div>
             </div>
           </div>
-          <div class="figma-avail-note" id="availRealtimeNote">*Ketersediaan slot diupdate secara realtime</div>
+          <div class="figma-avail-note" id="availRealtimeNote">
+            <span class="figma-avail-note-line">*Ketersediaan slot diupdate secara realtime</span>
+          </div>
         </div>
       </div>
     </section>
@@ -1956,7 +1983,7 @@
                   <div class="tier-meta-inline">
                     <span class="tier-badge merch" id="tierBadge-regular_merch">Sisa -- tiket</span>
                     <span class="tier-meta-sep"></span>
-                    <span>Pilih kursi sesuai urutan kedatangan (+ Merch Bundel)</span>
+                    <span>Pilih kursi sesuai urutan kedatangan</span>
                   </div>
                 </div>
                 <div class="tier-price" id="tierPrice-regular_merch">IDR 135.000</div>
@@ -3413,7 +3440,8 @@
 
       const availNoteEl = document.getElementById('availRealtimeNote');
       if (availNoteEl) {
-        availNoteEl.textContent = `*Ketersediaan slot diupdate secara realtime · Kuota Tiket Regular & Regular+ gabungan (${nobarStats.regularRemaining} kursi tersedia dari ${nobarConfig.regularQuota})`;
+        availNoteEl.innerHTML =
+          `<span class="figma-avail-note-line">*Ketersediaan slot diupdate secara realtime</span>`;
       }
 
       // Comparison Cards + Step 01 Prices
