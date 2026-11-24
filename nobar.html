@@ -570,14 +570,12 @@
     }
 
     .figma-perk-item {
-      display: grid;
-      grid-template-columns: 32px minmax(0, 1fr);
-      align-items: center;
-      column-gap: 1rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
       padding: 1.25rem 0;
       border-top: 1px solid var(--nobar-divider);
       font-size: 1.05rem;
-      font-weight: 400;
       color: var(--text-main);
       line-height: 1.48;
       letter-spacing: -0.015em;
@@ -594,15 +592,9 @@
     }
 
     .figma-perk-icon {
-      justify-self: center;
-      align-self: center;
-      max-width: 29px;
-      max-height: 30px;
-      width: auto;
-      height: auto;
-      margin-top: 0;
+      flex-shrink: 0;
+      margin-top: 2px;
       opacity: 0.94;
-      display: block;
     }
 
     /* ── SECTION 4: BELI TIKET LAYOUT ── */
@@ -1893,10 +1885,6 @@
               <img src="images/nobar/perk-postcard.svg" alt="" width="28.9156" height="28" class="figma-perk-icon" />
               <span id="cmpDesc-regular">Postcard Freebies (@wutheringwave.id)</span>
             </div>
-            <div class="figma-perk-item">
-              <img src="images/nobar/perk-giveaway.svg" alt="" width="27" height="27" class="figma-perk-icon" />
-              <span>Tiket Giveaway (Kesempatan Menang Hadiah Spesial)</span>
-            </div>
           </div>
         </div>
 
@@ -1918,16 +1906,8 @@
               <span>Postcard Freebies (@wutheringwave.id)</span>
             </div>
             <div class="figma-perk-item">
-              <img src="images/nobar/perk-poster.svg" alt="" width="24" height="28" class="figma-perk-icon" />
-              <span>Poster Eksklusif A4 (@wutheringwave.id)</span>
-            </div>
-            <div class="figma-perk-item">
               <img src="images/nobar/perk-merch.svg" alt="" width="29" height="28.9996" class="figma-perk-icon" />
-              <span id="cmpDesc-regular_merch">Photocard + Poster Eksklusif Aika Sesilia</span>
-            </div>
-            <div class="figma-perk-item">
-              <img src="images/nobar/perk-giveaway.svg" alt="" width="27" height="27" class="figma-perk-icon" />
-              <span>Tiket Giveaway (Kesempatan Menang Hadiah Spesial)</span>
+              <span id="cmpDesc-regular_merch">Paket merch (Photocard + Poster Eksklusif dari Aika)</span>
             </div>
           </div>
         </div>
@@ -1950,20 +1930,12 @@
               <span>Postcard Freebies (@wutheringwave.id)</span>
             </div>
             <div class="figma-perk-item">
-              <img src="images/nobar/perk-poster.svg" alt="" width="24" height="28" class="figma-perk-icon" />
-              <span>Poster Eksklusif A4 (@wutheringwave.id)</span>
-            </div>
-            <div class="figma-perk-item">
               <img src="images/nobar/perk-merch.svg" alt="" width="29" height="28.9996" class="figma-perk-icon" />
-              <span id="cmpMerchVip">Photocard + Poster Eksklusif Aika Sesilia</span>
+              <span id="cmpMerchVip">Paket merch (Photocard + Poster Eksklusif dari Aika)</span>
             </div>
             <div class="figma-perk-item">
-              <img src="images/nobar/perk-chair.svg" alt="" width="18.1096" height="30" class="figma-perk-icon" />
-              <span id="cmpDesc-vip">Duduk eksklusif tepat di samping Aika (Kuota 2 Orang)</span>
-            </div>
-            <div class="figma-perk-item">
-              <img src="images/nobar/perk-giveaway.svg" alt="" width="27" height="27" class="figma-perk-icon" />
-              <span>Tiket Giveaway (Kesempatan Menang Hadiah Spesial)</span>
+              <img src="images/nobar/perk-chair.svg" alt="" width="18.1096" height="31" class="figma-perk-icon" />
+              <span id="cmpDesc-vip">Kursi di sebelah Kak Aika</span>
             </div>
           </div>
         </div>
@@ -3511,31 +3483,17 @@
       document.getElementById('tierPrice-regular_merch').textContent = formatIdrLabel(nobarConfig.priceRegularMerch);
       document.getElementById('tierPrice-vip').textContent = formatIdrLabel(nobarConfig.priceVip);
 
-      const cleanPerkCopy = (txt) => String(txt || '')
-        .replace(/\(\s+/g, '(')
-        .replace(/\s+\)/g, ')')
-        .replace(/\bEkslusif\b/gi, 'Eksklusif')
-        .replace(/\s*\([^)]*ambil\s+di\s+(lokasi|tempat)[^)]*\)/gi, '')
-        .replace(/\s*[•·-]\s*ambil\s+di\s+(lokasi|tempat)\b/gi, '')
-        .replace(/\s{2,}/g, ' ')
-        .trim();
-
-      const cleanedMerchDesc = cleanPerkCopy(nobarConfig.merchBundleDesc);
       const cmpDescMerch = document.getElementById('cmpDesc-regular_merch');
-      if (cmpDescMerch && cleanedMerchDesc) {
-        cmpDescMerch.textContent = cleanedMerchDesc;
+      if (cmpDescMerch && nobarConfig.merchBundleDesc) {
+        cmpDescMerch.textContent = nobarConfig.merchBundleDesc;
       }
       const cmpMerchVip = document.getElementById('cmpMerchVip');
-      if (cmpMerchVip && cleanedMerchDesc) {
-        cmpMerchVip.textContent = cleanedMerchDesc;
+      if (cmpMerchVip && nobarConfig.merchBundleDesc) {
+        cmpMerchVip.textContent = nobarConfig.merchBundleDesc;
       }
       const cmpDescVip = document.getElementById('cmpDesc-vip');
-      if (cmpDescVip) {
-        const vipQuotaNum = nobarConfig.vipQuota || 2;
-        const cleanedVipPerk = cleanPerkCopy(nobarConfig.vipPerk)
-          .replace(/\s*\+\s*photocard.*$/i, '')
-          .trim();
-        cmpDescVip.textContent = cleanedVipPerk || `Duduk eksklusif tepat di samping Aika (Kuota ${vipQuotaNum} Orang)`;
+      if (cmpDescVip && nobarConfig.vipPerk) {
+        cmpDescVip.textContent = nobarConfig.vipPerk;
       }
 
       // Step 01 Availability Badges

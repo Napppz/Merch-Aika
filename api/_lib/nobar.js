@@ -1,5 +1,5 @@
 const db = require('./_db');
-const { requireAdmin, verifyAdminToken } = require('./admin-auth');
+const { requireAdmin, requireFullAdmin, verifyAdminToken } = require('./admin-auth');
 const { verifyUserAuth } = require('./user-auth');
 const env = require('./env');
 const { getRequiredEnv } = env;
@@ -48,7 +48,7 @@ const DEFAULT_NOBAR_CONFIG = {
   maxPolaroidPerOrder: 10,
   vipPerk: 'Duduk eksklusif tepat di samping Kak Aika (Kuota 2 Orang) + Photocard & Poster',
   regularPerk: 'Postcard Freebies (@wutheringwave.id)',
-  merchBundleDesc: 'Photocard Eksklusif + Poster Nobar Aika Sesilia (Tanpa Ukuran Baju • Ambil di Lokasi)'
+  merchBundleDesc: 'Photocard Eksklusif + Poster Nobar Aika Sesilia (Ambil di Lokasi)'
 };
 
 const TIER_DEFINITIONS = {
@@ -60,14 +60,14 @@ const TIER_DEFINITIONS = {
   },
   regular: {
     id: 'regular',
-    label: 'Tiket Biasa',
-    shortLabel: 'Tiket Biasa',
+    label: 'Tiket Reguler',
+    shortLabel: 'Reguler',
     includesMerch: false
   },
   regular_merch: {
     id: 'regular_merch',
-    label: 'Tiket Biasa + Merch (Photocard & Poster)',
-    shortLabel: 'Tiket Biasa + Merch',
+    label: 'Tiket Reguler+ (Photocard & Poster)',
+    shortLabel: 'Reguler+',
     includesMerch: true
   }
 };
@@ -551,7 +551,8 @@ module.exports = async function handler(req, res) {
       }
 
       const isAdminRequest = Boolean(req.query && req.query.admin === 'true' && adminAuth);
-      const requestedEventId = isAdminRequest && req.query && req.query.eventId
+      const isFullAdminRequest = Boolean(isAdminRequest && adminAuth.role !== 'nobar_admin');
+      const requestedEventId = isFullAdminRequest && req.query && req.query.eventId
         ? String(req.query.eventId).trim()
         : config.eventId;
 
@@ -559,7 +560,7 @@ module.exports = async function handler(req, res) {
       let viewedConfig = config;
       let isViewingArchive = false;
 
-      if (isAdminRequest) {
+      if (isFullAdminRequest) {
         archiveList = await getNobarEventsArchive(db);
         if (requestedEventId === 'all') {
           const allEventConfigs = [config, ...archiveList];
@@ -677,9 +678,9 @@ module.exports = async function handler(req, res) {
       const body = req.body || {};
       const action = String(body.action || '').trim().toLowerCase();
 
-      // ── ADMIN ACTION 0: CREATE NEW NOBAR EVENT & ARCHIVE PREVIOUS EVENT ──
+      // ── ADMIN ACTION 0: CREATE NEW NOBAR EVENT & ARCHIVE PREVIOUS EVENT (SUPERADMIN ONLY) ──
       if (action === 'create_new_event') {
-        const adminUser = requireAdmin(req, res);
+        const adminUser = requireFullAdmin(req, res);
         if (!adminUser) return;
 
         const newTitle = String(body.eventTitle || '').trim();
@@ -759,9 +760,9 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      // ── ADMIN ACTION 0B: DELETE ORDERS FOR A SPECIFIC EVENT ONLY ──
+      // ── ADMIN ACTION 0B: DELETE ORDERS FOR A SPECIFIC EVENT ONLY (SUPERADMIN ONLY) ──
       if (action === 'delete_event_orders') {
-        const adminUser = requireAdmin(req, res);
+        const adminUser = requireFullAdmin(req, res);
         if (!adminUser) return;
 
         const activeConfig = await getNobarConfig(db);
@@ -795,9 +796,9 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      // ── ADMIN ACTION 0C: ACTIVATE AN ARCHIVED EVENT (SWAP WITH CURRENT ACTIVE EVENT) ──
+      // ── ADMIN ACTION 0C: ACTIVATE AN ARCHIVED EVENT (SUPERADMIN ONLY) ──
       if (action === 'activate_archived_event') {
-        const adminUser = requireAdmin(req, res);
+        const adminUser = requireFullAdmin(req, res);
         if (!adminUser) return;
 
         const targetEventId = String(body.eventId || '').trim();
@@ -870,9 +871,9 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      // ── ADMIN ACTION 0D: REMOVE AN ARCHIVED EVENT FROM ARCHIVE LIST ──
+      // ── ADMIN ACTION 0D: REMOVE AN ARCHIVED EVENT FROM ARCHIVE LIST (SUPERADMIN ONLY) ──
       if (action === 'delete_archived_event') {
-        const adminUser = requireAdmin(req, res);
+        const adminUser = requireFullAdmin(req, res);
         if (!adminUser) return;
 
         const targetEventId = String(body.eventId || '').trim();
@@ -1272,7 +1273,7 @@ module.exports = async function handler(req, res) {
       const tier = String(rawTier || '').trim().toLowerCase();
       if (!TIER_DEFINITIONS[tier]) {
         return res.status(400).json({
-          error: 'Pilihan kategori tiket tidak valid. Pilih VIP, Tiket Biasa, atau Tiket Biasa + Merch.'
+          error: 'Pilihan kategori tiket tidak valid. Pilih VIP, Tiket Reguler, atau Tiket Reguler+.'
         });
       }
 
@@ -1406,7 +1407,7 @@ module.exports = async function handler(req, res) {
             throw createHttpError(
               400,
               stats.regularRemaining <= 0
-                ? 'Maaf, kuota kursi Tiket Reguler (Biasa / Biasa + Merch) sudah habis.'
+                ? 'Maaf, kuota kursi Tiket Reguler / Reguler+ sudah habis.'
                 : `Maaf, sisa kuota kursi reguler hanya tinggal ${stats.regularRemaining} kursi.`
             );
           }
