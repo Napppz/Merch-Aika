@@ -80,7 +80,7 @@
       text-shadow: 0 0 24px rgba(56, 189, 248, 0.6), 0 4px 30px rgba(37, 99, 235, 0.45);
     }
 
-    .nobar-typewriter-prefix:not(:empty) + .nobar-typewriter-highlight:not(:empty)::before {
+    .nobar-typewriter-prefix:not(:empty)+.nobar-typewriter-highlight:not(:empty)::before {
       content: ' ';
     }
 
@@ -1974,7 +1974,8 @@
             </div>
             <div class="figma-perk-item">
               <img src="images/nobar/perk-postcard.svg" alt="" width="27" height="26" class="figma-perk-icon" />
-              <span id="cmpDesc-regular">Postcard Freebies spesial Your Name &times; WuWa (*dari @wutheringwave.id) <em class="perk-wip">WIP</em></span>
+              <span id="cmpDesc-regular">Postcard Freebies spesial Your Name &times; WuWa (*dari @wutheringwave.id) <em
+                  class="perk-wip">WIP</em></span>
             </div>
             <div class="figma-perk-item">
               <img src="images/nobar/perk-giveaway.svg" alt="" width="26" height="26" class="figma-perk-icon" />
@@ -2001,15 +2002,17 @@
             </div>
             <div class="figma-perk-item">
               <img src="images/nobar/perk-postcard.svg" alt="" width="27" height="26" class="figma-perk-icon" />
-              <span>Postcard Freebies spesial Your Name &times; WuWa (*dari @wutheringwave.id) <em class="perk-wip">WIP</em></span>
+              <span>Postcard Freebies spesial Your Name &times; WuWa (*dari @wutheringwave.id) <em
+                  class="perk-wip">WIP</em></span>
             </div>
             <div class="figma-perk-item">
               <img src="images/nobar/perk-poster.svg" alt="" width="23" height="27" class="figma-perk-icon" />
-              <span>Poster Eksklusif A4 spesial Your Name &times; WuWa (*dari @wutheringwave.id) <em class="perk-wip">WIP</em></span>
+              <span>Poster Eksklusif A4 spesial Your Name &times; WuWa (*dari @wutheringwave.id) <em
+                  class="perk-wip">WIP</em></span>
             </div>
             <div class="figma-perk-item">
               <img src="images/nobar/perk-merch.svg" alt="" width="27" height="27" class="figma-perk-icon" />
-              <span id="cmpDesc-regular_merch">Photocard + Poster Eksklusif (*dari Aika Sesilia)</span>
+              <span id="cmpDesc-regular_merch">2 Photocard Eksklusif (*dari Aika Sesilia)</span>
             </div>
             <div class="figma-perk-item">
               <img src="images/nobar/perk-giveaway.svg" alt="" width="26" height="26" class="figma-perk-icon" />
@@ -2036,15 +2039,18 @@
             </div>
             <div class="figma-perk-item">
               <img src="images/nobar/perk-postcard.svg" alt="" width="27" height="26" class="figma-perk-icon" />
-              <span>Postcard Freebies spesial Your Name &times; WuWa (*dari @wutheringwave.id) <em class="perk-wip">WIP</em></span>
+              <span>Postcard Freebies spesial Your Name &times; WuWa (*dari @wutheringwave.id) <em
+                  class="perk-wip">WIP</em></span>
             </div>
             <div class="figma-perk-item">
               <img src="images/nobar/perk-poster.svg" alt="" width="23" height="27" class="figma-perk-icon" />
-              <span>Poster Eksklusif A4 Spesial Your Name &times; WuWa (*dari @wutheringwave.id) <em class="perk-wip">WIP</em></span>
+              <span>Poster Eksklusif A4 Spesial Your Name &times; WuWa (*dari @wutheringwave.id) <em
+                  class="perk-wip">WIP</em></span>
             </div>
             <div class="figma-perk-item">
               <img src="images/nobar/perk-merch.svg" alt="" width="27" height="27" class="figma-perk-icon" />
-              <span id="cmpMerchVip">Photocard + Poster Eksklusif (*dari Aika Sesilia)</span>
+              <span id="cmpMerchVip">2 Photocard Eksklusif (*dari Aika Sesilia)</span>
+              <span id="cmpMerchVip">2 Photocard dan Poster Eksklusif (*dari Aika Sesilia)</span>
             </div>
             <div class="figma-perk-item">
               <img src="images/nobar/perk-chair.svg" alt="" width="18" height="28" class="figma-perk-icon" />
@@ -2325,7 +2331,7 @@
             <div id="summaryMerchRow"
               style="display:none; justify-content:space-between; gap:0.75rem; padding:0.35rem 0; color:var(--aqua);">
               <span>Paket Merch Bundel</span>
-              <strong id="summaryMerchDesc" style="text-align:right;">Photocard &amp; Poster (Ambil di Lokasi)</strong>
+              <strong id="summaryMerchDesc" style="text-align:right;">2 Photocard Eksklusif (Ambil di Lokasi)</strong>
             </div>
             <div id="summaryPolaroidRow"
               style="display:none; justify-content:space-between; gap:0.75rem; padding:0.35rem 0; color:#7dd3fc;">
@@ -3130,7 +3136,7 @@
       const merchRow = document.getElementById('summaryMerchRow');
       if (reservation.includesMerch || reservation.tier === 'vip' || reservation.tier === 'regular_merch') {
         merchRow.style.display = 'flex';
-        document.getElementById('summaryMerchDesc').textContent = reservation.merchBundle || (nobarConfig && nobarConfig.merchBundleDesc) || 'Photocard & Poster';
+        document.getElementById('summaryMerchDesc').textContent = reservation.merchBundle || (nobarConfig && nobarConfig.merchBundleDesc) || '2 Photocard Eksklusif';
       } else {
         merchRow.style.display = 'none';
       }
@@ -3424,7 +3430,10 @@
       const merchRow = document.getElementById('summaryMerchRow');
       if (selectedTier === 'regular_merch' || selectedTier === 'vip') {
         merchRow.style.display = 'flex';
-        document.getElementById('summaryMerchDesc').textContent = nobarConfig.merchBundleDesc || 'Photocard & Poster';
+        document.getElementById('summaryMerchDesc').textContent = nobarConfig.merchBundleDesc || '2 Photocard Eksklusif';
+        document.getElementById('summaryMerchDesc').textContent = selectedTier === 'vip'
+          ? '2 Photocard dan Poster Eksklusif (Ambil di Lokasi)'
+          : (nobarConfig.merchBundleDesc || '2 Photocard Eksklusif');
       } else {
         merchRow.style.display = 'none';
       }

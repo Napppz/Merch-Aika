@@ -35,7 +35,7 @@ const DEFAULT_NOBAR_CONFIG = {
   cinemaMapsUrl: 'https://maps.app.goo.gl/7yF59NSdjGyyNP6X9',
   bannerImage: '/images/Profil/charlotta-seo.jpg',
   eventNotes:
-    'Pengambilan tiket fisik & nomor kursi dilakukan langsung saat registrasi ulang di lokasi bioskop (siapa cepat datang, dapat pilihan kursi lebih dulu). Untuk pembeli paket Merch, Photocard & Poster diambil langsung di lokasi tanpa ongkir.',
+    'Pengambilan tiket fisik & nomor kursi dilakukan langsung saat registrasi ulang di lokasi bioskop (siapa cepat datang, dapat pilihan kursi lebih dulu). Untuk pembeli paket Merch, 2 Photocard Eksklusif diambil langsung di lokasi tanpa ongkir.',
   vipQuota: 2,
   regularQuota: 40,
   maxRegularPerOrder: 5,
@@ -46,9 +46,9 @@ const DEFAULT_NOBAR_CONFIG = {
   polaroidEnabled: true,
   pricePolaroid: 60000,
   maxPolaroidPerOrder: 10,
-  vipPerk: 'Duduk eksklusif tepat di samping Kak Aika (Kuota 2 Orang) + Photocard & Poster',
+  vipPerk: 'Duduk eksklusif tepat di samping Kak Aika (Kuota 2 Orang) + 2 Photocard dan Poster Eksklusif',
   regularPerk: 'Postcard Freebies (@wutheringwave.id)',
-  merchBundleDesc: 'Photocard Eksklusif + Poster Nobar Aika Sesilia (Ambil di Lokasi)'
+  merchBundleDesc: '2 Photocard Eksklusif Aika Sesilia (Ambil di Lokasi)'
 };
 
 const TIER_DEFINITIONS = {
@@ -66,7 +66,7 @@ const TIER_DEFINITIONS = {
   },
   regular_merch: {
     id: 'regular_merch',
-    label: 'Tiket Reguler+ (Photocard & Poster)',
+    label: 'Tiket Reguler+ (2 Photocard Eksklusif)',
     shortLabel: 'Reguler+',
     includesMerch: true
   }
@@ -1170,7 +1170,7 @@ module.exports = async function handler(req, res) {
             actorType: 'admin',
             actorName: adminActor,
             note: nextClaimed
-              ? 'Paket Merch (Photocard & Poster) diserahkan kepada peserta di lokasi bioskop'
+              ? 'Paket Merch (2 Photocard Eksklusif) diserahkan kepada peserta di lokasi bioskop'
               : 'Status pengambilan Merch dibatalkan/direset oleh admin'
           });
 
@@ -1425,7 +1425,9 @@ module.exports = async function handler(req, res) {
         const verifiedTotal = ticketSubtotal + polaroidTotal;
         const tierMeta = TIER_DEFINITIONS[tier];
         const includesMerch = tierMeta.includesMerch;
-        const merchBundle = includesMerch ? config.merchBundleDesc : '';
+        const merchBundle = includesMerch
+          ? (tier === 'vip' ? '2 Photocard dan Poster Eksklusif Aika Sesilia (Ambil di Lokasi)' : config.merchBundleDesc)
+          : '';
 
         const orderId = await generateDailyInvoiceId(client);
         const timeoutMinutes = config.paymentTimeoutMinutes || DEFAULT_NOBAR_PAYMENT_TIMEOUT_MINUTES;
@@ -1461,8 +1463,10 @@ module.exports = async function handler(req, res) {
 
         const shipObj = {
           name: includesMerch
-            ? 'Ambil Tiket & Merch (Photocard + Poster) di Lokasi Bioskop'
-            : 'Ambil Tiket di Lokasi Bioskop Saat Event',
+              ? (tier === 'vip'
+                ? 'Ambil Tiket & Merch (2 Photocard dan Poster Eksklusif) di Lokasi Bioskop'
+                : 'Ambil Tiket & Merch (2 Photocard Eksklusif) di Lokasi Bioskop')
+              : 'Ambil Tiket di Lokasi Bioskop Saat Event',
           price: 0,
           paymentScheme: 'full',
           isDp: false,

@@ -903,8 +903,8 @@
         line-height: 1.25;
       }
 
-      .admin-header-actions > button,
-      .admin-header-actions > a {
+      .admin-header-actions>button,
+      .admin-header-actions>a {
         font-size: 0.8rem !important;
         padding: 0.55rem 0.7rem !important;
       }
@@ -1031,8 +1031,8 @@
         gap: 0.55rem;
       }
 
-      .admin-header-actions > button,
-      .admin-header-actions > a {
+      .admin-header-actions>button,
+      .admin-header-actions>a {
         width: 100%;
         min-height: 42px;
         display: inline-flex;
@@ -1042,7 +1042,7 @@
         box-sizing: border-box;
       }
 
-      .admin-header-actions > button:first-child {
+      .admin-header-actions>button:first-child {
         grid-column: 1 / -1;
       }
 
@@ -1071,7 +1071,7 @@
         align-items: stretch !important;
       }
 
-      #nobarEventSelectorBar > div {
+      #nobarEventSelectorBar>div {
         width: 100%;
         min-width: 0 !important;
       }
@@ -1340,7 +1340,8 @@
   <aside class="admin-sidebar" id="adminSidebar">
     <button class="sidebar-close" onclick="toggleMobileMenu()">✕</button>
     <div class="sidebar-brand">
-      <div class="logo" id="sidebarBrandLogo" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">✦ Aika Admin</div>
+      <div class="logo" id="sidebarBrandLogo" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">✦
+        Aika Admin</div>
       <p>Management Panel</p>
     </div>
     <nav class="sidebar-nav">
@@ -1383,8 +1384,9 @@
   <main class="admin-main">
     <div class="mobile-header">
       <div class="mobile-header-left">
-        <div id="mobileBrandLogo" style="font-family:var(--font-display);color:var(--white);font-size:1.15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px;"><span
-            style="color:var(--aqua)">✦</span> Aika Admin</div>
+        <div id="mobileBrandLogo"
+          style="font-family:var(--font-display);color:var(--white);font-size:1.15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px;">
+          <span style="color:var(--aqua)">✦</span> Aika Admin</div>
         <span id="mobileActiveTabLabel" class="mobile-tab-pill">Dashboard</span>
       </div>
       <button onclick="toggleMobileMenu()" aria-label="Buka menu navigasi"
@@ -1528,7 +1530,8 @@
             style="text-decoration:none; padding:0.6rem 1.1rem; border-radius:8px; font-size:0.84rem; font-weight:700;">Lihat
             Halaman Nobar ↗</a>
           <button class="btn-primary" onclick="exportNobarAttendeesCSV()"
-            style="padding:0.6rem 1.1rem; border-radius:8px; font-size:0.84rem; font-weight:700;">Export CSV Peserta</button>
+            style="padding:0.6rem 1.1rem; border-radius:8px; font-size:0.84rem; font-weight:700;">Export CSV
+            Peserta</button>
         </div>
       </div>
 
@@ -1796,13 +1799,15 @@
             style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
             <label style="line-height:1.35; margin-bottom:0.45rem;">Isi Paket Merch Bundel</label>
             <input type="text" id="nobarMerchDescInput"
-              placeholder="Photocard Eksklusif + Poster Nobar Aika Sesilia (Ambil di Lokasi)" />
+              placeholder="2 Photocard Eksklusif Aika Sesilia (Ambil di Lokasi)" />
           </div>
           <div class="form-group"
             style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
             <label style="line-height:1.35; margin-bottom:0.45rem;">Benefit Tiket VIP</label>
             <input type="text" id="nobarVipPerkInput"
-              placeholder="Duduk eksklusif tepat di samping Kak Aika (Kuota 2 Orang) + Photocard & Poster" />
+              placeholder="Duduk eksklusif tepat di samping Kak Aika (Kuota 2 Orang) + 2 Photocard Eksklusif" />
+            placeholder="Duduk eksklusif tepat di samping Kak Aika (Kuota 2 Orang) + 2 Photocard dan Poster Eksklusif"
+            />
           </div>
           <div class="form-group" style="grid-column: 1 / -1; margin-bottom:0;">
             <label style="line-height:1.35; margin-bottom:0.45rem;">Catatan / Ketentuan Event (Ditampilkan di Halaman
@@ -1815,7 +1820,8 @@
         <div class="nobar-danger-zone superadmin-only">
           <div>
             <div style="font-size:0.84rem; font-weight:800; color:#fca5a5;">Zona Berbahaya (Khusus Admin Utama)</div>
-            <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">Hapus permanen seluruh data pesanan tiket untuk event Nobar yang sedang aktif.</div>
+            <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">Hapus permanen seluruh data pesanan
+              tiket untuk event Nobar yang sedang aktif.</div>
           </div>
           <button type="button" class="btn-del" onclick="deleteAllNobarOrders()"
             style="padding:0.55rem 1rem; border-radius:8px; font-size:0.82rem; font-weight:700; white-space:nowrap;">
@@ -2314,7 +2320,8 @@
   </div>
 
   <!-- CREATE NEW NOBAR EVENT (ARCHIVE PREVIOUS) MODAL (SUPERADMIN ONLY) -->
-  <div class="modal-overlay superadmin-only" id="newNobarEventModal" onclick="if(event.target===this) closeNewNobarEventModal()">
+  <div class="modal-overlay superadmin-only" id="newNobarEventModal"
+    onclick="if(event.target===this) closeNewNobarEventModal()">
     <div class="modal" style="max-width:580px; width:95%;">
       <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; margin-bottom:1rem;">
         <div>
@@ -3891,10 +3898,10 @@
               <div class="nobar-kpi-foot">
                 <div class="nobar-kpi-meta">
                   ${isAllMode
-                    ? '<span class="nobar-kpi-pill">REKAP GABUNGAN</span>'
-                    : isArchiveView
-                      ? '<span class="nobar-kpi-pill">ARSIP / REKAP</span>'
-                      : `<span class="nobar-kpi-pill ${isShownInStorefront ? 'is-on' : 'is-off'}">Web: ${isShownInStorefront ? 'TAMPIL' : 'SEMBUNYI'}</span><span class="nobar-kpi-pill ${cfg.isOpen ? 'is-on' : 'is-off'}">Tiket: ${cfg.isOpen ? 'DIBUKA' : 'DITUTUP'}</span>`}
+              ? '<span class="nobar-kpi-pill">REKAP GABUNGAN</span>'
+              : isArchiveView
+                ? '<span class="nobar-kpi-pill">ARSIP / REKAP</span>'
+                : `<span class="nobar-kpi-pill ${isShownInStorefront ? 'is-on' : 'is-off'}">Web: ${isShownInStorefront ? 'TAMPIL' : 'SEMBUNYI'}</span><span class="nobar-kpi-pill ${cfg.isOpen ? 'is-on' : 'is-off'}">Tiket: ${cfg.isOpen ? 'DIBUKA' : 'DITUTUP'}</span>`}
                 </div>
               </div>
             </div>
@@ -4021,7 +4028,7 @@
             </td>
             <td style="white-space:nowrap;">
               ${tierBadge}
-              ${a.includesMerch ? '<div style="font-size:0.72rem;color:var(--gold);margin-top:4px;white-space:nowrap;">+ Photocard &amp; Poster</div>' : ''}
+              ${a.includesMerch ? '<div style="font-size:0.72rem;color:var(--gold);margin-top:4px;white-space:nowrap;">+ 2 Photocard Eksklusif</div>' : ''}
               ${(parseInt(a.polaroidQty, 10) || 0) > 0 ? `<div style="font-size:0.72rem;color:#7dd3fc;margin-top:3px;font-weight:700;white-space:nowrap;">📸 +${parseInt(a.polaroidQty, 10)} Foto Polaroid</div>` : ''}
             </td>
             <td style="font-size:0.82rem;color:var(--white);line-height:1.45;">${participantsHtml}</td>
@@ -4062,7 +4069,7 @@
         return;
       }
 
-      const headers = ['No', 'Event Nobar', 'Order ID', 'Kategori Tiket', 'Nama Peserta', 'Urutan Kursi di Pesanan', 'Termasuk Merch (Photocard & Poster)', 'Tambahan Foto Polaroid (Per Pesanan)', 'Status Pembayaran', 'Email Akun', 'No HP', 'Total Pesanan (Rp)', 'Tanggal Pesan'];
+      const headers = ['No', 'Event Nobar', 'Order ID', 'Kategori Tiket', 'Nama Peserta', 'Urutan Kursi di Pesanan', 'Termasuk Merch (2 Photocard Eksklusif)', 'Tambahan Foto Polaroid (Per Pesanan)', 'Status Pembayaran', 'Email Akun', 'No HP', 'Total Pesanan (Rp)', 'Tanggal Pesan'];
       const rows = [headers.join(',')];
       let counter = 1;
 
@@ -4077,7 +4084,7 @@
             a.tierLabel,
             pName,
             `${idx + 1} dari ${a.qty}`,
-            a.includesMerch ? 'Ya (Photocard & Poster)' : 'Tidak',
+            a.includesMerch ? 'Ya (2 Photocard Eksklusif)' : 'Tidak',
             polCount > 0 ? `${polCount} Foto` : '0',
             a.status,
             a.email,
@@ -4379,7 +4386,7 @@
         ${nbTicket.includesMerch ? `
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-top:0.35rem;">
             <div>
-              <strong>Paket Merch Bundel:</strong> <span style="color:var(--gold);">${escapeHtml(nbTicket.merchBundle || 'Photocard & Poster')}</span>
+              <strong>Paket Merch Bundel:</strong> <span style="color:var(--gold);">${escapeHtml(nbTicket.merchBundle || '2 Photocard Eksklusif')}</span>
               ${nbTicket.merchClaimed ? '<span style="color:#4ade80;font-weight:700;"> (Sudah Diambil ✓)</span>' : (/lokasi/i.test(String(nbTicket.merchBundle || '')) ? '' : '<span style="color:#fde68a;"> (Diambil di lokasi bioskop)</span>')}
             </div>
             ${['paid', 'completed'].includes(String(order.status || '').toLowerCase()) ? `
@@ -5783,7 +5790,7 @@
             ` : ''}
             ${o.includesMerch ? `
               <div style="margin-top:0.5rem; padding-top:0.45rem; border-top:1px dashed rgba(255,255,255,0.15); color:${o.merchClaimed ? '#4ade80' : '#fde047'}; font-weight:700;">
-                🎁 Paket Merch (Photocard &amp; Poster): ${o.merchClaimed ? 'SUDAH DIAMBIL ✓' : 'BELUM DIAMBIL — Serahkan sekarang!'}
+                🎁 Paket Merch (2 Photocard Eksklusif): ${o.merchClaimed ? 'SUDAH DIAMBIL ✓' : 'BELUM DIAMBIL — Serahkan sekarang!'}
               </div>
             ` : ''}
             ${o.checkedInAt ? `
@@ -5844,7 +5851,7 @@
           mobileLogo.innerHTML = `<span style="color:var(--aqua)">✦</span> ${escapeHtml(displayBrand)}`;
           mobileLogo.title = displayBrand;
         }
-      } catch (e) {}
+      } catch (e) { }
     })();
     if (isNobarAdmin) {
       document.documentElement.classList.add('is-nobar-admin');
