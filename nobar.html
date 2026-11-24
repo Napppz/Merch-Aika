@@ -65,18 +65,10 @@
     }
 
     .nobar-typewriter-wrap {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-wrap: wrap;
-      min-height: 1.22em;
-      gap: 0.24em;
-    }
-
-    @media (max-width: 640px) {
-      .nobar-typewriter-wrap {
-        min-height: 2.35em;
-      }
+      display: inline-block;
+      max-width: 100%;
+      text-align: center;
+      text-wrap: balance;
     }
 
     .nobar-typewriter-prefix {
@@ -88,13 +80,17 @@
       text-shadow: 0 0 24px rgba(56, 189, 248, 0.6), 0 4px 30px rgba(37, 99, 235, 0.45);
     }
 
+    .nobar-typewriter-prefix:not(:empty) + .nobar-typewriter-highlight:not(:empty)::before {
+      content: ' ';
+    }
+
     .nobar-typewriter-cursor {
       display: inline-block;
       width: 3.5px;
-      height: 0.88em;
+      height: 0.86em;
       background: #38bdf8;
       box-shadow: 0 0 14px rgba(56, 189, 248, 0.9);
-      margin-left: 4px;
+      margin-left: 0.08em;
       vertical-align: -0.08em;
       border-radius: 2px;
       animation: nobarCursorBlink 0.9s ease-in-out infinite alternate;
@@ -263,12 +259,16 @@
 
     .figma-hero-title {
       font-family: var(--nobar-font);
-      font-size: clamp(2.35rem, 6.2vw, 5.2rem);
+      font-size: clamp(2.25rem, 5.8vw, 5rem);
       font-weight: 700;
       color: var(--white);
-      line-height: 1.08;
+      line-height: 1.12;
       letter-spacing: -0.03em;
-      margin-bottom: 1.15rem;
+      margin: 0 auto 1.15rem;
+      height: 2.5em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       text-shadow:
         0 4px 28px rgba(56, 189, 248, 0.42),
         0 0 64px rgba(244, 114, 182, 0.18);
@@ -1516,6 +1516,12 @@
 
       .figma-nobar-footer {
         padding-bottom: 0;
+      }
+
+      .figma-hero-title {
+        font-size: clamp(1.9rem, 8vw, 2.75rem);
+        line-height: 1.14;
+        height: 2.6em;
       }
 
       .figma-hero-subtitle {
