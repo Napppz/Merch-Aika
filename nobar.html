@@ -26,8 +26,8 @@
       --nobar-divider: rgba(41, 182, 246, 0.16);
       --nobar-pill-bg: #071e3e;
       --nobar-pill-border: #135a86;
-      --nobar-vip-bg: linear-gradient(145deg, #6f18bc 0%, #4d108c 100%);
-      --nobar-vip-border: rgba(192, 132, 252, 0.55);
+      --nobar-vip-bg: linear-gradient(105deg, #520c56 0%, #27042b 52%, #050206 100%);
+      --nobar-vip-border: rgba(216, 180, 254, 0.58);
       --nobar-green: #33c385;
       --nobar-yellow: #facc15;
       --nobar-red: #f87171;
@@ -477,64 +477,72 @@
     }
 
     .figma-compare-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 36px;
-      align-items: stretch;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      max-width: 1080px;
+      margin: 0 auto;
     }
 
     .figma-tier-showcase {
-      background: linear-gradient(155deg, #0b2352 0%, #07193e 100%);
-      border: 1.5px solid #1d4ed8;
-      border-radius: 16px;
-      padding: 2.25rem 2.25rem 2.5rem;
+      background: linear-gradient(105deg, #063876 0%, #05205d 52%, #030948 100%);
+      border: 1.5px solid rgba(147, 197, 253, 0.55);
+      border-radius: 18px;
+      padding: 2.2rem 2.65rem 2.35rem;
       display: flex;
       flex-direction: column;
       transition: var(--transition);
       cursor: pointer;
-      box-shadow: 0 12px 32px rgba(29, 78, 216, 0.22);
+      box-shadow: 0 14px 36px rgba(3, 18, 72, 0.42);
     }
 
     .figma-tier-showcase:hover {
-      border-color: #38bdf8;
+      border-color: #7dd3fc;
       transform: translateY(-3px);
-      box-shadow: 0 16px 40px rgba(56, 189, 248, 0.28);
+      box-shadow: 0 18px 44px rgba(56, 189, 248, 0.28);
     }
 
     .figma-tier-showcase.plus-showcase {
-      background:
-        radial-gradient(circle at 92% 10%, rgba(34, 211, 238, 0.22) 0%, rgba(244, 114, 182, 0.12) 42%, transparent 68%),
-        linear-gradient(155deg, #0d2b66 0%, #112255 58%, #1a194b 100%);
-      border: 1.5px solid #0284c7;
-      box-shadow: 0 14px 36px rgba(14, 165, 233, 0.24);
+      background: linear-gradient(105deg, #063876 0%, #05205d 52%, #030948 100%);
+      border: 1.5px solid rgba(147, 197, 253, 0.55);
+      box-shadow: 0 14px 36px rgba(3, 18, 72, 0.42);
     }
 
     .figma-tier-showcase.plus-showcase:hover {
-      border-color: #22d3ee;
-      box-shadow: 0 18px 44px rgba(34, 211, 238, 0.34);
+      border-color: #7dd3fc;
+      box-shadow: 0 18px 44px rgba(56, 189, 248, 0.28);
     }
 
     .figma-tier-showcase.vip-showcase {
-      background: var(--nobar-vip-bg);
-      border: 1px solid var(--nobar-vip-border);
-      box-shadow: 0 14px 40px rgba(111, 24, 188, 0.38);
+      background: linear-gradient(105deg, #520c56 0%, #27042b 52%, #050206 100%);
+      border: 1.5px solid rgba(216, 180, 254, 0.58);
+      box-shadow: 0 16px 42px rgba(82, 12, 86, 0.45);
     }
 
     .figma-tier-showcase.vip-showcase:hover {
-      border-color: #d8b4fe;
-      box-shadow: 0 18px 46px rgba(111, 24, 188, 0.55);
+      border-color: #e9d5ff;
+      box-shadow: 0 20px 48px rgba(147, 51, 234, 0.45);
+    }
+
+    .figma-tier-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.75rem;
     }
 
     .figma-tier-top {
       display: flex;
       align-items: center;
       gap: 1.35rem;
-      margin-bottom: 1.5rem;
-      min-height: 64px;
+      margin-bottom: 0;
+      min-height: 54px;
     }
 
     .figma-tier-icon-filter {
-      filter: brightness(0) invert(1) opacity(0.92);
+      filter: brightness(0) invert(1) opacity(0.95);
       flex-shrink: 0;
     }
 
@@ -543,20 +551,20 @@
     }
 
     .figma-tier-title {
-      font-size: 1.85rem;
-      font-weight: 500;
+      font-size: clamp(1.8rem, 3vw, 2.55rem);
+      font-weight: 700;
       color: var(--white);
-      letter-spacing: -0.02em;
+      letter-spacing: -0.025em;
       line-height: 1.1;
     }
 
     .figma-tier-price {
-      font-size: clamp(2rem, 3.2vw, 2.85rem);
-      font-weight: 600;
-      color: var(--aqua);
-      letter-spacing: -0.03em;
+      font-size: clamp(1.55rem, 2.5vw, 2.25rem);
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.025em;
       line-height: 1;
-      margin-bottom: 2.15rem;
+      margin-bottom: 0;
       white-space: nowrap;
     }
 
@@ -564,37 +572,62 @@
       color: var(--white);
     }
 
+    .figma-perks-columns {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.95fr);
+      gap: 1.15rem 2.85rem;
+      align-items: start;
+    }
+
     .figma-perks-list {
       display: flex;
       flex-direction: column;
+      gap: 1.1rem;
     }
 
     .figma-perk-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 1rem;
-      padding: 1.25rem 0;
-      border-top: 1px solid var(--nobar-divider);
-      font-size: 1.05rem;
-      color: var(--text-main);
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      align-items: center;
+      column-gap: 0.95rem;
+      padding: 0;
+      border-top: none;
+      font-size: 1.03rem;
+      font-weight: 400;
+      color: rgba(241, 245, 249, 0.95);
       line-height: 1.48;
       letter-spacing: -0.015em;
     }
 
-    .figma-perk-item:first-child {
-      border-top: none;
-      padding-top: 0;
-    }
-
     .figma-tier-showcase.vip-showcase .figma-perk-item {
-      border-top-color: rgba(255, 255, 255, 0.22);
       color: var(--white);
     }
 
     .figma-perk-icon {
-      flex-shrink: 0;
-      margin-top: 2px;
-      opacity: 0.94;
+      justify-self: center;
+      align-self: center;
+      max-width: 28px;
+      max-height: 28px;
+      width: auto;
+      height: auto;
+      margin-top: 0;
+      opacity: 0.95;
+      display: block;
+    }
+
+    .perk-wip {
+      font-style: italic;
+      font-weight: 700;
+      color: var(--white);
+    }
+
+    .figma-tier-footnote {
+      margin-top: 1.55rem;
+      font-size: 0.86rem;
+      font-style: italic;
+      font-weight: 700;
+      color: rgba(241, 245, 249, 0.92);
+      letter-spacing: -0.01em;
     }
 
     /* ── SECTION 4: BELI TIKET LAYOUT ── */
@@ -747,17 +780,25 @@
     .tier-option-card.vip-card {
       background: var(--nobar-vip-bg);
       border-color: var(--nobar-vip-border);
-      opacity: 0.82;
+      opacity: 0.94;
+      box-shadow: 0 10px 28px rgba(82, 12, 86, 0.35);
+    }
+
+    .tier-option-card.vip-card:hover:not(.disabled) {
+      border-color: #e9d5ff;
+      opacity: 1;
+      box-shadow: 0 14px 34px rgba(147, 51, 234, 0.38);
     }
 
     .tier-option-card.vip-card.selected {
+      background: linear-gradient(105deg, #641069 0%, #320637 52%, #09030b 100%);
       opacity: 1;
-      border: 2.5px solid var(--gold);
-      box-shadow: 0 0 30px rgba(255, 213, 79, 0.34);
+      border: 2px solid #e9d5ff;
+      box-shadow: 0 0 30px rgba(216, 180, 254, 0.36);
     }
 
     .tier-option-card.vip-card.selected .figma-radio-dot {
-      background: var(--gold);
+      background: #e9d5ff;
     }
 
     .tier-option-card.disabled {
@@ -786,7 +827,7 @@
     }
 
     .tier-option-card.vip-card.selected .figma-radio-circle {
-      border-color: var(--gold);
+      border-color: #e9d5ff;
     }
 
     .figma-radio-dot {
@@ -803,7 +844,7 @@
     }
 
     .tier-option-card.vip-card.selected .figma-radio-dot {
-      background: var(--gold);
+      background: #e9d5ff;
     }
 
     .tier-option-main {
@@ -1479,15 +1520,26 @@
 
       .figma-buy-layout {
         grid-template-columns: 1fr;
-        gap: 24px;
+        gap: 20px;
       }
 
       .figma-buy-sidebar {
         position: static;
+        display: contents;
       }
 
       .figma-buy-heading {
-        margin-bottom: 1rem;
+        order: 1;
+        margin-bottom: 0;
+      }
+
+      .figma-form-stack {
+        order: 2;
+      }
+
+      .figma-contact-card {
+        order: 3;
+        margin-top: 0.5rem;
       }
     }
 
@@ -1498,6 +1550,15 @@
 
       .figma-hero-section {
         padding: 0 0 2.5rem;
+      }
+
+      .figma-tier-showcase {
+        padding: 1.75rem 1.85rem 1.85rem;
+      }
+
+      .figma-perks-columns {
+        grid-template-columns: 1fr;
+        gap: 1.05rem;
       }
 
       .figma-nobar-footer {
@@ -1588,26 +1649,52 @@
       }
 
       .figma-tier-showcase {
-        padding: 1.35rem 1.15rem;
+        padding: 1.4rem 1.15rem 1.5rem;
+      }
+
+      .figma-tier-header-row {
+        margin-bottom: 1.2rem;
+        gap: 0.6rem;
+        flex-wrap: nowrap;
+        align-items: center;
       }
 
       .figma-tier-top {
-        gap: 0.95rem;
-        margin-bottom: 1rem;
-        min-height: 48px;
+        gap: 0.7rem;
+        min-height: 38px;
+        min-width: 0;
+      }
+
+      .figma-tier-top img {
+        width: 38px;
+        height: auto;
       }
 
       .figma-tier-title {
-        font-size: 1.4rem;
+        font-size: clamp(1.14rem, 4.7vw, 1.4rem);
+        white-space: nowrap;
       }
 
       .figma-tier-price {
-        margin-bottom: 1.25rem;
+        font-size: clamp(1rem, 4.1vw, 1.28rem);
+      }
+
+      .figma-perks-columns {
+        grid-template-columns: 1fr;
+        gap: 0.95rem;
+      }
+
+      .figma-perks-list {
+        gap: 0.95rem;
       }
 
       .figma-perk-item {
-        padding: 0.95rem 0;
         font-size: 0.94rem;
+      }
+
+      .figma-tier-footnote {
+        margin-top: 1.2rem;
+        font-size: 0.8rem;
       }
 
       .figma-step-head {
@@ -1877,43 +1964,64 @@
         <!-- Card 1: Tiket Regular -->
         <div class="figma-tier-showcase"
           onclick="selectNobarTier('regular'); smoothScrollToSection('beliTiketSection');">
-          <div class="figma-tier-top">
-            <img src="images/nobar/ticket-regular.svg" alt="" width="56" height="56" class="figma-tier-icon-filter" />
-            <div class="figma-tier-title">Tiket Regular</div>
+          <div class="figma-tier-header-row">
+            <div class="figma-tier-top">
+              <img src="images/nobar/ticket-regular.svg" alt="" width="58" height="46" class="figma-tier-icon-filter" />
+              <div class="figma-tier-title">Tiket Regular</div>
+            </div>
+            <div class="figma-tier-price" id="cmpPrice-regular">IDR 60.000</div>
           </div>
-          <div class="figma-tier-price" id="cmpPrice-regular">IDR 75.000</div>
           <div class="figma-perks-list">
             <div class="figma-perk-item">
-              <img src="images/nobar/perk-ticket.svg" alt="" width="28" height="28" class="figma-perk-icon" />
+              <img src="images/nobar/perk-ticket.svg" alt="" width="27" height="27" class="figma-perk-icon" />
               <span>Tiket Masuk</span>
             </div>
             <div class="figma-perk-item">
-              <img src="images/nobar/perk-postcard.svg" alt="" width="28.9156" height="28" class="figma-perk-icon" />
-              <span id="cmpDesc-regular">Postcard Freebies (@wutheringwave.id)</span>
+              <img src="images/nobar/perk-postcard.svg" alt="" width="27" height="26" class="figma-perk-icon" />
+              <span id="cmpDesc-regular">Postcard Freebies spesial Your Name &times; WuWa (*dari @wutheringwave.id) <em class="perk-wip">WIP</em></span>
+            </div>
+            <div class="figma-perk-item">
+              <img src="images/nobar/perk-giveaway.svg" alt="" width="26" height="26" class="figma-perk-icon" />
+              <span>Tiket Giveaway Hadiah Spesial</span>
             </div>
           </div>
+          <div class="figma-tier-footnote">*Work in Progress // Reveal minggu depan</div>
         </div>
 
         <!-- Card 2: Tiket Regular+ -->
         <div class="figma-tier-showcase plus-showcase"
           onclick="selectNobarTier('regular_merch'); smoothScrollToSection('beliTiketSection');">
-          <div class="figma-tier-top">
-            <img src="images/nobar/ticket-plus.svg" alt="" width="64" height="64" class="figma-tier-icon-filter" />
-            <div class="figma-tier-title">Tiket Regular+</div>
+          <div class="figma-tier-header-row">
+            <div class="figma-tier-top">
+              <img src="images/nobar/ticket-plus-badge.svg" alt="" width="58" height="54" class="figma-tier-icon-raw" />
+              <div class="figma-tier-title">Tiket Regular+</div>
+            </div>
+            <div class="figma-tier-price" id="cmpPrice-regular_merch">IDR 100.000</div>
           </div>
-          <div class="figma-tier-price" id="cmpPrice-regular_merch">IDR 135.000</div>
-          <div class="figma-perks-list">
-            <div class="figma-perk-item">
-              <img src="images/nobar/perk-ticket.svg" alt="" width="28" height="28" class="figma-perk-icon" />
-              <span>Tiket Masuk</span>
+          <div class="figma-perks-columns">
+            <div class="figma-perks-list">
+              <div class="figma-perk-item">
+                <img src="images/nobar/perk-ticket.svg" alt="" width="27" height="27" class="figma-perk-icon" />
+                <span>Tiket Masuk</span>
+              </div>
+              <div class="figma-perk-item">
+                <img src="images/nobar/perk-postcard.svg" alt="" width="27" height="26" class="figma-perk-icon" />
+                <span>Postcard Freebies spesial Your Name &times; WuWa (*dari @wutheringwave.id) <em class="perk-wip">WIP</em></span>
+              </div>
+              <div class="figma-perk-item">
+                <img src="images/nobar/perk-poster.svg" alt="" width="23" height="27" class="figma-perk-icon" />
+                <span>Poster Eksklusif A4 spesial Your Name &times; WuWa (*dari @wutheringwave.id) <em class="perk-wip">WIP</em></span>
+              </div>
             </div>
-            <div class="figma-perk-item">
-              <img src="images/nobar/perk-postcard.svg" alt="" width="28.9156" height="28" class="figma-perk-icon" />
-              <span>Postcard Freebies (@wutheringwave.id)</span>
-            </div>
-            <div class="figma-perk-item">
-              <img src="images/nobar/perk-merch.svg" alt="" width="29" height="28.9996" class="figma-perk-icon" />
-              <span id="cmpDesc-regular_merch">Paket merch (Photocard + Poster Eksklusif dari Aika)</span>
+            <div class="figma-perks-list">
+              <div class="figma-perk-item">
+                <img src="images/nobar/perk-merch.svg" alt="" width="27" height="27" class="figma-perk-icon" />
+                <span id="cmpDesc-regular_merch">Photocard + Poster Eksklusif (*dari Aika Sesilia)</span>
+              </div>
+              <div class="figma-perk-item">
+                <img src="images/nobar/perk-giveaway.svg" alt="" width="26" height="26" class="figma-perk-icon" />
+                <span>Tiket Giveaway Hadiah Spesial</span>
+              </div>
             </div>
           </div>
         </div>
@@ -1921,27 +2029,45 @@
         <!-- Card 3: Tiket VIP -->
         <div class="figma-tier-showcase vip-showcase"
           onclick="selectNobarTier('vip'); smoothScrollToSection('beliTiketSection');">
-          <div class="figma-tier-top">
-            <img src="images/nobar/ticket-vip.svg" alt="" width="61" height="61" class="figma-tier-icon-raw" />
-            <div class="figma-tier-title">Tiket VIP</div>
+          <div class="figma-tier-header-row">
+            <div class="figma-tier-top">
+              <img src="images/nobar/ticket-vip-crown.svg" alt="" width="60" height="48" class="figma-tier-icon-raw" />
+              <div class="figma-tier-title">Tiket VIP</div>
+            </div>
+            <div class="figma-tier-price" id="cmpPrice-vip">IDR 350.000</div>
           </div>
-          <div class="figma-tier-price" id="cmpPrice-vip">IDR 250.000</div>
-          <div class="figma-perks-list">
-            <div class="figma-perk-item">
-              <img src="images/nobar/perk-ticket.svg" alt="" width="28" height="28" class="figma-perk-icon" />
-              <span>Tiket Masuk</span>
+          <div class="figma-perks-columns">
+            <div class="figma-perks-list">
+              <div class="figma-perk-item">
+                <img src="images/nobar/perk-ticket.svg" alt="" width="27" height="27" class="figma-perk-icon" />
+                <span>Tiket Masuk</span>
+              </div>
+              <div class="figma-perk-item">
+                <img src="images/nobar/perk-postcard.svg" alt="" width="27" height="26" class="figma-perk-icon" />
+                <span>Postcard Freebies spesial Your Name &times; WuWa (*dari @wutheringwave.id) <em class="perk-wip">WIP</em></span>
+              </div>
+              <div class="figma-perk-item">
+                <img src="images/nobar/perk-poster.svg" alt="" width="23" height="27" class="figma-perk-icon" />
+                <span>Poster Eksklusif A4 Spesial Your Name &times; WuWa (*dari @wutheringwave.id) <em class="perk-wip">WIP</em></span>
+              </div>
+              <div class="figma-perk-item">
+                <img src="images/nobar/perk-chekii.svg" alt="" width="25" height="25" class="figma-perk-icon" />
+                <span>1x Chekii (Foto Bersama Aika &amp; Langsung di Cetak)</span>
+              </div>
             </div>
-            <div class="figma-perk-item">
-              <img src="images/nobar/perk-postcard.svg" alt="" width="28.9156" height="28" class="figma-perk-icon" />
-              <span>Postcard Freebies (@wutheringwave.id)</span>
-            </div>
-            <div class="figma-perk-item">
-              <img src="images/nobar/perk-merch.svg" alt="" width="29" height="28.9996" class="figma-perk-icon" />
-              <span id="cmpMerchVip">Paket merch (Photocard + Poster Eksklusif dari Aika)</span>
-            </div>
-            <div class="figma-perk-item">
-              <img src="images/nobar/perk-chair.svg" alt="" width="18.1096" height="31" class="figma-perk-icon" />
-              <span id="cmpDesc-vip">Kursi di sebelah Kak Aika</span>
+            <div class="figma-perks-list">
+              <div class="figma-perk-item">
+                <img src="images/nobar/perk-merch.svg" alt="" width="27" height="27" class="figma-perk-icon" />
+                <span id="cmpMerchVip">Photocard + Poster Eksklusif (*dari Aika Sesilia)</span>
+              </div>
+              <div class="figma-perk-item">
+                <img src="images/nobar/perk-chair.svg" alt="" width="18" height="28" class="figma-perk-icon" />
+                <span id="cmpDesc-vip">Duduk Eksklusif Tepat di Samping Aika Sesilia</span>
+              </div>
+              <div class="figma-perk-item">
+                <img src="images/nobar/perk-giveaway.svg" alt="" width="26" height="26" class="figma-perk-icon" />
+                <span>Tiket Giveaway Hadiah Spesial</span>
+              </div>
             </div>
           </div>
         </div>
@@ -2003,7 +2129,7 @@
                     <span>Pilih kursi sesuai urutan kedatangan</span>
                   </div>
                 </div>
-                <div class="tier-price" id="tierPrice-regular">IDR 75.000</div>
+                <div class="tier-price" id="tierPrice-regular">IDR 60.000</div>
               </div>
             </div>
 
@@ -2021,7 +2147,7 @@
                     <span>Pilih kursi sesuai urutan kedatangan</span>
                   </div>
                 </div>
-                <div class="tier-price" id="tierPrice-regular_merch">IDR 135.000</div>
+                <div class="tier-price" id="tierPrice-regular_merch">IDR 100.000</div>
               </div>
             </div>
 
@@ -2042,7 +2168,7 @@
                     <span>Kursi sudah ditentukan (Di sebelah Kak Aika)</span>
                   </div>
                 </div>
-                <div class="tier-price" id="tierPrice-vip">IDR 250.000</div>
+                <div class="tier-price" id="tierPrice-vip">IDR 350.000</div>
               </div>
             </div>
           </div>
@@ -3489,19 +3615,7 @@
       document.getElementById('tierPrice-regular_merch').textContent = formatIdrLabel(nobarConfig.priceRegularMerch);
       document.getElementById('tierPrice-vip').textContent = formatIdrLabel(nobarConfig.priceVip);
 
-      const cmpDescMerch = document.getElementById('cmpDesc-regular_merch');
-      if (cmpDescMerch && nobarConfig.merchBundleDesc) {
-        cmpDescMerch.textContent = nobarConfig.merchBundleDesc;
-      }
-      const cmpMerchVip = document.getElementById('cmpMerchVip');
-      if (cmpMerchVip && nobarConfig.merchBundleDesc) {
-        cmpMerchVip.textContent = nobarConfig.merchBundleDesc;
-      }
-      const cmpDescVip = document.getElementById('cmpDesc-vip');
-      if (cmpDescVip && nobarConfig.vipPerk) {
-        cmpDescVip.textContent = nobarConfig.vipPerk;
-      }
-
+      // Comparison card descriptions stay clean to match the showcase layout
       // Step 01 Availability Badges
       const vipLevel = getRemainingLevelClass(nobarStats.vipRemaining, 'vip');
       const vipBadgeState = vipLevel === 'full' ? 'low' : vipLevel;

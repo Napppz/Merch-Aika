@@ -1,0 +1,9 @@
+<svg width="62" height="48" viewBox="0 0 62 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Left white ticket stub -->
+  <path d="M8 2C3.58 2 0 5.58 0 10V17.5C3.59 17.5 6.5 20.41 6.5 24C6.5 27.59 3.59 30.5 0 30.5V38C0 42.42 3.58 46 8 46H22V41.5H20.5V38H22V32H20.5V28.5H22V22.5H20.5V19H22V13H20.5V9.5H22V2H8Z" fill="#FFFFFF"/>
+  <!-- Right translucent lavender stub with crown -->
+  <path d="M25 2V9.5H26.5V13H25V19H26.5V22.5H25V28.5H26.5V32H25V38H26.5V41.5H25V46H54C58.42 46 62 42.42 62 38V30.5C58.41 30.5 55.5 27.59 55.5 24C55.5 20.41 58.41 17.5 62 17.5V10C62 5.58 58.42 2 54 2H25Z" fill="rgba(216, 180, 254, 0.42)"/>
+  <!-- Crown emblem inside right half -->
+  <path d="M34 31L32.2 19L38.2 23.5L42.5 17L46.8 23.5L52.8 19L51 31H34Z" fill="#FFFFFF"/>
+  <rect x="34" y="33" width="17" height="2.6" rx="1.3" fill="#FFFFFF"/>
+</svg>
