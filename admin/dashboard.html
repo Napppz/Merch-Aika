@@ -748,11 +748,166 @@
 
     .nobar-tier-chip-val {
       font-family: 'Manrope', 'Nunito', sans-serif;
-      font-size: 1.1rem;
+      font-size: 1.08rem;
       font-weight: 800;
       color: var(--white);
-      line-height: 1.3;
+      line-height: 1.25;
       margin-top: 2px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #nobarStatsGrid {
+      grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+      gap: 1rem;
+    }
+
+    .nobar-kpi-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0.7rem;
+      padding: 1.15rem 1.25rem;
+      min-height: 126px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nobar-kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--kpi-accent, rgba(41, 182, 246, 0.45));
+      opacity: 0.85;
+    }
+
+    .nobar-kpi-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .nobar-kpi-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      line-height: 1.25;
+    }
+
+    .nobar-kpi-metric {
+      font-family: 'Manrope', 'Nunito', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+      display: flex;
+      align-items: baseline;
+      gap: 0.28rem;
+      flex-wrap: wrap;
+    }
+
+    .nobar-kpi-denom {
+      font-size: 0.98rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      opacity: 0.78;
+    }
+
+    .nobar-kpi-foot {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-top: auto;
+    }
+
+    .nobar-kpi-bar {
+      width: 100%;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.14);
+      overflow: hidden;
+    }
+
+    .nobar-kpi-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--kpi-accent, var(--aqua));
+      transition: width 0.35s ease;
+    }
+
+    .nobar-kpi-meta {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .nobar-kpi-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(3, 9, 31, 0.6);
+      color: var(--white);
+    }
+
+    .nobar-kpi-pill.is-on {
+      border-color: rgba(74, 222, 128, 0.4);
+      background: rgba(34, 197, 94, 0.14);
+      color: #86efac;
+    }
+
+    .nobar-kpi-pill.is-off {
+      border-color: rgba(248, 113, 113, 0.4);
+      background: rgba(239, 68, 68, 0.14);
+      color: #fca5a5;
+    }
+
+    @media (max-width: 900px) {
+      #nobarStatsGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.65rem !important;
+      }
+
+      .nobar-kpi-card {
+        min-height: 0;
+        padding: 0.9rem 1rem !important;
+        gap: 0.5rem;
+      }
+
+      .nobar-kpi-metric {
+        font-size: clamp(1.15rem, 4.8vw, 1.45rem);
+      }
+
+      .nobar-kpi-denom {
+        font-size: 0.85rem;
+      }
+
+      .admin-header h1 {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        line-height: 1.25;
+      }
+
+      .admin-header-actions > button,
+      .admin-header-actions > a {
+        font-size: 0.8rem !important;
+        padding: 0.55rem 0.7rem !important;
+      }
     }
 
     .nobar-subtabs {
@@ -1359,8 +1514,6 @@
               <path d="M13 17v2" />
               <path d="M13 11v2" />
             </svg> Manajemen Event Nobar Bioskop</h1>
-          <p>Atur kuota kursi VIP (2 orang di samping Kak Aika), kuota kursi reguler gabungan, harga 3 opsi tiket, dan
-            daftar hadir peserta.</p>
         </div>
         <div class="admin-header-actions">
           <button type="button" class="btn-primary" onclick="openNobarQrScanner()"
@@ -1426,11 +1579,11 @@
       <div class="nobar-subtabs" id="nobarSubTabsBar" role="tablist" aria-label="Bagian Manajemen Nobar">
         <button type="button" class="admin-tab active" id="nobarSubTabBtn-attendees" role="tab" aria-selected="true"
           onclick="switchNobarSubTab('attendees')">
-          👥 Daftar Peserta &amp; Verifikasi
+          👥 Daftar Peserta
         </button>
         <button type="button" class="admin-tab" id="nobarSubTabBtn-config" role="tab" aria-selected="false"
           onclick="switchNobarSubTab('config')">
-          ⚙️ Pengaturan Event, Harga &amp; Kuota
+          ⚙️ Pengaturan Event
         </button>
       </div>
 
@@ -1438,7 +1591,7 @@
       <div class="stat-card" id="nobarAttendeesCard" style="margin-bottom:2rem;">
         <div class="admin-toolbar" style="margin-bottom:1rem; flex-wrap:wrap; gap:0.85rem;">
           <div>
-            <h2>Daftar Peserta &amp; Pembeli Tiket Nobar</h2>
+            <h2>Daftar Peserta</h2>
             <p style="color:var(--text-muted); font-size:0.83rem; margin-top:2px;" id="nobarAttendeeCountLabel">0
               pesanan tiket</p>
           </div>
@@ -3658,20 +3811,46 @@
           const evCountLabel = isAllMode ? ` (${viewedCfg.totalEventsCount || (data.eventsList ? data.eventsList.length : 1)} Event)` : '';
           const displayVipQuota = st.vipQuota || viewedCfg.vipQuota || 2;
           const displayRegQuota = st.regularQuota || viewedCfg.regularQuota || 40;
+          const vipVerifiedNum = Number(st.vipVerified) || 0;
+          const regTakenNum = Number(st.regularTaken) || 0;
+          const checkedInNum = Number(st.checkedInSeats) || 0;
+          const verifiedSeatsNum = Number(st.verifiedSeats) || 0;
+          const vipPct = Math.min(100, Math.round((vipVerifiedNum / Math.max(1, displayVipQuota)) * 100));
+          const regPct = Math.min(100, Math.round((regTakenNum / Math.max(1, displayRegQuota)) * 100));
+          const checkInPct = verifiedSeatsNum > 0 ? Math.min(100, Math.round((checkedInNum / verifiedSeatsNum) * 100)) : 0;
+
           statsEl.innerHTML = `
-            <div class="stat-card" style="border-color:rgba(234,179,8,0.45);">
-              <div class="stat-label">${isAllMode ? 'Total Tiket VIP' + evCountLabel : 'Tiket VIP'}</div>
-              <div class="stat-value" style="color:var(--gold);">${st.vipVerified || 0} / ${displayVipQuota}</div>
-              <div style="font-size:0.76rem;color:var(--text-muted);margin-top:4px;">${isAllMode ? `Antrean Verifikasi: ${st.vipPending || 0} • Akumulasi Kapasitas VIP` : `Antrean Verifikasi: ${st.vipPending || 0} • Sisa: ${st.vipRemaining || 0}`}</div>
+            <div class="stat-card nobar-kpi-card" style="--kpi-accent:var(--gold); border-color:rgba(234,179,8,0.35);">
+              <div class="nobar-kpi-head">
+                <div class="nobar-kpi-label">${isAllMode ? 'Total Tiket VIP' + evCountLabel : 'Tiket VIP'}</div>
+              </div>
+              <div class="nobar-kpi-metric" style="color:var(--gold);">
+                <span>${vipVerifiedNum}</span>
+                <span class="nobar-kpi-denom">/ ${displayVipQuota}</span>
+              </div>
+              <div class="nobar-kpi-foot">
+                <div class="nobar-kpi-bar"><div class="nobar-kpi-bar-fill" style="width:${vipPct}%;"></div></div>
+                <div class="nobar-kpi-meta">Terisi ${vipPct}% kuota VIP</div>
+              </div>
             </div>
-            <div class="stat-card">
-              <div class="stat-label">${isAllMode ? 'Total Tiket Reguler' + evCountLabel : 'Tiket Reguler'}</div>
-              <div class="stat-value" style="color:var(--aqua);">${st.regularTaken || 0} / ${displayRegQuota}</div>
-              <div style="font-size:0.76rem;color:var(--text-muted);margin-top:4px;">${isAllMode ? `Terverifikasi: ${st.regularVerified || 0} • Total Kapasitas Gabungan` : `Terverifikasi: ${st.regularVerified || 0} • Sisa Kursi: ${st.regularRemaining || 0}`}</div>
+            <div class="stat-card nobar-kpi-card" style="--kpi-accent:var(--aqua);">
+              <div class="nobar-kpi-head">
+                <div class="nobar-kpi-label">${isAllMode ? 'Total Tiket Reguler' + evCountLabel : 'Tiket Reguler'}</div>
+              </div>
+              <div class="nobar-kpi-metric" style="color:var(--aqua);">
+                <span>${regTakenNum}</span>
+                <span class="nobar-kpi-denom">/ ${displayRegQuota}</span>
+              </div>
+              <div class="nobar-kpi-foot">
+                <div class="nobar-kpi-bar"><div class="nobar-kpi-bar-fill" style="width:${regPct}%;"></div></div>
+                <div class="nobar-kpi-meta">${isAllMode ? `Terverifikasi: ${st.regularVerified || 0} • Kapasitas Gabungan` : `Terverifikasi: ${st.regularVerified || 0}`}</div>
+              </div>
             </div>
-            <div class="stat-card stat-card-wide-mobile">
-              <div class="stat-label">${isAllMode ? 'Total Kategori Semua Event' : 'Rincian Kategori Aktif'}</div>
-              <div class="nobar-tier-breakdown">
+            <div class="stat-card nobar-kpi-card stat-card-wide-mobile" style="--kpi-accent:#38bdf8;">
+              <div class="nobar-kpi-head">
+                <div class="nobar-kpi-label">${isAllMode ? 'Total Kategori Semua Event' : 'Rincian Kategori Aktif'}</div>
+              </div>
+              <div class="nobar-tier-breakdown" style="margin:0;">
                 <div class="nobar-tier-chip">
                   <div class="nobar-tier-chip-label" style="color:var(--gold);">VIP</div>
                   <div class="nobar-tier-chip-val" style="color:var(--gold);">${st.tierBreakdown?.vip?.total || 0}</div>
@@ -3685,17 +3864,39 @@
                   <div class="nobar-tier-chip-val" style="color:var(--aqua);">${st.tierBreakdown?.regular_merch?.total || 0}</div>
                 </div>
               </div>
-              <div style="font-size:0.76rem;color:var(--text-muted);margin-top:6px;">Total Kursi: ${(st.vipTaken || 0) + (st.regularTaken || 0)} • Polaroid: <strong style="color:var(--aqua);">${st.polaroidTotalOrdered || 0} foto</strong></div>
+              <div class="nobar-kpi-foot">
+                <div class="nobar-kpi-meta">Total Kursi: <strong>${(st.vipTaken || 0) + (st.regularTaken || 0)}</strong> • Polaroid: <strong style="color:var(--aqua);">${st.polaroidTotalOrdered || 0} foto</strong></div>
+              </div>
             </div>
-            <div class="stat-card">
-              <div class="stat-label">Kehadiran &amp; Check-in QR</div>
-              <div class="stat-value" style="color:#4ade80;">${st.checkedInSeats || 0} / ${st.verifiedSeats || 0} Kursi</div>
-              <div style="font-size:0.76rem;color:var(--text-muted);margin-top:4px;">${st.checkedInOrders || 0} dari ${st.verifiedOrders || 0} transaksi terverifikasi sudah Check-in</div>
+            <div class="stat-card nobar-kpi-card" style="--kpi-accent:#4ade80;">
+              <div class="nobar-kpi-head">
+                <div class="nobar-kpi-label">Kehadiran &amp; Check-in QR</div>
+              </div>
+              <div class="nobar-kpi-metric" style="color:#4ade80;">
+                <span>${checkedInNum}</span>
+                <span class="nobar-kpi-denom">/ ${verifiedSeatsNum} kursi</span>
+              </div>
+              <div class="nobar-kpi-foot">
+                <div class="nobar-kpi-bar"><div class="nobar-kpi-bar-fill" style="width:${checkInPct}%;"></div></div>
+                <div class="nobar-kpi-meta">${st.checkedInOrders || 0} dari ${st.verifiedOrders || 0} transaksi check-in</div>
+              </div>
             </div>
-            <div class="stat-card">
-              <div class="stat-label">${isAllMode ? 'Total Omzet Nobar (Semua Event)' : 'Pendapatan Tiket Terverifikasi'}</div>
-              <div class="stat-value" style="color:#4ade80;">${formatPrice(verifiedRevenue)}</div>
-              <div style="font-size:0.76rem;color:var(--text-muted);margin-top:4px;">${isAllMode ? 'Mode: <strong>REKAP GABUNGAN (READ-ONLY)</strong>' : isArchiveView ? 'Mode: <strong>ARSIP / REKAP</strong>' : `Halaman Utama: <strong>${isShownInStorefront ? 'TAMPIL' : 'DISEMBUNYIKAN'}</strong> • Tiket: <strong>${cfg.isOpen ? 'DIBUKA' : 'DITUTUP'}</strong>`}</div>
+            <div class="stat-card nobar-kpi-card" style="--kpi-accent:#4ade80;">
+              <div class="nobar-kpi-head">
+                <div class="nobar-kpi-label">${isAllMode ? 'Total Omzet Nobar' : 'Pendapatan Terverifikasi'}</div>
+              </div>
+              <div class="nobar-kpi-metric" style="color:#4ade80;">
+                <span>${formatPrice(verifiedRevenue)}</span>
+              </div>
+              <div class="nobar-kpi-foot">
+                <div class="nobar-kpi-meta">
+                  ${isAllMode
+                    ? '<span class="nobar-kpi-pill">REKAP GABUNGAN</span>'
+                    : isArchiveView
+                      ? '<span class="nobar-kpi-pill">ARSIP / REKAP</span>'
+                      : `<span class="nobar-kpi-pill ${isShownInStorefront ? 'is-on' : 'is-off'}">Web: ${isShownInStorefront ? 'TAMPIL' : 'SEMBUNYI'}</span><span class="nobar-kpi-pill ${cfg.isOpen ? 'is-on' : 'is-off'}">Tiket: ${cfg.isOpen ? 'DIBUKA' : 'DITUTUP'}</span>`}
+                </div>
+              </div>
             </div>
           `;
         }
