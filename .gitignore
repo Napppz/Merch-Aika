@@ -3,4 +3,5 @@
 node_modules/
 .DS_Store
 *.log
+.vscode/
 backup-r2-orphan/
