@@ -362,9 +362,9 @@ function renderProductCard(p, compact = false) {
         <div class="product-desc">${safeDesc}</div>
         ${!isPhotopack ? `
           <div style="margin-top:0.45rem; font-size:0.78rem;">
-            ${isOutOfStock 
-              ? `<span style="color:#ef4444; font-weight:800;">⚠️ Stok Habis</span>` 
-              : `<span style="color:var(--text-muted);">Stok: <strong style="color:${stock <= 3 ? '#f59e0b' : '#38bdf8'};">${stock} unit</strong></span>`}
+            ${isOutOfStock
+        ? `<span style="color:#ef4444; font-weight:800;">⚠️ Stok Habis</span>`
+        : `<span style="color:var(--text-muted);">Stok: <strong style="color:${stock <= 3 ? '#f59e0b' : '#38bdf8'};">${stock} unit</strong></span>`}
           </div>
         ` : ''}
         ${sizes.length ? `<div style="margin-top:0.5rem;color:var(--text-muted);font-size:0.78rem;">Ukuran: <span style="color:var(--aqua);font-weight:700">${escapeStoreHtml(sizes.join(', '))}</span></div>` : ''}
@@ -374,10 +374,10 @@ function renderProductCard(p, compact = false) {
             <select id="${sizeSelectId}" data-pid="${safeIdAttr}" ${isOutOfStock ? 'disabled' : ''} onchange="handleCardSizeChange(this.dataset.pid, this.value, '${cardPriceId}')" style="width:100%;border-radius:8px;background:rgba(3,9,31,0.8);border:1px solid var(--card-border);color:var(--white);padding:0.65rem;font-family:var(--font-body);font-size:0.85rem;${isOutOfStock ? 'opacity:0.5;cursor:not-allowed;' : ''}">
               <option value="">${isOutOfStock ? '-- Stok Habis --' : '-- Pilih Size --'}</option>
               ${sizes.map(size => {
-                const surcharge = getProductSizeSurcharge(p, size);
-                const surchargeText = surcharge > 0 ? ` (+${formatPrice(surcharge)})` : '';
-                return `<option value="${escapeStoreHtml(size)}">${escapeStoreHtml(size)}${surchargeText}</option>`;
-              }).join('')}
+          const surcharge = getProductSizeSurcharge(p, size);
+          const surchargeText = surcharge > 0 ? ` (+${formatPrice(surcharge)})` : '';
+          return `<option value="${escapeStoreHtml(size)}">${escapeStoreHtml(size)}${surchargeText}</option>`;
+        }).join('')}
             </select>
           </div>
         ` : ''}
@@ -783,9 +783,9 @@ async function openProductDetail(id) {
     : `<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:0.5rem;">
         <span class="product-modal-badge" style="background:var(--sea-blue); margin-bottom:0;">${escapeStoreHtml(category)}</span>
         ${productTag ? `<span class="product-modal-badge" style="background:rgba(2,132,199,0.25); border:1px solid #0284c7; color:#38bdf8; margin-bottom:0;">🏷️ ${escapeStoreHtml(productTag)}</span>` : ''}
-        ${isOutOfStock 
-          ? `<span class="product-modal-badge" style="background:rgba(239,68,68,0.25); border:1px solid #ef4444; color:#f87171; margin-bottom:0; font-weight:800;">⚠️ Stok Habis</span>` 
-          : `<span class="product-modal-badge" style="background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#34d399; margin-bottom:0;">Tersedia: ${stock} unit</span>`}
+        ${isOutOfStock
+      ? `<span class="product-modal-badge" style="background:rgba(239,68,68,0.25); border:1px solid #ef4444; color:#f87171; margin-bottom:0; font-weight:800;">⚠️ Stok Habis</span>`
+      : `<span class="product-modal-badge" style="background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#34d399; margin-bottom:0;">Tersedia: ${stock} unit</span>`}
       </div>`;
 
   const sizeOptionsHtml = sizes.length ? `
@@ -794,10 +794,10 @@ async function openProductDetail(id) {
       <select id="modalProductSize" data-pid="${safeIdAttr}" ${isOutOfStock ? 'disabled' : ''} onchange="handleModalSizeChange(this.dataset.pid, this.value)" style="width:100%; border-radius:8px; background:rgba(3,9,31,0.8); border:1px solid var(--card-border); color:var(--white); padding:0.75rem; font-family:var(--font-body); font-size:0.9rem; ${isOutOfStock ? 'opacity:0.5;cursor:not-allowed;' : ''}">
         <option value="">${isOutOfStock ? '-- Stok Habis --' : '-- Pilih Ukuran --'}</option>
         ${sizes.map(s => {
-          const surcharge = getProductSizeSurcharge(p, s);
-          const surchargeText = surcharge > 0 ? ` (+${formatPrice(surcharge)})` : '';
-          return `<option value="${escapeStoreHtml(s)}">${escapeStoreHtml(s)}${surchargeText}</option>`;
-        }).join('')}
+    const surcharge = getProductSizeSurcharge(p, s);
+    const surchargeText = surcharge > 0 ? ` (+${formatPrice(surcharge)})` : '';
+    return `<option value="${escapeStoreHtml(s)}">${escapeStoreHtml(s)}${surchargeText}</option>`;
+  }).join('')}
       </select>
       ${productTag ? `<div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.4rem;">💡 Tag: <strong style="color:var(--aqua)">${escapeStoreHtml(productTag)}</strong> (Varian size tertentu memiliki penyesuaian harga khusus)</div>` : ''}
     </div>
@@ -996,6 +996,26 @@ function isStoreUserTokenExpired(token) {
   }
 }
 
+function getActiveAdminSession() {
+  try {
+    if (localStorage.getItem('aika_admin_logged') !== 'true') return null;
+    const token = localStorage.getItem('aika_admin_token') || '';
+    const rawUser = localStorage.getItem('aika_admin_user');
+    if (!token || !rawUser) return null;
+    if (isStoreUserTokenExpired(token)) {
+      localStorage.removeItem('aika_admin_logged');
+      localStorage.removeItem('aika_admin_user');
+      localStorage.removeItem('aika_admin_token');
+      return null;
+    }
+    const user = JSON.parse(rawUser);
+    if (!user || !user.username) return null;
+    return { user, token };
+  } catch (_) {
+    return null;
+  }
+}
+
 let userDropdownClickBound = false;
 
 function initUserNavbar() {
@@ -1015,6 +1035,12 @@ function initUserNavbar() {
     sessionStorage.removeItem('aika_session');
     session = null;
   }
+
+  const adminSession = getActiveAdminSession();
+  const currentFile = (window.location.pathname.split('/').pop() || 'index.html') + (window.location.search || '');
+  const loginHref = currentFile && currentFile !== 'index.html'
+    ? `login.html?redirect=${encodeURIComponent(currentFile)}`
+    : 'login.html';
 
   if (session && session.loggedIn && session.email) {
     const rawName = String(session.username || 'Akun');
@@ -1061,6 +1087,7 @@ function initUserNavbar() {
           <div class="user-dropdown-name">${safeUsername}</div>
           <div class="user-dropdown-email">${safeEmail}</div>
         </div>
+        ${adminSession ? '<a href="/admin/dashboard.html" class="dropdown-item" style="color:var(--aqua);font-weight:700;">🛡️ Dashboard Admin</a>' : ''}
         <a href="profile.html" class="dropdown-item">👤 Profil &amp; Pesanan</a>
         <a href="profile.html?tab=address" class="dropdown-item">📍 Buku Alamat</a>
         <a href="profile.html?tab=wishlist" class="dropdown-item">❤️ Favorit Saya</a>
@@ -1068,11 +1095,34 @@ function initUserNavbar() {
         <button type="button" class="dropdown-item logout" onclick="doLogout()">🚪 Keluar</button>
       </div>
     `;
+  } else if (adminSession) {
+    const rawAdminName = String(adminSession.user.username || 'Admin').trim();
+    const isNobarRole = adminSession.user.role === 'nobar_admin';
+    const displayAdminName = (!isNobarRole && rawAdminName.toLowerCase() === 'aika') ? 'Aika Admin' : rawAdminName;
+    const safeAdminName = escapeStoreHtml(displayAdminName);
+    const roleLabel = isNobarRole ? 'Admin Nobar Bioskop' : 'Super Admin';
+    const initials = escapeStoreHtml(
+      rawAdminName.replace(/[^a-zA-Z0-9]/g, '').slice(0, 2).toUpperCase() || 'AD'
+    );
+
+    nav.innerHTML = `
+      <button type="button" class="user-btn-logged" id="userMenuBtn" onclick="toggleUserDropdown()" aria-label="Menu admin">
+        <div class="user-avatar" style="background:linear-gradient(135deg,#0284c7,#38bdf8);color:#fff;">${initials}</div>
+        <span class="user-nav-label">${safeAdminName}</span>
+        <span style="font-size:0.65rem;opacity:0.6">▼</span>
+      </button>
+      <div class="user-dropdown" id="userDropdown">
+        <div class="user-dropdown-header">
+          <div class="user-avatar" style="width:40px;height:40px;margin-bottom:8px;font-size:1rem;background:linear-gradient(135deg,#0284c7,#38bdf8);color:#fff;">${initials}</div>
+          <div class="user-dropdown-name">${safeAdminName}</div>
+          <div class="user-dropdown-email" style="color:var(--aqua);">${roleLabel}</div>
+        </div>
+        <a href="/admin/dashboard.html" class="dropdown-item" style="color:var(--aqua);font-weight:700;">📊 Kembali ke Dashboard</a>
+        <a href="${loginHref}" class="dropdown-item">👤 Masuk sebagai Pembeli</a>
+        <button type="button" class="dropdown-item logout" onclick="doAdminLogoutFromStore()">🚪 Keluar Admin</button>
+      </div>
+    `;
   } else {
-    const currentFile = (window.location.pathname.split('/').pop() || 'index.html') + (window.location.search || '');
-    const loginHref = currentFile && currentFile !== 'index.html'
-      ? `login.html?redirect=${encodeURIComponent(currentFile)}`
-      : 'login.html';
     nav.innerHTML = `
       <a href="${loginHref}" class="user-btn-guest" id="loginNavBtn">
         👤 Masuk
@@ -1088,6 +1138,26 @@ function initUserNavbar() {
   window.doLogout = function () {
     localStorage.removeItem('aika_session');
     sessionStorage.removeItem('aika_session');
+    window.location.reload();
+  };
+
+  window.doAdminLogoutFromStore = function () {
+    const token = localStorage.getItem('aika_admin_token');
+    if (token) {
+      fetch('/api/admin-logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ token }),
+        credentials: 'same-origin'
+      }).catch(() => { });
+    }
+    localStorage.removeItem('aika_admin_logged');
+    localStorage.removeItem('aika_admin_user');
+    localStorage.removeItem('aika_admin_token');
     window.location.reload();
   };
 
@@ -1359,7 +1429,7 @@ async function syncStorefrontNobarVisibility() {
         applyStorefrontNobarVisibility(cached);
       }
     }
-  } catch (_) {}
+  } catch (_) { }
 
   try {
     const res = await fetch('/api/nobar?t=' + Date.now(), { cache: 'no-store' });
@@ -1373,9 +1443,9 @@ async function syncStorefrontNobarVisibility() {
           isOpen: Boolean(data.config.isOpen),
           eventTitle: data.config.eventTitle || ''
         }));
-      } catch (_) {}
+      } catch (_) { }
     }
-  } catch (_) {}
+  } catch (_) { }
 }
 
 // Polyfill for smooth scroll in some browsers
@@ -1477,11 +1547,18 @@ function initMobileBottomNav() {
   try {
     const sess = userStr ? JSON.parse(userStr) : null;
     isLoggedIn = !!(sess && sess.loggedIn);
-  } catch (e) {}
+  } catch (e) { }
 
+  const adminSession = getActiveAdminSession();
   const accBtn = document.getElementById('bnav-account');
   if (accBtn && !isLoggedIn) {
-    accBtn.href = 'login.html?redirect=profile.html';
+    if (adminSession) {
+      accBtn.href = '/admin/dashboard.html';
+      const labelSpan = accBtn.querySelector('span:last-child');
+      if (labelSpan) labelSpan.textContent = 'Admin';
+    } else {
+      accBtn.href = 'login.html?redirect=profile.html';
+    }
   }
 
   const wishBtn = document.getElementById('bnav-wishlist');
