@@ -419,12 +419,12 @@
     }
 
     .figma-avail-num {
-      font-size: clamp(1.9rem, 3.2vw, 2.95rem);
-      font-weight: 600;
+      font-size: clamp(1.65rem, 2.35vw, 2.25rem);
+      font-weight: 700;
       color: var(--white);
-      letter-spacing: -0.03em;
-      line-height: 1;
-      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      white-space: nowrap;
     }
 
     .figma-avail-num .remain.ok {
@@ -937,7 +937,7 @@
 
     .tier-option-card.vip-card .tier-badge.low,
     .tier-option-card.vip-card .tier-badge.soldout {
-      color: #fecaca;
+      color: var(--nobar-red);
     }
 
     /* ── STEP 02 INPUTS & SUMMARY ── */
@@ -1925,13 +1925,13 @@
           <div class="figma-avail-grid">
             <div class="figma-avail-col">
               <div class="figma-avail-label">Tiket Regular / Regular+</div>
-              <div class="figma-avail-num"><span class="remain ok" id="availRegLeft">--</span><span
-                  id="availRegTotal">/--</span></div>
+              <div class="figma-avail-num"><span class="remain ok" id="availRegLeft">Memuat...</span><span
+                  id="availRegTotal"></span></div>
             </div>
             <div class="figma-avail-col">
               <div class="figma-avail-label">Tiket VIP</div>
-              <div class="figma-avail-num"><span class="remain ok" id="availVipLeft">--</span><span
-                  id="availVipTotal">/--</span></div>
+              <div class="figma-avail-num"><span class="remain ok" id="availVipLeft">Memuat...</span><span
+                  id="availVipTotal"></span></div>
             </div>
           </div>
           <div class="figma-avail-note" id="availRealtimeNote">
@@ -2119,7 +2119,7 @@
                 <div class="tier-option-info">
                   <div class="tier-name"><span>Tiket Regular</span></div>
                   <div class="tier-meta-inline">
-                    <span class="tier-badge merch" id="tierBadge-regular">Sisa -- tiket</span>
+                    <span class="tier-badge merch ok" id="tierBadge-regular">Memuat...</span>
                     <span class="tier-meta-sep"></span>
                     <span>Pilih kursi sesuai urutan kedatangan</span>
                   </div>
@@ -2137,7 +2137,7 @@
                 <div class="tier-option-info">
                   <div class="tier-name"><span>Tiket Regular+</span></div>
                   <div class="tier-meta-inline">
-                    <span class="tier-badge merch" id="tierBadge-regular_merch">Sisa -- tiket</span>
+                    <span class="tier-badge merch ok" id="tierBadge-regular_merch">Memuat...</span>
                     <span class="tier-meta-sep"></span>
                     <span>Pilih kursi sesuai urutan kedatangan</span>
                   </div>
@@ -2158,7 +2158,7 @@
                     <img src="images/nobar/vip-crown.svg" alt="" width="26" height="26" />
                   </div>
                   <div class="tier-meta-inline">
-                    <span class="tier-badge vip" id="tierBadge-vip">Sisa -- tiket</span>
+                    <span class="tier-badge vip ok" id="tierBadge-vip">Memuat...</span>
                     <span class="tier-meta-sep"></span>
                     <span>Kursi sudah ditentukan (Di sebelah Kak Aika)</span>
                   </div>
@@ -3465,13 +3465,13 @@
       const leftEl = document.getElementById(leftId);
       const totalEl = document.getElementById(totalId);
       const cleanRemain = Math.max(0, parseInt(remain, 10) || 0);
-      const cleanQuota = Math.max(1, parseInt(quota, 10) || 1);
+      const isSoldOut = cleanRemain <= 0;
       if (leftEl) {
-        leftEl.textContent = String(cleanRemain).padStart(2, '0');
-        leftEl.className = 'remain ' + getRemainingLevelClass(cleanRemain, kind);
+        leftEl.textContent = isSoldOut ? 'SOLD OUT' : 'Tersedia';
+        leftEl.className = 'remain ' + (isSoldOut ? 'full' : 'ok');
       }
       if (totalEl) {
-        totalEl.textContent = '/' + String(cleanQuota).padStart(2, '0');
+        totalEl.textContent = '';
       }
     }
 
@@ -3615,39 +3615,33 @@
 
       // Comparison card descriptions stay clean to match the showcase layout
       // Step 01 Availability Badges
-      const vipLevel = getRemainingLevelClass(nobarStats.vipRemaining, 'vip');
-      const vipBadgeState = vipLevel === 'full' ? 'low' : vipLevel;
       const vipCard = document.getElementById('tierCard-vip');
       const vipBadge = document.getElementById('tierBadge-vip');
       if (nobarStats.isVipSoldOut) {
         vipCard.classList.add('disabled');
         vipBadge.className = 'tier-badge soldout';
-        vipBadge.textContent = (nobarStats.vipVerified >= nobarConfig.vipQuota)
-          ? 'Kuota VIP Penuh'
-          : 'Slot VIP Sedang Dikunci';
+        vipBadge.textContent = 'SOLD OUT';
       } else if (nobarUserStats.hasVipTicket) {
         vipCard.classList.add('disabled');
         vipBadge.className = 'tier-badge soldout';
         vipBadge.textContent = 'Sudah Dibeli Akun Ini';
       } else {
         vipCard.classList.remove('disabled');
-        vipBadge.className = 'tier-badge vip ' + vipBadgeState;
-        vipBadge.textContent = `Sisa ${nobarStats.vipRemaining} tiket`;
+        vipBadge.className = 'tier-badge vip ok';
+        vipBadge.textContent = 'Tersedia';
       }
 
-      const regLevel = getRemainingLevelClass(nobarStats.regularRemaining);
-      const regBadgeState = regLevel === 'full' ? 'low' : regLevel;
       ['regular', 'regular_merch'].forEach(t => {
         const card = document.getElementById('tierCard-' + t);
         const badge = document.getElementById('tierBadge-' + t);
         if (nobarStats.isRegularSoldOut) {
           card.classList.add('disabled');
           badge.className = 'tier-badge soldout';
-          badge.textContent = 'Kuota Habis';
+          badge.textContent = 'SOLD OUT';
         } else {
           card.classList.remove('disabled');
-          badge.className = 'tier-badge merch ' + regBadgeState;
-          badge.textContent = `Sisa ${nobarStats.regularRemaining} tiket`;
+          badge.className = 'tier-badge merch ok';
+          badge.textContent = 'Tersedia';
         }
       });
 
