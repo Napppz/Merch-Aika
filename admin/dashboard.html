@@ -2643,6 +2643,29 @@
         </div>
 
         <div class="form-group">
+          <label for="manualWaProofInput" style="color:var(--aqua);">📸 Bukti Transfer QRIS dari Chat WA (Disarankan)</label>
+          <input type="file" id="manualWaProofInput" accept="image/jpeg,image/png,image/webp" style="display:none;"
+            onchange="handleManualWaProofChange(event)" />
+          <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
+            <button type="button" class="btn-secondary" id="btnPickManualWaProof"
+              onclick="document.getElementById('manualWaProofInput').click()"
+              style="flex:1;min-width:210px;padding:0.7rem 0.95rem;border:1.5px dashed rgba(41,182,246,0.55);color:#7dd3fc;background:rgba(3,9,31,0.65);border-radius:9px;font-size:0.83rem;font-weight:700;cursor:pointer;">
+              📤 Pilih Screenshot Bukti Transfer WA (JPG/PNG/WebP)
+            </button>
+            <button type="button" class="btn-del" id="btnClearManualWaProof" onclick="clearManualWaProof()"
+              style="display:none;padding:0.65rem 0.85rem;border-radius:9px;font-size:0.8rem;">
+              ✕ Hapus
+            </button>
+          </div>
+          <div id="manualWaProofPreviewWrap"
+            style="display:none;margin-top:0.65rem;background:rgba(3,9,31,0.8);border:1px solid rgba(74,222,128,0.45);border-radius:10px;padding:0.65rem;text-align:center;">
+            <img id="manualWaProofPreviewImg" src="" alt="Preview Bukti Transfer WA"
+              style="max-width:100%;max-height:220px;border-radius:6px;display:inline-block;" />
+            <div id="manualWaProofMeta" style="font-size:0.74rem;color:#4ade80;margin-top:0.35rem;font-weight:700;"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
           <label for="manualWaNotes">Catatan Admin (Opsional)</label>
           <input type="text" id="manualWaNotes" value="Daftar manual via WhatsApp (Lunas QRIS)"
             placeholder="Catatan verifikasi mutasi / nama pengirim" />
@@ -4287,7 +4310,7 @@
           <tr>
             <td style="font-family:monospace;color:var(--aqua);font-size:0.8rem;white-space:nowrap;">
               ${safeOid}
-              ${isManualWa ? '<div style="font-family:var(--font-body);margin-top:4px;"><span style="background:rgba(34,197,94,0.18);color:#4ade80;border:1px solid rgba(74,222,128,0.4);padding:2px 7px;border-radius:50px;font-size:0.67rem;font-weight:800;">💬 Via WA</span></div>' : ''}
+              ${isManualWa ? `<div style="font-family:var(--font-body);margin-top:4px;display:flex;gap:4px;flex-wrap:wrap;align-items:center;"><span style="background:rgba(34,197,94,0.18);color:#4ade80;border:1px solid rgba(74,222,128,0.4);padding:2px 7px;border-radius:50px;font-size:0.67rem;font-weight:800;">💬 Via WA</span>${a.hasPaymentProof ? '<span style="background:rgba(41,182,246,0.16);color:#7dd3fc;border:1px solid rgba(56,189,248,0.4);padding:2px 7px;border-radius:50px;font-size:0.66rem;font-weight:700;">📸 Bukti ✓</span>' : ''}</div>` : ''}
               ${adminNobarData.viewingEventId === 'all' && a.eventTitle ? `<div style="font-family:var(--font-body);font-size:0.7rem;color:#c084fc;margin-top:3px;font-weight:700;">🎬 ${escapeHtml(a.eventTitle)}</div>` : ''}
             </td>
             <td style="white-space:nowrap;">
@@ -4382,6 +4405,108 @@
 
     // ── MANUAL WHATSAPP REGISTRATION & OFFICIAL E-TICKET QR GENERATOR ──
     let currentAdminEticketPayload = null;
+    let pendingManualWaProofDataUrl = null;
+
+    function compressAdminProofImageFile(file) {
+      return new Promise((resolve, reject) => {
+        if (!file || !/^image\/(jpeg|jpg|png|webp)$/i.test(file.type)) {
+          reject(new Error('Format file harus JPG, PNG, atau WebP.'));
+          return;
+        }
+        if (file.size > 12 * 1024 * 1024) {
+          reject(new Error('Ukuran file terlalu besar (maksimal 12MB).'));
+          return;
+        }
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Gagal membaca file gambar.'));
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onerror = () => reject(new Error('File bukan gambar yang valid.'));
+          img.onload = () => {
+            const maxDim = 1400;
+            let w = img.width;
+            let h = img.height;
+            if (Math.max(w, h) > maxDim) {
+              const ratio = maxDim / Math.max(w, h);
+              w = Math.round(w * ratio);
+              h = Math.round(h * ratio);
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.86);
+            resolve({ dataUrl, width: w, height: h });
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handleManualWaProofChange(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        const { dataUrl } = await compressAdminProofImageFile(file);
+        pendingManualWaProofDataUrl = dataUrl;
+        const wrap = document.getElementById('manualWaProofPreviewWrap');
+        const img = document.getElementById('manualWaProofPreviewImg');
+        const meta = document.getElementById('manualWaProofMeta');
+        const clearBtn = document.getElementById('btnClearManualWaProof');
+        const pickBtn = document.getElementById('btnPickManualWaProof');
+        if (img) img.src = dataUrl;
+        if (meta) meta.textContent = `✓ Siap diunggah: ${file.name}`;
+        if (wrap) wrap.style.display = 'block';
+        if (clearBtn) clearBtn.style.display = 'inline-flex';
+        if (pickBtn) pickBtn.textContent = '🔄 Ganti Screenshot Bukti Transfer';
+      } catch (err) {
+        showToast('❌ ' + err.message);
+        event.target.value = '';
+      }
+    }
+
+    function clearManualWaProof() {
+      pendingManualWaProofDataUrl = null;
+      const inp = document.getElementById('manualWaProofInput');
+      const wrap = document.getElementById('manualWaProofPreviewWrap');
+      const img = document.getElementById('manualWaProofPreviewImg');
+      const clearBtn = document.getElementById('btnClearManualWaProof');
+      const pickBtn = document.getElementById('btnPickManualWaProof');
+      if (inp) inp.value = '';
+      if (img) img.src = '';
+      if (wrap) wrap.style.display = 'none';
+      if (clearBtn) clearBtn.style.display = 'none';
+      if (pickBtn) pickBtn.textContent = '📤 Pilih Screenshot Bukti Transfer WA (JPG/PNG/WebP)';
+    }
+
+    async function uploadAdminNobarProofForOrder(orderId, event) {
+      const file = event.target.files && event.target.files[0];
+      event.target.value = '';
+      if (!file || !orderId) return;
+      try {
+        showToast('Mengunggah bukti pembayaran...');
+        const { dataUrl } = await compressAdminProofImageFile(file);
+        const res = await adminFetch('/api/nobar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'admin_attach_payment_proof',
+            orderId,
+            paymentProof: dataUrl
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal mengunggah bukti pembayaran');
+        showToast('✅ ' + (data.message || 'Bukti pembayaran berhasil disimpan!'));
+        await Promise.all([loadAdminNobar(), viewOrder(orderId)]);
+      } catch (err) {
+        showToast('❌ ' + err.message);
+      }
+    }
 
     function normalizeAdminWaNumber(raw) {
       const digits = String(raw || '').replace(/[^0-9]/g, '');
@@ -4440,6 +4565,7 @@
       if (emailEl) emailEl.value = '';
       if (notesEl) notesEl.value = 'Daftar manual via WhatsApp (Lunas QRIS)';
       if (sendEmailEl) sendEmailEl.checked = true;
+      clearManualWaProof();
 
       handleManualWaTierChange();
       document.getElementById('nobarManualWaModal')?.classList.add('show');
@@ -4553,12 +4679,14 @@
             email,
             sendEmail,
             polaroidQty,
-            notes
+            notes,
+            paymentProof: pendingManualWaProofDataUrl || ''
           })
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Gagal mendaftarkan peserta via WhatsApp');
 
+        clearManualWaProof();
         closeNobarManualWaModal();
         showToast(data.message || 'Peserta berhasil didaftarkan & QR siap dikirim!');
         await loadAdminNobar();
@@ -5044,15 +5172,36 @@
       ` : `
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
           <span style="font-size:0.8rem;color:#4ade80;font-weight:600;">✓ Bukti pembayaran awal telah terverifikasi</span>
-          ${order.status !== 'cancelled' && order.status !== 'completed' ? `<button class="btn-secondary" data-oid="${safeOrderId}" onclick="requestReuploadInitial(this.dataset.oid)" style="padding:0.4rem 0.75rem;font-size:0.76rem;border-color:rgba(245,158,11,0.45);color:#fde047;">🔄 Minta Upload Ulang</button>` : ''}
+          <div style="display:flex;gap:0.45rem;flex-wrap:wrap;align-items:center;">
+            ${isNobarOrder && order.status !== 'cancelled' ? `
+              <input type="file" id="attachNobarProofInput-${safeOrderId}" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="uploadAdminNobarProofForOrder('${safeOrderId}', event)" />
+              <button type="button" class="btn-secondary" onclick="document.getElementById('attachNobarProofInput-${safeOrderId}').click()" style="padding:0.4rem 0.75rem;font-size:0.76rem;border-color:rgba(56,189,248,0.45);color:#7dd3fc;">📎 Ganti Bukti</button>
+            ` : ''}
+            ${order.status !== 'cancelled' && order.status !== 'completed' ? `<button class="btn-secondary" data-oid="${safeOrderId}" onclick="requestReuploadInitial(this.dataset.oid)" style="padding:0.4rem 0.75rem;font-size:0.76rem;border-color:rgba(245,158,11,0.45);color:#fde047;">🔄 Minta Upload Ulang</button>` : ''}
+          </div>
         </div>
       `}
+    </div>
+  ` : (isNobarOrder && order.status !== 'cancelled' ? `
+    <div style="background:rgba(41,182,246,0.08);border:1.5px dashed rgba(56,189,248,0.45);border-radius:10px;padding:1rem 1.15rem;margin-bottom:1.2rem;display:flex;align-items:center;justify-content:space-between;gap:0.85rem;flex-wrap:wrap;">
+      <div style="font-size:0.83rem;color:#cbd5e1;line-height:1.45;">
+        <strong style="color:#7dd3fc;display:block;margin-bottom:2px;">📸 Belum Ada Screenshot Bukti Transfer</strong>
+        ${order.status === 'pending'
+          ? 'Pembeli belum mengunggah bukti pembayaran, atau Admin bisa langsung mengunggah bukti dari WhatsApp.'
+          : 'Pesanan manual WA ini belum dilampiri foto bukti transfer QRIS. Unggah di sini untuk arsip dashboard.'}
+      </div>
+      <div>
+        <input type="file" id="attachNobarProofInput-${safeOrderId}" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="uploadAdminNobarProofForOrder('${safeOrderId}', event)" />
+        <button type="button" class="btn-primary" onclick="document.getElementById('attachNobarProofInput-${safeOrderId}').click()" style="padding:0.55rem 1rem;border-radius:8px;font-size:0.8rem;font-weight:800;white-space:nowrap;">
+          📤 Upload Bukti Bayar WA
+        </button>
+      </div>
     </div>
   ` : (order.status === 'pending' ? `
     <div style="background:rgba(245,158,11,0.1);border:1px dashed rgba(245,158,11,0.45);border-radius:10px;padding:1rem;margin-bottom:1.2rem;font-size:0.83rem;color:#fde68a;">
       ⏳ Pembeli belum mengunggah bukti pembayaran awal. Pembeli dapat mengunggahnya melalui menu <strong>Profil &gt; Riwayat Pesanan</strong>.
     </div>
-  ` : '');
+  ` : ''));
 
         // Render Bukti Pembayaran 2 (Pelunasan Sisa 50% untuk skema DP)
         const pelunasanSectionHTML = isDp ? `

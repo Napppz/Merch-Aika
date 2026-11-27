@@ -1017,6 +1017,33 @@ module.exports = async function handler(req, res) {
         const sendEmailIfAvailable = Boolean(body.sendEmail) && hasRealEmail;
         const adminActor = adminUser.username || adminUser.name || 'Admin';
 
+        let storedManualProofUrl = null;
+        const rawManualProof = typeof body.paymentProof === 'string' ? body.paymentProof.trim() : '';
+        if (rawManualProof) {
+          if (!/^data:image\/(jpeg|jpg|png|webp);base64,/i.test(rawManualProof)) {
+            return res.status(400).json({
+              error: 'Format bukti pembayaran harus berupa gambar JPG, PNG, atau WebP.'
+            });
+          }
+          const parsedProof = parseDataUrlImage(rawManualProof);
+          if (parsedProof.buffer.length > 6 * 1024 * 1024) {
+            return res.status(413).json({
+              error: 'Ukuran gambar bukti transfer terlalu besar (maksimal 6MB).'
+            });
+          }
+          storedManualProofUrl = rawManualProof;
+          if (hasR2Config()) {
+            const uploaded = await uploadImageBuffer({
+              buffer: parsedProof.buffer,
+              mimeType: parsedProof.mimeType,
+              fileName: `nobar-wa-${tier}-proof`,
+              folder: 'payment-proofs',
+              prefix: `nobar-wa-${Date.now()}`
+            });
+            storedManualProofUrl = uploaded.imageUrl;
+          }
+        }
+
         const createdManual = await db.withTransaction(async (client) => {
           await client.query("SELECT pg_advisory_xact_lock(hashtext('nobar:ticket_booking'))");
 
@@ -1142,7 +1169,7 @@ module.exports = async function handler(req, res) {
             `INSERT INTO orders (
                id, "customerName", email, address, status, total, items, shipping, notes, phone, payment_proof, date, updated_at
              )
-             VALUES ($1, $2, $3, $4, 'paid', $5, $6, $7, $8, $9, NULL, NOW(), NOW())
+             VALUES ($1, $2, $3, $4, 'paid', $5, $6, $7, $8, $9, $10, NOW(), NOW())
              RETURNING *`,
             [
               orderId,
@@ -1153,7 +1180,8 @@ module.exports = async function handler(req, res) {
               JSON.stringify(itemsList),
               JSON.stringify(shipObj),
               cleanNotes || null,
-              cleanPhone
+              cleanPhone,
+              storedManualProofUrl
             ]
           );
 
@@ -1272,8 +1300,78 @@ module.exports = async function handler(req, res) {
             cinemaLocation: config.cinemaLocation,
             checkedIn: false,
             merchClaimed: false,
+            hasPaymentProof: Boolean(storedManualProofUrl),
+            paymentProof: storedManualProofUrl || '',
             date: order.date
           }
+        });
+      }
+
+      // ── ADMIN ACTION 0.6: ATTACH / UPDATE PAYMENT PROOF FOR NOBAR ORDER (E.G. WA MANUAL) ──
+      if (action === 'admin_attach_payment_proof') {
+        const adminUser = requireAdmin(req, res);
+        if (!adminUser) return;
+
+        const targetOrderId = String(body.orderId || '').trim().toUpperCase();
+        const rawProof = typeof body.paymentProof === 'string' ? body.paymentProof.trim() : '';
+        if (!targetOrderId) {
+          return res.status(400).json({ error: 'Order ID wajib diisi.' });
+        }
+        if (!rawProof || !/^data:image\/(jpeg|jpg|png|webp);base64,/i.test(rawProof)) {
+          return res.status(400).json({ error: 'Bukti pembayaran wajib berupa gambar JPG, PNG, atau WebP.' });
+        }
+
+        const parsedProof = parseDataUrlImage(rawProof);
+        if (parsedProof.buffer.length > 6 * 1024 * 1024) {
+          return res.status(413).json({ error: 'Ukuran gambar bukti pembayaran terlalu besar (maksimal 6MB).' });
+        }
+
+        const orderRes = await db.query(
+          'SELECT id, status, shipping FROM orders WHERE UPPER(id) = $1',
+          [targetOrderId]
+        );
+        if (!orderRes.rows.length) {
+          return res.status(404).json({ error: `Pesanan #${targetOrderId} tidak ditemukan.` });
+        }
+        const row = orderRes.rows[0];
+        const shipObj = parseShippingObj(row.shipping);
+        if (!shipObj.isNobar || !shipObj.nobarTicket) {
+          return res.status(400).json({ error: 'Pesanan ini bukan transaksi Tiket Nobar.' });
+        }
+
+        let storedProofUrl = rawProof;
+        if (hasR2Config()) {
+          const uploaded = await uploadImageBuffer({
+            buffer: parsedProof.buffer,
+            mimeType: parsedProof.mimeType,
+            fileName: `nobar-wa-${row.id}-proof`,
+            folder: 'payment-proofs',
+            prefix: `nobar-wa-${Date.now()}`
+          });
+          storedProofUrl = uploaded.imageUrl;
+        }
+
+        const adminActor = adminUser.username || adminUser.name || 'Admin';
+        await db.withTransaction(async (client) => {
+          await client.query(
+            'UPDATE orders SET payment_proof = $1, updated_at = NOW() WHERE id = $2',
+            [storedProofUrl, row.id]
+          );
+          await recordOrderStatusHistory(client, {
+            orderId: row.id,
+            fromStatus: row.status,
+            toStatus: row.status,
+            actorType: 'admin',
+            actorName: adminActor,
+            note: `Admin mengunggah/memperbarui bukti transfer pembayaran via WA (${adminActor})`
+          });
+        });
+
+        return res.status(200).json({
+          success: true,
+          message: `Bukti pembayaran untuk #${row.id} berhasil disimpan!`,
+          orderId: row.id,
+          paymentProof: storedProofUrl
         });
       }
 
