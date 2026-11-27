@@ -53,6 +53,31 @@ function parseNobarQrScanInput(rawInput) {
   return { mode: 'invalid', orderId: '', sig: '', raw: trimmed };
 }
 
+function timingSafeTokenEquals(a, b) {
+  if (!a || !b) return false;
+  const bufA = Buffer.from(String(a), 'utf8');
+  const bufB = Buffer.from(String(b), 'utf8');
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+function extractSavedOrderQrToken(orderRow, cleanOrderId) {
+  if (!orderRow || !orderRow.shipping) return '';
+  let ship = orderRow.shipping;
+  if (typeof ship === 'string') {
+    try {
+      ship = JSON.parse(ship);
+    } catch (_) {
+      return '';
+    }
+  }
+  const saved = String(ship && ship.nobarTicket && ship.nobarTicket.ticketToken || '').trim().toUpperCase();
+  if (!saved) return '';
+  const parsedSaved = parseNobarQrScanInput(saved);
+  if (parsedSaved.mode !== 'qr' || parsedSaved.orderId !== cleanOrderId) return '';
+  return `${QR_PREFIX}|${parsedSaved.orderId}|${parsedSaved.sig}`;
+}
+
 function verifyNobarQrToken(rawToken, orderRow) {
   if (!orderRow || !orderRow.id) {
     return { valid: false, reason: 'missing_order' };
@@ -67,17 +92,20 @@ function verifyNobarQrToken(rawToken, orderRow) {
     return { valid: false, reason: 'order_mismatch' };
   }
 
-  const expectedToken = generateNobarQrToken(orderRow.id, orderRow.email || '');
   const actualNormalized = `${QR_PREFIX}|${parsed.orderId}|${parsed.sig}`;
-
-  const expectedBuf = Buffer.from(expectedToken, 'utf8');
-  const actualBuf = Buffer.from(actualNormalized, 'utf8');
-  if (expectedBuf.length !== actualBuf.length) {
-    return { valid: false, reason: 'signature_mismatch' };
+  const expectedToken = generateNobarQrToken(orderRow.id, orderRow.email || '');
+  if (timingSafeTokenEquals(expectedToken, actualNormalized)) {
+    return { valid: true, reason: 'ok' };
   }
 
-  const matched = crypto.timingSafeEqual(expectedBuf, actualBuf);
-  return { valid: matched, reason: matched ? 'ok' : 'signature_mismatch' };
+  // Fallback to the authentic server-generated token persisted in DB for this order
+  // (keeps QR tickets valid across localhost/staging/production or JWT_SECRET rotation)
+  const savedToken = extractSavedOrderQrToken(orderRow, cleanOrderId);
+  if (savedToken && timingSafeTokenEquals(savedToken, actualNormalized)) {
+    return { valid: true, reason: 'ok_saved_token' };
+  }
+
+  return { valid: false, reason: 'signature_mismatch' };
 }
 
 async function generateNobarQrDataUrl(token) {

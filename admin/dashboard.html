@@ -474,6 +474,65 @@
       transition: var(--transition);
     }
 
+    .btn-qr {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      color: #ffffff;
+      padding: 6px 12px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      line-height: 1.2;
+      font-family: var(--font-body);
+      font-weight: 700;
+      transition: var(--transition);
+    }
+
+    .btn-qr:hover {
+      filter: brightness(1.1);
+    }
+
+    .manual-wa-grid-tier {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 0.85rem;
+    }
+
+    .manual-wa-grid-half {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.85rem;
+    }
+
+    .nobar-save-footer {
+      margin-top: 1.35rem;
+      padding-top: 1.15rem;
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .nobar-save-footer #saveNobarConfigBtn {
+      min-width: 240px;
+      padding: 0.78rem 1.6rem;
+      font-size: 0.92rem;
+      font-weight: 800;
+    }
+
+    .eticket-actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+      margin-top: 1rem;
+    }
+
     .btn-del:hover {
       background: rgba(239, 68, 68, 0.3);
     }
@@ -1199,12 +1258,25 @@
       }
 
       .btn-edit,
-      .btn-del {
+      .btn-del,
+      .btn-qr {
         padding: 8px 14px !important;
         min-height: 36px !important;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+      }
+
+      .manual-wa-grid-tier,
+      .manual-wa-grid-half,
+      .eticket-actions-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      .nobar-save-footer #saveNobarConfigBtn {
+        width: 100%;
       }
     }
 
@@ -1518,6 +1590,10 @@
             </svg> Manajemen Event Nobar Bioskop</h1>
         </div>
         <div class="admin-header-actions">
+          <button type="button" class="btn-primary" id="btnOpenManualWaModal" onclick="openNobarManualWaModal()"
+            style="padding:0.65rem 1.15rem; border-radius:8px; font-size:0.85rem; font-weight:800; background:linear-gradient(135deg,#16a34a,#22c55e); border:none; box-shadow:0 4px 14px rgba(22,163,74,0.32);">
+            💬 + Daftar Peserta via WA
+          </button>
           <button type="button" class="btn-primary" onclick="openNobarQrScanner()"
             style="padding:0.65rem 1.25rem; border-radius:8px; font-size:0.86rem; font-weight:800; background:linear-gradient(135deg,#10b981,#0284c7); border:none;">
             📷 Scan QR Check-in Tiket
@@ -1529,9 +1605,6 @@
           <a href="../nobar.html" target="_blank" class="btn-secondary"
             style="text-decoration:none; padding:0.6rem 1.1rem; border-radius:8px; font-size:0.84rem; font-weight:700;">Lihat
             Halaman Nobar ↗</a>
-          <button class="btn-primary" onclick="exportNobarAttendeesCSV()"
-            style="padding:0.6rem 1.1rem; border-radius:8px; font-size:0.84rem; font-weight:700;">Export CSV
-            Peserta</button>
         </div>
       </div>
 
@@ -1617,6 +1690,10 @@
               <option value="regular">2. Tiket Reguler</option>
               <option value="regular_merch">3. Tiket Reguler+</option>
             </select>
+            <button type="button" class="btn-primary" onclick="exportNobarAttendeesCSV()"
+              style="padding:0.55rem 1rem; border-radius:8px; font-size:0.84rem; font-weight:700; white-space:nowrap;">
+              📥 Export CSV Peserta
+            </button>
           </div>
         </div>
 
@@ -1659,13 +1736,11 @@
               <input type="checkbox" id="nobarIsOpen" checked style="width:17px; height:17px; accent-color:#22c55e;" />
               <span id="nobarOpenStatusLabel">Penjualan Tiket: DIBUKA</span>
             </label>
-            <button class="btn-primary" id="saveNobarConfigBtn" onclick="saveAdminNobarConfig()">Simpan Pengaturan
-              Nobar</button>
           </div>
         </div>
 
         <div
-          style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; margin-bottom:1rem;">
+          style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; margin-bottom:1rem; align-items:end;">
           <div class="form-group">
             <label>Judul Event Nobar *</label>
             <input type="text" id="nobarEventTitleInput" placeholder="Nobar Spesial Bioskop Bersama Aika Sesilia" />
@@ -1689,6 +1764,10 @@
           <div class="form-group">
             <label>Link Google Maps Bioskop</label>
             <input type="url" id="nobarMapsUrlInput" placeholder="https://maps.app.goo.gl/7yF59NSdjGyyNP6X9" />
+          </div>
+          <div class="form-group">
+            <label style="color:#4ade80;">💬 Nomor WA Nobar</label>
+            <input type="tel" id="nobarWhatsappInput" placeholder="Contoh: 0857-7714-9410 atau 6285777149410" />
           </div>
           <div class="form-group"
             style="grid-column: 1 / -1; background:rgba(3,9,31,0.55); border:1px solid var(--card-border); border-radius:12px; padding:1rem;">
@@ -1721,7 +1800,7 @@
                 <div id="nobarBannerUploadStatus"
                   style="font-size:0.76rem; color:var(--text-muted); margin-top:0.35rem;">
                   Pilih foto poster dari komputer/HP Anda lalu klik tombol <strong>Simpan Pengaturan Nobar</strong> di
-                  kanan atas.
+                  bagian bawah.
                 </div>
               </div>
             </div>
@@ -1805,9 +1884,7 @@
             style="display:flex; flex-direction:column; justify-content:space-between; height:100%; margin-bottom:0;">
             <label style="line-height:1.35; margin-bottom:0.45rem;">Benefit Tiket VIP</label>
             <input type="text" id="nobarVipPerkInput"
-              placeholder="Duduk eksklusif tepat di samping Kak Aika (Kuota 2 Orang) + 2 Photocard Eksklusif" />
-            placeholder="Duduk eksklusif tepat di samping Kak Aika (Kuota 2 Orang) + 2 Photocard dan Poster Eksklusif"
-            />
+              placeholder="Duduk eksklusif tepat di samping Kak Aika (Kuota 2 Orang) + 2 Photocard dan Poster Eksklusif" />
           </div>
           <div class="form-group" style="grid-column: 1 / -1; margin-bottom:0;">
             <label style="line-height:1.35; margin-bottom:0.45rem;">Catatan / Ketentuan Event (Ditampilkan di Halaman
@@ -1826,6 +1903,12 @@
           <button type="button" class="btn-del" onclick="deleteAllNobarOrders()"
             style="padding:0.55rem 1rem; border-radius:8px; font-size:0.82rem; font-weight:700; white-space:nowrap;">
             🗑 Hapus Semua Tiket Event Ini
+          </button>
+        </div>
+
+        <div class="nobar-save-footer">
+          <button type="button" class="btn-primary" id="saveNobarConfigBtn" onclick="saveAdminNobarConfig()">
+            💾 Simpan Pengaturan Nobar
           </button>
         </div>
       </div>
@@ -2503,6 +2586,174 @@
           <button type="submit" class="btn-primary" id="saveNobarAdminPwdBtn">Simpan Password</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL: INPUT PESERTA MANUAL VIA WHATSAPP -->
+  <div class="modal-overlay" id="nobarManualWaModal">
+    <div class="modal" style="max-width:600px; max-height:92vh; overflow-y:auto;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem;">
+        <h2 style="margin:0;display:flex;align-items:center;gap:0.5rem;">💬 Daftarkan Peserta via WhatsApp</h2>
+        <button type="button" onclick="closeNobarManualWaModal()"
+          style="background:rgba(148,163,184,0.14);border:1px solid rgba(148,163,184,0.3);color:#e2e8f0;width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;">✕</button>
+      </div>
+      <form id="nobarManualWaForm" onsubmit="submitNobarManualWaOrder(event)">
+        <div
+          style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.38);border-radius:10px;padding:0.8rem 1rem;margin-bottom:1.1rem;font-size:0.82rem;color:#bbf7d0;line-height:1.5;">
+          Pastikan pembayaran QRIS pembeli di WhatsApp sudah <strong>masuk &amp; terkonfirmasi di mutasi</strong>.
+          Pesanan otomatis berstatus <strong>Lunas</strong>, memotong kuota realtime, dan langsung menghasilkan
+          <strong>E-Tiket QR resmi</strong> yang bisa di-scan panitia di Hari-H.
+        </div>
+
+        <div class="manual-wa-grid-tier">
+          <div class="form-group">
+            <label for="manualWaTier">Jenis Tiket *</label>
+            <select id="manualWaTier" onchange="handleManualWaTierChange()"></select>
+          </div>
+          <div class="form-group">
+            <label for="manualWaQty">Jumlah Tiket *</label>
+            <select id="manualWaQty" onchange="renderManualWaParticipantInputs()"></select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Nama Peserta (1 Nama per Tiket) *</label>
+          <div id="manualWaParticipantsWrap" style="display:flex;flex-direction:column;gap:0.55rem;"></div>
+        </div>
+
+        <div class="manual-wa-grid-half">
+          <div class="form-group">
+            <label for="manualWaPhone">Nomor WhatsApp Pembeli *</label>
+            <input type="tel" id="manualWaPhone" placeholder="Contoh: 081234567890" required />
+          </div>
+          <div class="form-group" id="manualWaPolaroidGroup">
+            <label for="manualWaPolaroidQty">📸 Tambahan Foto Polaroid</label>
+            <select id="manualWaPolaroidQty" onchange="updateManualWaTotalPreview()"></select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="manualWaEmail">Email Pembeli (Opsional — Kosongkan jika tanpa email)</label>
+          <input type="email" id="manualWaEmail" placeholder="Contoh: peserta@gmail.com (opsional)" />
+          <label
+            style="display:inline-flex;align-items:center;gap:0.45rem;margin-top:0.5rem;font-size:0.8rem;color:var(--text-muted);cursor:pointer;">
+            <input type="checkbox" id="manualWaSendEmail" checked style="width:15px;height:15px;accent-color:var(--aqua);" />
+            <span>Kirim E-Tiket QR juga ke Email jika alamat email diisi</span>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label for="manualWaNotes">Catatan Admin (Opsional)</label>
+          <input type="text" id="manualWaNotes" value="Daftar manual via WhatsApp (Lunas QRIS)"
+            placeholder="Catatan verifikasi mutasi / nama pengirim" />
+        </div>
+
+        <div id="manualWaTotalBox"
+          style="background:rgba(3,9,31,0.72);border:1px solid rgba(41,182,246,0.38);border-radius:10px;padding:0.9rem 1rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:0.78rem;color:var(--text-muted);">Total Transfer QRIS (Lunas)</div>
+            <div id="manualWaTotalBreakdown" style="font-size:0.82rem;color:#cbd5e1;margin-top:2px;">1 × Tiket Reguler</div>
+          </div>
+          <div id="manualWaTotalAmount" style="font-size:1.35rem;font-weight:800;color:#4ade80;white-space:nowrap;">Rp 0</div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" onclick="closeNobarManualWaModal()">Batal</button>
+          <button type="submit" class="btn-primary" id="btnSubmitManualWa"
+            style="background:linear-gradient(135deg,#16a34a,#22c55e);border:none;">
+            ✅ Simpan &amp; Buat E-Tiket QR
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: KARTU E-TIKET QR SIAP KIRIM WA -->
+  <div class="modal-overlay" id="nobarEticketQrModal">
+    <div class="modal" style="max-width:520px; max-height:92vh; overflow-y:auto;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem;">
+        <h2 style="margin:0;">🎫 E-Tiket QR Resmi Nobar</h2>
+        <button type="button" onclick="closeAdminNobarQrModal()"
+          style="background:rgba(148,163,184,0.14);border:1px solid rgba(148,163,184,0.3);color:#e2e8f0;width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;">✕</button>
+      </div>
+      <div id="nobarEticketModalBody" style="padding:0.25rem 0;">
+        <div id="eticketPreviewCard"
+          style="background:linear-gradient(160deg,#062a63 0%,#04143b 65%,#03091f 100%);border:1.5px solid rgba(56,189,248,0.52);border-radius:16px;padding:1.35rem;text-align:center;box-shadow:0 12px 32px rgba(2,8,31,0.55);">
+          <div style="display:flex;align-items:center;justify-content:center;gap:0.45rem;flex-wrap:wrap;margin-bottom:0.65rem;">
+            <span
+              style="background:rgba(34,197,94,0.2);color:#4ade80;border:1px solid rgba(74,222,128,0.45);padding:3px 10px;border-radius:50px;font-size:0.72rem;font-weight:800;letter-spacing:0.04em;">
+              ✓ LUNAS / TERVERIFIKASI
+            </span>
+            <span id="eticketSourceBadge"
+              style="display:none;background:rgba(34,197,94,0.16);color:#86efac;border:1px solid rgba(134,239,172,0.4);padding:3px 10px;border-radius:50px;font-size:0.72rem;font-weight:800;">
+              💬 VIA WHATSAPP
+            </span>
+          </div>
+          <div id="eticketEventTitle" style="font-size:1.05rem;font-weight:800;color:#ffffff;line-height:1.3;">Nobar Bioskop Aika Sesilia</div>
+          <div id="eticketMovieSub" style="font-size:0.82rem;color:#7dd3fc;margin-top:3px;margin-bottom:1rem;"></div>
+
+          <div
+            style="display:inline-block;background:#ffffff;padding:12px;border-radius:14px;box-shadow:0 8px 26px rgba(0,0,0,0.45);margin-bottom:0.85rem;">
+            <img id="eticketQrImg" src="" alt="QR Code E-Tiket Nobar"
+              style="width:210px;height:210px;display:block;border-radius:6px;" />
+          </div>
+
+          <div id="eticketOrderId"
+            style="font-family:monospace;font-size:1.05rem;font-weight:800;color:#38bdf8;letter-spacing:0.04em;margin-bottom:0.85rem;">
+            #INV-000000
+          </div>
+
+          <div
+            style="background:rgba(3,9,31,0.68);border:1px solid rgba(148,163,184,0.22);border-radius:12px;padding:0.9rem 1rem;text-align:left;font-size:0.82rem;line-height:1.55;color:#e2e8f0;">
+            <div style="display:flex;justify-content:space-between;gap:0.75rem;padding:2px 0;">
+              <span style="color:#94a3b8;">Kategori</span>
+              <strong id="eticketTierQty" style="color:#ffffff;text-align:right;">-</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:0.75rem;padding:2px 0;">
+              <span style="color:#94a3b8;">Peserta</span>
+              <strong id="eticketParticipants" style="color:#ffffff;text-align:right;">-</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:0.75rem;padding:2px 0;">
+              <span style="color:#94a3b8;">Jadwal</span>
+              <span id="eticketSchedule" style="color:#e2e8f0;text-align:right;">-</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:0.75rem;padding:2px 0;">
+              <span style="color:#94a3b8;">Lokasi</span>
+              <span id="eticketLocation" style="color:#e2e8f0;text-align:right;">-</span>
+            </div>
+            <div id="eticketExtrasRow" style="display:none;justify-content:space-between;gap:0.75rem;padding:2px 0;">
+              <span style="color:#94a3b8;">Bonus / Add-on</span>
+              <span id="eticketExtras" style="color:#fde047;font-weight:700;text-align:right;">-</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:0.75rem;padding:5px 0 0;margin-top:5px;border-top:1px solid rgba(148,163,184,0.2);">
+              <span style="color:#94a3b8;">Total Lunas</span>
+              <strong id="eticketTotal" style="color:#4ade80;text-align:right;">Rp 0</strong>
+            </div>
+          </div>
+          <div style="font-size:0.73rem;color:#94a3b8;margin-top:0.75rem;">
+            QR Code ini valid &amp; langsung terbaca oleh Scanner Check-in Panitia di Hari-H.
+          </div>
+        </div>
+
+        <div class="eticket-actions-grid">
+          <button type="button" class="btn-primary" onclick="downloadAdminEticketCardPng()"
+            style="padding:0.7rem 0.9rem;border-radius:10px;font-size:0.83rem;font-weight:800;">
+            📥 Download Kartu E-Tiket
+          </button>
+          <button type="button" class="btn-secondary" onclick="downloadAdminPlainQrPng()"
+            style="padding:0.7rem 0.9rem;border-radius:10px;font-size:0.83rem;font-weight:700;">
+            📥 Download QR Polos
+          </button>
+          <button type="button" class="btn-primary" id="btnEticketSendWa" onclick="openBuyerWaFromEticketModal()"
+            style="padding:0.7rem 0.9rem;border-radius:10px;font-size:0.83rem;font-weight:800;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;">
+            💬 Buka Chat WA Pembeli
+          </button>
+          <button type="button" class="btn-secondary" onclick="copyBuyerWaMessageFromEticketModal()"
+            style="padding:0.7rem 0.9rem;border-radius:10px;font-size:0.83rem;font-weight:700;">
+            📋 Salin Pesan WA
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -3749,6 +4000,10 @@
             if (btnDeleteArchive) btnDeleteArchive.style.display = 'none';
           }
         }
+        const btnManualWa = document.getElementById('btnOpenManualWaModal');
+        if (btnManualWa) {
+          btnManualWa.style.display = isArchiveView ? 'none' : 'inline-flex';
+        }
         switchNobarSubTab(isArchiveView ? 'attendees' : currentNobarSubTab);
 
         const storefrontEl = document.getElementById('nobarShowInStorefront');
@@ -3779,6 +4034,8 @@
         document.getElementById('nobarLocationInput').value = cfg.cinemaLocation || '';
         const mapsUrlEl = document.getElementById('nobarMapsUrlInput');
         if (mapsUrlEl) mapsUrlEl.value = cfg.cinemaMapsUrl || 'https://maps.app.goo.gl/7yF59NSdjGyyNP6X9';
+        const waInputEl = document.getElementById('nobarWhatsappInput');
+        if (waInputEl) waInputEl.value = cfg.whatsappNumber || '6285777149410';
         document.getElementById('nobarPriceVipInput').value = cfg.priceVip || 250000;
         document.getElementById('nobarPriceRegInput').value = cfg.priceRegular || 75000;
         document.getElementById('nobarPriceMerchInput').value = cfg.priceRegularMerch || 135000;
@@ -3932,6 +4189,7 @@
           eventTime: document.getElementById('nobarTimeInput').value.trim(),
           cinemaLocation: document.getElementById('nobarLocationInput').value.trim(),
           cinemaMapsUrl: document.getElementById('nobarMapsUrlInput')?.value.trim() || 'https://maps.app.goo.gl/7yF59NSdjGyyNP6X9',
+          whatsappNumber: document.getElementById('nobarWhatsappInput')?.value.trim() || '6285777149410',
           priceVip: parseInt(document.getElementById('nobarPriceVipInput').value, 10) || 250000,
           priceRegular: parseInt(document.getElementById('nobarPriceRegInput').value, 10) || 75000,
           priceRegularMerch: parseInt(document.getElementById('nobarPriceMerchInput').value, 10) || 135000,
@@ -4020,22 +4278,28 @@
           return `<div style="white-space:nowrap;">${isMatch ? `<span style="background:rgba(234,179,8,0.22);color:#fde047;padding:1px 6px;border-radius:4px;display:inline-block;"><strong>#${idx + 1}:</strong> ${escapeHtml(p)}</span>` : `<strong>#${idx + 1}:</strong> ${escapeHtml(p)}`}</div>`;
         }).join('');
 
+        const isManualWa = a.registrationSource === 'whatsapp_manual';
+        const isVerifiedStatus = ['paid', 'shipped', 'completed'].includes(String(a.status || '').toLowerCase());
+        const isManualDummyEmail = String(a.email || '').toLowerCase().endsWith('@nobar.manual');
+        const merchShortText = a.tier === 'vip' ? '+ 2 Photocard & Poster' : '+ 2 Photocard Eksklusif';
+
         return `
           <tr>
             <td style="font-family:monospace;color:var(--aqua);font-size:0.8rem;white-space:nowrap;">
               ${safeOid}
+              ${isManualWa ? '<div style="font-family:var(--font-body);margin-top:4px;"><span style="background:rgba(34,197,94,0.18);color:#4ade80;border:1px solid rgba(74,222,128,0.4);padding:2px 7px;border-radius:50px;font-size:0.67rem;font-weight:800;">💬 Via WA</span></div>' : ''}
               ${adminNobarData.viewingEventId === 'all' && a.eventTitle ? `<div style="font-family:var(--font-body);font-size:0.7rem;color:#c084fc;margin-top:3px;font-weight:700;">🎬 ${escapeHtml(a.eventTitle)}</div>` : ''}
             </td>
             <td style="white-space:nowrap;">
               ${tierBadge}
-              ${a.includesMerch ? '<div style="font-size:0.72rem;color:var(--gold);margin-top:4px;white-space:nowrap;">+ 2 Photocard Eksklusif</div>' : ''}
+              ${a.includesMerch ? `<div style="font-size:0.72rem;color:var(--gold);margin-top:4px;white-space:nowrap;">${merchShortText}</div>` : ''}
               ${(parseInt(a.polaroidQty, 10) || 0) > 0 ? `<div style="font-size:0.72rem;color:#7dd3fc;margin-top:3px;font-weight:700;white-space:nowrap;">📸 +${parseInt(a.polaroidQty, 10)} Foto Polaroid</div>` : ''}
             </td>
             <td style="font-size:0.82rem;color:var(--white);line-height:1.45;">${participantsHtml}</td>
             <td style="font-weight:800;color:var(--aqua);white-space:nowrap;">${a.qty} Kursi</td>
             <td style="font-size:0.8rem;line-height:1.45;white-space:nowrap;">
               <div style="color:var(--white);font-weight:700;">${escapeHtml(a.customerName)}</div>
-              <div style="color:var(--text-muted);font-size:0.74rem;">${escapeHtml(a.email)}</div>
+              <div style="color:${isManualDummyEmail ? '#86efac' : 'var(--text-muted)'};font-size:0.74rem;">${isManualDummyEmail ? 'Daftar Manual WA (Tanpa Akun)' : escapeHtml(a.email)}</div>
               <div style="color:var(--aqua);font-size:0.74rem;">${escapeHtml(a.phone || '-')}</div>
             </td>
             <td class="td-price">${formatPrice(a.total)}</td>
@@ -4053,6 +4317,7 @@
             </td>
             <td>
               <div class="action-btns">
+                ${isVerifiedStatus ? `<button type="button" class="btn-qr" data-oid="${safeOid}" onclick="openAdminNobarQrModal(this.dataset.oid)">🎫 QR E-Tiket</button>` : ''}
                 <button class="btn-edit" data-oid="${safeOid}" onclick="viewOrder(this.dataset.oid)">Detail &amp; Verifikasi</button>
                 <button class="btn-del" data-oid="${safeOid}" onclick="deleteOrder(this.dataset.oid)" title="Hapus pesanan tiket ini">🗑 Hapus</button>
               </div>
@@ -4069,25 +4334,27 @@
         return;
       }
 
-      const headers = ['No', 'Event Nobar', 'Order ID', 'Kategori Tiket', 'Nama Peserta', 'Urutan Kursi di Pesanan', 'Termasuk Merch (2 Photocard Eksklusif)', 'Tambahan Foto Polaroid (Per Pesanan)', 'Status Pembayaran', 'Email Akun', 'No HP', 'Total Pesanan (Rp)', 'Tanggal Pesan'];
+      const headers = ['No', 'Event Nobar', 'Order ID', 'Sumber Pendaftaran', 'Kategori Tiket', 'Nama Peserta', 'Urutan Kursi di Pesanan', 'Termasuk Merch', 'Tambahan Foto Polaroid (Per Pesanan)', 'Status Pembayaran', 'Email Akun', 'No HP', 'Total Pesanan (Rp)', 'Tanggal Pesan'];
       const rows = [headers.join(',')];
       let counter = 1;
 
       for (const a of list) {
         const parts = Array.isArray(a.participants) && a.participants.length ? a.participants : [a.customerName];
         const polCount = Math.max(0, parseInt(a.polaroidQty, 10) || 0);
+        const merchCsv = a.includesMerch ? (a.tier === 'vip' ? 'Ya (2 Photocard & Poster)' : 'Ya (2 Photocard Eksklusif)') : 'Tidak';
         parts.forEach((pName, idx) => {
           const cols = [
             counter++,
             a.eventTitle || (adminNobarData.viewedConfig && adminNobarData.viewedConfig.eventTitle) || 'Event Nobar',
             a.orderId,
+            a.registrationSource === 'whatsapp_manual' ? 'Via WA (Manual)' : 'Website',
             a.tierLabel,
             pName,
             `${idx + 1} dari ${a.qty}`,
-            a.includesMerch ? 'Ya (2 Photocard Eksklusif)' : 'Tidak',
+            merchCsv,
             polCount > 0 ? `${polCount} Foto` : '0',
             a.status,
-            a.email,
+            String(a.email || '').endsWith('@nobar.manual') ? '-' : a.email,
             a.phone || '-',
             a.total,
             a.date ? new Date(a.date).toLocaleString('id-ID') : '-'
@@ -4111,6 +4378,473 @@
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       showToast('Daftar peserta Nobar berhasil diunduh (CSV)');
+    }
+
+    // ── MANUAL WHATSAPP REGISTRATION & OFFICIAL E-TICKET QR GENERATOR ──
+    let currentAdminEticketPayload = null;
+
+    function normalizeAdminWaNumber(raw) {
+      const digits = String(raw || '').replace(/[^0-9]/g, '');
+      if (!digits) return '';
+      if (digits.startsWith('0')) return '62' + digits.slice(1);
+      if (digits.startsWith('8')) return '62' + digits;
+      return digits;
+    }
+
+    async function openNobarManualWaModal() {
+      if (isCurrentNobarArchiveView) {
+        showToast('Pendaftaran manual hanya tersedia di Event Nobar yang sedang aktif.');
+        return;
+      }
+      if (!adminNobarData || !adminNobarData.config || !adminNobarData.stats) {
+        await loadAdminNobar();
+      }
+      const cfg = (adminNobarData && adminNobarData.config) || {};
+      const st = (adminNobarData && adminNobarData.stats) || {};
+      const tierEl = document.getElementById('manualWaTier');
+      if (tierEl) {
+        const regLeft = Number(st.regularRemaining ?? 0);
+        const vipLeft = Number(st.vipRemaining ?? 0);
+        tierEl.innerHTML = `
+          <option value="regular" ${regLeft <= 0 ? 'disabled' : ''}>Tiket Reguler — ${formatPrice(cfg.priceRegular || 60000)} ${regLeft <= 0 ? '(SOLD OUT)' : `(Sisa ${regLeft})`}</option>
+          <option value="regular_merch" ${regLeft <= 0 ? 'disabled' : ''}>Tiket Reguler+ — ${formatPrice(cfg.priceRegularMerch || 100000)} ${regLeft <= 0 ? '(SOLD OUT)' : `(Sisa ${regLeft})`}</option>
+          <option value="vip" ${vipLeft <= 0 ? 'disabled' : ''}>Tiket VIP — ${formatPrice(cfg.priceVip || 350000)} ${vipLeft <= 0 ? '(SOLD OUT)' : `(Sisa ${vipLeft})`}</option>
+        `;
+        if (regLeft > 0) {
+          tierEl.value = 'regular';
+        } else if (vipLeft > 0) {
+          tierEl.value = 'vip';
+        }
+      }
+
+      const polGroup = document.getElementById('manualWaPolaroidGroup');
+      const polSelect = document.getElementById('manualWaPolaroidQty');
+      const polEnabled = cfg.polaroidEnabled !== false;
+      if (polGroup) polGroup.style.display = polEnabled ? 'block' : 'none';
+      if (polSelect) {
+        const maxPol = Math.max(1, parseInt(cfg.maxPolaroidPerOrder, 10) || 10);
+        const polPrice = cfg.pricePolaroid || 60000;
+        let opts = '<option value="0">0 Foto (Tidak tambah)</option>';
+        for (let i = 1; i <= maxPol; i++) {
+          opts += `<option value="${i}">${i} Foto (+${formatPrice(polPrice * i)})</option>`;
+        }
+        polSelect.innerHTML = opts;
+        polSelect.value = '0';
+      }
+
+      const phoneEl = document.getElementById('manualWaPhone');
+      const emailEl = document.getElementById('manualWaEmail');
+      const notesEl = document.getElementById('manualWaNotes');
+      const sendEmailEl = document.getElementById('manualWaSendEmail');
+      if (phoneEl) phoneEl.value = '';
+      if (emailEl) emailEl.value = '';
+      if (notesEl) notesEl.value = 'Daftar manual via WhatsApp (Lunas QRIS)';
+      if (sendEmailEl) sendEmailEl.checked = true;
+
+      handleManualWaTierChange();
+      document.getElementById('nobarManualWaModal')?.classList.add('show');
+    }
+
+    function closeNobarManualWaModal() {
+      document.getElementById('nobarManualWaModal')?.classList.remove('show');
+    }
+
+    function handleManualWaTierChange() {
+      const tier = document.getElementById('manualWaTier')?.value || 'regular';
+      const qtyEl = document.getElementById('manualWaQty');
+      const cfg = (adminNobarData && adminNobarData.config) || {};
+      const st = (adminNobarData && adminNobarData.stats) || {};
+      if (qtyEl) {
+        const prev = parseInt(qtyEl.value, 10) || 1;
+        const maxQty = tier === 'vip'
+          ? 1
+          : Math.max(1, Math.min(20, Number(st.regularRemaining ?? (cfg.maxRegularPerOrder || 5)) || 1));
+        let html = '';
+        for (let i = 1; i <= maxQty; i++) {
+          html += `<option value="${i}">${i} Tiket</option>`;
+        }
+        qtyEl.innerHTML = html;
+        qtyEl.value = String(Math.min(prev, maxQty));
+        qtyEl.disabled = tier === 'vip';
+      }
+      renderManualWaParticipantInputs();
+    }
+
+    function renderManualWaParticipantInputs() {
+      const wrap = document.getElementById('manualWaParticipantsWrap');
+      const qty = Math.max(1, parseInt(document.getElementById('manualWaQty')?.value, 10) || 1);
+      if (wrap) {
+        const existing = [...wrap.querySelectorAll('input')].map(el => el.value);
+        wrap.innerHTML = Array.from({ length: qty }, (_, idx) => `
+          <input type="text" class="manual-wa-participant-input" required
+            placeholder="Nama Lengkap Peserta #${idx + 1} *"
+            value="${escapeHtml(existing[idx] || '')}" />
+        `).join('');
+      }
+      updateManualWaTotalPreview();
+    }
+
+    function updateManualWaTotalPreview() {
+      const cfg = (adminNobarData && adminNobarData.config) || {};
+      const tier = document.getElementById('manualWaTier')?.value || 'regular';
+      const qty = Math.max(1, parseInt(document.getElementById('manualWaQty')?.value, 10) || 1);
+      const polQty = cfg.polaroidEnabled === false
+        ? 0
+        : Math.max(0, parseInt(document.getElementById('manualWaPolaroidQty')?.value, 10) || 0);
+      const unitPrice = tier === 'vip'
+        ? (cfg.priceVip || 350000)
+        : tier === 'regular_merch'
+          ? (cfg.priceRegularMerch || 100000)
+          : (cfg.priceRegular || 60000);
+      const tierName = tier === 'vip' ? 'Tiket VIP' : tier === 'regular_merch' ? 'Tiket Reguler+' : 'Tiket Reguler';
+      const polPrice = cfg.pricePolaroid || 60000;
+      const total = (unitPrice * qty) + (polPrice * polQty);
+
+      const breakEl = document.getElementById('manualWaTotalBreakdown');
+      const amtEl = document.getElementById('manualWaTotalAmount');
+      if (breakEl) {
+        breakEl.textContent = `${qty} × ${tierName} (${formatPrice(unitPrice * qty)})` + (polQty > 0 ? ` + ${polQty} Polaroid (${formatPrice(polPrice * polQty)})` : '');
+      }
+      if (amtEl) {
+        amtEl.textContent = formatPrice(total);
+      }
+    }
+
+    async function submitNobarManualWaOrder(event) {
+      event.preventDefault();
+      const btn = document.getElementById('btnSubmitManualWa');
+      const origText = btn ? btn.textContent : 'Simpan & Buat E-Tiket QR';
+      const tier = document.getElementById('manualWaTier')?.value || 'regular';
+      const qty = Math.max(1, parseInt(document.getElementById('manualWaQty')?.value, 10) || 1);
+      const participants = [...document.querySelectorAll('#manualWaParticipantsWrap .manual-wa-participant-input')]
+        .map(el => el.value.trim())
+        .filter(Boolean);
+      const phone = (document.getElementById('manualWaPhone')?.value || '').trim();
+      const email = (document.getElementById('manualWaEmail')?.value || '').trim();
+      const sendEmail = Boolean(document.getElementById('manualWaSendEmail')?.checked);
+      const polaroidQty = Math.max(0, parseInt(document.getElementById('manualWaPolaroidQty')?.value, 10) || 0);
+      const notes = (document.getElementById('manualWaNotes')?.value || '').trim();
+
+      if (participants.length !== qty) {
+        showToast(`Mohon lengkapi ${qty} nama peserta terlebih dahulu.`);
+        return;
+      }
+      if (phone.replace(/[^0-9]/g, '').length < 8) {
+        showToast('Nomor WhatsApp pembeli wajib diisi minimal 8 digit.');
+        return;
+      }
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Menyimpan & Membuat QR...';
+      }
+
+      try {
+        const res = await adminFetch('/api/nobar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'admin_create_manual_order',
+            tier,
+            qty,
+            participants,
+            customerName: participants[0],
+            phone,
+            email,
+            sendEmail,
+            polaroidQty,
+            notes
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal mendaftarkan peserta via WhatsApp');
+
+        closeNobarManualWaModal();
+        showToast(data.message || 'Peserta berhasil didaftarkan & QR siap dikirim!');
+        await loadAdminNobar();
+        showAdminEticketQrModal({
+          orderId: data.orderId,
+          ticketToken: data.ticketToken,
+          qrCodeDataUrl: data.qrCodeDataUrl,
+          ticketDetails: data.ticketDetails
+        });
+      } catch (err) {
+        showToast('Error: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = origText;
+        }
+      }
+    }
+
+    async function openAdminNobarQrModal(orderId) {
+      if (!orderId) return;
+      try {
+        showToast('Memuat E-Tiket QR...');
+        const res = await adminFetch('/api/nobar?qr_order_id=' + encodeURIComponent(orderId));
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal memuat E-Tiket QR');
+        showAdminEticketQrModal(data);
+      } catch (err) {
+        showToast('Error: ' + err.message);
+      }
+    }
+
+    function showAdminEticketQrModal(payload) {
+      if (!payload || !payload.qrCodeDataUrl) return;
+      currentAdminEticketPayload = payload;
+      const d = payload.ticketDetails || {};
+      const isVip = d.tier === 'vip';
+
+      const card = document.getElementById('eticketPreviewCard');
+      if (card) {
+        card.style.background = isVip
+          ? 'linear-gradient(160deg,#520c56 0%,#27042b 58%,#050206 100%)'
+          : 'linear-gradient(160deg,#062a63 0%,#04143b 65%,#03091f 100%)';
+        card.style.borderColor = isVip ? 'rgba(216,180,254,0.6)' : 'rgba(56,189,248,0.52)';
+      }
+
+      const srcBadge = document.getElementById('eticketSourceBadge');
+      if (srcBadge) srcBadge.style.display = d.registrationSource === 'whatsapp_manual' ? 'inline-block' : 'none';
+
+      const evTitleEl = document.getElementById('eticketEventTitle');
+      if (evTitleEl) evTitleEl.textContent = d.eventTitle || 'Nobar Bioskop Aika Sesilia';
+      const movieSubEl = document.getElementById('eticketMovieSub');
+      if (movieSubEl) movieSubEl.textContent = d.movieTitle ? `🎬 ${d.movieTitle}` : '';
+      const qrImg = document.getElementById('eticketQrImg');
+      if (qrImg) qrImg.src = payload.qrCodeDataUrl;
+      const oidEl = document.getElementById('eticketOrderId');
+      if (oidEl) oidEl.textContent = '#' + (payload.orderId || d.orderId || '');
+      const tierQtyEl = document.getElementById('eticketTierQty');
+      if (tierQtyEl) tierQtyEl.textContent = `${d.shortLabel || d.tierLabel || 'Tiket Nobar'} (${d.qty || 1} Kursi)`;
+      const partsEl = document.getElementById('eticketParticipants');
+      if (partsEl) partsEl.textContent = (d.participants || [d.customerName || '-']).join(', ');
+      const schedEl = document.getElementById('eticketSchedule');
+      if (schedEl) schedEl.textContent = [d.eventDate, d.eventTime].filter(Boolean).join(' • ') || '-';
+      const locEl = document.getElementById('eticketLocation');
+      if (locEl) locEl.textContent = d.cinemaLocation || '-';
+
+      const extras = [];
+      if (d.includesMerch) extras.push(d.tier === 'vip' ? '2 Photocard & Poster Eksklusif' : '2 Photocard Eksklusif');
+      if ((parseInt(d.polaroidQty, 10) || 0) > 0) extras.push(`${parseInt(d.polaroidQty, 10)}x Foto Polaroid`);
+      const extrasRow = document.getElementById('eticketExtrasRow');
+      const extrasEl = document.getElementById('eticketExtras');
+      if (extrasRow && extrasEl) {
+        if (extras.length) {
+          extrasRow.style.display = 'flex';
+          extrasEl.textContent = extras.join(' + ');
+        } else {
+          extrasRow.style.display = 'none';
+        }
+      }
+
+      const totEl = document.getElementById('eticketTotal');
+      if (totEl) totEl.textContent = formatPrice(d.total || 0);
+
+      const waBtn = document.getElementById('btnEticketSendWa');
+      if (waBtn) {
+        waBtn.disabled = !normalizeAdminWaNumber(d.phone);
+      }
+
+      document.getElementById('nobarEticketQrModal')?.classList.add('show');
+    }
+
+    function closeAdminNobarQrModal() {
+      document.getElementById('nobarEticketQrModal')?.classList.remove('show');
+    }
+
+    function buildAdminBuyerWaMessage(payload) {
+      const d = (payload && payload.ticketDetails) || {};
+      const oid = payload.orderId || d.orderId || '';
+      const firstName = (d.participants && d.participants[0]) || d.customerName || 'Kak';
+      const partsStr = (d.participants || [firstName]).map((p, i) => `${i + 1}. ${p}`).join('\n');
+      const extras = [];
+      if (d.includesMerch) extras.push(d.tier === 'vip' ? '2 Photocard & Poster Eksklusif (Ambil di Lokasi)' : '2 Photocard Eksklusif (Ambil di Lokasi)');
+      if ((parseInt(d.polaroidQty, 10) || 0) > 0) extras.push(`${parseInt(d.polaroidQty, 10)}x Foto Polaroid`);
+      return (
+        `Halo Kak ${firstName}! Pembayaran Tiket Nobar Anda sudah terkonfirmasi LUNAS ✅\n\n` +
+        `🎟️ *E-TIKET RESMI NOBAR BIOSKOP*\n` +
+        `• No. Invoice: *#${oid}*\n` +
+        `• Event: ${d.eventTitle || 'Nobar Bioskop Aika Sesilia'}${d.movieTitle ? ` (${d.movieTitle})` : ''}\n` +
+        `• Kategori: *${d.shortLabel || d.tierLabel || 'Tiket Nobar'}* (${d.qty || 1} Kursi)\n` +
+        `• Daftar Peserta:\n${partsStr}\n` +
+        `• Jadwal: ${[d.eventDate, d.eventTime].filter(Boolean).join(' • ') || '-'}\n` +
+        `• Lokasi: ${d.cinemaLocation || '-'}\n` +
+        (extras.length ? `• Bonus / Add-on: ${extras.join(' + ')}\n` : '') +
+        `• Total Lunas: *${formatPrice(d.total || 0)}*\n\n` +
+        `Simpan gambar *QR Code E-Tiket* yang saya kirim ini dan tunjukkan ke panitia saat check-in di bioskop ya! Sampai jumpa di acara~`
+      );
+    }
+
+    function openBuyerWaFromEticketModal() {
+      if (!currentAdminEticketPayload) return;
+      const d = currentAdminEticketPayload.ticketDetails || {};
+      const wa62 = normalizeAdminWaNumber(d.phone);
+      if (!wa62) {
+        showToast('Nomor WhatsApp pembeli belum tersedia.');
+        return;
+      }
+      const text = buildAdminBuyerWaMessage(currentAdminEticketPayload);
+      window.open(`https://wa.me/${wa62}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+    }
+
+    async function copyBuyerWaMessageFromEticketModal() {
+      if (!currentAdminEticketPayload) return;
+      const text = buildAdminBuyerWaMessage(currentAdminEticketPayload);
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('Pesan konfirmasi WA berhasil disalin!');
+      } catch (_) {
+        showToast('Gagal menyalin otomatis. Silakan gunakan tombol Buka Chat WA.');
+      }
+    }
+
+    function downloadAdminPlainQrPng() {
+      if (!currentAdminEticketPayload || !currentAdminEticketPayload.qrCodeDataUrl) return;
+      const oid = currentAdminEticketPayload.orderId || 'eticket';
+      const a = document.createElement('a');
+      a.href = currentAdminEticketPayload.qrCodeDataUrl;
+      a.download = `QR-NOBAR-${oid}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast(`QR polos #${oid} berhasil diunduh!`);
+    }
+
+    function downloadAdminEticketCardPng() {
+      if (!currentAdminEticketPayload || !currentAdminEticketPayload.qrCodeDataUrl) return;
+      const payload = currentAdminEticketPayload;
+      const d = payload.ticketDetails || {};
+      const oid = payload.orderId || d.orderId || 'NOBAR';
+      const isVip = d.tier === 'vip';
+
+      const qrImg = new Image();
+      qrImg.onload = () => {
+        const W = 900;
+        const participants = Array.isArray(d.participants) && d.participants.length ? d.participants : [d.customerName || 'Peserta'];
+        const extras = [];
+        if (d.includesMerch) extras.push(isVip ? '2 Photocard & Poster Eksklusif' : '2 Photocard Eksklusif');
+        if ((parseInt(d.polaroidQty, 10) || 0) > 0) extras.push(`${parseInt(d.polaroidQty, 10)}x Foto Polaroid`);
+
+        const detailRows = [
+          ['Kategori Tiket', `${d.shortLabel || d.tierLabel || 'Tiket Nobar'} (${d.qty || 1} Kursi)`],
+          ['Peserta', participants.join(', ')],
+          ['Jadwal', [d.eventDate, d.eventTime].filter(Boolean).join(' • ') || '-'],
+          ['Lokasi', d.cinemaLocation || '-']
+        ];
+        if (extras.length) detailRows.push(['Bonus / Add-on', extras.join(' + ')]);
+        detailRows.push(['Total Lunas', formatPrice(d.total || 0)]);
+
+        const H = 980 + detailRows.length * 54;
+        const canvas = document.createElement('canvas');
+        canvas.width = W;
+        canvas.height = H;
+        const ctx = canvas.getContext('2d');
+
+        // Outer dark background
+        const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+        if (isVip) {
+          bgGrad.addColorStop(0, '#520c56');
+          bgGrad.addColorStop(0.55, '#220426');
+          bgGrad.addColorStop(1, '#060208');
+        } else {
+          bgGrad.addColorStop(0, '#073573');
+          bgGrad.addColorStop(0.55, '#041845');
+          bgGrad.addColorStop(1, '#020921');
+        }
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, W, H);
+
+        // Border frame
+        ctx.strokeStyle = isVip ? 'rgba(216,180,254,0.65)' : 'rgba(56,189,248,0.65)';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(24, 24, W - 48, H - 48);
+
+        // Header badge
+        ctx.fillStyle = 'rgba(34,197,94,0.22)';
+        ctx.fillRect(W / 2 - 175, 58, 350, 44);
+        ctx.strokeStyle = 'rgba(74,222,128,0.65)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(W / 2 - 175, 58, 350, 44);
+        ctx.fillStyle = '#4ade80';
+        ctx.font = 'bold 21px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('E-TIKET RESMI • LUNAS', W / 2, 87);
+
+        // Event & Movie title
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 34px sans-serif';
+        ctx.fillText(String(d.eventTitle || 'Nobar Bioskop Aika Sesilia').slice(0, 42), W / 2, 152);
+        if (d.movieTitle) {
+          ctx.fillStyle = isVip ? '#e9d5ff' : '#7dd3fc';
+          ctx.font = '600 24px sans-serif';
+          ctx.fillText(String(d.movieTitle).slice(0, 52), W / 2, 192);
+        }
+
+        // White QR Card Box
+        const qrSize = 400;
+        const qrBoxPad = 28;
+        const boxX = (W - (qrSize + qrBoxPad * 2)) / 2;
+        const boxY = 225;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(boxX, boxY, qrSize + qrBoxPad * 2, qrSize + qrBoxPad * 2);
+        ctx.drawImage(qrImg, boxX + qrBoxPad, boxY + qrBoxPad, qrSize, qrSize);
+
+        // Invoice ID
+        ctx.fillStyle = isVip ? '#f5d0fe' : '#38bdf8';
+        ctx.font = 'bold 34px monospace';
+        ctx.fillText('#' + oid, W / 2, boxY + qrSize + qrBoxPad * 2 + 56);
+
+        // Info panel
+        const panelX = 64;
+        const panelY = boxY + qrSize + qrBoxPad * 2 + 88;
+        const panelW = W - 128;
+        const panelH = detailRows.length * 54 + 44;
+        ctx.fillStyle = 'rgba(3,9,31,0.72)';
+        ctx.fillRect(panelX, panelY, panelW, panelH);
+        ctx.strokeStyle = 'rgba(148,163,184,0.28)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(panelX, panelY, panelW, panelH);
+
+        let curY = panelY + 46;
+        detailRows.forEach(([label, val], idx) => {
+          if (idx > 0) {
+            ctx.strokeStyle = 'rgba(148,163,184,0.16)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(panelX + 24, curY - 34);
+            ctx.lineTo(panelX + panelW - 24, curY - 34);
+            ctx.stroke();
+          }
+          ctx.textAlign = 'left';
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = '600 22px sans-serif';
+          ctx.fillText(label, panelX + 28, curY);
+
+          ctx.textAlign = 'right';
+          ctx.fillStyle = label === 'Total Lunas' ? '#4ade80' : label === 'Bonus / Add-on' ? '#fde047' : '#ffffff';
+          ctx.font = 'bold 22px sans-serif';
+          const strVal = String(val || '-');
+          ctx.fillText(strVal.length > 38 ? strVal.slice(0, 35) + '...' : strVal, panelX + panelW - 28, curY);
+          curY += 54;
+        });
+
+        // Footer
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '500 20px sans-serif';
+        ctx.fillText('Tunjukkan E-Tiket QR ini kepada panitia saat check-in di lokasi bioskop.', W / 2, H - 56);
+
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        link.download = `ETIKET-NOBAR-${oid}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast(`Kartu E-Tiket #${oid} (PNG) berhasil diunduh!`);
+      };
+      qrImg.src = payload.qrCodeDataUrl;
     }
 
     // ── ORDERS ──
@@ -5635,12 +6369,38 @@
         const img = new Image();
         img.onload = () => {
           const canvas = document.getElementById('qrScannerCanvas');
-          canvas.width = img.width;
-          canvas.height = img.height;
           const ctx = canvas.getContext('2d', { willReadFrequently: true });
-          ctx.drawImage(img, 0, 0);
-          const imageData = ctx.getImageData(0, 0, img.width, img.height);
-          const code = window.jsQR(imageData.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
+
+          function tryDecode(sx, sy, sw, sh, dw, dh) {
+            canvas.width = dw;
+            canvas.height = dh;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, dw, dh);
+            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, dw, dh);
+            const imageData = ctx.getImageData(0, 0, dw, dh);
+            return window.jsQR(imageData.data, dw, dh, { inversionAttempts: 'attemptBoth' });
+          }
+
+          // Pass 1: original full image (capped at 1400px for speed/accuracy)
+          const maxDim = Math.max(img.width, img.height);
+          const scale1 = maxDim > 1400 ? 1400 / maxDim : 1;
+          let code = tryDecode(0, 0, img.width, img.height, Math.round(img.width * scale1), Math.round(img.height * scale1));
+
+          // Pass 2: downscaled pass (helps jsQR on large screenshots / E-Ticket cards)
+          if (!code && maxDim > 720) {
+            const scale2 = 720 / maxDim;
+            code = tryDecode(0, 0, img.width, img.height, Math.round(img.width * scale2), Math.round(img.height * scale2));
+          }
+
+          // Pass 3: upper-center crop (targets the QR area inside full E-Ticket PNG cards)
+          if (!code) {
+            const cw = Math.round(img.width * 0.72);
+            const ch = Math.round(img.height * 0.55);
+            const cx = Math.round((img.width - cw) / 2);
+            const cy = Math.round(img.height * 0.12);
+            code = tryDecode(cx, cy, cw, ch, Math.min(cw, 700), Math.min(ch, 700));
+          }
+
           if (code && code.data) {
             handleScannedQrPayload(code.data);
           } else {

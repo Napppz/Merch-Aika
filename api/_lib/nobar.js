@@ -17,7 +17,8 @@ const {
   generateNobarQrToken,
   parseNobarQrScanInput,
   verifyNobarQrToken,
-  generateNobarQrDataUrl
+  generateNobarQrDataUrl,
+  generateNobarQrPngBuffer
 } = require('./nobar-qr');
 
 const LEGACY_EVENT_ID = 'nobar-event-1';
@@ -33,6 +34,7 @@ const DEFAULT_NOBAR_CONFIG = {
   eventTime: 'Segera Diumumkan',
   cinemaLocation: 'Bioskop (Lokasi detail segera diumumkan)',
   cinemaMapsUrl: 'https://maps.app.goo.gl/7yF59NSdjGyyNP6X9',
+  whatsappNumber: '6285777149410',
   bannerImage: '/images/Profil/charlotta-seo.jpg',
   eventNotes:
     'Pengambilan tiket fisik & nomor kursi dilakukan langsung saat registrasi ulang di lokasi bioskop (siapa cepat datang, dapat pilihan kursi lebih dulu). Untuk pembeli paket Merch, 2 Photocard Eksklusif diambil langsung di lokasi tanpa ongkir.',
@@ -78,6 +80,21 @@ function sanitizeMapsUrl(rawUrl) {
   return DEFAULT_NOBAR_CONFIG.cinemaMapsUrl;
 }
 
+function sanitizeWhatsappNumber(rawPhone) {
+  const digits = String(rawPhone || '').replace(/[^0-9]/g, '');
+  if (!digits) return DEFAULT_NOBAR_CONFIG.whatsappNumber;
+  let normalized = digits;
+  if (normalized.startsWith('0')) {
+    normalized = '62' + normalized.slice(1);
+  } else if (normalized.startsWith('8')) {
+    normalized = '62' + normalized;
+  }
+  if (normalized.length < 9 || normalized.length > 16) {
+    return DEFAULT_NOBAR_CONFIG.whatsappNumber;
+  }
+  return normalized;
+}
+
 function generateNobarEventId(seedTitle = '') {
   const slug = String(seedTitle || '')
     .toLowerCase()
@@ -110,6 +127,7 @@ function sanitizeNobarConfig(raw = {}) {
     eventTime: String(src.eventTime || DEFAULT_NOBAR_CONFIG.eventTime).trim().slice(0, 100),
     cinemaLocation: String(src.cinemaLocation || DEFAULT_NOBAR_CONFIG.cinemaLocation).trim().slice(0, 200),
     cinemaMapsUrl: sanitizeMapsUrl(src.cinemaMapsUrl),
+    whatsappNumber: sanitizeWhatsappNumber(src.whatsappNumber),
     bannerImage: String(src.bannerImage || DEFAULT_NOBAR_CONFIG.bannerImage).trim(),
     eventNotes: String(src.eventNotes || DEFAULT_NOBAR_CONFIG.eventNotes).trim().slice(0, 800),
     vipQuota: Math.max(1, Math.min(20, parseInt(src.vipQuota, 10) || DEFAULT_NOBAR_CONFIG.vipQuota)),
@@ -360,6 +378,12 @@ async function computeNobarStats(runner = db, config = DEFAULT_NOBAR_CONFIG, cur
       checkedInBy: ticket.checkedInBy || null,
       merchClaimed: Boolean(ticket.merchClaimed),
       merchClaimedAt: ticket.merchClaimedAt || null,
+      registrationSource: ticket.registrationSource || 'website',
+      registeredByAdmin: ticket.registeredByAdmin || null,
+      movieTitle: (ticket.eventSnapshot && ticket.eventSnapshot.movieTitle) || config.movieTitle || '',
+      eventDate: (ticket.eventSnapshot && ticket.eventSnapshot.eventDate) || config.eventDate || '',
+      eventTime: (ticket.eventSnapshot && ticket.eventSnapshot.eventTime) || config.eventTime || '',
+      cinemaLocation: (ticket.eventSnapshot && ticket.eventSnapshot.cinemaLocation) || config.cinemaLocation || '',
       date: row.date
     });
   }
@@ -521,7 +545,7 @@ module.exports = async function handler(req, res) {
       const qrOrderId = req.query && req.query.qr_order_id ? String(req.query.qr_order_id).trim() : '';
       if (qrOrderId) {
         const orderRes = await db.query(
-          'SELECT id, email, status, shipping FROM orders WHERE UPPER(id) = $1',
+          'SELECT id, "customerName", email, phone, status, total, shipping, date FROM orders WHERE UPPER(id) = $1',
           [qrOrderId.toUpperCase()]
         );
         if (!orderRes.rows.length) {
@@ -540,13 +564,42 @@ module.exports = async function handler(req, res) {
         if (!['paid', 'shipped', 'completed'].includes(st)) {
           return res.status(409).json({ error: 'E-Tiket QR Code baru aktif setelah pembayaran diverifikasi Admin.' });
         }
-        const token = ship.nobarTicket.ticketToken || generateNobarQrToken(row.id, row.email);
+        const nb = ship.nobarTicket;
+        const snap = nb.eventSnapshot || {};
+        const token = nb.ticketToken || generateNobarQrToken(row.id, row.email);
         const qrCodeDataUrl = await generateNobarQrDataUrl(token);
         return res.status(200).json({
           orderId: row.id,
           ticketToken: token,
           qrCodeDataUrl,
-          checkedIn: st === 'completed' || Boolean(ship.nobarTicket.checkedIn)
+          checkedIn: st === 'completed' || Boolean(nb.checkedIn),
+          ticketDetails: {
+            orderId: row.id,
+            customerName: row.customerName || '',
+            email: row.email || '',
+            phone: row.phone || '',
+            status: row.status,
+            total: Number(row.total) || 0,
+            tier: nb.tier || 'regular',
+            tierLabel: nb.tierLabel || (TIER_DEFINITIONS[nb.tier] ? TIER_DEFINITIONS[nb.tier].label : 'Tiket Nobar'),
+            shortLabel: nb.shortLabel || (TIER_DEFINITIONS[nb.tier] ? TIER_DEFINITIONS[nb.tier].shortLabel : 'Nobar'),
+            qty: Math.max(1, parseInt(nb.qty, 10) || 1),
+            participants: Array.isArray(nb.participants) && nb.participants.length ? nb.participants : [row.customerName || 'Peserta'],
+            includesMerch: Boolean(nb.includesMerch),
+            merchBundle: nb.merchBundle || '',
+            polaroidQty: Math.max(0, parseInt(nb.polaroidQty, 10) || 0),
+            polaroidTotal: Number(nb.polaroidTotal) || 0,
+            registrationSource: nb.registrationSource || 'website',
+            registeredByAdmin: nb.registeredByAdmin || null,
+            eventTitle: snap.eventTitle || config.eventTitle || 'Nobar Bioskop Aika Sesilia',
+            movieTitle: snap.movieTitle || config.movieTitle || '',
+            eventDate: snap.eventDate || config.eventDate || '',
+            eventTime: snap.eventTime || config.eventTime || '',
+            cinemaLocation: snap.cinemaLocation || config.cinemaLocation || '',
+            checkedIn: st === 'completed' || Boolean(nb.checkedIn),
+            merchClaimed: Boolean(nb.merchClaimed),
+            date: row.date
+          }
         });
       }
 
@@ -918,6 +971,309 @@ module.exports = async function handler(req, res) {
         return res.status(200).json({
           success: true,
           message: `Arsip "${outcome.title}" berhasil dihapus${outcome.deletedOrders > 0 ? ` beserta ${outcome.deletedOrders} pesanan tiketnya` : ''}.`
+        });
+      }
+
+      // ── ADMIN ACTION 0.5: MANUAL WHATSAPP REGISTRATION (NO USER LOGIN REQUIRED) ──
+      if (action === 'admin_create_manual_order') {
+        const adminUser = requireAdmin(req, res);
+        if (!adminUser) return;
+
+        const tier = String(body.tier || '').trim().toLowerCase();
+        if (!TIER_DEFINITIONS[tier]) {
+          return res.status(400).json({ error: 'Kategori tiket tidak valid. Pilih VIP, Reguler, atau Reguler+.' });
+        }
+
+        const rawParticipants = Array.isArray(body.participants) ? body.participants : [];
+        const cleanParticipants = rawParticipants
+          .map(p => String(p || '').trim().slice(0, 100))
+          .filter(Boolean);
+        const qty = Math.max(1, parseInt(body.qty, 10) || cleanParticipants.length || 1);
+
+        if (tier === 'vip' && qty !== 1) {
+          return res.status(400).json({ error: 'Tiket VIP hanya boleh 1 tiket per transaksi peserta.' });
+        }
+        if (cleanParticipants.length !== qty) {
+          return res.status(400).json({ error: `Mohon isi lengkap ${qty} nama peserta (1 nama per tiket).` });
+        }
+
+        const cleanPhone = String(body.phone || '').trim().slice(0, 40);
+        const phoneDigits = cleanPhone.replace(/[^0-9]/g, '');
+        if (phoneDigits.length < 8) {
+          return res.status(400).json({ error: 'Nomor WhatsApp pembeli wajib diisi dengan benar (minimal 8 digit).' });
+        }
+
+        const rawEmail = String(body.email || '').trim().toLowerCase().slice(0, 160);
+        const hasRealEmail = Boolean(rawEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail));
+        if (rawEmail && !hasRealEmail) {
+          return res.status(400).json({ error: 'Format email tidak valid. Kosongkan jika peserta tidak menyertakan email.' });
+        }
+
+        const buyerName = String(body.customerName || cleanParticipants[0] || 'Peserta WA').trim().slice(0, 120);
+        const normalizedPhoneKey = sanitizeWhatsappNumber(phoneDigits);
+        const storedEmail = hasRealEmail ? rawEmail : `wa-${normalizedPhoneKey}@nobar.manual`;
+        const cleanNotes = String(body.notes || 'Daftar manual via WhatsApp (Lunas QRIS dikonfirmasi Admin)').trim().slice(0, 500);
+        const requestedPolaroidQty = Math.max(0, parseInt(body.polaroidQty, 10) || 0);
+        const sendEmailIfAvailable = Boolean(body.sendEmail) && hasRealEmail;
+        const adminActor = adminUser.username || adminUser.name || 'Admin';
+
+        const createdManual = await db.withTransaction(async (client) => {
+          await client.query("SELECT pg_advisory_xact_lock(hashtext('nobar:ticket_booking'))");
+
+          const config = await getNobarConfig(client);
+          await expireStalePendingOrders({ maxNobarMinutes: config.paymentTimeoutMinutes, runner: client });
+
+          const maxManualQty = Math.max(config.maxRegularPerOrder || 5, 20);
+          if (tier !== 'vip' && qty > maxManualQty) {
+            throw createHttpError(400, `Maksimal ${maxManualQty} tiket per input manual.`);
+          }
+
+          const polaroidQty = config.polaroidEnabled === false ? 0 : requestedPolaroidQty;
+          const maxPolaroid = Math.max(1, parseInt(config.maxPolaroidPerOrder, 10) || 10);
+          if (polaroidQty > maxPolaroid) {
+            throw createHttpError(400, `Maksimal tambahan Foto Polaroid adalah ${maxPolaroid} foto per transaksi.`);
+          }
+
+          const { stats } = await computeNobarStats(client, config, null, { eventId: config.eventId });
+          if (tier === 'vip') {
+            if (stats.vipRemaining < qty) {
+              throw createHttpError(409, 'Kuota Tiket VIP sudah penuh! Tidak ada slot VIP tersisa.');
+            }
+          } else if (stats.regularRemaining < qty) {
+            throw createHttpError(
+              409,
+              stats.regularRemaining <= 0
+                ? 'Kuota kursi Reguler sudah habis terjual!'
+                : `Sisa kuota kursi Reguler tidak mencukupi (tersisa ${stats.regularRemaining} kursi).`
+            );
+          }
+
+          const unitPrice = tier === 'vip'
+            ? config.priceVip
+            : tier === 'regular_merch'
+              ? config.priceRegularMerch
+              : config.priceRegular;
+          const ticketSubtotal = unitPrice * qty;
+          const polaroidUnitPrice = config.pricePolaroid || 60000;
+          const polaroidTotal = polaroidQty > 0 ? polaroidUnitPrice * polaroidQty : 0;
+          const verifiedTotal = ticketSubtotal + polaroidTotal;
+
+          const tierMeta = TIER_DEFINITIONS[tier];
+          const includesMerch = tierMeta.includesMerch;
+          const merchBundle = includesMerch
+            ? (tier === 'vip' ? '2 Photocard dan Poster Eksklusif Aika Sesilia (Ambil di Lokasi)' : config.merchBundleDesc)
+            : '';
+
+          const orderId = await generateDailyInvoiceId(client);
+          const ticketToken = generateNobarQrToken(orderId, storedEmail);
+          const nowIso = new Date().toISOString();
+
+          const itemObj = {
+            id: `nobar-${tier}`,
+            name: `${config.eventTitle} — ${tierMeta.label}`,
+            price: unitPrice,
+            qty,
+            category: 'Tiket Nobar',
+            is_nobar: true,
+            tier,
+            participants: cleanParticipants,
+            includesMerch,
+            merchBundle
+          };
+
+          const itemsList = [itemObj];
+          if (polaroidQty > 0) {
+            itemsList.push({
+              id: 'nobar-addon-polaroid',
+              name: 'Tambahan Foto Polaroid (Event Nobar)',
+              price: polaroidUnitPrice,
+              qty: polaroidQty,
+              category: 'Add-on Nobar',
+              is_nobar_addon: true
+            });
+          }
+
+          const shipObj = {
+            name: includesMerch
+              ? (tier === 'vip'
+                ? 'Ambil Tiket & Merch (2 Photocard dan Poster Eksklusif) di Lokasi Bioskop'
+                : 'Ambil Tiket & Merch (2 Photocard Eksklusif) di Lokasi Bioskop')
+              : 'Ambil Tiket di Lokasi Bioskop Saat Event',
+            price: 0,
+            paymentScheme: 'full',
+            isDp: false,
+            isNobar: true,
+            nobarTicket: {
+              eventId: config.eventId || LEGACY_EVENT_ID,
+              tier,
+              tierLabel: tierMeta.label,
+              shortLabel: tierMeta.shortLabel,
+              qty,
+              unitPrice,
+              ticketSubtotal,
+              polaroidQty,
+              polaroidUnitPrice,
+              polaroidTotal,
+              participants: cleanParticipants,
+              includesMerch,
+              merchBundle,
+              ticketToken,
+              registrationSource: 'whatsapp_manual',
+              registeredByAdmin: adminActor,
+              verifiedAt: nowIso,
+              seatRule:
+                tier === 'vip'
+                  ? 'Kursi VIP di samping Kak Aika (2 pembeli pertama yang pembayarannya diverifikasi Admin)'
+                  : 'Ambil kursi saat event berlangsung di lokasi (siapa cepat dia dapat)',
+              eventSnapshot: {
+                eventId: config.eventId || LEGACY_EVENT_ID,
+                eventTitle: config.eventTitle,
+                movieTitle: config.movieTitle,
+                eventDate: config.eventDate,
+                eventTime: config.eventTime,
+                cinemaLocation: config.cinemaLocation
+              }
+            }
+          };
+
+          const addressDisplay = `Lokasi Nobar: ${config.cinemaLocation} | Peserta (${qty}): ${cleanParticipants.join(', ')}${polaroidQty > 0 ? ` | Add-on: ${polaroidQty}x Foto Polaroid` : ''} | Daftar via WA`;
+
+          const insertRes = await client.query(
+            `INSERT INTO orders (
+               id, "customerName", email, address, status, total, items, shipping, notes, phone, payment_proof, date, updated_at
+             )
+             VALUES ($1, $2, $3, $4, 'paid', $5, $6, $7, $8, $9, NULL, NOW(), NOW())
+             RETURNING *`,
+            [
+              orderId,
+              buyerName,
+              storedEmail,
+              addressDisplay,
+              verifiedTotal,
+              JSON.stringify(itemsList),
+              JSON.stringify(shipObj),
+              cleanNotes || null,
+              cleanPhone
+            ]
+          );
+
+          const polaroidNoteSuffix = polaroidQty > 0 ? ` + ${polaroidQty}x Foto Polaroid` : '';
+          await recordOrderStatusHistory(client, {
+            orderId,
+            fromStatus: null,
+            toStatus: 'paid',
+            actorType: 'admin',
+            actorName: adminActor,
+            note: `Pendaftaran manual via WhatsApp (${qty}x ${tierMeta.label}${polaroidNoteSuffix}: ${cleanParticipants.join(', ')}) — Pembayaran QRIS dikonfirmasi Lunas oleh ${adminActor}`
+          });
+
+          return {
+            order: insertRes.rows[0],
+            config,
+            tierMeta,
+            ticketToken,
+            verifiedTotal,
+            includesMerch,
+            merchBundle,
+            polaroidQty,
+            polaroidTotal
+          };
+        });
+
+        const qrCodeDataUrl = await generateNobarQrDataUrl(createdManual.ticketToken);
+
+        const isDummyEmail =
+          !hasRealEmail ||
+          rawEmail.endsWith('@example.com') ||
+          rawEmail.endsWith('.local') ||
+          rawEmail.endsWith('@test.com');
+        const isTestEnv = process.env.NODE_ENV === 'test' || Boolean(req.headers && req.headers['x-test-suite']);
+
+        if (sendEmailIfAvailable && !isDummyEmail && !isTestEnv) {
+          const { order, config, tierMeta, ticketToken, verifiedTotal, includesMerch, merchBundle, polaroidQty, polaroidTotal } = createdManual;
+          const safeName = escapeHtml(buyerName);
+          const safeOrderId = escapeHtml(order.id);
+          const safeTier = escapeHtml(tierMeta.label);
+          const safeParticipants = cleanParticipants.map((p, idx) => `${idx + 1}. ${escapeHtml(p)}`).join('<br/>');
+          const polaroidLine = polaroidQty > 0
+            ? `<p style="margin:0 0 6px 0;"><strong>Tambahan Foto Polaroid:</strong> ${polaroidQty} Foto (Rp ${polaroidTotal.toLocaleString('id-ID')})</p>`
+            : '';
+
+          await dispatchBackgroundTask(async () => {
+            const transporter = env.createMailTransport();
+            const emailUser = getRequiredEnv('EMAIL_USER');
+            const qrPngBuffer = await generateNobarQrPngBuffer(ticketToken);
+            const attachments = qrPngBuffer
+              ? [{ filename: `eticket-nobar-${order.id}.png`, content: qrPngBuffer, cid: 'nobar-ticket-qr' }]
+              : [];
+            await transporter.sendMail({
+              from: `"Aika Sesilia" <${emailUser}>`,
+              to: rawEmail,
+              replyTo: emailUser,
+              subject: `[Aika Sesilia] E-Tiket QR Nobar Bioskop #${order.id} — LUNAS`,
+              html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1e293b; max-width: 580px;">
+                  <h2 style="color: #0284c7;">Halo, ${safeName}!</h2>
+                  <p>Pendaftaran <strong>Tiket Nobar Bioskop</strong> Anda via WhatsApp telah dikonfirmasi <strong>LUNAS</strong> oleh Admin. Berikut adalah <strong>E-Tiket QR Resmi</strong> Anda:</p>
+                  <div style="background:#f0f9ff; border:2px solid #0284c7; border-radius:12px; padding:1.25rem; margin:1.2rem 0; text-align:center;">
+                    <h3 style="margin:0 0 0.5rem 0; color:#0f172a; font-size:1rem;">📱 QR CODE E-TIKET CHECK-IN</h3>
+                    ${qrPngBuffer ? `<img src="cid:nobar-ticket-qr" alt="QR E-Tiket ${safeOrderId}" width="210" height="210" style="display:inline-block; border-radius:8px; border:6px solid #ffffff; box-shadow:0 4px 14px rgba(2,132,199,0.2);" />` : ''}
+                    <div style="margin-top:0.65rem; font-family:monospace; font-size:0.95rem; font-weight:bold; color:#0369a1;">#${safeOrderId}</div>
+                  </div>
+                  <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:1rem; margin:1rem 0;">
+                    <p style="margin:0 0 6px 0;"><strong>Event:</strong> ${escapeHtml(config.eventTitle)} (${escapeHtml(config.movieTitle)})</p>
+                    <p style="margin:0 0 6px 0;"><strong>Jadwal:</strong> ${escapeHtml(config.eventDate)} • ${escapeHtml(config.eventTime)}</p>
+                    <p style="margin:0 0 6px 0;"><strong>Lokasi:</strong> ${escapeHtml(config.cinemaLocation)}</p>
+                    <p style="margin:0 0 6px 0;"><strong>Kategori Tiket:</strong> ${safeTier} (&times;${qty})</p>
+                    <p style="margin:0 0 6px 0;"><strong>Daftar Peserta:</strong><br/>${safeParticipants}</p>
+                    ${includesMerch ? `<p style="margin:0 0 6px 0;"><strong>Paket Merch:</strong> ${escapeHtml(merchBundle)}</p>` : ''}
+                    ${polaroidLine}
+                    <p style="margin:6px 0 0 0; color:#0284c7; font-size:1.05rem;"><strong>Total Lunas: Rp ${verifiedTotal.toLocaleString('id-ID')}</strong></p>
+                  </div>
+                  <p>Tunjukkan QR Code E-Tiket ini kepada panitia saat check-in di lokasi bioskop. Sampai jumpa di acara!</p>
+                  <p>Salam hangat,<br/><strong>Aika Sesilia</strong></p>
+                </div>
+              `,
+              attachments
+            });
+          }, 'nobar-manual-wa-eticket-email');
+        }
+
+        const { order, config, tierMeta, ticketToken, verifiedTotal, includesMerch, merchBundle, polaroidQty, polaroidTotal } = createdManual;
+        return res.status(201).json({
+          success: true,
+          message: `Peserta via WhatsApp (#${order.id}) berhasil didaftarkan & E-Tiket QR siap dikirim!`,
+          orderId: order.id,
+          ticketToken,
+          qrCodeDataUrl,
+          emailSent: Boolean(sendEmailIfAvailable && !isDummyEmail && !isTestEnv),
+          ticketDetails: {
+            orderId: order.id,
+            customerName: buyerName,
+            email: storedEmail,
+            phone: cleanPhone,
+            status: 'paid',
+            total: verifiedTotal,
+            tier,
+            tierLabel: tierMeta.label,
+            shortLabel: tierMeta.shortLabel,
+            qty,
+            participants: cleanParticipants,
+            includesMerch,
+            merchBundle,
+            polaroidQty,
+            polaroidTotal,
+            registrationSource: 'whatsapp_manual',
+            registeredByAdmin: adminActor,
+            eventTitle: config.eventTitle,
+            movieTitle: config.movieTitle,
+            eventDate: config.eventDate,
+            eventTime: config.eventTime,
+            cinemaLocation: config.cinemaLocation,
+            checkedIn: false,
+            merchClaimed: false,
+            date: order.date
+          }
         });
       }
 
